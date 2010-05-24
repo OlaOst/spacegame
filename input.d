@@ -71,8 +71,11 @@ public:
   
   void pollEvents()
   {
+    clearEvents();
+    
     SDL_Event event;
     
+    // TODO: idiot check to make sure this doesn't go in infinite loop
     while (SDL_PollEvent(&event))    
     {
       receiveEvent(event);
