@@ -82,6 +82,11 @@ public:
     }
   }
   
+  int[Event] events()
+  {
+    return m_events;
+  }
+  
   bool hasEvent(const Event p_event)
   {
     return m_events.get(p_event, 0) > 0;

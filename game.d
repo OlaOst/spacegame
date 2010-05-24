@@ -1,6 +1,5 @@
 module Game;
 
-import derelict.opengl.gl;
 import derelict.sdl.sdl;
 
 import Display;
@@ -20,7 +19,6 @@ unittest
   }
   assert(game.updateCount == 1);
   
-  assert(game.delta == 0.0);
   {
     SDL_Event upEvent;
     upEvent.type = SDL_KEYDOWN;
@@ -31,7 +29,6 @@ unittest
     game.update();
   }
   assert(game.m_input.hasEvent(Event.UP));
-  assert(game.delta > 0.0);
   
   {
     game.update();
@@ -62,8 +59,6 @@ public:
     m_world = new World();
     
     initDisplay();
-    
-    delta = 0.0;
   }
  
   void run()
@@ -84,15 +79,11 @@ private:
   {
     m_updateCount++;
     
-    draw();
+    m_world.draw();
     swapBuffers();
     
     m_input.pollEvents();
-    
-    if (m_input.hasEvent(Event.UP))
-      delta += 1.0;
-    if (m_input.hasEvent(Event.DOWN))
-      delta -= 1.0;
+    m_world.handleEvents(m_input);
       
     if (m_input.hasEvent(Event.QUIT))
       m_running = false;
@@ -102,23 +93,7 @@ private:
   {
     return m_running;
   }
-    
-    
-  void draw()
-  {
-    glRotatef(delta, 0.0, 0.0, 1.0);
-    
-    glBegin(GL_TRIANGLES);
-      glColor3f(1.0, 0.0, 0.0);
-      glVertex3f(0.0, 1.0, -2.0);
-      
-      glColor3f(0.0, 1.0, 0.0);
-      glVertex3f(-0.87, -0.5, -2.0);
-      
-      glColor3f(0.0, 0.0, 1.0);
-      glVertex3f(0.87, -0.5, -2.0);
-    glEnd();
-  }
+
   
 private:
   int m_updateCount;
@@ -126,6 +101,4 @@ private:
   
   Input m_input;
   World m_world;
-  
-  float delta;
 }
