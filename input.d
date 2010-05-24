@@ -8,7 +8,7 @@ unittest
   Input input = new Input();
 
   // assert that input responds to input
-  assert(input.hasEvent(Event.NOTHING), "Input not cleared on freshly created input");
+  assert(input.countEvents() == 0, "Input not cleared on creation");
   {
     SDL_Event upEvent;
     upEvent.type = SDL_KEYDOWN;
@@ -16,7 +16,8 @@ unittest
     
     input.receiveEvent(upEvent);
   }
-  assert(input.hasEvent(Event.UP), "input didn't respond properly to input");
+  assert(input.countEvents() == 1, "Input didn't register first event at all");
+  assert(input.hasEvent(Event.UP), "Input didn't register first event correctly");
 
   {
     SDL_Event downEvent;
@@ -26,12 +27,15 @@ unittest
     input.receiveEvent(downEvent);
   }
   // TODO: do we need possible multiple inputs in an update? if so assert for UP input too here
-  assert(input.hasEvent(Event.DOWN), "input didn't respond properly to input");
-    
+  assert(input.countEvents() == 2, "Input didn't register second event at all");
+  assert(input.hasEvent(Event.UP), "Input didn't register second event");
+  assert(input.hasEvent(Event.DOWN), "Input lost first event when registering the second");
+  
+
   {
     input.clearEvents();
   }
-  assert(input.hasEvent(Event.NOTHING), "input didn't clear input on request");
+  assert(input.countEvents() == 0, "Input didn't clear events on request");
    
   // TODO: assert that both keyup and keydown events are handled properly
 }
@@ -39,7 +43,6 @@ unittest
 
 enum Event
 {
-  NOTHING,
   QUIT,
   UP, DOWN
 } 
@@ -58,7 +61,7 @@ public:
     switch (event.type)
     {
       case SDL_QUIT:
-        m_event = Event.QUIT;
+        m_events[Event.QUIT]++;
         break;
         
       case SDL_KEYDOWN:
@@ -66,15 +69,15 @@ public:
         switch (event.key.keysym.sym)
         {
           case SDLK_ESCAPE:
-            m_event = Event.QUIT;
+            m_events[Event.QUIT]++;
             break;
             
           case SDLK_DOWN:
-            m_event = Event.DOWN;
+            m_events[Event.DOWN]++;
             break;
             
           case SDLK_UP:
-            m_event = Event.UP;
+            m_events[Event.UP]++;
             break;
             
           default:
@@ -90,15 +93,26 @@ public:
   
   bool hasEvent(const Event p_event)
   {
-    return m_event == p_event;
+    return m_events.get(p_event, 0) > 0;
   }
   
 private:
   void clearEvents()
   {
-    m_event = Event.NOTHING;
+    foreach (event; m_events.keys)
+      m_events[event] = 0;
   }
   
-private: 
-  Event m_event;
+  int countEvents()
+  {
+    int eventCount = 0;
+    
+    foreach (event; m_events.keys)
+      eventCount += m_events[event];
+      
+    return eventCount;
+  }
+  
+private:  
+  int[Event] m_events;
 }
