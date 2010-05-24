@@ -1,45 +1,18 @@
 module test;
 
-import std.conv;
-import std.stdio;
-import std.string;
-
 import derelict.sdl.sdl;
 import derelict.opengl.gl;
 import derelict.opengl.glu;
-import derelict.opengl.extloader;
 
+import Display;
 import Game;
-
-void setupGL()
-{
-  glMatrixMode(GL_PROJECTION);
-  
-  glLoadIdentity();
-  
-  gluPerspective(90.0, 800.0 / 600.0, 0.1, 100.0);
-  
-  glMatrixMode(GL_MODELVIEW);
-  
-  glLoadIdentity();
-  
-  
-  //glCreateShader(GL_VERTEX_SHADER);
-  
-  //string[] sources = ["return;"];
-  
-  //glShaderSource(shaderid, 1, sources, null);
-}
-
-
-
 
 
 void main()
 {
   Game game = new Game();
   
-  init();
+  initDisplay();
 
   SDL_Event event;
 

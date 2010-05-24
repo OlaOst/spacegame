@@ -1,5 +1,9 @@
 module Display;
 
+import std.conv;
+import std.stdio;
+import std.string;
+
 import derelict.sdl.sdl;
 import derelict.opengl.gl;
 import derelict.opengl.glu;
@@ -19,9 +23,9 @@ void initDisplay()
   
   DerelictGL.loadExtensions();
   
-  debug writeln("OpenGL version: " ~ to!string(glGetString(GL_VERSION)));
-  debug writeln("OpenGL renderer: " ~ to!string(glGetString(GL_RENDERER)));
-  debug writeln("OpenGL vendor: " ~ to!string(glGetString(GL_VENDOR)));
+  //debug writeln("OpenGL version: " ~ to!string(glGetString(GL_VERSION)));
+  //debug writeln("OpenGL renderer: " ~ to!string(glGetString(GL_RENDERER)));
+  //debug writeln("OpenGL vendor: " ~ to!string(glGetString(GL_VENDOR)));
   //debug writeln("Extensions: " ~ to!string(glGetString(GL_EXTENSIONS)));
   
   //auto shader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -40,7 +44,6 @@ void setupGL()
   glMatrixMode(GL_MODELVIEW);
   
   glLoadIdentity();
-  
   
   //glCreateShader(GL_VERTEX_SHADER);
   
