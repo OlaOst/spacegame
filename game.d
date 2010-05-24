@@ -24,7 +24,8 @@ unittest
     SDL_Event quitEvent;
     quitEvent.type = SDL_QUIT;
     
-    game.m_input.receiveEvent(quitEvent);
+    SDL_PushEvent(&quitEvent);
+
     game.update();
   }
   assert(!game.running, "Game didn't respond properly to quit event");

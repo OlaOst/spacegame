@@ -38,6 +38,19 @@ unittest
   assert(input.countEvents() == 0, "Input didn't clear events on request");
    
   // TODO: assert that both keyup and keydown events are handled properly
+  
+  {
+    SDL_Event nadaEvent;
+    input.receiveEvent(nadaEvent);
+  }
+  assert(input.countEvents() == 0, "Input registered an empty event");
+  
+  {
+    SDL_Event nadaKeyEvent;
+    nadaKeyEvent.type = SDL_KEYDOWN;
+    input.receiveEvent(nadaKeyEvent);
+  }
+  assert(input.countEvents() == 0, "Input registered an empty event");
 }
 
 
@@ -66,6 +79,12 @@ public:
     }
   }
   
+  bool hasEvent(const Event p_event)
+  {
+    return m_events.get(p_event, 0) > 0;
+  }
+  
+private:
   void receiveEvent(SDL_Event event)
   {
     switch (event.type)
@@ -99,14 +118,8 @@ public:
       default:
         break;
     }
-  }
+  }   
   
-  bool hasEvent(const Event p_event)
-  {
-    return m_events.get(p_event, 0) > 0;
-  }
-  
-private:
   void clearEvents()
   {
     foreach (event; m_events.keys)
