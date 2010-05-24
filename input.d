@@ -56,6 +56,16 @@ public:
     clearEvents();
   }
   
+  void pollEvents()
+  {
+    SDL_Event event;
+    
+    while (SDL_PollEvent(&event))    
+    {
+      receiveEvent(event);
+    }
+  }
+  
   void receiveEvent(SDL_Event event)
   {
     switch (event.type)

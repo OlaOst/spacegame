@@ -44,6 +44,13 @@ public:
     initDisplay();
   }
  
+  void run()
+  {
+    while (m_running)
+    {
+      update();
+    }
+  }
   
 private:
   int updateCount()
@@ -54,6 +61,10 @@ private:
   void update()
   {
     m_updateCount++;
+    
+    draw();
+    
+    m_input.pollEvents();
     
     if (m_input.hasEvent(Event.QUIT))
       m_running = false;
