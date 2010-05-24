@@ -12,41 +12,64 @@ unittest
   // TODO: assert that Derelict SDL and GL loaded OK
   
   // assert that game responds to input
-  assert(game.hasInput(Game.Input.NOTHING), "Input not cleared on freshly created game");
-  
-  SDL_Event upEvent;
-  upEvent.type = SDL_KEYDOWN;
-  upEvent.key.keysym.sym = SDLK_UP;
-  
-  game.receiveInput(upEvent);
-  
-  assert(game.hasInput(Game.Input.UP), "Game didn't respond properly to input");
+  assert(game.hasEvent(Game.Event.NOTHING), "Input not cleared on freshly created game");
+  {
+    SDL_Event upEvent;
+    upEvent.type = SDL_KEYDOWN;
+    upEvent.key.keysym.sym = SDLK_UP;
+    
+    game.receiveEvent(upEvent);
+  }
+  assert(game.hasEvent(Game.Event.UP), "Game didn't respond properly to input");
 
-  SDL_Event downEvent;
-  downEvent.type = SDL_KEYDOWN;
-  downEvent.key.keysym.sym = SDLK_DOWN;
-  
-  game.receiveInput(downEvent);
-  
+  {
+    SDL_Event downEvent;
+    downEvent.type = SDL_KEYDOWN;
+    downEvent.key.keysym.sym = SDLK_DOWN;
+    
+    game.receiveEvent(downEvent);
+  }
   // TODO: do we need possible multiple inputs in an update? if so assert for UP input too here
+  assert(game.hasEvent(Game.Event.DOWN), "Game didn't respond properly to input");
+    
+  {
+    game.clearEvents();
+  }
+  assert(game.hasEvent(Game.Event.NOTHING), "Game didn't clear input on request");
   
-  assert(game.hasInput(Game.Input.DOWN), "Game didn't respond properly to input");
   
-  game.clearInput();
-  assert(game.hasInput(Game.Input.NOTHING), "Game didn't clear input on request");
+  // TODO: assert that both keyup and keydown events are handled properly
+  
   
   assert(game.updateCount == 0);
-  game.update();
-  assert(game.updateCount == 1);
+  {
+    game.update();
+  }
+  assert(game.updateCount == 1);  
   
-  
-  SDL_Event quitEvent;
-  quitEvent.type = SDL_QUIT;
-  
-  game.receiveInput(quitEvent);
-  game.update();
-  
+  {
+    SDL_Event quitEvent;
+    quitEvent.type = SDL_QUIT;
+    
+    game.receiveEvent(quitEvent);
+    game.update();
+  }
   assert(!game.running, "Game didn't respond properly to quit event");
+  
+  {
+    game.clearEvents();
+  }
+  assert(game.hasEvent(Game.Event.NOTHING), "Game didn't clear events on clearEvents, while not running");
+  assert(!game.running, "Game restarted on clearEvents..?");
+  
+  {
+    SDL_Event escEvent;
+    escEvent.type = SDL_KEYDOWN;
+    escEvent.key.keysym.sym = SDLK_ESCAPE;
+  
+    game.receiveEvent(escEvent);
+  }
+  assert(game.hasEvent(Game.Event.QUIT), "Game didn't register escape keypress, while not running");
 }
 
 
@@ -55,14 +78,14 @@ class Game
 public:
   this()
   {
-    clearInput();
+    clearEvents();
     m_updateCount = 0;
     m_running = true;
   }
 
 
-  private:
-  enum Input
+private:
+  enum Event
   {
     NOTHING,
     QUIT,
@@ -71,24 +94,28 @@ public:
  
   
 private:  
-  void receiveInput(SDL_Event event)
+  void receiveEvent(SDL_Event event)
   {
     switch (event.type)
     {
       case SDL_QUIT:
-        m_input = Input.QUIT;
+        m_event = Event.QUIT;
         break;
         
       case SDL_KEYDOWN:
       {
         switch (event.key.keysym.sym)
         {
+          case SDLK_ESCAPE:
+            m_event = Event.QUIT;
+            break;
+            
           case SDLK_DOWN:
-            m_input = Input.DOWN;
+            m_event = Event.DOWN;
             break;
             
           case SDLK_UP:
-            m_input = Input.UP;
+            m_event = Event.UP;
             break;
             
           default:
@@ -100,17 +127,16 @@ private:
       default:
         break;
     }
-    
   }
   
-  void clearInput()
+  void clearEvents()
   {
-    m_input = Input.NOTHING;
+    m_event = Event.NOTHING;
   }
   
-  bool hasInput(const Input p_input)
+  bool hasEvent(const Event p_event)
   {
-    return m_input == p_input;
+    return m_event == p_event;
   }
   
   int updateCount()
@@ -122,7 +148,7 @@ private:
   {
     m_updateCount++;
     
-    if (hasInput(Input.QUIT))
+    if (hasEvent(Event.QUIT))
       m_running = false;
   }
   
@@ -133,7 +159,7 @@ private:
   
   
 private:
-  Input m_input;
+  Event m_event;
   int m_updateCount;
   
   bool m_running;
