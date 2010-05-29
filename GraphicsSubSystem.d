@@ -12,7 +12,17 @@ unittest
 }
 
 
-struct GraphicsComponent {}
+struct GraphicsComponent 
+{
+public:
+  Vector position()
+  {
+    return m_entity.position;
+  }
+  
+private:
+  Entity m_entity;
+}
 
 
 class GraphicsSubSystem : public SubSystem.SubSystem!(GraphicsComponent)
@@ -21,12 +31,12 @@ public:
 
   void draw()
   {
-    /*foreach (entity; m_entities)
+    foreach (component; components)
     {
       glPushMatrix();
       scope(exit) glPopMatrix();
       
-      glTranslatef(entity.position.x, entity.position.y, 0.0);
+      glTranslatef(component.position.x, component.position.y, 0.0);
       //glRotatef(m_delta, 0.0, 0.0, 1.0);
       
       glBegin(GL_TRIANGLES);
@@ -39,12 +49,12 @@ public:
         glColor3f(0.0, 0.0, 1.0);
         glVertex3f(0.87, -0.5, -2.0);
       glEnd();
-    }*/
+    }
   }
   
 protected:
   GraphicsComponent createComponent(Entity p_entity)
   {
-    return GraphicsComponent();
+    return GraphicsComponent(p_entity);
   }
 }

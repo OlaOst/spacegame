@@ -6,17 +6,11 @@ import Game;
 
 int main(char[][] args)
 {
-  bool runOnlyUnittests = false;
-  version(D_Coverage)
+  version(unittestsOnly)
   {
-    version(unittest)
-    {
-      runOnlyUnittests = true;
-      writeln("Checking unittest coverage - not running main program");
-    }
+    writeln("Checking unittest coverage - not running main program");
   }
-  
-  if (!runOnlyUnittests)
+  else
   {
     Game game = new Game();
     game.run();

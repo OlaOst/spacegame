@@ -5,11 +5,11 @@ unittest
 {
   Entity entity = new Entity();
   
-  assert(entity.position == Position.origo);
+  assert(entity.position == Vector.origo);
 }
 
 
-struct Position
+struct Vector
 {
   float x, y;
   
@@ -18,7 +18,7 @@ struct Position
     return Position(x + p_right.x, y + p_right.y);
   }*/
   
-  static Position origo = { x:0.0, y:0.0 };
+  static Vector origo = { x:0.0, y:0.0 };
 }
 
 class Entity
@@ -26,20 +26,20 @@ class Entity
 public:
   this()
   {
-    m_position = Position.origo;
+    m_position = Vector.origo;
   }
   
-  Position position()
+  Vector position()
   {
     return m_position;
   }
   
-  void addPosition(Position p_add)
+  void addPosition(Vector p_add)
   {
     m_position.x += p_add.x;
     m_position.y += p_add.y;
   }
   
 private:
-  Position m_position;
+  Vector m_position;
 }

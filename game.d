@@ -6,6 +6,7 @@ import Display;
 import GraphicsSubSystem;
 import InputHandler;
 import IntentSubSystem;
+import PhysicsSubSystem;
 import World;
 
 

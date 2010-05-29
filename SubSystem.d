@@ -17,13 +17,13 @@ unittest
   }
   MockSubSystem sys = new MockSubSystem();
   
-  assert(sys.m_components.length == 0);
+  assert(sys.components.length == 0);
   {
     Entity entity = new Entity();
     
     sys.registerEntity(entity);
   }
-  assert(sys.m_components.length == 1);
+  assert(sys.components.length == 1);
 }
 
 
@@ -40,6 +40,10 @@ public:
 protected:
   abstract ComponentType createComponent(Entity p_entity);
   
+  ComponentType[] components()
+  {
+    return m_components;
+  }
   
 private:
   ComponentType[] m_components;

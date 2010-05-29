@@ -19,7 +19,7 @@ unittest
   }
   assert(world.m_entities.length == 1);
   
-  assert(world.m_entities[0].position == Position.origo);
+  assert(world.m_entities[0].position == Vector.origo);
   {
     SDL_Event upEvent;
     upEvent.type = SDL_KEYDOWN;
@@ -58,9 +58,9 @@ private:
     foreach (entity; m_entities)
     {
       if (p_event == Event.UP)
-        entity.addPosition(Position(0.0, num));
+        entity.addPosition(Vector(0.0, num));
       if (p_event == Event.DOWN)
-        entity.addPosition(Position(0.0, -num));
+        entity.addPosition(Vector(0.0, -num));
     }
   }  
   
