@@ -82,7 +82,7 @@ public:
     }
   }
   
-  int[Event] events()
+  uint[Event] events()
   {
     return m_events;
   }
@@ -145,5 +145,5 @@ private:
   }
   
 private:  
-  int[Event] m_events;
+  uint[Event] m_events;
 }

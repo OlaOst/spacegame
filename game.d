@@ -3,6 +3,7 @@ module Game;
 import derelict.sdl.sdl;
 
 import Display;
+import GraphicsSubSystem;
 import Input;
 import World;
 
@@ -28,7 +29,7 @@ unittest
     
     game.update();
   }
-  assert(game.m_input.hasEvent(Event.UP));
+  assert(game.m_input.hasEvent(Event.UP), "Game didn't register input event");
   
   {
     game.update();
@@ -44,11 +45,30 @@ unittest
     game.update();
   }
   assert(!game.running, "Game didn't respond properly to quit event");
+  
+  {
+    Entity entity = new Entity();
+    
+    game.m_graphics.registerEntity(entity);
+    game.m_world.registerEntity(entity);
+  }
+  
+  {
+    game.m_graphics.draw();
+    game.m_world.handleEvents(game.m_input);
+  }
 }
 
 
 class Game
 {
+invariant()
+{
+  assert(m_input !is null, "Game didn't initialize input");
+  assert(m_world !is null, "Game didn't initialize world");
+  assert(m_graphics !is null, "Game didn't initialize graphics");
+}
+
 public:
   this()
   {
@@ -57,6 +77,12 @@ public:
     
     m_input = new Input();
     m_world = new World();
+    m_graphics = new GraphicsSubSystem();
+    
+    Entity entity = new Entity();
+    
+    m_world.registerEntity(entity);
+    m_graphics.registerEntity(entity);
     
     initDisplay();
   }
@@ -79,7 +105,7 @@ private:
   {
     m_updateCount++;
     
-    m_world.draw();
+    //m_world.draw();
     swapBuffers();
     
     m_input.pollEvents();
@@ -101,4 +127,6 @@ private:
   
   Input m_input;
   World m_world;
+  
+  GraphicsSubSystem m_graphics;
 }
