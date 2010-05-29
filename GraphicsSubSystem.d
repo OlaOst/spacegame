@@ -4,6 +4,7 @@ import derelict.opengl.gl;
 
 import Entity;
 import SubSystem;
+import Vector : Vector;
 
 
 unittest

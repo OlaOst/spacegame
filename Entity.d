@@ -1,5 +1,7 @@
 module Entity;
 
+import Vector : Vector;
+
 
 unittest
 {
@@ -8,18 +10,6 @@ unittest
   assert(entity.position == Vector.origo);
 }
 
-
-struct Vector
-{
-  float x, y;
-  
-  /*Position opOpAssign("+=")(Position p_right)
-  {
-    return Position(x + p_right.x, y + p_right.y);
-  }*/
-  
-  static Vector origo = { x:0.0, y:0.0 };
-}
 
 class Entity
 {
@@ -34,11 +24,16 @@ public:
     return m_position;
   }
   
-  void addPosition(Vector p_add)
+  void position(Vector p_position)
+  {
+    m_position = p_position;
+  }
+  
+  /*void addPosition(Vector p_add)
   {
     m_position.x += p_add.x;
     m_position.y += p_add.y;
-  }
+  }*/
   
 private:
   Vector m_position;

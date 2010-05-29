@@ -5,6 +5,7 @@ import derelict.sdl.sdl;
 
 import Entity;
 import InputHandler;
+import Vector : Vector;
 
 
 unittest
@@ -58,9 +59,9 @@ private:
     foreach (entity; m_entities)
     {
       if (p_event == Event.UP)
-        entity.addPosition(Vector(0.0, num));
+        entity.position = entity.position + Vector(0.0, num);
       if (p_event == Event.DOWN)
-        entity.addPosition(Vector(0.0, -num));
+        entity.position = entity.position + Vector(0.0, -num);
     }
   }  
   

@@ -70,6 +70,7 @@ invariant()
   assert(m_world !is null, "Game didn't initialize world");
   assert(m_graphics !is null, "Game didn't initialize graphics");
   assert(m_intentHandler !is null, "Game didn't initialize intent handler");
+  assert(m_physics !is null, "Game didn't initialize physics");
 }
 
 public:
@@ -83,6 +84,7 @@ public:
     
     m_graphics = new GraphicsSubSystem();
     m_intentHandler = new IntentSubSystem();
+    m_physics = new PhysicsSubSystem();
     
     Entity entity = new Entity();
     
@@ -116,7 +118,14 @@ private:
     
     m_inputHandler.pollEvents();
     m_world.handleEvents(m_inputHandler);
-      
+
+    m_physics.move(1.0);
+    m_graphics.draw();
+    
+    // TODO: we need to know which context we are in - input events signify different intents depending on context
+    // ie up event in a menu context (move cursor up) vs up event in a ship control context (accelerate ship)
+    m_intentHandler.listen(m_inputHandler); 
+    
     if (m_inputHandler.hasEvent(Event.QUIT))
       m_running = false;
   }
@@ -136,4 +145,5 @@ private:
   
   GraphicsSubSystem m_graphics;
   IntentSubSystem m_intentHandler;
+  PhysicsSubSystem m_physics;
 }
