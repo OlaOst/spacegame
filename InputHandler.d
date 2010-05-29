@@ -1,56 +1,56 @@
-module Input;
+module InputHandler;
 
 import derelict.sdl.sdl;
 
 
 unittest
 {
-  Input input = new Input();
+  InputHandler inputHandler = new InputHandler();
 
   // assert that input responds to input
-  assert(input.countEvents() == 0, "Input not cleared on creation");
+  assert(inputHandler.countEvents() == 0, "InputHandler not cleared on creation");
   {
     SDL_Event upEvent;
     upEvent.type = SDL_KEYDOWN;
     upEvent.key.keysym.sym = SDLK_UP;
     
-    input.receiveEvent(upEvent);
+    inputHandler.receiveEvent(upEvent);
   }
-  assert(input.countEvents() == 1, "Input didn't register first event at all");
-  assert(input.hasEvent(Event.UP), "Input didn't register first event correctly");
+  assert(inputHandler.countEvents() == 1, "InputHandler didn't register first event at all");
+  assert(inputHandler.hasEvent(Event.UP), "InputHandler didn't register first event correctly");
 
   {
     SDL_Event downEvent;
     downEvent.type = SDL_KEYDOWN;
     downEvent.key.keysym.sym = SDLK_DOWN;
     
-    input.receiveEvent(downEvent);
+    inputHandler.receiveEvent(downEvent);
   }
   // TODO: do we need possible multiple inputs in an update? if so assert for UP input too here
-  assert(input.countEvents() == 2, "Input didn't register second event at all");
-  assert(input.hasEvent(Event.UP), "Input didn't register second event");
-  assert(input.hasEvent(Event.DOWN), "Input lost first event when registering the second");
+  assert(inputHandler.countEvents() == 2, "InputHandler didn't register second event at all");
+  assert(inputHandler.hasEvent(Event.UP), "InputHandler didn't register second event");
+  assert(inputHandler.hasEvent(Event.DOWN), "InputHandler lost first event when registering the second");
   
 
   {
-    input.clearEvents();
+    inputHandler.clearEvents();
   }
-  assert(input.countEvents() == 0, "Input didn't clear events on request");
+  assert(inputHandler.countEvents() == 0, "InputHandler didn't clear events on request");
    
   // TODO: assert that both keyup and keydown events are handled properly
   
   {
     SDL_Event nadaEvent;
-    input.receiveEvent(nadaEvent);
+    inputHandler.receiveEvent(nadaEvent);
   }
-  assert(input.countEvents() == 0, "Input registered an empty event");
+  assert(inputHandler.countEvents() == 0, "InputHandler registered an empty event");
   
   {
     SDL_Event nadaKeyEvent;
     nadaKeyEvent.type = SDL_KEYDOWN;
-    input.receiveEvent(nadaKeyEvent);
+    inputHandler.receiveEvent(nadaKeyEvent);
   }
-  assert(input.countEvents() == 0, "Input registered an empty event");
+  assert(inputHandler.countEvents() == 0, "InputHandler registered an empty event");
 }
 
 
@@ -61,7 +61,7 @@ enum Event
 } 
 
 
-class Input
+class InputHandler
 {
 public:
   this()

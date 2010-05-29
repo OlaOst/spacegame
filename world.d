@@ -4,7 +4,7 @@ import derelict.opengl.gl;
 import derelict.sdl.sdl;
 
 import Entity;
-import Input;
+import InputHandler;
 
 
 unittest
@@ -27,11 +27,11 @@ unittest
     
     SDL_PushEvent(&upEvent);
     
-    Input input = new Input();
+    InputHandler inputHandler = new InputHandler();
     
-    input.pollEvents();
+    inputHandler.pollEvents();
     
-    world.handleEvents(input);
+    world.handleEvents(inputHandler);
   }
   assert(world.m_entities[0].position.y > 0.0);
 }
@@ -41,10 +41,10 @@ class World
 {
 public:
     
-  void handleEvents(Input p_input)
+  void handleEvents(InputHandler p_inputHandler)
   {
-    foreach (event; p_input.events.keys)
-      handleEvent(event, p_input.events[event]);
+    foreach (event; p_inputHandler.events.keys)
+      handleEvent(event, p_inputHandler.events[event]);
   }
   
   void registerEntity(Entity p_entity)
@@ -53,7 +53,7 @@ public:
   }
 
 private:
-  void handleEvent(Input.Event p_event, uint num)
+  void handleEvent(InputHandler.Event p_event, uint num)
   {
     foreach (entity; m_entities)
     {

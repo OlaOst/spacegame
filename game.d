@@ -4,7 +4,8 @@ import derelict.sdl.sdl;
 
 import Display;
 import GraphicsSubSystem;
-import Input;
+import InputHandler;
+import IntentSubSystem;
 import World;
 
 
@@ -29,12 +30,12 @@ unittest
     
     game.update();
   }
-  assert(game.m_input.hasEvent(Event.UP), "Game didn't register input event");
+  assert(game.m_inputHandler.hasEvent(Event.UP), "Game didn't register input event");
   
   {
     game.update();
   }
-  assert(!game.m_input.hasEvent(Event.UP), "Input didn't clear event after update");
+  assert(!game.m_inputHandler.hasEvent(Event.UP), "Input didn't clear event after update");
   
   {
     SDL_Event quitEvent;
@@ -55,7 +56,7 @@ unittest
   
   {
     game.m_graphics.draw();
-    game.m_world.handleEvents(game.m_input);
+    game.m_world.handleEvents(game.m_inputHandler);
   }
 }
 
@@ -64,9 +65,10 @@ class Game
 {
 invariant()
 {
-  assert(m_input !is null, "Game didn't initialize input");
+  assert(m_inputHandler !is null, "Game didn't initialize input handler");
   assert(m_world !is null, "Game didn't initialize world");
   assert(m_graphics !is null, "Game didn't initialize graphics");
+  assert(m_intentHandler !is null, "Game didn't initialize intent handler");
 }
 
 public:
@@ -75,14 +77,17 @@ public:
     m_updateCount = 0;
     m_running = true;
     
-    m_input = new Input();
+    m_inputHandler = new InputHandler();
     m_world = new World();
+    
     m_graphics = new GraphicsSubSystem();
+    m_intentHandler = new IntentSubSystem();
     
     Entity entity = new Entity();
     
     m_world.registerEntity(entity);
     m_graphics.registerEntity(entity);
+    m_intentHandler.registerEntity(entity);
     
     initDisplay();
   }
@@ -108,10 +113,10 @@ private:
     //m_world.draw();
     swapBuffers();
     
-    m_input.pollEvents();
-    m_world.handleEvents(m_input);
+    m_inputHandler.pollEvents();
+    m_world.handleEvents(m_inputHandler);
       
-    if (m_input.hasEvent(Event.QUIT))
+    if (m_inputHandler.hasEvent(Event.QUIT))
       m_running = false;
   }
   
@@ -125,8 +130,9 @@ private:
   int m_updateCount;
   bool m_running;
   
-  Input m_input;
+  InputHandler m_inputHandler;
   World m_world;
   
   GraphicsSubSystem m_graphics;
+  IntentSubSystem m_intentHandler;
 }
