@@ -1,35 +1,24 @@
 module IntentSubSystem;
 
 import Entity;
+import SubSystem;
 
 unittest
 {
-  IntentSubSystem intentHandler = new IntentSubSystem();
-  
-  assert(intentHandler.entities.length == 0);
-  {
-    Entity entity = new Entity();
-    intentHandler.registerEntity(entity);
-  }
-  assert(intentHandler.entities.length == 1);
+
 }
 
 
-class IntentSubSystem
+struct IntentComponent {}
+
+
+class IntentSubSystem : public SubSystem.SubSystem!(IntentComponent)
 {
 public:
 
-  Entity[] entities()
+protected:
+  IntentComponent createComponent(Entity p_entity)
   {
-    return m_entities;
+    return IntentComponent();
   }
-  
-  void registerEntity(Entity p_entity)
-  {
-    m_entities ~= p_entity;
-  }
-  
-  
-private:
-  Entity[] m_entities;
 }

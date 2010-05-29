@@ -3,27 +3,25 @@ module GraphicsSubSystem;
 import derelict.opengl.gl;
 
 import Entity;
+import SubSystem;
 
 
 unittest
 {
   GraphicsSubSystem graphics = new GraphicsSubSystem();
-  
-  assert(graphics.entities.length == 0);
-  {
-    graphics.registerEntity(new Entity());
-  }
-  assert(graphics.entities.length == 1);
 }
 
 
-class GraphicsSubSystem
+struct GraphicsComponent {}
+
+
+class GraphicsSubSystem : public SubSystem.SubSystem!(GraphicsComponent)
 {
 public:
 
   void draw()
   {
-    foreach (entity; m_entities)
+    /*foreach (entity; m_entities)
     {
       glPushMatrix();
       scope(exit) glPopMatrix();
@@ -41,21 +39,12 @@ public:
         glColor3f(0.0, 0.0, 1.0);
         glVertex3f(0.87, -0.5, -2.0);
       glEnd();
-    }
+    }*/
   }
   
-  void registerEntity(Entity p_entity)
+protected:
+  GraphicsComponent createComponent(Entity p_entity)
   {
-    m_entities ~= p_entity;
+    return GraphicsComponent();
   }
-
-private:
-  Entity[] entities()
-  {
-    return m_entities;
-  }
-  
-  
-private:
-  Entity[] m_entities;
 }
