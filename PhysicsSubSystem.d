@@ -18,7 +18,7 @@ unittest
   
   assert(entity.position == Vector.origo);
   {
-    physics.components[0].velocity = Vector(1.0, 0.0);
+    physics.components[0].m_velocity = Vector(1.0, 0.0);
     physics.move(1.0);
   }
   assert(entity.position.x > 0.0);
@@ -45,17 +45,6 @@ public:
     m_velocity = m_velocity + m_entity.force * p_time;
     m_entity.position = m_entity.position + m_velocity * p_time;
   }
-  
-  void velocity(Vector p_velocity)
-  {
-    m_velocity = p_velocity;
-  }
-  
-  Vector velocity()
-  {
-    return m_velocity;
-  }
-  
   
 private:
   Entity m_entity;

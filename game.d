@@ -7,7 +7,6 @@ import GraphicsSubSystem;
 import InputHandler;
 import IntentSubSystem;
 import PhysicsSubSystem;
-import World;
 
 
 unittest
@@ -52,15 +51,15 @@ unittest
     Entity entity = new Entity();
     
     game.m_graphics.registerEntity(entity);
-    game.m_world.registerEntity(entity);
   }
   
   {
     game.m_graphics.draw();
-    game.m_world.handleEvents(game.m_inputHandler);
+    game.m_physics.move(1.0);
   }
   
   
+  // test that game moves entity according to input
   {
     Entity entity = new Entity();
     
@@ -89,7 +88,6 @@ class Game
 invariant()
 {
   assert(m_inputHandler !is null, "Game didn't initialize input handler");
-  assert(m_world !is null, "Game didn't initialize world");
   assert(m_graphics !is null, "Game didn't initialize graphics");
   assert(m_intentHandler !is null, "Game didn't initialize intent handler");
   assert(m_physics !is null, "Game didn't initialize physics");
@@ -102,7 +100,6 @@ public:
     m_running = true;
     
     m_inputHandler = new InputHandler();
-    m_world = new World();
     
     m_graphics = new GraphicsSubSystem();
     m_intentHandler = new IntentSubSystem();
@@ -110,7 +107,6 @@ public:
     
     Entity entity = new Entity();
     
-    m_world.registerEntity(entity);
     m_graphics.registerEntity(entity);
     m_intentHandler.registerEntity(entity);
     
@@ -135,11 +131,9 @@ private:
   {
     m_updateCount++;
     
-    //m_world.draw();
     swapBuffers();
     
     m_inputHandler.pollEvents();
-    m_world.handleEvents(m_inputHandler);
 
     m_physics.move(1.0);
     m_graphics.draw();
@@ -163,7 +157,6 @@ private:
   bool m_running;
   
   InputHandler m_inputHandler;
-  World m_world;
   
   GraphicsSubSystem m_graphics;
   IntentSubSystem m_intentHandler;
