@@ -23,7 +23,7 @@ unittest
 struct Vector
 {
   float x, y;
-  
+    
   Vector opBinary(string s)(Vector p_right) if (s == "+")
   {
     return Vector(x + p_right.x, y + p_right.y);

@@ -59,6 +59,28 @@ unittest
     game.m_graphics.draw();
     game.m_world.handleEvents(game.m_inputHandler);
   }
+  
+  
+  {
+    Entity entity = new Entity();
+    
+    game.m_physics.registerEntity(entity);
+    game.m_intentHandler.registerEntity(entity);
+    
+    SDL_Event upEvent;
+    upEvent.type = SDL_KEYDOWN;
+    upEvent.key.keysym.sym = SDLK_UP;
+    
+    SDL_PushEvent(&upEvent);
+    
+    game.m_inputHandler.pollEvents();
+    
+    game.m_intentHandler.listen(game.m_inputHandler);
+    
+    game.m_physics.move(1.0);
+    
+    assert(entity.position.y > 0.0);
+  }
 }
 
 

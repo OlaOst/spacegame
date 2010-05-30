@@ -13,10 +13,18 @@ unittest
 
 class Entity
 {
+invariant()
+{
+  assert(m_position.x == m_position.x && m_position.y == m_position.y);
+  assert(m_force.x == m_force.x && m_force.y == m_force.y);
+}
+
+
 public:
   this()
   {
     m_position = Vector.origo;
+    m_force = Vector.origo;
   }
   
   Vector position()
@@ -29,12 +37,17 @@ public:
     m_position = p_position;
   }
   
-  /*void addPosition(Vector p_add)
+  Vector force()
   {
-    m_position.x += p_add.x;
-    m_position.y += p_add.y;
-  }*/
+    return m_force;
+  }
+  
+  void force(Vector p_force)
+  {
+    m_force = p_force;
+  }
   
 private:
   Vector m_position;
+  Vector m_force;
 }

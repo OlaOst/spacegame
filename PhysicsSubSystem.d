@@ -30,8 +30,7 @@ struct PhysicsComponent
 invariant()
 {
   assert(m_entity !is null, "Physics component had null entity");
-  assert(m_velocity.x == m_velocity.x);
-  assert(m_velocity.y == m_velocity.y);
+  assert(m_velocity.x == m_velocity.x && m_velocity.y == m_velocity.y);
 }
 
 public:
@@ -43,6 +42,7 @@ public:
 
   void move(float p_time)
   {
+    m_velocity = m_velocity + m_entity.force * p_time;
     m_entity.position = m_entity.position + m_velocity * p_time;
   }
   
