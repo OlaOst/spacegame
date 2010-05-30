@@ -76,15 +76,11 @@ private:
   void handleEvent(InputHandler.Event p_event, uint num)
   {
     foreach (component; components)
-    {
-      //writeln("force: " ~ to!(string)(component.entity.force.x) ~ " " ~ to!(string)(component.entity.force.y));
-      
+    {      
       if (p_event == Event.UP)
-        component.force = component.force + Vector(0.0, cast(float)(num));
+        component.force = /*component.force +*/ Vector(0.0, cast(float)(num));
       if (p_event == Event.DOWN)
-        component.force = component.force + Vector(0.0, -cast(float)(num));
-        
-      //writeln("force: " ~ to!(string)(component.entity.force.x) ~ " " ~ to!(string)(component.entity.force.y));
+        component.force = /*component.force +*/ Vector(0.0, -cast(float)(num));
     }
   }  
 }

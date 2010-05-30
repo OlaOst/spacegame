@@ -123,6 +123,31 @@ private:
         break;
       }
       
+      case SDL_KEYUP:
+      {
+        switch (event.key.keysym.sym)
+        {
+          case SDLK_ESCAPE:
+            if (m_events[Event.QUIT] > 0)
+              m_events[Event.QUIT]--;
+            break;
+            
+          case SDLK_DOWN:
+            if (m_events[Event.DOWN] > 0)
+              m_events[Event.DOWN]--;
+            break;
+            
+          case SDLK_UP:
+            if (m_events[Event.UP] > 0)
+              m_events[Event.UP]--;
+            break;
+            
+          default:
+            break;
+        }
+        break;
+      }
+      
       default:
         break;
     }

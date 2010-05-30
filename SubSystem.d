@@ -45,6 +45,7 @@ protected:
     return m_components;
   }
   
+  
 private:
   ComponentType[] m_components;
 }

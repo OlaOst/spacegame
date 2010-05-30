@@ -25,24 +25,34 @@ unittest
 }
 
 
-struct PhysicsComponent
+class PhysicsComponent
 {
 invariant()
 {
   assert(m_entity !is null, "Physics component had null entity");
+  
   assert(m_velocity.x == m_velocity.x && m_velocity.y == m_velocity.y);
 }
 
 public:
   this(Entity p_entity)
-  {
+  {  
     m_entity = p_entity;
-    m_velocity = Vector.origo;
+    m_velocity = Vector.origo;    
   }
 
+
+private:
   void move(float p_time)
+  in
   {
-    //writeln("force: " ~ to!(string)(m_entity.force.x) ~ " " ~ to!(string)(m_entity.force.y));
+    assert(p_time > 0.0);
+  }
+  body
+  {
+    //writeln("force: " ~ m_entity.force.toString());
+    //writeln("vel: " ~ m_velocity.toString());
+    //writeln("pos: " ~ m_entity.position.toString());
     
     m_velocity = m_velocity + m_entity.force * p_time;
     m_entity.position = m_entity.position + m_velocity * p_time;
@@ -69,6 +79,6 @@ public:
 protected:
   PhysicsComponent createComponent(Entity p_entity)
   {
-    return PhysicsComponent(p_entity);
+    return new PhysicsComponent(p_entity);
   }
 }

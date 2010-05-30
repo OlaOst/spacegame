@@ -1,6 +1,9 @@
 module Vector;
 
 
+import std.conv;
+
+
 unittest
 {
   Vector left = { 1.0, 0.0 };
@@ -42,6 +45,11 @@ struct Vector
   Vector opOpAssign(string s)(float p_right) if (s == "*=")
   {
     return Vector(x *= p_right, y *= p_right);
+  }
+  
+  string toString()
+  {
+    return to!(string)(x) ~ " " ~ to!(string)(y);
   }
   
   static Vector origo = { x:0.0, y:0.0 };
