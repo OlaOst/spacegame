@@ -1,5 +1,8 @@
 module Game;
 
+import std.stdio;
+import std.conv;
+
 import derelict.sdl.sdl;
 
 import Display;
@@ -7,6 +10,7 @@ import GraphicsSubSystem;
 import InputHandler;
 import IntentSubSystem;
 import PhysicsSubSystem;
+import Timer;
 
 
 unittest
@@ -87,6 +91,7 @@ class Game
 {
 invariant()
 {
+  assert(m_timer !is null, "Game didn't initialize timer");
   assert(m_inputHandler !is null, "Game didn't initialize input handler");
   assert(m_graphics !is null, "Game didn't initialize graphics");
   assert(m_intentHandler !is null, "Game didn't initialize intent handler");
@@ -99,6 +104,8 @@ public:
     m_updateCount = 0;
     m_running = true;
     
+    m_timer = new Timer();
+    
     m_inputHandler = new InputHandler();
     
     m_graphics = new GraphicsSubSystem();
@@ -108,6 +115,7 @@ public:
     Entity entity = new Entity();
     
     m_graphics.registerEntity(entity);
+    m_physics.registerEntity(entity);
     m_intentHandler.registerEntity(entity);
     
     initDisplay();
@@ -121,6 +129,7 @@ public:
     }
   }
   
+  
 private:
   int updateCount()
   {
@@ -129,13 +138,20 @@ private:
   
   void update()
   {
+    m_timer.stop();
+    float elapsedTime = m_timer.elapsedTime;
+    m_timer.start();
+    
     m_updateCount++;
+    
+    //writeln("game update " ~ to!(string)(m_updateCount) ~ " timestep: " ~ to!(string)(elapsedTime));
     
     swapBuffers();
     
     m_inputHandler.pollEvents();
 
-    m_physics.move(1.0);
+    // TODO: figure out how much time elapsed since last update
+    m_physics.move(elapsedTime);
     m_graphics.draw();
     
     // TODO: we need to know which context we are in - input events signify different intents depending on context
@@ -155,6 +171,8 @@ private:
 private:
   int m_updateCount;
   bool m_running;
+  
+  Timer m_timer;
   
   InputHandler m_inputHandler;
   

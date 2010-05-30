@@ -1,5 +1,8 @@
 module IntentSubSystem;
 
+import std.stdio;
+import std.conv;
+
 import Entity;
 import InputHandler;
 import SubSystem;
@@ -33,9 +36,15 @@ public:
     m_entity = p_entity;
   }
   
-  Entity entity()
+private:
+  Vector force()
   {
-    return m_entity;
+    return m_entity.force;
+  }
+  
+  void force(Vector p_force)
+  {
+    m_entity.force = p_force;
   }
   
 private:
@@ -68,10 +77,14 @@ private:
   {
     foreach (component; components)
     {
+      //writeln("force: " ~ to!(string)(component.entity.force.x) ~ " " ~ to!(string)(component.entity.force.y));
+      
       if (p_event == Event.UP)
-        component.entity.force = component.entity.force + Vector(0.0, num);
+        component.force = component.force + Vector(0.0, cast(float)(num));
       if (p_event == Event.DOWN)
-        component.entity.force = component.entity.force + Vector(0.0, -num);
+        component.force = component.force + Vector(0.0, -cast(float)(num));
+        
+      //writeln("force: " ~ to!(string)(component.entity.force.x) ~ " " ~ to!(string)(component.entity.force.y));
     }
   }  
 }

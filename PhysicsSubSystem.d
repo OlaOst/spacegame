@@ -42,6 +42,8 @@ public:
 
   void move(float p_time)
   {
+    //writeln("force: " ~ to!(string)(m_entity.force.x) ~ " " ~ to!(string)(m_entity.force.y));
+    
     m_velocity = m_velocity + m_entity.force * p_time;
     m_entity.position = m_entity.position + m_velocity * p_time;
   }
