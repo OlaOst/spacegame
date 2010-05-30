@@ -16,7 +16,10 @@ class Entity
 invariant()
 {
   assert(m_position.x == m_position.x && m_position.y == m_position.y);
+  assert(m_angle == m_angle);
+  
   assert(m_force.x == m_force.x && m_force.y == m_force.y);
+  assert(m_torque == m_torque);
 }
 
 
@@ -24,7 +27,10 @@ public:
   this()
   {
     m_position = Vector.origo;
+    m_angle = 0.0;
+    
     m_force = Vector.origo;
+    m_torque = 0.0;
   }
   
   Vector position()
@@ -37,6 +43,16 @@ public:
     m_position = p_position;
   }
   
+  float angle()
+  {
+    return m_angle;
+  }
+  
+  void angle(float p_angle)
+  {
+    m_angle = p_angle;
+  }
+  
   Vector force()
   {
     return m_force;
@@ -47,7 +63,21 @@ public:
     m_force = p_force;
   }
   
+  float torque()
+  {
+    return m_torque;
+  }
+  
+  void torque(float p_torque)
+  {
+    m_torque = p_torque;
+  }
+  
+  
 private:
   Vector m_position;
+  float m_angle;
+  
   Vector m_force;
+  float m_torque;
 }

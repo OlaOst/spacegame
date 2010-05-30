@@ -1,5 +1,7 @@
 module GraphicsSubSystem;
 
+import std.math;
+
 import derelict.opengl.gl;
 
 import Entity;
@@ -19,6 +21,11 @@ public:
   Vector position()
   {
     return m_entity.position;
+  }
+  
+  float angle()
+  {
+    return m_entity.angle;
   }
   
 private:
@@ -52,17 +59,14 @@ public:
       glPushMatrix();      
       
       glTranslatef(component.position.x, component.position.y, 0.0);
-      //glRotatef(m_delta, 0.0, 0.0, 1.0);
+      glRotatef(component.angle * (180.0 / PI), 0.0, 0.0, 1.0);
       
       glBegin(GL_TRIANGLES);
-        glColor3f(1.0, 0.0, 0.0);
-        glVertex3f(0.0, 1.0, -2.0);
-        
-        glColor3f(0.0, 1.0, 0.0);
-        glVertex3f(-0.87, -0.5, -2.0);
-        
-        glColor3f(0.0, 0.0, 1.0);
-        glVertex3f(0.87, -0.5, -2.0);
+        for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 3)
+        {
+          glColor3f(cos(angle*2), sin(angle/2), 0.0);
+          glVertex3f(cos(angle), sin(angle), -2.0);
+        }
       glEnd();
       
       glPopMatrix();

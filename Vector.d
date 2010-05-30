@@ -1,7 +1,7 @@
 module Vector;
 
-
 import std.conv;
+import std.math;
 
 
 unittest
@@ -47,6 +47,11 @@ struct Vector
   Vector opOpAssign(string s)(float p_right) if (s == "*=")
   {
     return Vector(x *= p_right, y *= p_right);
+  }
+  
+  float length()
+  {
+    return sqrt(x*x + y*y);
   }
   
   string toString()

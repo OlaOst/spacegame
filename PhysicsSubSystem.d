@@ -32,13 +32,15 @@ invariant()
   assert(m_entity !is null, "Physics component had null entity");
   
   assert(m_velocity.x == m_velocity.x && m_velocity.y == m_velocity.y);
+  assert(m_rotation == m_rotation);
 }
 
 public:
   this(Entity p_entity)
   {  
     m_entity = p_entity;
-    m_velocity = Vector.origo;    
+    m_velocity = Vector.origo;
+    m_rotation = 0.0;
   }
 
   Vector force()
@@ -65,17 +67,21 @@ private:
   }
   body
   {
-    //writeln("force: " ~ m_entity.force.toString());
-    //writeln("vel: " ~ m_velocity.toString());
-    //writeln("pos: " ~ m_entity.position.toString());
+    //writeln("torque:   " ~ to!string(m_entity.torque));
+    //writeln("rotation: " ~ to!string(m_rotation));
+    //writeln("angle:    " ~ to!string(m_entity.angle));
     
     m_velocity = m_velocity + m_entity.force * p_time;
     m_entity.position = m_entity.position + m_velocity * p_time;
+    
+    m_rotation = m_rotation + m_entity.torque * p_time;
+    m_entity.angle = m_entity.angle + m_rotation * p_time;
   }
   
 private:
   Entity m_entity;
   Vector m_velocity;
+  float m_rotation;
 }
 
 
