@@ -41,6 +41,21 @@ public:
     m_velocity = Vector.origo;    
   }
 
+  Vector force()
+  {
+    return m_entity.force;
+  }
+  
+  void force(Vector p_force)
+  {
+    m_entity.force = p_force;
+  }
+  
+  Vector position()
+  {
+    return m_entity.position;
+  }
+  
 
 private:
   void move(float p_time)
@@ -71,6 +86,9 @@ public:
   {
     foreach (component; components)
     {
+      // add spring force to center
+      component.force = component.force + (component.position * -0.05);
+      
       component.move(p_time);
     }
   }

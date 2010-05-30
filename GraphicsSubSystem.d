@@ -28,14 +28,28 @@ private:
 
 class GraphicsSubSystem : public SubSystem.SubSystem!(GraphicsComponent)
 {
-public:
+invariant()
+{
+  assert(m_zoom > 0.0);
+}
 
+
+public:
+  this()
+  {
+    m_zoom = 1.0;
+  }
+  
+  
   void draw()
   {
+    glPushMatrix();
+    
+    glScalef(m_zoom, m_zoom, 1.0);
+    
     foreach (component; components)
     {
-      glPushMatrix();
-      scope(exit) glPopMatrix();
+      glPushMatrix();      
       
       glTranslatef(component.position.x, component.position.y, 0.0);
       //glRotatef(m_delta, 0.0, 0.0, 1.0);
@@ -50,12 +64,31 @@ public:
         glColor3f(0.0, 0.0, 1.0);
         glVertex3f(0.87, -0.5, -2.0);
       glEnd();
+      
+      glPopMatrix();
     }
+    
+    glPopMatrix();
   }
+  
+  void zoomIn(float p_time)
+  {
+    m_zoom += m_zoom * p_time;
+  }
+  
+  void zoomOut(float p_time)
+  {
+    m_zoom -= m_zoom * p_time;
+  }
+  
   
 protected:
   GraphicsComponent createComponent(Entity p_entity)
   {
     return GraphicsComponent(p_entity);
   }
+  
+  
+private:
+  float m_zoom;
 }

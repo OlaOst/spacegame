@@ -37,11 +37,6 @@ public:
   }
   
 private:
-  Vector force()
-  {
-    return m_entity.force;
-  }
-  
   void force(Vector p_force)
   {
     m_entity.force = p_force;
@@ -58,10 +53,8 @@ public:
 
   void listen(InputHandler p_inputHandler)
   {
-    foreach (event; p_inputHandler.events.keys)
-    {
-      handleEvent(event, p_inputHandler.events[event]);
-    }
+    foreach (component; components)
+      component.force = getForceFromEvents(p_inputHandler);
   }
   
 
@@ -73,14 +66,23 @@ protected:
   
   
 private:
-  void handleEvent(InputHandler.Event p_event, uint num)
+  Vector getForceFromEvents(InputHandler p_inputHandler)
   {
-    foreach (component; components)
-    {      
-      if (p_event == Event.UP)
-        component.force = /*component.force +*/ Vector(0.0, cast(float)(num));
-      if (p_event == Event.DOWN)
-        component.force = /*component.force +*/ Vector(0.0, -cast(float)(num));
+    Vector force = Vector.origo;
+
+    foreach (event; p_inputHandler.events.keys)
+    {
+      float scalar = 1.0 * p_inputHandler.events[event];
+      
+      if (event == Event.UP)
+        force += Vector(0.0, scalar);
+      if (event == Event.DOWN)
+        force += Vector(0.0, -scalar);
+      if (event == Event.LEFT)
+        force += Vector(-scalar, 0.0);
+      if (event == Event.RIGHT)
+        force += Vector(scalar, 0.0);     
     }
-  }  
+    return force;
+  }
 }

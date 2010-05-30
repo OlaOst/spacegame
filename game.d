@@ -80,7 +80,7 @@ unittest
     
     game.m_intentHandler.listen(game.m_inputHandler);
     
-    game.m_physics.move(1.0);
+    game.m_physics.move(0.01);
     
     assert(entity.position.y > 0.0);
   }
@@ -144,8 +144,6 @@ private:
     
     m_updateCount++;
     
-    //writeln("game update " ~ to!(string)(m_updateCount) ~ " timestep: " ~ to!(string)(elapsedTime));
-    
     swapBuffers();
     
     m_inputHandler.pollEvents();
@@ -157,6 +155,11 @@ private:
     // TODO: we need to know which context we are in - input events signify different intents depending on context
     // ie up event in a menu context (move cursor up) vs up event in a ship control context (accelerate ship)
     m_intentHandler.listen(m_inputHandler); 
+    
+    if (m_inputHandler.hasEvent(Event.ZOOMIN))
+      m_graphics.zoomIn(elapsedTime);
+    if (m_inputHandler.hasEvent(Event.ZOOMOUT))
+      m_graphics.zoomOut(elapsedTime);
     
     if (m_inputHandler.hasEvent(Event.QUIT))
       m_running = false;

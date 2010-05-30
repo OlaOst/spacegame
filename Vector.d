@@ -20,6 +20,8 @@ unittest
   result = result * 2.0;
   
   assert(result == Vector(2.0, 4.0));
+  
+  assert(result.toString() == "2 4", "Vector.toString returned '" ~ result.toString() ~ "', should be '2 4'");
 }
 
 
@@ -49,7 +51,7 @@ struct Vector
   
   string toString()
   {
-    return to!(string)(x) ~ " " ~ to!(string)(y);
+    return to!string(x) ~ " " ~ to!string(y);
   }
   
   static Vector origo = { x:0.0, y:0.0 };
