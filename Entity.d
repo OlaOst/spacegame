@@ -24,13 +24,15 @@ invariant()
 
 
 public:
-  this()
+  this(bool p_isStar = false)
   {
     m_position = Vector.origo;
     m_angle = 0.0;
     
     m_force = Vector.origo;
     m_torque = 0.0;
+    
+    m_isStar = p_isStar;
   }
   
   Vector position()
@@ -74,10 +76,18 @@ public:
   }
   
   
+  bool isStar()
+  {
+    return m_isStar;
+  }
+
+
 private:
   Vector m_position;
   float m_angle;
   
   Vector m_force;
   float m_torque;
+  
+  bool m_isStar;
 }

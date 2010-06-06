@@ -2,6 +2,7 @@ module PhysicsSubSystem;
 
 import std.stdio;
 import std.conv;
+import std.math;
 
 import Entity;
 import SubSystem;
@@ -58,6 +59,25 @@ public:
     return m_entity.position;
   }
   
+  Vector velocity()
+  {
+    return m_velocity;
+  }
+  
+  float torque()
+  {
+    return m_entity.torque;
+  }
+  
+  void torque(float p_torque)
+  {
+    m_entity.torque = p_torque;
+  }
+  
+  float rotation()
+  {
+    return m_rotation;
+  }
 
 private:
   void move(float p_time)
@@ -94,6 +114,10 @@ public:
     {
       // add spring force to center
       component.force = component.force + (component.position * -0.05);
+      
+      // and some damping
+      component.force = component.force + (component.velocity * -0.15);
+      component.torque = component.torque + (component.rotation * -0.5);
       
       component.move(p_time);
     }

@@ -15,6 +15,12 @@ unittest
 }
 
 
+enum Drawtype
+{
+  Triangle,
+  Star
+}
+
 struct GraphicsComponent 
 {
 public:
@@ -28,8 +34,16 @@ public:
     return m_entity.angle;
   }
   
+  Drawtype drawType()
+  {
+    return m_drawType;
+  }
+  
+  
 private:
   Entity m_entity;
+  
+  Drawtype m_drawType;
 }
 
 
@@ -61,13 +75,29 @@ public:
       glTranslatef(component.position.x, component.position.y, 0.0);
       glRotatef(component.angle * (180.0 / PI), 0.0, 0.0, 1.0);
       
-      glBegin(GL_TRIANGLES);
-        for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 3)
-        {
-          glColor3f(cos(angle*2), sin(angle/2), 0.0);
-          glVertex3f(cos(angle), sin(angle), -2.0);
-        }
-      glEnd();
+      if (component.drawType == Drawtype.Triangle)
+      {
+        glBegin(GL_TRIANGLES);
+          for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 3)
+          {
+            glColor3f(cos(angle*2), sin(angle/2), 0.0);
+            glVertex3f(cos(angle), sin(angle), -2.0);
+          }
+        glEnd();
+      }
+      else if (component.drawType == Drawtype.Star)
+      {
+        glBegin(GL_TRIANGLE_FAN);
+          glColor3f(1.0, 1.0, 1.0);
+          glVertex3f(0.0, 0.0, -2.0);
+          glColor3f(0.0, 0.5, 1.0);
+          for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 5)
+          {
+            glVertex3f(cos(angle)*.05, sin(angle)*.05, -2.0);
+          }
+          glVertex3f(cos(0.0)*.05, sin(0.0)*.05, -2.0);
+        glEnd();
+      }
       
       glPopMatrix();
     }
@@ -89,10 +119,16 @@ public:
 protected:
   GraphicsComponent createComponent(Entity p_entity)
   {
-    return GraphicsComponent(p_entity);
+    return GraphicsComponent(p_entity, p_entity.isStar ? Drawtype.Star : Drawtype.Triangle);
   }
   
+  Drawtype drawtype()
+  {
+    return m_drawtype;
+  }
   
 private:
   float m_zoom;
+  
+  Drawtype m_drawtype;
 }

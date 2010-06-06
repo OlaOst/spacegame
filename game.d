@@ -10,6 +10,7 @@ import GraphicsSubSystem;
 import InputHandler;
 import IntentSubSystem;
 import PhysicsSubSystem;
+import Starfield;
 import Timer;
 
 
@@ -118,6 +119,8 @@ public:
     m_physics.registerEntity(entity);
     m_intentHandler.registerEntity(entity);
     
+    m_starfield = new Starfield(m_graphics, 20);
+    
     initDisplay();
   }
  
@@ -182,4 +185,6 @@ private:
   GraphicsSubSystem m_graphics;
   IntentSubSystem m_intentHandler;
   PhysicsSubSystem m_physics;
+  
+  Starfield m_starfield;
 }
