@@ -119,7 +119,7 @@ public:
     m_physics.registerEntity(entity);
     m_intentHandler.registerEntity(entity);
     
-    m_starfield = new Starfield(m_graphics, 20);
+    m_starfield = new Starfield(m_graphics, 10.0);
     
     initDisplay();
   }
@@ -160,9 +160,15 @@ private:
     m_intentHandler.listen(m_inputHandler); 
     
     if (m_inputHandler.hasEvent(Event.ZOOMIN))
+    {
       m_graphics.zoomIn(elapsedTime);
+      m_starfield.populate(m_graphics, 20.0);
+    }
     if (m_inputHandler.hasEvent(Event.ZOOMOUT))
+    {
       m_graphics.zoomOut(elapsedTime);
+      m_starfield.populate(m_graphics, 20.0);
+    }
     
     if (m_inputHandler.hasEvent(Event.QUIT))
       m_running = false;

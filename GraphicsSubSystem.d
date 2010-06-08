@@ -70,32 +70,34 @@ public:
     
     foreach (component; components)
     {
-      glPushMatrix();      
-      
-      glTranslatef(component.position.x, component.position.y, 0.0);
-      glRotatef(component.angle * (180.0 / PI), 0.0, 0.0, 1.0);
+      glPushMatrix();
       
       if (component.drawType == Drawtype.Triangle)
       {
+        glTranslatef(component.position.x, component.position.y, -2.0);
+        glRotatef(component.angle * (180.0 / PI), 0.0, 0.0, 1.0);
+        
         glBegin(GL_TRIANGLES);
           for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 3)
           {
             glColor3f(cos(angle*2), sin(angle/2), 0.0);
-            glVertex3f(cos(angle), sin(angle), -2.0);
+            glVertex3f(cos(angle), sin(angle), 0.0);
           }
         glEnd();
       }
       else if (component.drawType == Drawtype.Star)
       {
+        glTranslatef(component.position.x, component.position.y, -3.0);
+        
         glBegin(GL_TRIANGLE_FAN);
           glColor3f(1.0, 1.0, 1.0);
-          glVertex3f(0.0, 0.0, -2.0);
+          glVertex3f(0.0, 0.0, 0.0);
           glColor3f(0.0, 0.5, 1.0);
           for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 5)
           {
-            glVertex3f(cos(angle)*.05, sin(angle)*.05, -2.0);
+            glVertex3f(cos(angle)*.05, sin(angle)*.05, 0.0);
           }
-          glVertex3f(cos(0.0)*.05, sin(0.0)*.05, -2.0);
+          glVertex3f(cos(0.0)*.05, sin(0.0)*.05, 0.0);
         glEnd();
       }
       
@@ -115,6 +117,10 @@ public:
     m_zoom -= m_zoom * p_time;
   }
   
+  float zoom()
+  {
+    return m_zoom;
+  }
   
 protected:
   GraphicsComponent createComponent(Entity p_entity)

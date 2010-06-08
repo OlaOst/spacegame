@@ -45,6 +45,8 @@ void setupGL()
   
   glLoadIdentity();
   
+  glEnable(GL_DEPTH_TEST);
+  
   //glCreateShader(GL_VERTEX_SHADER);
   
   //string[] sources = ["return;"];
@@ -55,5 +57,6 @@ void setupGL()
 void swapBuffers()
 {
   SDL_GL_SwapBuffers();
-  glClear(GL_COLOR_BUFFER_BIT);
+  
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }

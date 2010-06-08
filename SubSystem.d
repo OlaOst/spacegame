@@ -17,13 +17,19 @@ unittest
   }
   MockSubSystem sys = new MockSubSystem();
   
+  Entity entity = new Entity();
+  
   assert(sys.components.length == 0);
   {
-    Entity entity = new Entity();
-    
     sys.registerEntity(entity);
   }
   assert(sys.components.length == 1);
+  
+  {
+    sys.removeEntity(entity);
+  }
+  assert(sys.components.length == 0);
+  
 }
 
 
@@ -33,7 +39,14 @@ public:
   void registerEntity(Entity p_entity)
   {
     auto component = createComponent(p_entity);
-    m_components ~= component;
+    m_components[component] = p_entity;
+  }
+  
+  void removeEntity(Entity p_entity)
+  {
+    foreach (ComponentType component; m_components.keys)
+      if (m_components[component] == p_entity)
+        m_components.remove(component);
   }
   
   
@@ -42,10 +55,10 @@ protected:
   
   ComponentType[] components()
   {
-    return m_components;
+    return m_components.keys;
   }
   
   
 private:
-  ComponentType[] m_components;
+  Entity[ComponentType] m_components;
 }
