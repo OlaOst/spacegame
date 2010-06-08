@@ -53,8 +53,10 @@ public:
       
       star.setValue("drawtype", "star");
       
-      star.position = Vector(uniform(-2.0/m_graphics.zoom, 2.0/m_graphics.zoom), 
-                             uniform(-2.0/m_graphics.zoom, 2.0/m_graphics.zoom),
+      star.angle = uniform(-3.14, 3.14);
+      
+      star.position = Vector(uniform(-3.0/m_graphics.zoom, 3.0/m_graphics.zoom), 
+                             uniform(-3.0/m_graphics.zoom, 3.0/m_graphics.zoom),
                              uniform(-5.0, -3.0));
       
       m_stars[n] = star;

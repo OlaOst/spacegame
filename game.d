@@ -12,6 +12,7 @@ import IntentSubSystem;
 import PhysicsSubSystem;
 import Starfield;
 import Timer;
+import Vector : Vector;
 
 
 unittest
@@ -130,7 +131,7 @@ public:
     m_physics.registerEntity(player);
     m_intentHandler.registerEntity(player);
     
-    m_starfield = new Starfield(m_graphics, 10.0);
+    m_starfield = new Starfield(m_graphics, 100.0);
     
     initDisplay();
   }

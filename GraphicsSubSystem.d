@@ -69,6 +69,9 @@ public:
     
     glScalef(m_zoom, m_zoom, 1.0);
     
+    // pull back camera a bit so we can see entities with z=0.0
+    glTranslatef(0.0, 0.0, -1.0);
+    
     if (m_centerEntity !is null)
       glTranslatef(-m_centerEntity.position.x, -m_centerEntity.position.y, 0.0);
     
@@ -76,11 +79,15 @@ public:
     {
       glPushMatrix();
       
+      assert(component.position.x == component.position.x);
+      assert(component.position.y == component.position.y);
+      assert(component.position.z == component.position.z);
+      
+      glTranslatef(component.position.x, component.position.y, component.position.z);
+      glRotatef(component.angle * (180.0 / PI), 0.0, 0.0, 1.0);
+      
       if (component.drawType == Drawtype.Triangle)
       {
-        glTranslatef(component.position.x, component.position.y, -2.0);
-        glRotatef(component.angle * (180.0 / PI), 0.0, 0.0, 1.0);
-        
         glBegin(GL_TRIANGLES);
           for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 3)
           {
@@ -91,8 +98,6 @@ public:
       }
       else if (component.drawType == Drawtype.Star)
       {
-        glTranslatef(component.position.x, component.position.y, component.position.z);
-        
         glBegin(GL_TRIANGLE_FAN);
           glColor3f(1.0, 1.0, 1.0);
           glVertex3f(0.0, 0.0, 0.0);
@@ -107,7 +112,6 @@ public:
       else if (component.drawType == Drawtype.Unknown)
       {
         // TODO: should just draw a big fat question mark here
-        glTranslatef(component.position.x, component.position.y, -1.0);
         
         glBegin(GL_TRIANGLE_FAN);
           glColor3f(0.0, 0.0, 0.0);
