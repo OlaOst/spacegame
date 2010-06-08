@@ -9,32 +9,38 @@ import Vector : Vector;
 
 unittest
 {
-  GraphicsSubSystem graphics = new GraphicsSubSystem();
+  Starfield starfield = new Starfield(new GraphicsSubSystem(), 20);
   
-  Starfield starfield = new Starfield(graphics, 20);
+  assert(starfield.m_stars.length > 0);
 }
 
 
 // TODO: parallax scrolling stuff
 class Starfield
 {
+invariant()
+{
+  assert(m_graphics !is null);
+}
+
 public:
   // density - avg stars per square 'meter'
   this(GraphicsSubSystem p_graphics, float p_density)
   {
-    populate(p_graphics, p_density);
+    m_graphics = p_graphics;
+    populate(p_density);
   }
 
-  void populate(GraphicsSubSystem p_graphics, float p_density)
+  void populate(float p_density)
   {
     foreach (entity; m_stars)
     {
-      p_graphics.removeEntity(entity);
+      m_graphics.removeEntity(entity);
     }
     
     m_stars.length = 0;
     
-    int stars = cast(int)(p_density / p_graphics.zoom);
+    int stars = cast(int)(p_density / m_graphics.zoom);
     
     if (stars > 1000)
       stars = 1000;
@@ -47,15 +53,23 @@ public:
       
       star.setValue("drawtype", "star");
       
-      star.position = Vector(uniform(-2.0/p_graphics.zoom, 2.0/p_graphics.zoom), 
-                             uniform(-2.0/p_graphics.zoom, 2.0/p_graphics.zoom));
+      star.position = Vector(uniform(-2.0/m_graphics.zoom, 2.0/m_graphics.zoom), 
+                             uniform(-2.0/m_graphics.zoom, 2.0/m_graphics.zoom),
+                             uniform(-5.0, -3.0));
       
       m_stars[n] = star;
       
-      p_graphics.registerEntity(star);
+      m_graphics.registerEntity(star);
     }
   }
   
+  
+  void draw()
+  {
+    m_graphics.draw();
+  }
+  
 private:
+  GraphicsSubSystem m_graphics;
   Entity[] m_stars;
 }

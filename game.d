@@ -61,7 +61,7 @@ unittest
   {
     Entity entity = new Entity();
     
-    entity.setValue("drawType", "triangle");
+    entity.setValue("drawtype", "triangle");
     
     game.m_graphics.registerEntity(entity);
   }
@@ -173,12 +173,12 @@ private:
     if (m_inputHandler.hasEvent(Event.ZOOMIN))
     {
       m_graphics.zoomIn(elapsedTime);
-      m_starfield.populate(m_graphics, 20.0);
+      m_starfield.populate(20.0);
     }
     if (m_inputHandler.hasEvent(Event.ZOOMOUT))
     {
       m_graphics.zoomOut(elapsedTime);
-      m_starfield.populate(m_graphics, 20.0);
+      m_starfield.populate(20.0);
     }
     
     if (m_inputHandler.hasEvent(Event.QUIT))

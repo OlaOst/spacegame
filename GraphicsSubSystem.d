@@ -91,7 +91,7 @@ public:
       }
       else if (component.drawType == Drawtype.Star)
       {
-        glTranslatef(component.position.x, component.position.y, -3.0);
+        glTranslatef(component.position.x, component.position.y, component.position.z);
         
         glBegin(GL_TRIANGLE_FAN);
           glColor3f(1.0, 1.0, 1.0);
@@ -154,21 +154,15 @@ protected:
       return GraphicsComponent(p_entity, Drawtype.Star);
     else if (p_entity.getValue("drawtype") == "triangle")
       return GraphicsComponent(p_entity, Drawtype.Triangle);
-    else
-      return GraphicsComponent(p_entity, Drawtype.Unknown);
+    //else
+      //return GraphicsComponent(p_entity, Drawtype.Unknown);
       
-    //assert(0, "Tried to create component from entity without drawtype value");
+    assert(0, "Tried to create component from entity without drawtype value");
   }
   
-  /*Drawtype drawtype()
-  {
-    return m_drawtype;
-  }*/
   
 private:
   float m_zoom;
   
   Entity m_centerEntity;
-  
-  //Drawtype m_drawtype;
 }

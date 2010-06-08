@@ -78,12 +78,6 @@ public:
   }
   
   
-  /*bool isStar()
-  {
-    return m_isStar;
-  }*/
-
-  
   void setValue(string p_name, string p_value)
   {
     m_values[p_name] = p_value;
@@ -106,6 +100,4 @@ private:
   float m_torque;
   
   string[string] m_values;
-  
-  //bool m_isStar;
 }
