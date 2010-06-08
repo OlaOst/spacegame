@@ -12,6 +12,24 @@ import Vector : Vector;
 unittest
 {
   GraphicsSubSystem graphics = new GraphicsSubSystem();
+  
+  Entity deleteTest = new Entity();
+  
+  deleteTest.setValue("drawtype", "triangle");
+  deleteTest.setValue("keepInCenter", "true");
+  
+  graphics.registerEntity(deleteTest);
+  
+  graphics.draw();
+  
+  {
+    // will cause access violation, but we're not supposed to delete objects anyway - use removeEntity instead
+    //delete deleteTest;
+    
+    graphics.removeEntity(deleteTest);
+  
+    graphics.draw();
+  }
 }
 
 
