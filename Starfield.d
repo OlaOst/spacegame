@@ -23,8 +23,6 @@ public:
   this(GraphicsSubSystem p_graphics, float p_density)
   {
     populate(p_graphics, p_density);
-    
-    
   }
 
   void populate(GraphicsSubSystem p_graphics, float p_density)
@@ -45,7 +43,9 @@ public:
     
     for (int n = 0; n < stars; n++)
     {
-      Entity star = new Entity(true);
+      Entity star = new Entity();
+      
+      star.setValue("drawtype", "star");
       
       star.position = Vector(uniform(-2.0/p_graphics.zoom, 2.0/p_graphics.zoom), 
                              uniform(-2.0/p_graphics.zoom, 2.0/p_graphics.zoom));

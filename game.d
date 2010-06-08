@@ -38,9 +38,15 @@ unittest
   assert(game.m_inputHandler.hasEvent(Event.UP), "Game didn't register input event");
   
   {
+    SDL_Event upReleaseEvent;
+    upReleaseEvent.type = SDL_KEYUP;
+    upReleaseEvent.key.keysym.sym = SDLK_UP;
+    
+    SDL_PushEvent(&upReleaseEvent);
+    
     game.update();
   }
-  assert(!game.m_inputHandler.hasEvent(Event.UP), "Input didn't clear event after update");
+  assert(!game.m_inputHandler.hasEvent(Event.UP), "Input didn't clear event after keyup event and update");
   
   {
     SDL_Event quitEvent;
@@ -54,6 +60,8 @@ unittest
   
   {
     Entity entity = new Entity();
+    
+    entity.setValue("drawType", "triangle");
     
     game.m_graphics.registerEntity(entity);
   }
@@ -83,7 +91,7 @@ unittest
     
     game.m_physics.move(0.01);
     
-    assert(entity.position.y > 0.0);
+    assert(entity.position.x > 0.0);
   }
 }
 
@@ -113,11 +121,14 @@ public:
     m_intentHandler = new IntentSubSystem();
     m_physics = new PhysicsSubSystem();
     
-    Entity entity = new Entity();
+    Entity player = new Entity();
     
-    m_graphics.registerEntity(entity);
-    m_physics.registerEntity(entity);
-    m_intentHandler.registerEntity(entity);
+    player.setValue("drawtype", "triangle");
+    player.setValue("keepInCenter", "true");
+    
+    m_graphics.registerEntity(player);
+    m_physics.registerEntity(player);
+    m_intentHandler.registerEntity(player);
     
     m_starfield = new Starfield(m_graphics, 10.0);
     

@@ -8,6 +8,10 @@ unittest
   Entity entity = new Entity();
   
   assert(entity.position == Vector.origo);
+  
+  entity.setValue("dummyValue", "123");
+  
+  assert(entity.getValue("dummyValue"), "123");
 }
 
 
@@ -24,15 +28,13 @@ invariant()
 
 
 public:
-  this(bool p_isStar = false)
+  this()
   {
     m_position = Vector.origo;
     m_angle = 0.0;
     
     m_force = Vector.origo;
     m_torque = 0.0;
-    
-    m_isStar = p_isStar;
   }
   
   Vector position()
@@ -76,11 +78,25 @@ public:
   }
   
   
-  bool isStar()
+  /*bool isStar()
   {
     return m_isStar;
-  }
+  }*/
 
+  
+  void setValue(string p_name, string p_value)
+  {
+    m_values[p_name] = p_value;
+  }
+  
+  string getValue(string p_name)
+  {
+    if (p_name in m_values)
+      return m_values[p_name];
+    else
+      return null;
+  }
+  
 
 private:
   Vector m_position;
@@ -89,5 +105,7 @@ private:
   Vector m_force;
   float m_torque;
   
-  bool m_isStar;
+  string[string] m_values;
+  
+  //bool m_isStar;
 }

@@ -17,6 +17,7 @@ unittest
 
 enum Drawtype
 {
+  Unknown,
   Triangle,
   Star
 }
@@ -24,26 +25,26 @@ enum Drawtype
 struct GraphicsComponent 
 {
 public:
+  this(Entity p_entity, Drawtype p_drawType)
+  {
+    entity = p_entity;
+    drawType = p_drawType;
+  }
+  
   Vector position()
   {
-    return m_entity.position;
+    return entity.position;
   }
   
   float angle()
   {
-    return m_entity.angle;
+    return entity.angle;
   }
   
-  Drawtype drawType()
-  {
-    return m_drawType;
-  }
-  
+  Drawtype drawType;
   
 private:
-  Entity m_entity;
-  
-  Drawtype m_drawType;
+  Entity entity;
 }
 
 
@@ -67,6 +68,9 @@ public:
     glPushMatrix();
     
     glScalef(m_zoom, m_zoom, 1.0);
+    
+    if (m_centerEntity !is null)
+      glTranslatef(-m_centerEntity.position.x, -m_centerEntity.position.y, 0.0);
     
     foreach (component; components)
     {
@@ -100,6 +104,22 @@ public:
           glVertex3f(cos(0.0)*.05, sin(0.0)*.05, 0.0);
         glEnd();
       }
+      else if (component.drawType == Drawtype.Unknown)
+      {
+        // TODO: should just draw a big fat question mark here
+        glTranslatef(component.position.x, component.position.y, -1.0);
+        
+        glBegin(GL_TRIANGLE_FAN);
+          glColor3f(0.0, 0.0, 0.0);
+          glVertex3f(0.0, 0.0, 0.0);
+          glColor3f(1.0, 0.0, 0.0);
+          for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 4)
+          {
+            glVertex3f(cos(angle)*.05, sin(angle)*.05, 0.0);
+          }
+          glVertex3f(cos(0.0)*.05, sin(0.0)*.05, 0.0);
+        glEnd();
+      }
       
       glPopMatrix();
     }
@@ -125,16 +145,30 @@ public:
 protected:
   GraphicsComponent createComponent(Entity p_entity)
   {
-    return GraphicsComponent(p_entity, p_entity.isStar ? Drawtype.Star : Drawtype.Triangle);
+    if (p_entity.getValue("keepInCenter") == "true")
+    {
+      m_centerEntity = p_entity;
+    }
+    
+    if (p_entity.getValue("drawtype") == "star")
+      return GraphicsComponent(p_entity, Drawtype.Star);
+    else if (p_entity.getValue("drawtype") == "triangle")
+      return GraphicsComponent(p_entity, Drawtype.Triangle);
+    else
+      return GraphicsComponent(p_entity, Drawtype.Unknown);
+      
+    //assert(0, "Tried to create component from entity without drawtype value");
   }
   
-  Drawtype drawtype()
+  /*Drawtype drawtype()
   {
     return m_drawtype;
-  }
+  }*/
   
 private:
   float m_zoom;
   
-  Drawtype m_drawtype;
+  Entity m_centerEntity;
+  
+  //Drawtype m_drawtype;
 }
