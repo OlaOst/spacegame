@@ -57,7 +57,8 @@ enum Event
 {
   QUIT,
   UP, DOWN, LEFT, RIGHT,
-  ZOOMIN, ZOOMOUT
+  ZOOMIN, ZOOMOUT,
+  CHOOSE
 } 
 
 
@@ -77,6 +78,8 @@ public:
     
     m_eventMapping[SDLK_PAGEUP] = Event.ZOOMIN;
     m_eventMapping[SDLK_PAGEDOWN] = Event.ZOOMOUT;
+    
+    m_eventMapping[SDLK_SPACE] = Event.CHOOSE;
   }
   
   void pollEvents()
@@ -152,5 +155,5 @@ private:
 private:  
   uint[Event] m_events;
   
-  Event[SDLKey] m_eventMapping;
+  static Event[SDLKey] m_eventMapping;
 }

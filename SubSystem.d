@@ -49,6 +49,19 @@ public:
         m_components.remove(component);
   }
   
+  ComponentType[] findComponents(Entity p_entity)
+  {
+    // TODO: this could problaby be rangified
+    
+    ComponentType[] foundComponents;
+    
+    foreach (ComponentType component; m_components.keys)
+      if (m_components[component] == p_entity)
+        foundComponents ~= component;
+        
+    return foundComponents;
+  }
+  
   
 protected:
   abstract ComponentType createComponent(Entity p_entity);

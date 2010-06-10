@@ -4,6 +4,8 @@ import std.conv;
 import std.math;
 import std.stdio;
 
+import derelict.sdl.sdl;
+
 import Entity;
 import InputHandler;
 import SubSystem;
@@ -19,11 +21,29 @@ unittest
   InputHandler inputHandler = new InputHandler();
   {
     intentHandler.registerEntity(entity);
-    intentHandler.listen(inputHandler);
+    
+    Entity[] spawnList;
+    
+    intentHandler.listen(inputHandler, spawnList);
   }
   
   {
-    //Event upEvent = Event.UP;
+    SDL_Event chooseEvent;
+    
+    chooseEvent.type = SDL_KEYDOWN;
+    chooseEvent.key.keysym.sym = SDLK_SPACE;
+    
+    SDL_PushEvent(&chooseEvent);
+    
+    inputHandler.pollEvents();
+    
+    assert(inputHandler.hasEvent(Event.CHOOSE));
+    
+    Entity[] spawnList;
+    
+    intentHandler.listen(inputHandler, spawnList);
+    
+    assert(spawnList.length == 1);
   }
 }
 
@@ -66,18 +86,39 @@ class IntentSubSystem : public SubSystem.SubSystem!(IntentComponent)
 {
 public:
 
-  void listen(InputHandler p_inputHandler)
+  void listen(InputHandler p_inputHandler, out Entity[] p_spawnList)
   {
     foreach (component; components)
     {
-      //Vector force = getForceFromEvents(p_inputHandler);
-      
+      // unit length force in right direction
       Vector force = Vector(cos(component.angle), sin(component.angle));
       
+      // put correct length on vector
       force *= getForceMagnitudeFromEvents(p_inputHandler);
       
       component.force = force;
       component.torque = getTorqueFromEvents(p_inputHandler);
+      
+      if (Event.CHOOSE in p_inputHandler.events)
+      {
+        for (int n = 0; n < p_inputHandler.events[Event.CHOOSE]; n++)
+        {
+          Entity spawn = new Entity();
+          
+          spawn.lifetime = 2.0;
+          
+          spawn.setValue("drawtype", "star"); // should be bullet
+          
+          // then the subsystems that need specific info, ie physics need to know velocity of spawnedFrom entity
+          // then it can lookup its components for the spawnedFrom entity
+          spawn.setValue("spawnedFrom", to!string(component.m_entity.id));
+          
+          spawn.position = component.m_entity.position;
+          spawn.angle = component.m_entity.angle;
+          
+          p_spawnList ~= spawn;
+        }
+      }
     }
   }
   

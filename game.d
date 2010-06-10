@@ -88,7 +88,9 @@ unittest
     
     game.m_inputHandler.pollEvents();
     
-    game.m_intentHandler.listen(game.m_inputHandler);
+    Entity[] spawnList;
+    
+    game.m_intentHandler.listen(game.m_inputHandler, spawnList);
     
     game.m_physics.move(0.01);
     
@@ -127,6 +129,8 @@ public:
     player.setValue("drawtype", "triangle");
     player.setValue("keepInCenter", "true");
     
+    m_entities ~= player;
+    
     m_graphics.registerEntity(player);
     m_physics.registerEntity(player);
     m_intentHandler.registerEntity(player);
@@ -159,6 +163,20 @@ private:
     
     m_updateCount++;
     
+    
+    foreach (Entity entity; m_entities)
+    {
+      entity.lifetime = entity.lifetime - elapsedTime;
+      
+      if (entity.lifetime < 0.0)
+      {
+        m_physics.removeEntity(entity);
+        m_graphics.removeEntity(entity);
+        m_intentHandler.removeEntity(entity);
+      }
+    }
+    
+    
     swapBuffers();
     
     m_inputHandler.pollEvents();
@@ -167,9 +185,18 @@ private:
     m_physics.move(elapsedTime);
     m_graphics.draw();
     
-    // TODO: we need to know which context we are in - input events signify different intents depending on context
+    // TODO: we need to know what context we are in - input events signify different intents depending on context
     // ie up event in a menu context (move cursor up) vs up event in a ship control context (accelerate ship)
-    m_intentHandler.listen(m_inputHandler); 
+    
+    Entity[] spawnList;
+    m_intentHandler.listen(m_inputHandler, spawnList); 
+    
+    foreach (Entity spawn; spawnList)
+    {
+      m_entities ~= spawn;
+      m_graphics.registerEntity(spawn);
+      m_physics.registerEntity(spawn);
+    }
     
     if (m_inputHandler.hasEvent(Event.ZOOMIN))
     {
@@ -205,4 +232,6 @@ private:
   PhysicsSubSystem m_physics;
   
   Starfield m_starfield;
+  
+  Entity[] m_entities;
 }

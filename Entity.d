@@ -1,5 +1,7 @@
 module Entity;
 
+import std.math;
+
 import Vector : Vector;
 
 
@@ -12,6 +14,10 @@ unittest
   entity.setValue("dummyValue", "123");
   
   assert(entity.getValue("dummyValue"), "123");
+  
+  Entity another = new Entity();
+  
+  assert(entity.id != another.id);
 }
 
 
@@ -24,6 +30,8 @@ invariant()
   
   assert(m_force.x == m_force.x && m_force.y == m_force.y);
   assert(m_torque == m_torque);
+  
+  assert(m_lifetime == m_lifetime);
 }
 
 
@@ -35,6 +43,10 @@ public:
     
     m_force = Vector.origo;
     m_torque = 0.0;
+    
+    m_id = m_idCounter++;
+    
+    m_lifetime = real.infinity;
   }
   
   Vector position()
@@ -77,6 +89,15 @@ public:
     m_torque = p_torque;
   }
   
+  float lifetime()
+  {
+    return m_lifetime;
+  }
+  
+  void lifetime(float p_lifetime)
+  {
+    m_lifetime = p_lifetime;
+  }
   
   void setValue(string p_name, string p_value)
   {
@@ -91,6 +112,11 @@ public:
       return null;
   }
   
+  
+  int id()
+  {
+    return m_id;
+  }
 
 private:
   Vector m_position;
@@ -98,6 +124,11 @@ private:
   
   Vector m_force;
   float m_torque;
+  
+  float m_lifetime;
+  
+  static int m_idCounter;
+  int m_id;
   
   string[string] m_values;
 }

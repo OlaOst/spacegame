@@ -23,6 +23,19 @@ unittest
     physics.move(1.0);
   }
   assert(entity.position.x > 0.0);
+  
+  {
+    Entity spawn = new Entity();
+    spawn.setValue("spawnedFrom", to!string(entity.id));
+    
+    physics.registerEntity(spawn);
+    
+    auto spawnComp = physics.findComponents(spawn)[0];
+    auto motherComp = physics.findComponents(entity)[0];
+    
+    assert(spawnComp.velocity == motherComp.velocity, "Spawned entity didn't get velocity vector copied from spawner");
+  }
+  // TODO: what should happen when registering an entity whose spawnedFrom doesn't exists
 }
 
 
@@ -64,6 +77,11 @@ public:
     return m_velocity;
   }
   
+  void velocity(Vector p_velocity)
+  {
+    m_velocity = p_velocity;
+  }
+  
   float torque()
   {
     return m_entity.torque;
@@ -79,6 +97,11 @@ public:
     return m_rotation;
   }
 
+  Entity entity()
+  {
+    return m_entity;
+  }
+  
 private:
   void move(float p_time)
   in
@@ -127,6 +150,26 @@ public:
 protected:
   PhysicsComponent createComponent(Entity p_entity)
   {
-    return new PhysicsComponent(p_entity);
+    auto newComponent = new PhysicsComponent(p_entity);
+    
+    if (p_entity.getValue("spawnedFrom"))
+    {
+      int spawnedFromId = to!int(p_entity.getValue("spawnedFrom"));
+      
+      foreach (spawnerCandidate; components)
+      {
+        if (spawnerCandidate.entity.id == spawnedFromId)
+        {
+          Vector dir = Vector(cos(spawnerCandidate.entity.angle), sin(spawnerCandidate.entity.angle));
+          
+          // TODO: should be force from spawn value
+          dir *= 5.0;
+          
+          newComponent.velocity = spawnerCandidate.velocity + dir;
+        }
+      }
+    }
+    
+    return newComponent;
   }
 }
