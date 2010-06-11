@@ -37,7 +37,8 @@ enum Drawtype
 {
   Unknown,
   Triangle,
-  Star
+  Star,
+  Bullet
 }
 
 struct GraphicsComponent 
@@ -127,6 +128,19 @@ public:
           glVertex3f(cos(0.0)*.05, sin(0.0)*.05, 0.0);
         glEnd();
       }
+      else if (component.drawType == Drawtype.Bullet)
+      {
+        glBegin(GL_TRIANGLE_FAN);
+          glColor3f(1.0, 1.0, 0.0);
+          glVertex3f(0.0, 0.0, 0.0);
+          glColor3f(1.0, 0.5, 0.0);
+          for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 4)
+          {
+            glVertex3f(cos(angle)*.05, sin(angle)*.05, 0.0);
+          }
+          glVertex3f(cos(0.0)*.05, sin(0.0)*.05, 0.0);
+        glEnd();
+      }
       else if (component.drawType == Drawtype.Unknown)
       {
         // TODO: should just draw a big fat question mark here
@@ -176,6 +190,8 @@ protected:
       return GraphicsComponent(p_entity, Drawtype.Star);
     else if (p_entity.getValue("drawtype") == "triangle")
       return GraphicsComponent(p_entity, Drawtype.Triangle);
+      else if (p_entity.getValue("drawtype") == "bullet")
+      return GraphicsComponent(p_entity, Drawtype.Bullet);
     //else
       //return GraphicsComponent(p_entity, Drawtype.Unknown);
       

@@ -8,7 +8,7 @@ import derelict.sdl.sdl;
 
 import Entity;
 import InputHandler;
-import SubSystem;
+import SubSystem : SubSystem;
 import Vector : Vector;
 
 
@@ -82,7 +82,7 @@ private:
 }
 
 
-class IntentSubSystem : public SubSystem.SubSystem!(IntentComponent)
+class IntentSubSystem : public SubSystem!(IntentComponent)
 {
 public:
 
@@ -107,7 +107,7 @@ public:
           
           spawn.lifetime = 2.0;
           
-          spawn.setValue("drawtype", "star"); // should be bullet
+          spawn.setValue("drawtype", "bullet");
           
           // then the subsystems that need specific info, ie physics need to know velocity of spawnedFrom entity
           // then it can lookup its components for the spawnedFrom entity
