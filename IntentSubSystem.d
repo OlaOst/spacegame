@@ -138,7 +138,7 @@ private:
     
     foreach (event; p_inputHandler.events.keys)
     {
-      float scalar = 1.0 * p_inputHandler.events[event];
+      float scalar = 2.0 * p_inputHandler.events[event];
       
       if (event == Event.UP)
         forceMagnitude += scalar;

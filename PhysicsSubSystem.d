@@ -45,7 +45,7 @@ invariant()
 {
   assert(m_entity !is null, "Physics component had null entity");
   
-  assert(m_velocity.x == m_velocity.x && m_velocity.y == m_velocity.y);
+  assert(m_velocity.x == m_velocity.x && m_velocity.y == m_velocity.y && m_velocity.z == m_velocity.z);
   assert(m_rotation == m_rotation);
 }
 
@@ -106,13 +106,19 @@ private:
   void move(float p_time)
   in
   {
-    assert(p_time > 0.0);
+    assert(p_time >= 0.0);
   }
   body
   {
     //writeln("torque:   " ~ to!string(m_entity.torque));
     //writeln("rotation: " ~ to!string(m_rotation));
     //writeln("angle:    " ~ to!string(m_entity.angle));
+    
+    //writeln("force: " ~ m_entity.force.toString());
+    //writeln("vel:   " ~ m_velocity.toString());
+    //writeln("pos:   " ~ m_entity.position.toString());
+    
+    writeln("time: " ~ to!string(p_time));
     
     m_velocity = m_velocity + m_entity.force * p_time;
     m_entity.position = m_entity.position + m_velocity * p_time;
@@ -143,6 +149,9 @@ public:
       component.torque = component.torque + (component.rotation * -0.5);
       
       component.move(p_time);
+      
+      component.force = Vector.origo;
+      component.torque = 0.0;
     }
   }
   

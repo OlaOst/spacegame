@@ -49,9 +49,11 @@ public:
         m_components.remove(component);
   }
   
+
+protected:
   ComponentType[] findComponents(Entity p_entity)
   {
-    // TODO: this could problaby be rangified
+    // TODO: this could problably be rangified
     
     ComponentType[] foundComponents;
     
@@ -62,8 +64,11 @@ public:
     return foundComponents;
   }
   
+  Entity getEntity(ComponentType p_component)
+  {
+    return m_components[p_component];
+  }
   
-protected:
   abstract ComponentType createComponent(Entity p_entity);
   
   ComponentType[] components()

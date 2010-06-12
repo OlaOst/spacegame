@@ -5,7 +5,7 @@ import std.math;
 import derelict.opengl.gl;
 
 import Entity;
-import SubSystem;
+import SubSystem : SubSystem;
 import Vector : Vector;
 
 
@@ -67,7 +67,7 @@ private:
 }
 
 
-class GraphicsSubSystem : public SubSystem.SubSystem!(GraphicsComponent)
+class GraphicsSubSystem : public SubSystem!(GraphicsComponent)
 {
 invariant()
 {
@@ -78,7 +78,7 @@ invariant()
 public:
   this()
   {
-    m_zoom = 1.0;
+    m_zoom = 0.2;
   }
   
   
@@ -190,7 +190,7 @@ protected:
       return GraphicsComponent(p_entity, Drawtype.Star);
     else if (p_entity.getValue("drawtype") == "triangle")
       return GraphicsComponent(p_entity, Drawtype.Triangle);
-      else if (p_entity.getValue("drawtype") == "bullet")
+    else if (p_entity.getValue("drawtype") == "bullet")
       return GraphicsComponent(p_entity, Drawtype.Bullet);
     //else
       //return GraphicsComponent(p_entity, Drawtype.Unknown);

@@ -2,6 +2,7 @@ module Game;
 
 import std.stdio;
 import std.conv;
+import std.random;
 
 import derelict.sdl.sdl;
 
@@ -135,7 +136,21 @@ public:
     m_physics.registerEntity(player);
     m_intentHandler.registerEntity(player);
     
-    m_starfield = new Starfield(m_graphics, 100.0);
+    for (int n = 0; n < 20; n++)
+    {
+      Entity npc = new Entity();
+      
+      npc.setValue("drawtype", "triangle");
+      npc.position = Vector(uniform(-10.0, 10.0), uniform(-10.0, 10.0));
+      
+      m_entities ~= npc;
+    
+      m_graphics.registerEntity(npc);
+      m_physics.registerEntity(npc);
+      //m_intentHandler.registerEntity(npc);
+    }
+    
+    m_starfield = new Starfield(m_graphics, 10.0);
     
     initDisplay();
   }
@@ -159,6 +174,8 @@ private:
   {
     m_timer.stop();
     float elapsedTime = m_timer.elapsedTime;
+    if (m_updateCount == 0)
+      elapsedTime = 0.0;
     m_timer.start();
     
     m_updateCount++;

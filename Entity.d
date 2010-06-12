@@ -25,10 +25,10 @@ class Entity
 {
 invariant()
 {
-  assert(m_position.x == m_position.x && m_position.y == m_position.y);
+  assert(m_position.x == m_position.x && m_position.y == m_position.y && m_position.z == m_position.z);
   assert(m_angle == m_angle);
   
-  assert(m_force.x == m_force.x && m_force.y == m_force.y);
+  assert(m_force.x == m_force.x && m_force.y == m_force.y && m_force.z == m_force.z);
   assert(m_torque == m_torque);
   
   assert(m_lifetime == m_lifetime);
