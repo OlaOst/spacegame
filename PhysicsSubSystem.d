@@ -118,7 +118,7 @@ private:
     //writeln("vel:   " ~ m_velocity.toString());
     //writeln("pos:   " ~ m_entity.position.toString());
     
-    writeln("time: " ~ to!string(p_time));
+    //writeln("time: " ~ to!string(p_time));
     
     m_velocity = m_velocity + m_entity.force * p_time;
     m_entity.position = m_entity.position + m_velocity * p_time;

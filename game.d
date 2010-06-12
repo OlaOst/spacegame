@@ -9,6 +9,7 @@ import derelict.sdl.sdl;
 import Display;
 import GraphicsSubSystem;
 import InputHandler;
+import InputContext;
 import IntentSubSystem;
 import PhysicsSubSystem;
 import Starfield;
@@ -198,7 +199,6 @@ private:
     
     m_inputHandler.pollEvents();
 
-    // TODO: figure out how much time elapsed since last update
     m_physics.move(elapsedTime);
     m_graphics.draw();
     

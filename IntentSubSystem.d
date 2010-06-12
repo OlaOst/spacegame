@@ -52,7 +52,7 @@ struct IntentComponent
 {
 invariant()
 {
-  assert(m_entity !is null, "Intent component had null entity");
+  assert(m_entity !is null, "Intent component got null entity");
 }
 
 public:
