@@ -79,6 +79,9 @@ unittest
   {
     Entity entity = new Entity();
     
+    entity.setValue("contextMappings", "1");
+    entity.setValue("contextMapping.0", "UpKey = Accelerate");
+    
     game.m_physics.registerEntity(entity);
     game.m_intentHandler.registerEntity(entity);
     
@@ -127,6 +130,13 @@ public:
     m_physics = new PhysicsSubSystem();
     
     Entity player = new Entity();
+    
+    player.setValue("contextMappings", "5");
+    player.setValue("contextMapping.0", "UpKey = Accelerate");
+    player.setValue("contextMapping.1", "DownKey = Decelerate");
+    player.setValue("contextMapping.2", "LeftKey = TurnLeft");
+    player.setValue("contextMapping.3", "RightKey = TurnRight");
+    player.setValue("contextMapping.4", "Space = Fire");
     
     player.setValue("drawtype", "triangle");
     player.setValue("keepInCenter", "true");

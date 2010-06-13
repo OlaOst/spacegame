@@ -56,16 +56,6 @@ public:
     m_velocity = Vector.origo;
     m_rotation = 0.0;
   }
-
-  Vector force()
-  {
-    return m_entity.force;
-  }
-  
-  void force(Vector p_force)
-  {
-    m_entity.force = p_force;
-  }
   
   Vector position()
   {
@@ -82,6 +72,21 @@ public:
     m_velocity = p_velocity;
   }
   
+  float rotation()
+  {
+    return m_rotation;
+  }
+  
+  Vector force()
+  {
+    return m_entity.force;
+  }
+  
+  void force(Vector p_force)
+  {
+    m_entity.force = p_force;
+  }
+  
   float torque()
   {
     return m_entity.torque;
@@ -90,11 +95,6 @@ public:
   void torque(float p_torque)
   {
     m_entity.torque = p_torque;
-  }
-  
-  float rotation()
-  {
-    return m_rotation;
   }
 
   Entity entity()

@@ -21,7 +21,13 @@ unittest
   // smoke test
   Entity entity = new Entity();
   
-  //entity.setValue("contextMappings", "1");
+  entity.setValue("contextMappings", "5");
+  
+  entity.setValue("contextMapping.0", "UpKey = Accelerate");
+  entity.setValue("contextMapping.1", "DownKey = Decelerate");
+  entity.setValue("contextMapping.2", "LeftKey = TurnLeft");
+  entity.setValue("contextMapping.3", "RightKey = TurnRight");
+  entity.setValue("contextMapping.4", "Space = Fire");
   
   InputHandler inputHandler = new InputHandler();
   {
@@ -31,7 +37,7 @@ unittest
     
     intentHandler.listen(inputHandler, spawnList);
   }
-  
+
   {
     SDL_Event chooseEvent;
     
@@ -45,10 +51,29 @@ unittest
     assert(inputHandler.hasEvent(Event.Space));
     
     Entity[] spawnList;
+    intentHandler.listen(inputHandler, spawnList);
+    
+    assert(spawnList.length > 0, "Fire intent didn't register");
+  }
+  
+  
+  {
+    SDL_Event upEvent;
+    
+    upEvent.type = SDL_KEYUP;
+    upEvent.key.keysym.sym = SDLK_SPACE;
+    
+    SDL_PushEvent(&upEvent);
+    
+    inputHandler.pollEvents();
+    
+    assert(!inputHandler.hasEvent(Event.Space), "Key release didn't register");
+    
+    Entity[] spawnList;
     
     intentHandler.listen(inputHandler, spawnList);
     
-    assert(spawnList.length == 1);
+    assert(spawnList.length == 0, "Fire events registered when they shouldn't");
   }
 }
 
@@ -68,19 +93,34 @@ public:
   }
   
 private:
-  void force(Vector p_force)
+  @property void force(Vector p_force)
   {
     m_entity.force = p_force;
   }
   
-  void torque(float p_torque)
+  @property void torque(float p_torque)
   {
     m_entity.torque = p_torque;
   }
   
-  float angle()
+  @property Vector force()
+  {
+    return m_entity.force;
+  }
+  
+  @property float torque()
+  {
+    return m_entity.torque;
+  }
+  
+  @property float angle()
   {
     return m_entity.angle;
+  }
+  
+  @property InputContext context()
+  {
+    return m_context;
   }
   
 private:
@@ -98,18 +138,14 @@ public:
   {
     foreach (component; components)
     {
-      // unit length force in right direction
-      Vector force = Vector(cos(component.angle), sin(component.angle));
-      
-      // put correct length on vector
-      force *= getForceMagnitudeFromEvents(p_inputHandler);
-      
-      component.force = force;
-      component.torque = getTorqueFromEvents(p_inputHandler);
-      
-      if (Event.Space in p_inputHandler.events)
+      foreach (event; p_inputHandler.events.keys)
       {
-        for (int n = 0; n < p_inputHandler.events[Event.Space]; n++)
+        if (!p_inputHandler.hasEvent(event))
+          continue;
+        
+        auto intent = component.context.getIntent(event);
+        
+        if (intent == Intent.Fire)
         {
           Entity spawn = new Entity();
           
@@ -125,6 +161,36 @@ public:
           spawn.angle = component.m_entity.angle;
           
           p_spawnList ~= spawn;
+        }
+        
+        if (intent == Intent.Accelerate)
+        {
+          // unit length force in right direction
+          Vector force = Vector(cos(component.angle), sin(component.angle));
+          
+          force *= 2.0; // should be engine power from entity value
+          
+          component.force = component.force + force;
+        }
+        
+        if (intent == Intent.Decelerate)
+        {
+          // unit length force in right direction
+          Vector force = Vector(cos(component.angle), sin(component.angle));
+          
+          force *= -2.0; // should be engine power from entity value
+          
+          component.force = component.force + force;
+        }
+        
+        if (intent == Intent.TurnLeft)
+        {
+          component.torque = component.torque + 2.0; // should be engine torque power from entity value
+        }
+        
+        if (intent == Intent.TurnRight)
+        {
+          component.torque = component.torque - 2.0; // should be engine torque power from entity value
         }
       }
     }
@@ -151,51 +217,12 @@ protected:
       
       assert(contextMapping.length == 2, "Found invalid context mapping: " ~ contextMappingString);
       
-      Event event = eventFromString(contextMapping[0]);
-      Intent intent = intentFromString(contextMapping[1]);
+      Event event = eventFromString(strip(contextMapping[0]));
+      Intent intent = intentFromString(strip(contextMapping[1]));
       
       context.addMapping(event, intent);
     }
     
     return IntentComponent(p_entity, context);
-  }
-  
-  
-private:
-  float getForceMagnitudeFromEvents(InputHandler p_inputHandler)
-  {
-    //Vector force = Vector.origo;
-    float forceMagnitude = 0.0;
-    
-    foreach (event; p_inputHandler.events.keys)
-    {
-      float scalar = 2.0 * p_inputHandler.events[event];
-      
-      if (event == Event.UpKey)
-        forceMagnitude += scalar;
-      if (event == Event.DownKey)
-        forceMagnitude -= scalar;
-      //if (event == Event.LeftKey)
-        //force += Vector(-scalar, 0.0);
-      //if (event == Event.RightKey)
-        //force += Vector(scalar, 0.0);
-    }
-    return forceMagnitude;
-  }
-  
-  float getTorqueFromEvents(InputHandler p_inputHandler)
-  {
-    float torque = 0.0;
-
-    foreach (event; p_inputHandler.events.keys)
-    {
-      float scalar = 2.0 * p_inputHandler.events[event];
-      
-      if (event == Event.LeftKey)
-        torque += scalar;
-      if (event == Event.RightKey)
-        torque -= scalar;
-    }
-    return torque;
   }
 }
