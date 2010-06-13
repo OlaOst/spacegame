@@ -17,7 +17,7 @@ unittest
     inputHandler.receiveEvent(upEvent);
   }
   assert(inputHandler.countEvents() == 1, "InputHandler didn't register first event at all");
-  assert(inputHandler.hasEvent(Event.UP), "InputHandler didn't register first event correctly");
+  assert(inputHandler.hasEvent(Event.UpKey), "InputHandler didn't register first event correctly");
 
   {
     SDL_Event downEvent;
@@ -27,8 +27,8 @@ unittest
     inputHandler.receiveEvent(downEvent);
   }
   assert(inputHandler.countEvents() == 2, "InputHandler didn't register second event at all");
-  assert(inputHandler.hasEvent(Event.UP), "InputHandler didn't register second event");
-  assert(inputHandler.hasEvent(Event.DOWN), "InputHandler lost first event when registering the second");
+  assert(inputHandler.hasEvent(Event.UpKey), "InputHandler didn't register second event");
+  assert(inputHandler.hasEvent(Event.DownKey), "InputHandler lost first event when registering the second");
   
 
   {
@@ -55,11 +55,30 @@ unittest
 
 enum Event
 {
-  QUIT,
-  UP, DOWN, LEFT, RIGHT,
-  ZOOMIN, ZOOMOUT,
-  CHOOSE
+  Escape,
+  UpKey, 
+  DownKey, 
+  LeftKey, 
+  RightKey,
+  PageUp, 
+  PageDown,
+  Space
 } 
+
+Event eventFromString(string p_value)
+{
+  switch (p_value)
+  {
+    case "Escape" : return Event.Escape; break;
+    case "UpKey" : return Event.UpKey; break;
+    case "DownKey" : return Event.DownKey; break;
+    case "LeftKey" : return Event.LeftKey; break;
+    case "RightKey" : return Event.RightKey; break;
+    case "PageUp" : return Event.PageUp; break;
+    case "PageDown" : return Event.PageDown; break;
+    case "Space" : return Event.Space; break;
+  }
+}
 
 
 class InputHandler
@@ -69,17 +88,17 @@ public:
   {
     clearEvents();
     
-    m_eventMapping[SDLK_ESCAPE] = Event.QUIT;
+    m_eventMapping[SDLK_ESCAPE] = Event.Escape;
     
-    m_eventMapping[SDLK_LEFT] = Event.LEFT;
-    m_eventMapping[SDLK_RIGHT] = Event.RIGHT;
-    m_eventMapping[SDLK_UP] = Event.UP;
-    m_eventMapping[SDLK_DOWN] = Event.DOWN;
+    m_eventMapping[SDLK_LEFT] = Event.LeftKey;
+    m_eventMapping[SDLK_RIGHT] = Event.RightKey;
+    m_eventMapping[SDLK_UP] = Event.UpKey;
+    m_eventMapping[SDLK_DOWN] = Event.DownKey;
     
-    m_eventMapping[SDLK_PAGEUP] = Event.ZOOMIN;
-    m_eventMapping[SDLK_PAGEDOWN] = Event.ZOOMOUT;
+    m_eventMapping[SDLK_PAGEUP] = Event.PageUp;
+    m_eventMapping[SDLK_PAGEDOWN] = Event.PageDown;
     
-    m_eventMapping[SDLK_SPACE] = Event.CHOOSE;
+    m_eventMapping[SDLK_SPACE] = Event.Space;
   }
   
   void pollEvents()
@@ -111,7 +130,7 @@ private:
     switch (event.type)
     {
       case SDL_QUIT:
-        m_events[Event.QUIT]++;
+        m_events[Event.Escape]++;
         break;
         
       case SDL_KEYDOWN:

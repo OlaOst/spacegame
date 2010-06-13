@@ -38,7 +38,7 @@ unittest
     
     game.update();
   }
-  assert(game.m_inputHandler.hasEvent(Event.UP), "Game didn't register input event");
+  assert(game.m_inputHandler.hasEvent(Event.UpKey), "Game didn't register input event");
   
   {
     SDL_Event upReleaseEvent;
@@ -49,7 +49,7 @@ unittest
     
     game.update();
   }
-  assert(!game.m_inputHandler.hasEvent(Event.UP), "Input didn't clear event after keyup event and update");
+  assert(!game.m_inputHandler.hasEvent(Event.UpKey), "Input didn't clear event after keyup event and update");
   
   {
     SDL_Event quitEvent;
@@ -215,18 +215,18 @@ private:
       m_physics.registerEntity(spawn);
     }
     
-    if (m_inputHandler.hasEvent(Event.ZOOMIN))
+    if (m_inputHandler.hasEvent(Event.PageUp))
     {
       m_graphics.zoomIn(elapsedTime);
       m_starfield.populate(20.0);
     }
-    if (m_inputHandler.hasEvent(Event.ZOOMOUT))
+    if (m_inputHandler.hasEvent(Event.PageDown))
     {
       m_graphics.zoomOut(elapsedTime);
       m_starfield.populate(20.0);
     }
     
-    if (m_inputHandler.hasEvent(Event.QUIT))
+    if (m_inputHandler.hasEvent(Event.Escape))
       m_running = false;
   }
   
