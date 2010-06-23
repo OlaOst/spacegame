@@ -95,7 +95,7 @@ unittest
     
     Entity[] spawnList;
     
-    game.m_intentHandler.listen(game.m_inputHandler, spawnList);
+    game.m_intentHandler.listen(spawnList);
     
     game.m_physics.move(0.01);
     
@@ -126,7 +126,7 @@ public:
     m_inputHandler = new InputHandler();
     
     m_graphics = new GraphicsSubSystem();
-    m_intentHandler = new IntentSubSystem();
+    m_intentHandler = new IntentSubSystem(m_inputHandler);
     m_physics = new PhysicsSubSystem();
     
     Entity player = new Entity();
@@ -137,6 +137,8 @@ public:
     player.setValue("contextMapping.2", "LeftKey = TurnLeft");
     player.setValue("contextMapping.3", "RightKey = TurnRight");
     player.setValue("contextMapping.4", "Space = Fire");
+    
+    player.setValue("inputSource", "player");
     
     player.setValue("drawtype", "triangle");
     player.setValue("keepInCenter", "true");
@@ -151,6 +153,15 @@ public:
     {
       Entity npc = new Entity();
       
+      npc.setValue("contextMappings", "5");
+      npc.setValue("contextMapping.0", "UpKey = Accelerate");
+      npc.setValue("contextMapping.1", "DownKey = Decelerate");
+      npc.setValue("contextMapping.2", "LeftKey = TurnLeft");
+      npc.setValue("contextMapping.3", "RightKey = TurnRight");
+      npc.setValue("contextMapping.4", "Space = Fire");
+      
+      npc.setValue("inputSource", "npc");
+      
       npc.setValue("drawtype", "triangle");
       npc.position = Vector(uniform(-10.0, 10.0), uniform(-10.0, 10.0));
       
@@ -158,7 +169,7 @@ public:
     
       m_graphics.registerEntity(npc);
       m_physics.registerEntity(npc);
-      //m_intentHandler.registerEntity(npc);
+      m_intentHandler.registerEntity(npc);
     }
     
     m_starfield = new Starfield(m_graphics, 10.0);
@@ -216,7 +227,7 @@ private:
     // ie up event in a menu context (move cursor up) vs up event in a ship control context (accelerate ship)
     
     Entity[] spawnList;
-    m_intentHandler.listen(m_inputHandler, spawnList); 
+    m_intentHandler.listen(spawnList); 
     
     foreach (Entity spawn; spawnList)
     {

@@ -16,7 +16,9 @@ import Vector : Vector;
 
 unittest
 {
-  IntentSubSystem intentHandler = new IntentSubSystem();
+  InputHandler inputHandler = new InputHandler();
+  
+  IntentSubSystem intentHandler = new IntentSubSystem(inputHandler);
   
   // smoke test
   Entity entity = new Entity();
@@ -29,13 +31,12 @@ unittest
   entity.setValue("contextMapping.3", "RightKey = TurnRight");
   entity.setValue("contextMapping.4", "Space = Fire");
   
-  InputHandler inputHandler = new InputHandler();
   {
     intentHandler.registerEntity(entity);
     
     Entity[] spawnList;
     
-    intentHandler.listen(inputHandler, spawnList);
+    intentHandler.listen(spawnList);
   }
 
   {
@@ -51,7 +52,7 @@ unittest
     assert(inputHandler.hasEvent(Event.Space));
     
     Entity[] spawnList;
-    intentHandler.listen(inputHandler, spawnList);
+    intentHandler.listen(spawnList);
     
     assert(spawnList.length > 0, "Fire intent didn't register");
   }
@@ -71,7 +72,7 @@ unittest
     
     Entity[] spawnList;
     
-    intentHandler.listen(inputHandler, spawnList);
+    intentHandler.listen(spawnList);
     
     assert(spawnList.length == 0, "Fire events registered when they shouldn't");
   }
@@ -83,13 +84,16 @@ struct IntentComponent
 invariant()
 {
   assert(m_entity !is null, "Intent component got null entity");
+  assert(m_context !is null, "Intent component got null input context");
+  assert(m_input !is null, "Intent component got null input handler");
 }
 
 public:
-  this(Entity p_entity, InputContext p_context)
+  this(Entity p_entity, InputContext p_context, InputHandler p_input)
   {
     m_entity = p_entity;
     m_context = p_context;
+    m_input = p_input;
   }
   
 private:
@@ -127,20 +131,27 @@ private:
   Entity m_entity;
   
   InputContext m_context;
+  
+  InputHandler m_input;
 }
 
 
 class IntentSubSystem : public SubSystem!(IntentComponent)
 {
 public:
-
-  void listen(InputHandler p_inputHandler, out Entity[] p_spawnList)
+  this(InputHandler p_playerInput)
+  {
+    m_playerInput = p_playerInput;
+  }
+  
+  
+  void listen(out Entity[] p_spawnList)
   {
     foreach (component; components)
     {
-      foreach (event; p_inputHandler.events.keys)
+      foreach (event; component.m_input.events.keys)
       {
-        if (!p_inputHandler.hasEvent(event))
+        if (!component.m_input.hasEvent(event))
           continue;
         
         auto intent = component.context.getIntent(event);
@@ -223,6 +234,12 @@ protected:
       context.addMapping(event, intent);
     }
     
-    return IntentComponent(p_entity, context);
+    if (p_entity.getValue("inputSource") == "player")
+      return IntentComponent(p_entity, context, m_playerInput);
+    else
+      return IntentComponent(p_entity, context, new InputHandler()); // TODO: how to map the new inputhandler to the ai/npc that wants to control it?
   }
+  
+private:
+  InputHandler m_playerInput;
 }
