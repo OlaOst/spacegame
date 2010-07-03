@@ -81,6 +81,7 @@ unittest
     
     entity.setValue("contextMappings", "1");
     entity.setValue("contextMapping.0", "UpKey = Accelerate");
+    entity.setValue("inputSource", "player");
     
     game.m_physics.registerEntity(entity);
     game.m_intentHandler.registerEntity(entity);

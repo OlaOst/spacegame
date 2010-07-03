@@ -5,6 +5,8 @@ import std.conv;
 import std.math;
 
 import Entity;
+import InputSource;
+import FlockInput;
 import SubSystem : SubSystem;
 import Vector : Vector;
 
@@ -161,6 +163,7 @@ protected:
   {
     auto newComponent = new PhysicsComponent(p_entity);
     
+    // spawns needs some stuff from spawnedFrom entity to know their initial position, direction, velocity, etc
     if (p_entity.getValue("spawnedFrom"))
     {
       int spawnedFromId = to!int(p_entity.getValue("spawnedFrom"));
@@ -179,6 +182,19 @@ protected:
       }
     }
     
+    if (p_entity.getValue("inputSource") == "player")
+    {
+      //newComponent.inputSource = m_playerInput;
+    }
+    
+    if (p_entity.getValue("inputSource") == "flockingNpc")
+    {
+      //newComponent.inputSource = new FlockInput();
+    }
+    
     return newComponent;
   }
+  
+private:
+  InputSource m_playerInput;
 }

@@ -1,6 +1,7 @@
 module InputContext;
 
 import InputHandler;
+import EnumGen;
 
 
 unittest
@@ -18,39 +19,20 @@ unittest
 }
 
 
-enum Intent
-{
-  Unspecified,
+mixin(genEnum("Intent", 
+[
+  "Unspecified",
   
   // ship specific intents
-  Accelerate, Decelerate,
-  TurnLeft, TurnRight,
-  ZoomIn, ZoomOut,
-  Fire,
+  "Accelerate", "Decelerate",
+  "TurnLeft", "TurnRight",
+  "ZoomIn", "ZoomOut",
+  "Fire",
   
   // menu specific intents
-  Choose,
-  MoveUp, MoveDown, MoveLeft, MoveRight
-}
-
-Intent intentFromString(string p_string)
-{
-  switch (p_string)
-  {
-    case "Accelerate" : return Intent.Accelerate; break;
-    case "Decelerate" : return Intent.Decelerate; break;
-    case "TurnLeft" : return Intent.TurnLeft; break;
-    case "TurnRight" : return Intent.TurnRight; break;
-    case "ZoomIn" : return Intent.ZoomIn; break;
-    case "ZoomOut" : return Intent.ZoomOut; break;
-    case "Fire" : return Intent.Fire; break;
-    case "Choose" : return Intent.Choose; break;
-    case "MoveUp" : return Intent.MoveUp; break;
-    case "MoveDown" : return Intent.MoveDown; break;
-    case "MoveLeft" : return Intent.MoveLeft; break;
-    case "MoveRight" : return Intent.MoveRight; break;
-  }
-}
+  "Choose",
+  "MoveUp", "MoveDown", "MoveLeft", "MoveRight"
+]));
 
 
 class InputContext

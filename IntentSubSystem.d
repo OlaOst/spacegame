@@ -37,8 +37,12 @@ unittest
     Entity[] spawnList;
     
     intentHandler.listen(spawnList);
+    
+    assert(spawnList.length == 0, "Spawns got registered on no input");
   }
 
+  // TODO: intent system shouldn't need to deal with sdl events directly
+  // this unittest should be refactored
   {
     SDL_Event chooseEvent;
     
@@ -59,6 +63,7 @@ unittest
   
   
   {
+    /*
     SDL_Event upEvent;
     
     upEvent.type = SDL_KEYUP;
@@ -69,6 +74,7 @@ unittest
     inputHandler.pollEvents();
     
     assert(!inputHandler.hasEvent(Event.Space), "Key release didn't register");
+    */
     
     Entity[] spawnList;
     
@@ -228,16 +234,18 @@ protected:
       
       assert(contextMapping.length == 2, "Found invalid context mapping: " ~ contextMappingString);
       
-      Event event = eventFromString(strip(contextMapping[0]));
-      Intent intent = intentFromString(strip(contextMapping[1]));
+      Event event = EventFromString(strip(contextMapping[0]));
+      Intent intent = IntentFromString(strip(contextMapping[1]));
       
       context.addMapping(event, intent);
     }
     
+    // TODO: how to map the new inputhandler to the ai/npc that wants to control it?
+    
     if (p_entity.getValue("inputSource") == "player")
       return IntentComponent(p_entity, context, m_playerInput);
     else
-      return IntentComponent(p_entity, context, new InputHandler()); // TODO: how to map the new inputhandler to the ai/npc that wants to control it?
+      return IntentComponent(p_entity, context, new InputHandler());
   }
   
 private:

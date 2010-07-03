@@ -2,6 +2,8 @@ module InputHandler;
 
 import derelict.sdl.sdl;
 
+import EnumGen;
+
 
 unittest
 {
@@ -53,7 +55,19 @@ unittest
 }
 
 
-enum Event
+mixin(genEnum("Event",
+[
+  "Escape",
+  "UpKey", 
+  "DownKey", 
+  "LeftKey", 
+  "RightKey",
+  "PageUp", 
+  "PageDown",
+  "Space"
+]));
+
+/*enum Event
 {
   Escape,
   UpKey, 
@@ -78,7 +92,7 @@ Event eventFromString(string p_value)
     case "PageDown" : return Event.PageDown; break;
     case "Space" : return Event.Space; break;
   }
-}
+}*/
 
 
 class InputHandler
