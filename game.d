@@ -9,8 +9,6 @@ import derelict.sdl.sdl;
 import Display;
 import GraphicsSubSystem;
 import InputHandler;
-import InputContext;
-import IntentSubSystem;
 import PhysicsSubSystem;
 import Starfield;
 import Timer;
@@ -84,7 +82,6 @@ unittest
     entity.setValue("inputSource", "player");
     
     game.m_physics.registerEntity(entity);
-    game.m_intentHandler.registerEntity(entity);
     
     SDL_Event upEvent;
     upEvent.type = SDL_KEYDOWN;
@@ -95,9 +92,7 @@ unittest
     game.m_inputHandler.pollEvents();
     
     Entity[] spawnList;
-    
-    game.m_intentHandler.listen(spawnList);
-    
+        
     game.m_physics.move(0.01);
     
     assert(entity.position.x > 0.0);
@@ -112,7 +107,6 @@ invariant()
   assert(m_timer !is null, "Game didn't initialize timer");
   assert(m_inputHandler !is null, "Game didn't initialize input handler");
   assert(m_graphics !is null, "Game didn't initialize graphics");
-  assert(m_intentHandler !is null, "Game didn't initialize intent handler");
   assert(m_physics !is null, "Game didn't initialize physics");
 }
 
@@ -127,7 +121,6 @@ public:
     m_inputHandler = new InputHandler();
     
     m_graphics = new GraphicsSubSystem();
-    m_intentHandler = new IntentSubSystem(m_inputHandler);
     m_physics = new PhysicsSubSystem();
     
     Entity player = new Entity();
@@ -148,7 +141,6 @@ public:
     
     m_graphics.registerEntity(player);
     m_physics.registerEntity(player);
-    m_intentHandler.registerEntity(player);
     
     for (int n = 0; n < 20; n++)
     {
@@ -170,7 +162,6 @@ public:
     
       m_graphics.registerEntity(npc);
       m_physics.registerEntity(npc);
-      m_intentHandler.registerEntity(npc);
     }
     
     m_starfield = new Starfield(m_graphics, 10.0);
@@ -212,7 +203,6 @@ private:
       {
         m_physics.removeEntity(entity);
         m_graphics.removeEntity(entity);
-        m_intentHandler.removeEntity(entity);
       }
     }
     
@@ -228,7 +218,6 @@ private:
     // ie up event in a menu context (move cursor up) vs up event in a ship control context (accelerate ship)
     
     Entity[] spawnList;
-    m_intentHandler.listen(spawnList); 
     
     foreach (Entity spawn; spawnList)
     {
@@ -267,7 +256,6 @@ private:
   InputHandler m_inputHandler;
   
   GraphicsSubSystem m_graphics;
-  IntentSubSystem m_intentHandler;
   PhysicsSubSystem m_physics;
   
   Starfield m_starfield;

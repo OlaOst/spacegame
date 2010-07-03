@@ -5,8 +5,6 @@ import std.conv;
 import std.math;
 
 import Entity;
-import InputSource;
-import FlockInput;
 import SubSystem : SubSystem;
 import Vector : Vector;
 
@@ -196,5 +194,4 @@ protected:
   }
   
 private:
-  InputSource m_playerInput;
 }
