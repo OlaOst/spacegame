@@ -67,33 +67,6 @@ mixin(genEnum("Event",
   "Space"
 ]));
 
-/*enum Event
-{
-  Escape,
-  UpKey, 
-  DownKey, 
-  LeftKey, 
-  RightKey,
-  PageUp, 
-  PageDown,
-  Space
-} 
-
-Event eventFromString(string p_value)
-{
-  switch (p_value)
-  {
-    case "Escape" : return Event.Escape; break;
-    case "UpKey" : return Event.UpKey; break;
-    case "DownKey" : return Event.DownKey; break;
-    case "LeftKey" : return Event.LeftKey; break;
-    case "RightKey" : return Event.RightKey; break;
-    case "PageUp" : return Event.PageUp; break;
-    case "PageDown" : return Event.PageDown; break;
-    case "Space" : return Event.Space; break;
-  }
-}*/
-
 
 class InputHandler
 {
