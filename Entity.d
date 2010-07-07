@@ -28,8 +28,8 @@ invariant()
   assert(m_position.x == m_position.x && m_position.y == m_position.y && m_position.z == m_position.z);
   assert(m_angle == m_angle);
   
-  assert(m_force.x == m_force.x && m_force.y == m_force.y && m_force.z == m_force.z);
-  assert(m_torque == m_torque);
+  //assert(m_force.x == m_force.x && m_force.y == m_force.y && m_force.z == m_force.z);
+  //assert(m_torque == m_torque);
   
   assert(m_lifetime == m_lifetime);
 }
@@ -41,8 +41,8 @@ public:
     m_position = Vector.origo;
     m_angle = 0.0;
     
-    m_force = Vector.origo;
-    m_torque = 0.0;
+    //m_force = Vector.origo;
+    //m_torque = 0.0;
     
     m_id = m_idCounter++;
     
@@ -69,7 +69,7 @@ public:
     m_angle = p_angle;
   }
   
-  Vector force()
+  /*Vector force()
   {
     return m_force;
   }
@@ -87,7 +87,7 @@ public:
   void torque(float p_torque)
   {
     m_torque = p_torque;
-  }
+  }*/
   
   float lifetime()
   {
@@ -122,8 +122,8 @@ private:
   Vector m_position;
   float m_angle;
   
-  Vector m_force;
-  float m_torque;
+  //Vector m_force;
+  //float m_torque;
   
   float m_lifetime;
   

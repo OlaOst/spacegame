@@ -22,7 +22,7 @@ unittest
   
   assert(result == Vector(1.0, 1.0));
   
-  assert(result.normalized.length3d == 1.0);
+  assert(result.normalized.length3d < 1.0001 && result.normalized.length3d > 0.9999, to!string(result.normalized.length3d));
   
   result += right;
   

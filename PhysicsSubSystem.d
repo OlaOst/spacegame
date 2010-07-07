@@ -47,14 +47,21 @@ invariant()
   
   assert(m_velocity.x == m_velocity.x && m_velocity.y == m_velocity.y && m_velocity.z == m_velocity.z);
   assert(m_rotation == m_rotation);
+  
+  assert(m_force.x == m_force.x && m_force.y == m_force.y && m_force.z == m_force.z);
+  assert(m_torque == m_torque);
 }
 
 public:
   this(Entity p_entity)
   {  
     m_entity = p_entity;
+    
     m_velocity = Vector.origo;
+    m_force = Vector.origo;
+    
     m_rotation = 0.0;
+    m_torque = 0.0;
   }
   
   Vector position()
@@ -79,22 +86,22 @@ public:
   
   Vector force()
   {
-    return m_entity.force;
+    return m_force;
   }
   
   void force(Vector p_force)
   {
-    m_entity.force = p_force;
+    m_force = p_force;
   }
   
   float torque()
   {
-    return m_entity.torque;
+    return m_torque;
   }
   
   void torque(float p_torque)
   {
-    m_entity.torque = p_torque;
+    m_torque = p_torque;
   }
 
   Entity entity()
@@ -120,17 +127,20 @@ private:
     
     //writeln("time: " ~ to!string(p_time));
     
-    m_velocity = m_velocity + m_entity.force * p_time;
+    m_velocity = m_velocity + m_force * p_time;
     m_entity.position = m_entity.position + m_velocity * p_time;
     
-    m_rotation = m_rotation + m_entity.torque * p_time;
+    m_rotation = m_rotation + m_torque * p_time;
     m_entity.angle = m_entity.angle + m_rotation * p_time;
   }
   
 private:
   Entity m_entity;
   Vector m_velocity;
+  Vector m_force;
+  
   float m_rotation;
+  float m_torque;
 }
 
 

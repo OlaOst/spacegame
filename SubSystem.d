@@ -23,12 +23,15 @@ unittest
   {
     sys.registerEntity(entity);
   }
-  assert(sys.components.length == 1);
+  assert(sys.components.length == 1);  
+  assert(sys.findComponents(entity).length == 1);  
+  assert(sys.getEntity(sys.findComponents(entity)[0]) == entity);
   
   {
     sys.removeEntity(entity);
   }
-  assert(sys.components.length == 0);
+  assert(sys.components.length == 0);  
+  assert(sys.findComponents(entity).length == 0);
   
 }
 
@@ -53,7 +56,7 @@ public:
 protected:
   ComponentType[] findComponents(Entity p_entity)
   {
-    // TODO: this could problably be rangified
+    // TODO: this could problably be rangified or lambdified
     
     ComponentType[] foundComponents;
     

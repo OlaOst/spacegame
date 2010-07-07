@@ -1,6 +1,7 @@
 module Timer;
 
 import core.thread;
+import std.conv;
 import std.perf;
 
 
@@ -11,10 +12,11 @@ unittest
   assert(timer.elapsedTime == 0.0);
   
   timer.start();
-  Thread.sleep(50_000);
+  Thread.sleep(50_000); // sleep 5 ms
   timer.stop();
   
-  assert(timer.elapsedTime > 0.0049 && timer.elapsedTime < 0.01);
+  assert(timer.elapsedTime > 0.0049, "Timer reported too short time: " ~ to!string(timer.elapsedTime) ~ " seconds after sleeping 5 ms");
+  assert(timer.elapsedTime < 0.01, "Timer reported too long time: " ~ to!string(timer.elapsedTime) ~ " seconds after sleeping 5 ms");
 }
 
 
