@@ -37,6 +37,16 @@ unittest
     //assert(spawnComp.velocity == motherComp.velocity, "Spawned entity didn't get velocity vector copied from spawner");
   }
   // TODO: what should happen when registering an entity whose spawnedFrom doesn't exists
+  
+  
+  {
+    Entity flocker = new Entity();
+    flocker.setValue("control", "flocker");
+    
+    physics.registerEntity(flocker);
+
+    physics.move(1.0);
+  }
 }
 
 
@@ -109,6 +119,7 @@ public:
   {
     return m_entity;
   }
+
   
 private:
   void move(float p_time)
@@ -164,6 +175,12 @@ public:
       component.force = component.force + (component.velocity * -0.15);
       component.torque = component.torque + (component.rotation * -0.5);
       
+      // let eventual controller do its thing
+      if (component in m_controlMapping)
+      {
+        writeln(to!string(m_controlMapping[component].nearbyEntities(components, component, 10.0).length) ~ " components nearby");
+      }
+      
       component.move(p_time);
       
       component.force = Vector.origo;
@@ -196,18 +213,21 @@ protected:
       }
     }
     
-    if (p_entity.getValue("inputSource") == "player")
+    if (p_entity.getValue("control") == "player")
     {
       // m_playerControl.setComponentToControl(newComponent);
     }
     
-    if (p_entity.getValue("inputSource") == "flockingNpc")
+    if (p_entity.getValue("control") == "flocker")
     {
       //auto flocker = new FlockControl(this, newComponent);
+      //newComponent.setControl(new FlockControl());
+      m_controlMapping[newComponent] = new FlockControl();
     }
     
     return newComponent;
   }
   
 private:
+  FlockControl[PhysicsComponent] m_controlMapping;
 }

@@ -44,7 +44,7 @@ public:
     Entity[] inRangeEntities = [];
     foreach (candidateComponent; p_candidateComponents)
     {
-      if ((candidateComponent.entity.position - p_sourceComponent.entity.position).length2d < p_radius)
+      if (candidateComponent != p_sourceComponent && (candidateComponent.entity.position - p_sourceComponent.entity.position).length2d < p_radius)
         inRangeEntities ~= candidateComponent.entity;
     }
     return inRangeEntities;
