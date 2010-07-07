@@ -70,7 +70,7 @@ public:
     
     assert(desiredVel.isValid());
 
-    p_sourceComponent.force = p_sourceComponent.force + desiredVel.normalized * 0.2;
+    p_sourceComponent.force = p_sourceComponent.force + desiredVel.normalized * 2.5;
   }
 
   

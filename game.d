@@ -229,12 +229,12 @@ private:
     if (m_inputHandler.hasEvent(Event.PageUp))
     {
       m_graphics.zoomIn(elapsedTime);
-      m_starfield.populate(20.0);
+      //m_starfield.populate(20.0);
     }
     if (m_inputHandler.hasEvent(Event.PageDown))
     {
       m_graphics.zoomOut(elapsedTime);
-      m_starfield.populate(20.0);
+      //m_starfield.populate(20.0);
     }
     
     if (m_inputHandler.hasEvent(Event.Escape))
