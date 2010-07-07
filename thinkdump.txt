@@ -1,0 +1,90 @@
+forge context
+'mini-game' where one creates modules
+click'n'draw to make polygons
+
+forge context
+has subcontexts
+
+are we selecting an existing module or creating new one?
+
+  are we in define-shape context?
+
+    are we in move-vertex context?
+    
+  are we in place connectpoints context? (only possible if it's a skeleton module)
+
+  
+specific keys to enter different subcontext
+common key to exit current subcontext (for example go to top menu)
+
+must always be completely clear what context you're in
+
+
+
+input source
+can be player input or npc input
+
+an intentcomponent listens to an input source
+
+simplify -> a physicscomponent listens to an input source, input source can be player, npc, script, whatever
+
+input source is defined in entity values
+should physicssystem create inputsource?
+
+
+should input source update listeners or should listeners poll input source?
+
+go for polling for now
+
+example - npc input source for flocking - simple boid algo
+
+Entity has value inputSource = flockingNpc
+
+when physics register entity it sees inputSource and creates a new flockingNpc for the component
+or just a single flockingNpc and each components get a ref to it - it shouldn't need state
+
+InputSource should have no state - only update function really
+
+PlayerInput updates from SDL events
+NpcInput updates from...?
+
+when physics updates component, 
+  it polls distances to nearby physicscomponents (need some service or something to provide this)
+  gives set of relative distances and own velocity/heading to flockingNpc input source
+  flockingNpc input source will trigger some intents
+  physics will change force vector according to intents
+  
+  
+  
+first player is stuck in factory/forge
+forced to create modules according to specs
+more accurate - more money - can begin spaceship phase of game sooner
+less accurate - more creative, more variation and player influence seen in spaceships later in game
+
+
+subystem/component communication
+
+npc/player input systems need to alter torque and force in physics components
+how does an inputsource know which physicscomponent(s) it should change?
+
+npc system needs to know position and angle of the entity it controls, and of nearby entities
+getNearbyEntities(position, radius) or getNearbyEntities(entity, radius)
+
+physics subsystem need to alter position and angle in graphics components - could be done easy via entity. position and angle are problaby needed by lots of componenttypes
+
+
+
+Control hierarchy
+Player control is one subclass
+Various NPC controllers would be other subclasses (homing control for missiles, flock control for swarm enemies, etc)
+
+controls are instantiated in PhysicsSubSystem.createComponent, with the physicssubsystem and the new component as params
+
+on control.update, the physicssubsystem is queried for nearby entities needed for npc controls to make decisions
+then it alters the force and torque of the component it controls
+CON: now PhysicsSubSystem is tied to input and ai a little too tightly
+
+what if we want a control to deal with multiple components/entities? entity value specifiying controller says if it's supposed to be a new one or an existing one
+entity.setValue("controller", "player"); // just use player controller
+entity.setValue("controller", "flocker"); // new flock control instance
+entity.setValue("controller", "flocker.group1"); // create flocker with name group1 or use if it already exists

@@ -5,6 +5,7 @@ import std.conv;
 import std.math;
 
 import Entity;
+import FlockControl;
 import SubSystem : SubSystem;
 import Vector : Vector;
 
@@ -148,6 +149,11 @@ class PhysicsSubSystem : public SubSystem!(PhysicsComponent)
 {
 public:
   void move(float p_time)
+  in
+  {
+    assert(p_time >= 0.0);
+  }
+  body
   {
     foreach (component; components)
     {
@@ -192,12 +198,12 @@ protected:
     
     if (p_entity.getValue("inputSource") == "player")
     {
-      //newComponent.inputSource = m_playerInput;
+      // m_playerControl.setComponentToControl(newComponent);
     }
     
     if (p_entity.getValue("inputSource") == "flockingNpc")
     {
-      //newComponent.inputSource = new FlockInput();
+      //auto flocker = new FlockControl(this, newComponent);
     }
     
     return newComponent;
