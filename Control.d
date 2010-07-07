@@ -7,7 +7,7 @@ import Vector : Vector;
 
 unittest
 {
-  auto physics = new PhysicsSubSystem();
+  auto physics = new PhysicsSubSystem(new InputHandler());
   auto controlComponent = new PhysicsComponent(new Entity());
   
   class MockControl : public Control

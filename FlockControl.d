@@ -54,32 +54,54 @@ public:
   
   
   void update(PhysicsComponent p_sourceComponent, PhysicsComponent[] p_otherComponents)
+  out
+  {
+    assert(p_sourceComponent.force.isValid());
+    assert(p_sourceComponent.torque == p_sourceComponent.torque);
+  }
+  body
   {
     Vector[] otherPositions = [];
     
     foreach (entity; nearbyEntities(p_sourceComponent, p_otherComponents, 10.0))
       otherPositions ~= entity.position;
-      
+
     auto desiredVel = desiredVelocity(p_sourceComponent.velocity, otherPositions);
     
+    assert(desiredVel.isValid());
+
     p_sourceComponent.force = p_sourceComponent.force + desiredVel.normalized * 0.2;
   }
 
   
 private:
   Vector desiredVelocity(Vector p_currentVelocity, Vector[] p_otherPositions)
+  in
+  {
+    assert(p_currentVelocity.isValid());
+    
+    foreach (otherPos; p_otherPositions)
+      assert(otherPos.isValid());
+  }
+  body
   {
     Vector desiredVelocity = p_currentVelocity;
     
     foreach (otherPosition; p_otherPositions)
     {
+      assert(otherPosition.isValid());
+      assert(otherPosition.normalized().isValid());
+      
       if (otherPosition.length2d < m_avoidDistance)
         desiredVelocity -= otherPosition.normalized() * m_avoidWeight;
-        
+      
+      assert(desiredVelocity.isValid());
+      
       if (otherPosition.length2d < m_flockDistance)
         desiredVelocity += otherPosition.normalized() * m_flockWeight;
+        
+      assert(desiredVelocity.isValid());
     }
-    
     
     return desiredVelocity;
   }

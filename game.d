@@ -79,7 +79,7 @@ unittest
     
     entity.setValue("contextMappings", "1");
     entity.setValue("contextMapping.0", "UpKey = Accelerate");
-    entity.setValue("inputSource", "player");
+    entity.setValue("control", "player");
     
     game.m_physics.registerEntity(entity);
     
@@ -121,7 +121,7 @@ public:
     m_inputHandler = new InputHandler();
     
     m_graphics = new GraphicsSubSystem();
-    m_physics = new PhysicsSubSystem();
+    m_physics = new PhysicsSubSystem(m_inputHandler);
     
     Entity player = new Entity();
     
@@ -132,7 +132,7 @@ public:
     player.setValue("contextMapping.3", "RightKey = TurnRight");
     player.setValue("contextMapping.4", "Space = Fire");
     
-    player.setValue("inputSource", "player");
+    player.setValue("control", "player");
     
     player.setValue("drawtype", "triangle");
     player.setValue("keepInCenter", "true");
@@ -153,7 +153,7 @@ public:
       npc.setValue("contextMapping.3", "RightKey = TurnRight");
       npc.setValue("contextMapping.4", "Space = Fire");
       
-      npc.setValue("inputSource", "npc");
+      npc.setValue("control", "flocker");
       
       npc.setValue("drawtype", "triangle");
       npc.position = Vector(uniform(-10.0, 10.0), uniform(-10.0, 10.0));

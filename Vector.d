@@ -38,6 +38,14 @@ unittest
   Vector twodimensional = Vector(1.0, -1.0);
   
   assert(twodimensional.z == 0.0);
+  
+  Vector fromAngle = Vector.fromAngle(0.0);
+  
+  assert((fromAngle - Vector.fromAngle(PI*2)).length3d < 0.0001);
+  
+  Vector wrong = Vector(NaN(0), NaN(0));
+  
+  assert(wrong.isValid() == false);
 }
 
 
@@ -82,9 +90,18 @@ struct Vector
   }
   
   Vector normalized()
+  out (result)
   {
-    auto invLen = 1.0 /length3d;
-    return Vector(x*invLen, y*invLen, z*invLen);
+    assert(result.isValid(), toString());
+  }
+  body
+  {
+    auto invLen = 1.0 / length3d;
+    
+    if (invLen < float.infinity)
+      return Vector(x*invLen, y*invLen, z*invLen);
+    else
+      return Vector.origo;
   }  
   
   float length2d()
@@ -102,5 +119,18 @@ struct Vector
     return to!string(x) ~ " " ~ to!string(y) ~ " " ~ to!string(z);
   }
   
+  
+  bool isValid() const
+  {
+    return (x==x && y==y && z==z);
+  }
+  
+  
   static Vector origo = Vector(0.0, 0.0, 0.0);
+  
+  
+  static Vector fromAngle(float p_angle)
+  {
+    return Vector(cos(p_angle), sin(p_angle));
+  }
 }

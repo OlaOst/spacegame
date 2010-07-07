@@ -6,13 +6,15 @@ import std.math;
 
 import Entity;
 import FlockControl;
+import InputHandler;
+import PlayerControl;
 import SubSystem : SubSystem;
 import Vector : Vector;
 
 
 unittest
 {
-  PhysicsSubSystem physics = new PhysicsSubSystem();
+  PhysicsSubSystem physics = new PhysicsSubSystem(new InputHandler());
   
   Entity entity = new Entity();
   
@@ -59,8 +61,8 @@ invariant()
   assert(m_velocity.x == m_velocity.x && m_velocity.y == m_velocity.y && m_velocity.z == m_velocity.z);
   assert(m_rotation == m_rotation);
   
-  assert(m_force.x == m_force.x && m_force.y == m_force.y && m_force.z == m_force.z);
-  assert(m_torque == m_torque);
+  //assert(m_force.x == m_force.x && m_force.y == m_force.y && m_force.z == m_force.z);
+  //assert(m_torque == m_torque);
 }
 
 public:
@@ -159,6 +161,12 @@ private:
 class PhysicsSubSystem : public SubSystem!(PhysicsComponent)
 {
 public:
+  this(InputHandler p_inputHandler)
+  {
+    m_playerControl = new PlayerControl(p_inputHandler);
+  }
+  
+  
   void move(float p_time)
   in
   {
@@ -216,14 +224,11 @@ protected:
     
     if (p_entity.getValue("control") == "player")
     {
-      // m_playerControl.setComponentToControl(newComponent);
       m_controlMapping[newComponent] = m_playerControl;
     }
     
     if (p_entity.getValue("control") == "flocker")
     {
-      //auto flocker = new FlockControl(this, newComponent);
-      //newComponent.setControl(new FlockControl());
       m_controlMapping[newComponent] = new FlockControl(2.5, 0.5, 50.0, 0.3);
     }
     
@@ -231,5 +236,6 @@ protected:
   }
   
 private:
-  FlockControl[PhysicsComponent] m_controlMapping;
+  PlayerControl m_playerControl;
+  Control[PhysicsComponent] m_controlMapping;
 }
