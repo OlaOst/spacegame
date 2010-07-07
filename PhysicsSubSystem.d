@@ -178,7 +178,8 @@ public:
       // let eventual controller do its thing
       if (component in m_controlMapping)
       {
-        writeln(to!string(m_controlMapping[component].nearbyEntities(components, component, 10.0).length) ~ " components nearby");
+        //writeln(to!string(m_controlMapping[component].nearbyEntities(components, component, 10.0).length) ~ " components nearby");
+        m_controlMapping[component].update(component, components);
       }
       
       component.move(p_time);
@@ -216,13 +217,14 @@ protected:
     if (p_entity.getValue("control") == "player")
     {
       // m_playerControl.setComponentToControl(newComponent);
+      m_controlMapping[newComponent] = m_playerControl;
     }
     
     if (p_entity.getValue("control") == "flocker")
     {
       //auto flocker = new FlockControl(this, newComponent);
       //newComponent.setControl(new FlockControl());
-      m_controlMapping[newComponent] = new FlockControl();
+      m_controlMapping[newComponent] = new FlockControl(2.5, 0.5, 50.0, 0.3);
     }
     
     return newComponent;
