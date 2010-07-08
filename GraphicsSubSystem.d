@@ -78,7 +78,7 @@ invariant()
 public:
   this()
   {
-    m_zoom = 0.2;
+    m_zoom = 0.02;
   }
   
   

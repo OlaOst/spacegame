@@ -1,8 +1,9 @@
 module Game;
 
-import std.stdio;
 import std.conv;
+import std.math;
 import std.random;
+import std.stdio;
 
 import derelict.sdl.sdl;
 
@@ -124,14 +125,7 @@ public:
     m_physics = new PhysicsSubSystem(m_inputHandler);
     
     Entity player = new Entity();
-    
-    player.setValue("contextMappings", "5");
-    player.setValue("contextMapping.0", "UpKey = Accelerate");
-    player.setValue("contextMapping.1", "DownKey = Decelerate");
-    player.setValue("contextMapping.2", "LeftKey = TurnLeft");
-    player.setValue("contextMapping.3", "RightKey = TurnRight");
-    player.setValue("contextMapping.4", "Space = Fire");
-    
+
     player.setValue("control", "player");
     
     player.setValue("drawtype", "triangle");
@@ -142,21 +136,18 @@ public:
     m_graphics.registerEntity(player);
     m_physics.registerEntity(player);
     
-    for (int n = 0; n < 20; n++)
+    for (int n = 0; n < 40; n++)
     {
       Entity npc = new Entity();
-      
-      npc.setValue("contextMappings", "5");
-      npc.setValue("contextMapping.0", "UpKey = Accelerate");
-      npc.setValue("contextMapping.1", "DownKey = Decelerate");
-      npc.setValue("contextMapping.2", "LeftKey = TurnLeft");
-      npc.setValue("contextMapping.3", "RightKey = TurnRight");
-      npc.setValue("contextMapping.4", "Space = Fire");
-      
+
       npc.setValue("control", "flocker");
       
       npc.setValue("drawtype", "triangle");
-      npc.position = Vector(uniform(-10.0, 10.0), uniform(-10.0, 10.0));
+      
+      npc.setValue("velocity", "randomize");
+      
+      npc.position = Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0));
+      npc.angle = uniform(0.0, PI*2);
       
       m_entities ~= npc;
     

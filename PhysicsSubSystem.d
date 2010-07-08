@@ -1,8 +1,9 @@
 module PhysicsSubSystem;
 
-import std.stdio;
 import std.conv;
 import std.math;
+import std.random;
+import std.stdio;
 
 import Entity;
 import FlockControl;
@@ -192,6 +193,13 @@ public:
       
       component.move(p_time);
       
+      //if (component.entity.position.length2d > 100.0)
+        //component.entity.position = component.entity.position * -1;
+      if (abs(component.entity.position.x) > 30.0)
+        component.entity.position = Vector(component.entity.position.x * -1, component.entity.position.y);
+      if (abs(component.entity.position.y) > 30.0)
+        component.entity.position = Vector(component.entity.position.x, component.entity.position.y * -1);
+      
       component.force = Vector.origo;
       component.torque = 0.0;
     }
@@ -222,6 +230,9 @@ protected:
       }
     }
     
+    if (p_entity.getValue("velocity") == "randomize")
+      newComponent.velocity = Vector(uniform(-1.5, 1.5), uniform(-1.5, 1.5));
+    
     if (p_entity.getValue("control") == "player")
     {
       m_controlMapping[newComponent] = m_playerControl;
@@ -229,7 +240,7 @@ protected:
     
     if (p_entity.getValue("control") == "flocker")
     {
-      m_controlMapping[newComponent] = new FlockControl(2.5, 0.5, 50.0, 0.3);
+      m_controlMapping[newComponent] = new FlockControl(2.5, 0.5, 20.0, 0.3);
     }
     
     return newComponent;
