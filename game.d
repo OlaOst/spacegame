@@ -219,12 +219,22 @@ private:
     
     if (m_inputHandler.hasEvent(Event.PageUp))
     {
-      m_graphics.zoomIn(elapsedTime);
+      m_graphics.zoomIn(elapsedTime * 2.0);
       //m_starfield.populate(20.0);
     }
-    if (m_inputHandler.hasEvent(Event.PageDown))
+    if (m_inputHandler.hasEvent(Event.WheelUp))
     {
-      m_graphics.zoomOut(elapsedTime);
+      m_graphics.zoomIn(elapsedTime * 5.0);
+      //m_starfield.populate(20.0);
+    }
+    if (m_inputHandler.hasEvent(Event.PageDown)) 
+    {
+      m_graphics.zoomOut(elapsedTime * 2.0);
+      //m_starfield.populate(20.0);
+    }
+    if(m_inputHandler.hasEvent(Event.WheelDown))
+    {
+      m_graphics.zoomOut(elapsedTime * 5.0);
       //m_starfield.populate(20.0);
     }
     

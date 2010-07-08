@@ -1,5 +1,8 @@
 module InputHandler;
 
+import std.stdio;
+import std.conv;
+
 import derelict.sdl.sdl;
 
 import EnumGen;
@@ -40,6 +43,22 @@ unittest
    
   // TODO: assert that both keyup and keydown events are handled properly
   
+  
+  /*{
+    SDL_Event wheelUpEvent;
+    wheelUpEvent.type = SDL_MOUSEBUTTONDOWN;
+    wheelUpEvent.button.button = SDL_BUTTON_WHEELUP;
+    
+    SDL_PushEvent(&wheelUpEvent);
+    
+    inputHandler.receiveEvent(wheelUpEvent);
+  }
+  assert(inputHandler.hasEvent(Event.WheelUp), "InputHandler didn't register mouse wheel event");*/
+  
+  
+  inputHandler.clearEvents();
+  
+  
   {
     SDL_Event nadaEvent;
     inputHandler.receiveEvent(nadaEvent);
@@ -64,7 +83,9 @@ mixin(genEnum("Event",
   "RightKey",
   "PageUp", 
   "PageDown",
-  "Space"
+  "Space",
+  "WheelUp",
+  "WheelDown"
 ]));
 
 
@@ -75,22 +96,35 @@ public:
   {
     clearEvents();
     
-    m_eventMapping[SDLK_ESCAPE] = Event.Escape;
+    m_keyEventMapping[SDLK_ESCAPE] = Event.Escape;
     
-    m_eventMapping[SDLK_LEFT] = Event.LeftKey;
-    m_eventMapping[SDLK_RIGHT] = Event.RightKey;
-    m_eventMapping[SDLK_UP] = Event.UpKey;
-    m_eventMapping[SDLK_DOWN] = Event.DownKey;
+    m_keyEventMapping[SDLK_LEFT] = Event.LeftKey;
+    m_keyEventMapping[SDLK_RIGHT] = Event.RightKey;
+    m_keyEventMapping[SDLK_UP] = Event.UpKey;
+    m_keyEventMapping[SDLK_DOWN] = Event.DownKey;
     
-    m_eventMapping[SDLK_PAGEUP] = Event.PageUp;
-    m_eventMapping[SDLK_PAGEDOWN] = Event.PageDown;
+    m_keyEventMapping[SDLK_PAGEUP] = Event.PageUp;
+    m_keyEventMapping[SDLK_PAGEDOWN] = Event.PageDown;
     
-    m_eventMapping[SDLK_SPACE] = Event.Space;
+    m_keyEventMapping[SDLK_SPACE] = Event.Space;
+    
+    m_buttonEventMapping[SDL_BUTTON_WHEELUP] = Event.WheelUp;
+    m_buttonEventMapping[SDL_BUTTON_WHEELDOWN] = Event.WheelDown;
   }
   
   void pollEvents()
   {
     //clearEvents();
+    //foreach (event; m_events.keys)
+      //m_events[event] = 0;
+      
+    //static Event[SDLKey] m_buttonEventMapping;
+    
+    // clear button event here
+    // for now we just register buttonup events, because 
+    // wheel events are registered both up and down in the same game update
+    foreach (buttonEvent; m_buttonEventMapping.values)
+      m_events[buttonEvent] = 0;
     
     SDL_Event event;
     
@@ -111,6 +145,7 @@ public:
     return m_events.get(p_event, 0) > 0;
   }
   
+  
 private:
   void receiveEvent(SDL_Event event)
   {
@@ -122,18 +157,46 @@ private:
         
       case SDL_KEYDOWN:
       {
-        if (event.key.keysym.sym in m_eventMapping)
-          m_events[m_eventMapping[event.key.keysym.sym]]++;
+        if (event.key.keysym.sym in m_keyEventMapping)
+          m_events[m_keyEventMapping[event.key.keysym.sym]]++;
           
         break;
       }
       
       case SDL_KEYUP:
       {
-        if (event.key.keysym.sym in m_eventMapping)
-          if (m_events[m_eventMapping[event.key.keysym.sym]] > 0)
-            m_events[m_eventMapping[event.key.keysym.sym]]--;
+        if (event.key.keysym.sym in m_keyEventMapping)
+          if (m_events[m_keyEventMapping[event.key.keysym.sym]] > 0)
+            m_events[m_keyEventMapping[event.key.keysym.sym]]--;
 
+        break;
+      }
+      
+      /*case SDL_MOUSEBUTTONDOWN:
+      {
+        writeln("got mousebuttondown event with button " ~ to!string(event.button.button));
+        
+        //writeln("buttonmapping: " ~ to!string(m_buttonEventMapping));
+        writeln("button in mapping: " ~ to!string(event.button.button in m_buttonEventMapping));
+        
+        if (event.button.button in m_buttonEventMapping)
+          m_events[m_buttonEventMapping[event.button.button]]++;
+
+        assert(hasEvent(Event.WheelUp));
+
+        break;
+      }*/
+      
+      case SDL_MOUSEBUTTONDOWN:
+      {
+        //writeln("got mousebuttonup event with button " ~ to!string(event.button.button));
+      
+        if (event.button.button in m_buttonEventMapping)
+          m_events[m_buttonEventMapping[event.button.button]]++;
+          
+          //if (m_events[m_buttonEventMapping[event.button.button]] > 0)
+            //m_events[m_buttonEventMapping[event.button.button]]--;
+            
         break;
       }
       
@@ -161,5 +224,6 @@ private:
 private:  
   uint[Event] m_events;
   
-  static Event[SDLKey] m_eventMapping;
+  static Event[SDLKey] m_keyEventMapping;
+  static Event[SDLKey] m_buttonEventMapping;
 }
