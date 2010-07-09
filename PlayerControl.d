@@ -51,6 +51,13 @@ public:
     if (m_inputHandler.hasEvent(Event.RightKey))
       torque -= 1.5;
   
+    if (m_inputHandler.hasEvent(Event.Space))
+    {
+      Entity bullet = new Entity();
+      
+      bullet.setValue("spawnedFrom", to!string(p_sourceComponent.entity.id));
+    }
+  
     p_sourceComponent.force = force;
     p_sourceComponent.torque = torque;
   }
