@@ -186,8 +186,12 @@ private:
     m_updateCount++;
     
     
+    Entity[] spawnList;
+    
     foreach (Entity entity; m_entities)
     {
+      spawnList ~= entity.getAndClearSpawns();
+      
       entity.lifetime = entity.lifetime - elapsedTime;
       
       if (entity.lifetime < 0.0)
@@ -207,8 +211,6 @@ private:
     
     // TODO: we need to know what context we are in - input events signify different intents depending on context
     // ie up event in a menu context (move cursor up) vs up event in a ship control context (accelerate ship)
-    
-    Entity[] spawnList;
     
     foreach (Entity spawn; spawnList)
     {
