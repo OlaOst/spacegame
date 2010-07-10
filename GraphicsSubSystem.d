@@ -1,5 +1,6 @@
 module GraphicsSubSystem;
 
+import std.conv;
 import std.math;
 
 import derelict.opengl.gl;
@@ -16,6 +17,7 @@ unittest
   Entity deleteTest = new Entity();
   
   deleteTest.setValue("drawtype", "triangle");
+  deleteTest.setValue("radius", "1.0");
   deleteTest.setValue("keepInCenter", "true");
   
   graphics.registerEntity(deleteTest);
@@ -44,10 +46,11 @@ enum Drawtype
 struct GraphicsComponent 
 {
 public:
-  this(Entity p_entity, Drawtype p_drawType)
+  this(Entity p_entity, Drawtype p_drawType, float p_radius)
   {
     entity = p_entity;
     drawType = p_drawType;
+    radius = p_radius;
   }
   
   Vector position()
@@ -61,9 +64,10 @@ public:
   }
   
   Drawtype drawType;
+  float radius;
   
 private:
-  Entity entity;
+  Entity entity;  
 }
 
 
@@ -111,7 +115,7 @@ public:
           for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 3)
           {
             glColor3f(cos(angle*2), sin(angle/2), 0.0);
-            glVertex3f(cos(angle), sin(angle), 0.0);
+            glVertex3f(cos(angle) * component.radius, sin(angle) * component.radius, 0.0);
           }
         glEnd();
       }
@@ -123,9 +127,9 @@ public:
           glColor3f(0.0, 0.5, 1.0);
           for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 5)
           {
-            glVertex3f(cos(angle)*.05, sin(angle)*.05, 0.0);
+            glVertex3f(cos(angle) * component.radius, sin(angle) * component.radius, 0.0);
           }
-          glVertex3f(cos(0.0)*.05, sin(0.0)*.05, 0.0);
+          glVertex3f(cos(0.0) * component.radius, sin(0.0) * component.radius, 0.0);
         glEnd();
       }
       else if (component.drawType == Drawtype.Bullet)
@@ -136,14 +140,15 @@ public:
           glColor3f(1.0, 0.5, 0.0);
           for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 4)
           {
-            glVertex3f(cos(angle)*.05, sin(angle)*.05, 0.0);
+            glVertex3f(cos(angle) * component.radius, sin(angle) * component.radius, 0.0);
           }
-          glVertex3f(cos(0.0)*.05, sin(0.0)*.05, 0.0);
+          glVertex3f(cos(0.0) * component.radius, sin(0.0) * component.radius, 0.0);
         glEnd();
       }
       else if (component.drawType == Drawtype.Unknown)
       {
         // TODO: should just draw a big fat question mark here
+        // or a cow
         
         glBegin(GL_TRIANGLE_FAN);
           glColor3f(0.0, 0.0, 0.0);
@@ -151,9 +156,9 @@ public:
           glColor3f(1.0, 0.0, 0.0);
           for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 4)
           {
-            glVertex3f(cos(angle)*.05, sin(angle)*.05, 0.0);
+            glVertex3f(cos(angle) * component.radius, sin(angle) * component.radius, 0.0);
           }
-          glVertex3f(cos(0.0)*.05, sin(0.0)*.05, 0.0);
+          glVertex3f(cos(0.0) * component.radius, sin(0.0) * component.radius, 0.0);
         glEnd();
       }
       
@@ -186,12 +191,14 @@ protected:
       m_centerEntity = p_entity;
     }
     
+    float radius = to!float(p_entity.getValue("radius"));
+    
     if (p_entity.getValue("drawtype") == "star")
-      return GraphicsComponent(p_entity, Drawtype.Star);
+      return GraphicsComponent(p_entity, Drawtype.Star, radius);
     else if (p_entity.getValue("drawtype") == "triangle")
-      return GraphicsComponent(p_entity, Drawtype.Triangle);
+      return GraphicsComponent(p_entity, Drawtype.Triangle, radius);
     else if (p_entity.getValue("drawtype") == "bullet")
-      return GraphicsComponent(p_entity, Drawtype.Bullet);
+      return GraphicsComponent(p_entity, Drawtype.Bullet, radius);
     //else
       //return GraphicsComponent(p_entity, Drawtype.Unknown);
       

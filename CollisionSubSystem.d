@@ -103,6 +103,7 @@ struct Collision
 {
   CollisionComponent first;
   CollisionComponent second;
+  Vector contactPoint;
 }
 
 
@@ -118,48 +119,11 @@ public:
     return m_collisions;
   }
   
-  void determineCollisions()
+  void update()
   {
-    m_collisions.length = 0;
-
-    for (uint firstIndex = 0; firstIndex < components.length-1; firstIndex++)
-    {
-      CollisionComponent first = components[firstIndex];
-      
-      for (uint secondIndex = firstIndex + 1; secondIndex < components.length; secondIndex++)
-      {
-        CollisionComponent second = components[secondIndex];
-        
-        assert(first != second);
-
-        if ((first.entity.position - second.entity.position).length2d < (first.radius + second.radius))
-        {
-          m_collisions ~= Collision(first, second);
-        }
-      }
-    }
-  }
-  
-  void calculateCollisionResponse()
-  {
-    foreach (collision; m_collisions)
-    {
-      // bullets should disappear on contact - set lifetime to zero
-      if (collision.first.collisionType == CollisionType.Bullet)
-      {
-        collision.first.entity.lifetime = 0.0;
-      }
-      if (collision.second.collisionType == CollisionType.Bullet)
-      {
-        collision.second.entity.lifetime = 0.0;
-      }
-    
-      // determine contact point
-      Vector normalizedContactVector = (collision.second.entity.position - collision.first.entity.position).normalized(); // / (collision.first.radius + collision.second.radius); // * collision.first.radius;
-      
-      Vector contactPoint = normalizedContactVector * (1.0/(collision.first.radius + collision.second.radius)) * collision.first.radius;
-    }
-  }
+    determineCollisions();
+    calculateCollisionResponse();
+  }  
   
 
 protected:
@@ -191,6 +155,54 @@ protected:
     return new CollisionComponent(p_entity, radius, collisionType);
   }
   
+  
+private:
+  void determineCollisions()
+  {
+    m_collisions.length = 0;
+
+    // TODO: de-O^2 this, spatial hash or something
+    for (uint firstIndex = 0; firstIndex < components.length-1; firstIndex++)
+    {
+      CollisionComponent first = components[firstIndex];
+      
+      for (uint secondIndex = firstIndex + 1; secondIndex < components.length; secondIndex++)
+      {
+        CollisionComponent second = components[secondIndex];
+        
+        assert(first != second);
+
+        if ((first.entity.position - second.entity.position).length2d < (first.radius + second.radius))
+        {
+          // determine contact point
+          Vector normalizedContactVector = (second.entity.position - first.entity.position).normalized(); // / (first.radius + second.radius); // * first.radius;
+      
+          Vector contactPoint = normalizedContactVector * (1.0/(first.radius + second.radius)) * first.radius;
+          
+          m_collisions ~= Collision(first, second, contactPoint);
+        }
+      }
+    }
+  }
+  
+  void calculateCollisionResponse()
+  {
+    foreach (collision; m_collisions)
+    {
+      // bullets should disappear on contact - set lifetime to zero
+      if (collision.first.collisionType == CollisionType.Bullet)
+      {
+        collision.first.entity.lifetime = 0.0;
+      }
+      if (collision.second.collisionType == CollisionType.Bullet)
+      {
+        collision.second.entity.lifetime = 0.0;
+      }
+
+      collision.first.entity.addCollision(collision);
+      collision.second.entity.addCollision(Collision(collision.second, collision.first, collision.contactPoint * -1));
+    }
+  }
   
 private:
   Collision[] m_collisions;

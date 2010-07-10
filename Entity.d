@@ -2,6 +2,7 @@ module Entity;
 
 import std.math;
 
+import CollisionSubSystem;
 import Vector : Vector;
 
 
@@ -97,6 +98,11 @@ public:
   }
   
   Entity[] getAndClearSpawns()
+  out
+  {
+    assert(m_spawnList.length == 0);
+  }
+  body
   {
     Entity[] tmp = m_spawnList;
     
@@ -105,6 +111,25 @@ public:
     return tmp;
   }
 
+  void addCollision(Collision p_collision)
+  {
+    m_collisionList ~= p_collision;
+  }
+  
+  Collision[] getAndClearCollisions()
+  out
+  {
+    assert(m_collisionList.length == 0);
+  }
+  body
+  {
+    Collision[] tmp = m_collisionList;
+    
+    m_collisionList.length = 0;
+    
+    return tmp;
+  }
+  
   
 private:
   Vector m_position;
@@ -118,4 +143,6 @@ private:
   string[string] m_values;
   
   Entity[] m_spawnList;
+  
+  Collision[] m_collisionList;
 }

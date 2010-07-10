@@ -65,6 +65,7 @@ unittest
     Entity entity = new Entity();
     
     entity.setValue("drawtype", "triangle");
+    entity.setValue("radius", "1.0");
     
     game.m_graphics.registerEntity(entity);
   }
@@ -108,6 +109,7 @@ invariant()
   assert(m_inputHandler !is null, "Game didn't initialize input handler");
   assert(m_graphics !is null, "Game didn't initialize graphics");
   assert(m_physics !is null, "Game didn't initialize physics");
+  assert(m_collision !is null, "Game didn't initialize collision system");
 }
 
 public:
@@ -123,26 +125,31 @@ public:
     
     m_graphics = new GraphicsSubSystem();
     m_physics = new PhysicsSubSystem(m_inputHandler);
+    m_collision = new CollisionSubSystem();
     
     Entity player = new Entity();
 
     player.setValue("control", "player");
-    
     player.setValue("drawtype", "triangle");
+    player.setValue("collisionType", "ship");
     player.setValue("keepInCenter", "true");
+    player.setValue("radius", "1.0");
     
     m_entities ~= player;
     
     m_graphics.registerEntity(player);
     m_physics.registerEntity(player);
+    //m_collision.registerEntity(player);
     
-    for (int n = 0; n < 40; n++)
+    for (int n = 0; n < 1; n++)
     {
       Entity npc = new Entity();
 
-      npc.setValue("control", "flocker");
+      //npc.setValue("control", "flocker");
       npc.setValue("drawtype", "triangle");
+      npc.setValue("collisionType", "ship");
       npc.setValue("velocity", "randomize");
+      npc.setValue("radius", "1.0");
       
       npc.position = Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0));
       npc.angle = uniform(0.0, PI*2);
@@ -151,6 +158,7 @@ public:
     
       m_graphics.registerEntity(npc);
       m_physics.registerEntity(npc);
+      m_collision.registerEntity(npc);
     }
     
     m_starfield = new Starfield(m_graphics, 10.0);
@@ -198,6 +206,7 @@ private:
         {
           m_physics.removeEntity(entity);
           m_graphics.removeEntity(entity);
+          m_collision.removeEntity(entity);
         }
       }
     }
@@ -208,6 +217,8 @@ private:
 
     if (!m_paused)
     {
+      // collision must be updated before physics to make sure both entities in collisions are updated properly
+      m_collision.update();
       m_physics.move(elapsedTime);
     }
     
@@ -221,6 +232,7 @@ private:
       m_entities ~= spawn;
       m_graphics.registerEntity(spawn);
       m_physics.registerEntity(spawn);
+      m_collision.registerEntity(spawn);
     }
     
     if (m_inputHandler.hasEvent(Event.PageUp))
@@ -270,6 +282,7 @@ private:
   
   GraphicsSubSystem m_graphics;
   PhysicsSubSystem m_physics;
+  CollisionSubSystem m_collision;
   
   Starfield m_starfield;
   

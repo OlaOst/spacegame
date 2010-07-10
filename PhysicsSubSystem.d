@@ -5,6 +5,7 @@ import std.math;
 import std.random;
 import std.stdio;
 
+import CollisionSubSystem;
 import Entity;
 import FlockControl;
 import InputHandler;
@@ -79,6 +80,8 @@ public:
     m_rotation = 0.0;
     m_torque = 0.0;
     
+    m_mass = 1.0;
+    
     m_reload = 0.0;
   }
   
@@ -138,6 +141,11 @@ public:
     m_reload = p_reload;
   }
   
+  float mass()
+  {
+    return m_mass;
+  }
+  
   
 private:
   void move(float p_time)
@@ -175,6 +183,8 @@ private:
   float m_rotation;
   float m_torque;
   
+  float m_mass;
+  
   float m_reload;
 }
 
@@ -198,7 +208,7 @@ public:
     foreach (component; components)
     {
       // add spring force to center
-      component.force = component.force + (component.position * -0.05);
+      //component.force = component.force + (component.position * -0.05);
       
       // and some damping
       component.force = component.force + (component.velocity * -0.15);
@@ -211,8 +221,32 @@ public:
         m_controlMapping[component].update(component, components);
       }
       
+      // handle collisions
+      foreach (collision; component.entity.getAndClearCollisions)
+      {
+        CollisionComponent other = (collision.first.entity == component.entity) ? collision.second : collision.first;
+
+        writeln("handling collision between " ~ to!string(component.entity.id) ~ " and " ~ to!string(other.entity.id));
+        
+        // this physics component might have collided with a non-physics component, i.e. ship moving over and lighting up something in the background or the hud
+        auto possiblePhysicsComponents = findComponents(other.entity);
+        
+        // if we have physics component on the other collision component, we can do something physical
+        if (possiblePhysicsComponents.length > 0)
+        {
+          auto collisionPhysicsComponent = possiblePhysicsComponents[0];
+          
+          // determine collision force
+          float collisionForce = (component.velocity * component.mass + collisionPhysicsComponent.velocity * collisionPhysicsComponent.mass).length2d;
+
+          // give a kick from the contactpoint
+          component.force = component.force + (collision.contactPoint.normalized() * -collisionForce);
+        }
+      }
+      
       component.move(p_time);
       
+      // do wraparound stuff      
       //if (component.entity.position.length2d > 100.0)
         //component.entity.position = component.entity.position * -1;
       if (abs(component.entity.position.x) > 30.0)
@@ -220,6 +254,7 @@ public:
       if (abs(component.entity.position.y) > 30.0)
         component.entity.position = Vector(component.entity.position.x, component.entity.position.y * -1);
       
+      // reset force and torque so they're ready for next update
       component.force = Vector.origo;
       component.torque = 0.0;
     }
