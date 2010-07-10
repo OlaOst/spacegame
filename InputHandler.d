@@ -85,7 +85,8 @@ mixin(genEnum("Event",
   "PageDown",
   "Space",
   "WheelUp",
-  "WheelDown"
+  "WheelDown",
+  "Pause"
 ]));
 
 
@@ -107,6 +108,8 @@ public:
     m_keyEventMapping[SDLK_PAGEDOWN] = Event.PageDown;
     
     m_keyEventMapping[SDLK_SPACE] = Event.Space;
+    
+    m_keyEventMapping[SDLK_PAUSE] = Event.Pause;
     
     m_buttonEventMapping[SDL_BUTTON_WHEELUP] = Event.WheelUp;
     m_buttonEventMapping[SDL_BUTTON_WHEELDOWN] = Event.WheelDown;

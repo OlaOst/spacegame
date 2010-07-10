@@ -78,8 +78,6 @@ unittest
   {
     Entity entity = new Entity();
     
-    entity.setValue("contextMappings", "1");
-    entity.setValue("contextMapping.0", "UpKey = Accelerate");
     entity.setValue("control", "player");
     
     game.m_physics.registerEntity(entity);
@@ -116,6 +114,7 @@ public:
   {
     m_updateCount = 0;
     m_running = true;
+    m_paused = false;
     
     m_timer = new Timer();
     
@@ -141,9 +140,7 @@ public:
       Entity npc = new Entity();
 
       npc.setValue("control", "flocker");
-      
       npc.setValue("drawtype", "triangle");
-      
       npc.setValue("velocity", "randomize");
       
       npc.position = Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0));
@@ -188,25 +185,31 @@ private:
     
     Entity[] spawnList;
     
-    foreach (Entity entity; m_entities)
+    if (!m_paused)
     {
-      spawnList ~= entity.getAndClearSpawns();
-      
-      entity.lifetime = entity.lifetime - elapsedTime;
-      
-      if (entity.lifetime < 0.0)
+      foreach (Entity entity; m_entities)
       {
-        m_physics.removeEntity(entity);
-        m_graphics.removeEntity(entity);
+        spawnList ~= entity.getAndClearSpawns();
+        
+        entity.lifetime = entity.lifetime - elapsedTime;
+        
+        if (entity.lifetime < 0.0)
+        {
+          m_physics.removeEntity(entity);
+          m_graphics.removeEntity(entity);
+        }
       }
     }
-    
     
     swapBuffers();
     
     m_inputHandler.pollEvents();
 
-    m_physics.move(elapsedTime);
+    if (!m_paused)
+    {
+      m_physics.move(elapsedTime);
+    }
+    
     m_graphics.draw();
     
     // TODO: we need to know what context we are in - input events signify different intents depending on context
@@ -242,6 +245,10 @@ private:
     
     if (m_inputHandler.hasEvent(Event.Escape))
       m_running = false;
+      
+    m_paused = false;
+    if (m_inputHandler.hasEvent(Event.Pause))
+      m_paused = true;
   }
   
   bool running()
@@ -253,6 +260,8 @@ private:
 private:
   int m_updateCount;
   bool m_running;
+  
+  bool m_paused;
   
   Timer m_timer;
   

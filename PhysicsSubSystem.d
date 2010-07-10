@@ -220,12 +220,13 @@ protected:
       {
         if (spawnerCandidate.entity.id == spawnedFromId)
         {
-          Vector dir = Vector(cos(spawnerCandidate.entity.angle), sin(spawnerCandidate.entity.angle));
+          Vector kick = Vector(cos(spawnerCandidate.entity.angle), sin(spawnerCandidate.entity.angle));
           
           // TODO: should be force from spawn value
-          dir *= 5.0;
+          kick *= 5.0;
           
-          newComponent.velocity = spawnerCandidate.velocity + dir;
+          newComponent.velocity = spawnerCandidate.velocity + kick;
+          //newComponent.force = kick;
         }
       }
     }
