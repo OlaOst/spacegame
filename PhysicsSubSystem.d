@@ -59,11 +59,13 @@ invariant()
 {
   assert(m_entity !is null, "Physics component had null entity");
   
-  assert(m_velocity.x == m_velocity.x && m_velocity.y == m_velocity.y && m_velocity.z == m_velocity.z);
+  assert(m_velocity.isValid());//x == m_velocity.x && m_velocity.y == m_velocity.y && m_velocity.z == m_velocity.z);
   assert(m_rotation == m_rotation);
   
-  //assert(m_force.x == m_force.x && m_force.y == m_force.y && m_force.z == m_force.z);
-  //assert(m_torque == m_torque);
+  assert(m_force.isValid());//.x == m_force.x && m_force.y == m_force.y && m_force.z == m_force.z);
+  assert(m_torque == m_torque);
+  
+  assert(m_reload == m_reload);
 }
 
 public:
@@ -76,6 +78,8 @@ public:
     
     m_rotation = 0.0;
     m_torque = 0.0;
+    
+    m_reload = 0.0;
   }
   
   Vector position()
@@ -124,6 +128,17 @@ public:
   }
 
   
+  float reload()
+  {
+    return m_reload;
+  }
+  
+  void reload(float p_reload)
+  {
+    m_reload = p_reload;
+  }
+  
+  
 private:
   void move(float p_time)
   in
@@ -147,6 +162,9 @@ private:
     
     m_rotation = m_rotation + m_torque * p_time;
     m_entity.angle = m_entity.angle + m_rotation * p_time;
+    
+    if (m_reload > 0.0)
+      m_reload -= p_time;
   }
   
 private:
@@ -156,6 +174,8 @@ private:
   
   float m_rotation;
   float m_torque;
+  
+  float m_reload;
 }
 
 

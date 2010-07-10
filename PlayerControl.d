@@ -55,17 +55,22 @@ public:
 
     if (m_inputHandler.hasEvent(Event.Space))
     {
-      Entity bullet = new Entity();
+      if (p_sourceComponent.reload <= 0.0)
+      {
+        Entity bullet = new Entity();
 
-      bullet.setValue("drawtype", "bullet");
-      bullet.setValue("spawnedFrom", to!string(p_sourceComponent.entity.id));
+        bullet.setValue("drawtype", "bullet");
+        bullet.setValue("spawnedFrom", to!string(p_sourceComponent.entity.id));
 
-      bullet.position = p_sourceComponent.entity.position;
-      bullet.angle = p_sourceComponent.entity.angle;
-      
-      bullet.lifetime = 5.0;
+        bullet.position = p_sourceComponent.entity.position;
+        bullet.angle = p_sourceComponent.entity.angle;
+        
+        bullet.lifetime = 5.0;
 
-      p_sourceComponent.entity.addSpawn(bullet);
+        p_sourceComponent.entity.addSpawn(bullet);
+        
+        p_sourceComponent.reload = 0.1;
+      }
     }
 
     p_sourceComponent.force = force;
