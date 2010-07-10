@@ -38,7 +38,7 @@ unittest
 }
 
 
-class Control
+abstract class Control
 {
 public:
   abstract void update(PhysicsComponent p_sourceComponent, PhysicsComponent[] p_otherComponents);

@@ -182,7 +182,7 @@ public:
       
       // and some damping
       component.force = component.force + (component.velocity * -0.15);
-      component.torque = component.torque + (component.rotation * -0.5);
+      component.torque = component.torque + (component.rotation * -2.5);
       
       // let eventual controller do its thing
       if (component in m_controlMapping)
@@ -223,7 +223,7 @@ protected:
           Vector kick = Vector(cos(spawnerCandidate.entity.angle), sin(spawnerCandidate.entity.angle));
           
           // TODO: should be force from spawn value
-          kick *= 5.0;
+          kick *= 25.0;
           
           newComponent.velocity = spawnerCandidate.velocity + kick;
           //newComponent.force = kick;

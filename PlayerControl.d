@@ -44,14 +44,14 @@ public:
     auto torque = p_sourceComponent.torque;
     
     if (m_inputHandler.hasEvent(Event.UpKey))
-      force += dir * 2.5;
+      force += dir * 7.5;
     if (m_inputHandler.hasEvent(Event.DownKey))
-      force -= dir * 2.5;
+      force -= dir * 7.5;
     
     if (m_inputHandler.hasEvent(Event.LeftKey))
-      torque += 1.5;
+      torque += 5.5;
     if (m_inputHandler.hasEvent(Event.RightKey))
-      torque -= 1.5;
+      torque -= 5.5;
 
     if (m_inputHandler.hasEvent(Event.Space))
     {
