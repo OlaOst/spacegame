@@ -195,7 +195,7 @@ protected:
     //else
       //return GraphicsComponent(p_entity, Drawtype.Unknown);
       
-    assert(0, "Tried to create component from entity without drawtype value");
+    assert(0, "Tried to create graphics component from entity without drawtype value");
   }
   
   

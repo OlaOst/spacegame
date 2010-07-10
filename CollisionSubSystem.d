@@ -2,6 +2,7 @@ module CollisionSubSystem;
 
 import std.algorithm;
 import std.conv;
+import std.stdio;
 
 import Entity;
 import SubSystem : SubSystem;
@@ -14,21 +15,23 @@ unittest
   
   Entity entity = new Entity();
   entity.setValue("radius", "2.0");
+  entity.setValue("collisionType", "ship");
   
   sys.registerEntity(entity);
   
   assert(sys.collisions.length == 0);
-  sys.calculateCollisions();
+  sys.determineCollisions();
   assert(sys.collisions.length == 0);
   
   Entity collide = new Entity();
   collide.setValue("radius", "2.0");
+  collide.setValue("collisionType", "bullet");
   collide.position = Vector(1.0, 0.0);
   
   sys.registerEntity(collide);
   
   assert(sys.collisions.length == 0);
-  sys.calculateCollisions();
+  sys.determineCollisions();
   assert(sys.collisions.length == 1);
   
   assert(sys.collisions[0].first.entity == entity);
@@ -37,10 +40,24 @@ unittest
   
   Entity noCollide = new Entity();
   noCollide.setValue("radius", "2.0");
+  noCollide.setValue("collisionType", "asteroid");
   noCollide.position = Vector(10.0, 0.0);
   
-  sys.calculateCollisions();
+  sys.determineCollisions();
   assert(sys.collisions.length == 1);
+  
+  sys.calculateCollisionResponse();
+  
+  assert(collide.lifetime <= 0.0);
+}
+
+
+enum CollisionType
+{
+  Unknown,
+  Ship,
+  Asteroid,
+  Bullet
 }
 
 
@@ -53,10 +70,11 @@ invariant()
 }
 
 public:
-  this(Entity p_entity, float p_radius)
+  this(Entity p_entity, float p_radius, CollisionType p_collisionType)
   {
     m_entity = p_entity;
     m_radius = p_radius;
+    m_collisionType = p_collisionType;
   }
   
   Entity entity()
@@ -68,10 +86,16 @@ public:
   {  
     return m_radius;
   }
+  
+  CollisionType collisionType()
+  {
+    return m_collisionType;
+  }
 
 private:
   Entity m_entity;
   float m_radius;
+  CollisionType m_collisionType;
 }
 
 
@@ -94,16 +118,14 @@ public:
     return m_collisions;
   }
   
-  void calculateCollisions()
+  void determineCollisions()
   {
     m_collisions.length = 0;
-    
-    //foreach (first; components)
+
     for (uint firstIndex = 0; firstIndex < components.length-1; firstIndex++)
     {
       CollisionComponent first = components[firstIndex];
       
-      //foreach (second; components)
       for (uint secondIndex = firstIndex + 1; secondIndex < components.length; secondIndex++)
       {
         CollisionComponent second = components[secondIndex];
@@ -118,13 +140,55 @@ public:
     }
   }
   
+  void calculateCollisionResponse()
+  {
+    foreach (collision; m_collisions)
+    {
+      // bullets should disappear on contact - set lifetime to zero
+      if (collision.first.collisionType == CollisionType.Bullet)
+      {
+        collision.first.entity.lifetime = 0.0;
+      }
+      if (collision.second.collisionType == CollisionType.Bullet)
+      {
+        collision.second.entity.lifetime = 0.0;
+      }
+    
+      // determine contact point
+      Vector normalizedContactVector = (collision.second.entity.position - collision.first.entity.position).normalized(); // / (collision.first.radius + collision.second.radius); // * collision.first.radius;
+      
+      Vector contactPoint = normalizedContactVector * (1.0/(collision.first.radius + collision.second.radius)) * collision.first.radius;
+    }
+  }
+  
 
 protected:
   CollisionComponent createComponent(Entity p_entity)
   {
     float radius = to!float(p_entity.getValue("radius"));
     
-    return new CollisionComponent(p_entity, radius);
+    assert(radius >= 0.0);
+    
+    CollisionType collisionType = CollisionType.Unknown;
+    
+    switch (p_entity.getValue("collisionType"))
+    {
+      case "ship":
+        collisionType = CollisionType.Ship;
+        break;
+      case "asteroid":
+        collisionType = CollisionType.Asteroid;
+        break;
+      case "bullet":
+        collisionType = CollisionType.Bullet;
+        break;        
+        
+      default:
+        assert("Tried to create collision component from entity without collision type");
+        break;
+    }
+    
+    return new CollisionComponent(p_entity, radius, collisionType);
   }
   
   
