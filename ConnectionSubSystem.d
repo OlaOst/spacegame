@@ -13,18 +13,37 @@ import Vector : Vector;
 
 unittest
 {
+  // this control will just apply force to the right
+  class MockControl : public Control
+  {
+  public:
+    void update(ConnectionComponent p_sourceComponent, ConnectionComponent[] p_otherComponents)
+    {
+      p_sourceComponent.force = Vector(1.0, 0.0);
+      p_sourceComponent.torque = 0.0;
+    }
+  }
+  
   auto sys = new ConnectionSubSystem(new InputHandler());
   
   Entity ship = new Entity();
   ship.setValue("mass", "2.0");
+  ship.setValue("control", "mock");
   
   sys.registerEntity(ship);
+  
+  // macgyver in the mock control here, we don't want to know about it in the createComponent implementation
+  sys.m_controlMapping[sys.findComponents(ship)[0]] = new MockControl();
   
   Entity engine = new Entity();
   engine.setValue("owner", to!string(ship.id));
   engine.setValue("mass", "1.0");
   
   sys.registerEntity(engine);
+  
+  assert(sys.findComponents(engine)[0].owner.entity == ship);
+  
+  sys.updateFromControllers();
   
   // the engine has a controller
   // the controller sends accelerate intent to engine
@@ -50,6 +69,12 @@ unittest
 
 class ConnectionComponent
 {
+invariant()
+{
+  assert(m_entity !is null);
+}
+
+
 public:
   this(Entity p_entity)
   {
@@ -66,6 +91,16 @@ public:
     return m_entity;
   }
 
+  ConnectionComponent owner()
+  {
+    return m_owner;
+  }
+  
+  void owner(ConnectionComponent p_owner)
+  {
+    m_owner = p_owner;
+  }
+  
   Vector force()
   {
     return m_force;
@@ -101,6 +136,8 @@ public:
 private:
   Entity m_entity;
   
+  ConnectionComponent m_owner;
+  
   Vector m_force;
   float m_torque;
   
@@ -117,7 +154,7 @@ public:
   }
   
   
-  void dilldall()
+  void updateFromControllers()
   {
     foreach (component; components)
     {
@@ -126,6 +163,13 @@ public:
       {
         //writeln(to!string(m_controlMapping[component].nearbyEntities(components, component, 10.0).length) ~ " components nearby");
         m_controlMapping[component].update(component, components);
+        
+        // propagate stuff from controller to owner
+        if (component.owner !is null)
+        {
+          component.owner.force = component.owner.force + component.force;
+          component.owner.torque = component.owner.torque + component.torque;
+        }
       }
     }
   }
@@ -136,11 +180,24 @@ protected:
   {
     auto newComponent = new ConnectionComponent(p_entity);
     
+    if (p_entity.getValue("owner").length > 0)
+    {
+      int ownerId = to!int(p_entity.getValue("owner"));
+      
+      foreach (component; components)
+      {
+        if (component.entity.id == ownerId)
+        {
+          newComponent.owner = component;
+          break;
+        }
+      }
+    }
+    
     if (p_entity.getValue("control") == "player")
     {
       m_controlMapping[newComponent] = m_playerControl;
     }
-    
     if (p_entity.getValue("control") == "flocker")
     {
       m_controlMapping[newComponent] = new FlockControl(2.5, 0.5, 20.0, 0.3);
