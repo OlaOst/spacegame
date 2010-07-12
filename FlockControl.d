@@ -11,6 +11,7 @@ import Vector : Vector;
 
 unittest
 {
+  // 0.5 avoid distance, 0.5 avoid weight, 5.0 flock distance, 0.3 flock weight
   FlockControl flock = new FlockControl(0.5, 0.5, 5.0, 0.3);
   
   // check that desired velocity is kept with no other boids in sight

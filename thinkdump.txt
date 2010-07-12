@@ -88,3 +88,11 @@ what if we want a control to deal with multiple components/entities? entity valu
 entity.setValue("controller", "player"); // just use player controller
 entity.setValue("controller", "flocker"); // new flock control instance
 entity.setValue("controller", "flocker.group1"); // create flocker with name group1 or use if it already exists
+
+
+
+
+
+a ship is a collection of connected entities
+there's an entity for the ship itself and separate entities for each module
+an engine module will listen for accelerate intents and apply force to the ship entity

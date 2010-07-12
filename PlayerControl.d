@@ -62,6 +62,7 @@ public:
         bullet.setValue("drawtype", "bullet");
         bullet.setValue("collisionType", "bullet");
         bullet.setValue("radius", "0.1");
+        bullet.setValue("mass", "0.2");
         bullet.setValue("spawnedFrom", to!string(p_sourceComponent.entity.id));
 
         bullet.position = p_sourceComponent.entity.position;

@@ -20,6 +20,8 @@ unittest
   
   Entity entity = new Entity();
   
+  entity.setValue("mass", "1.0");
+  
   physics.registerEntity(entity);
   
   assert(entity.position == Vector.origo);
@@ -32,6 +34,7 @@ unittest
   {
     Entity spawn = new Entity();
     spawn.setValue("spawnedFrom", to!string(entity.id));
+    spawn.setValue("mass", "0.2");
     
     physics.registerEntity(spawn);
     
@@ -46,6 +49,7 @@ unittest
   {
     Entity flocker = new Entity();
     flocker.setValue("control", "flocker");
+    flocker.setValue("mass", "0.5");
     
     physics.registerEntity(flocker);
 
@@ -146,6 +150,10 @@ public:
     return m_mass;
   }
   
+  void mass(float p_mass)
+  {
+    m_mass = p_mass;
+  }
   
 private:
   void move(float p_time)
@@ -208,7 +216,7 @@ public:
     foreach (component; components)
     {
       // add spring force to center
-      //component.force = component.force + (component.position * -0.05);
+      component.force = component.force + (component.position * -0.05);
       
       // and some damping
       component.force = component.force + (component.velocity * -0.15);
@@ -225,8 +233,6 @@ public:
       foreach (collision; component.entity.getAndClearCollisions)
       {
         CollisionComponent other = (collision.first.entity == component.entity) ? collision.second : collision.first;
-
-        writeln("handling collision between " ~ to!string(component.entity.id) ~ " and " ~ to!string(other.entity.id));
         
         // this physics component might have collided with a non-physics component, i.e. ship moving over and lighting up something in the background or the hud
         auto possiblePhysicsComponents = findComponents(other.entity);
@@ -249,9 +255,9 @@ public:
       // do wraparound stuff      
       //if (component.entity.position.length2d > 100.0)
         //component.entity.position = component.entity.position * -1;
-      if (abs(component.entity.position.x) > 30.0)
+      if (abs(component.entity.position.x) > 100.0)
         component.entity.position = Vector(component.entity.position.x * -1, component.entity.position.y);
-      if (abs(component.entity.position.y) > 30.0)
+      if (abs(component.entity.position.y) > 100.0)
         component.entity.position = Vector(component.entity.position.x, component.entity.position.y * -1);
       
       // reset force and torque so they're ready for next update
@@ -298,6 +304,8 @@ protected:
     {
       m_controlMapping[newComponent] = new FlockControl(2.5, 0.5, 20.0, 0.3);
     }
+    
+    newComponent.mass = to!float(p_entity.getValue("mass"));
     
     return newComponent;
   }

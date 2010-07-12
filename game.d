@@ -81,6 +81,7 @@ unittest
     Entity entity = new Entity();
     
     entity.setValue("control", "player");
+    entity.setValue("mass", "4.0");
     
     game.m_physics.registerEntity(entity);
     
@@ -133,7 +134,8 @@ public:
     player.setValue("drawtype", "triangle");
     player.setValue("collisionType", "ship");
     player.setValue("keepInCenter", "true");
-    player.setValue("radius", "1.0");
+    player.setValue("radius", "2.0");
+    player.setValue("mass", "4.0");
     
     m_entities ~= player;
     
@@ -141,7 +143,7 @@ public:
     m_physics.registerEntity(player);
     //m_collision.registerEntity(player);
     
-    for (int n = 0; n < 1; n++)
+    for (int n = 0; n < 40; n++)
     {
       Entity npc = new Entity();
 
@@ -150,6 +152,7 @@ public:
       npc.setValue("collisionType", "ship");
       npc.setValue("velocity", "randomize");
       npc.setValue("radius", "1.0");
+      npc.setValue("mass", "1.0");
       
       npc.position = Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0));
       npc.angle = uniform(0.0, PI*2);
