@@ -4,7 +4,7 @@ import std.conv;
 
 import Control;
 import InputHandler;
-import PhysicsSubSystem;
+import ConnectionSubSystem;
 import Vector : Vector;
 
 
@@ -30,11 +30,11 @@ public:
   }
   
   
-  void update(PhysicsComponent p_sourceComponent, PhysicsComponent[] p_otherComponents)
+  void update(ConnectionComponent p_sourceComponent, ConnectionComponent[] p_otherComponents)
   out
   {
-    assert(p_sourceComponent.force.x == p_sourceComponent.force.x && p_sourceComponent.force.y == p_sourceComponent.force.y);
-    assert(p_sourceComponent.torque == p_sourceComponent.torque);
+    //assert(p_sourceComponent.force.isValid());
+    //assert(p_sourceComponent.torque == p_sourceComponent.torque);
   }
   body
   {

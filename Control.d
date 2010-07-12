@@ -1,34 +1,35 @@
 module Control;
 
 import Entity;
-import PhysicsSubSystem;
+import ConnectionSubSystem;
+import InputHandler;
 import Vector : Vector;
 
 
 unittest
 {
-  auto physics = new PhysicsSubSystem(new InputHandler());
-  auto controlComponent = new PhysicsComponent(new Entity());
+  auto connectionSystem = new ConnectionSubSystem(new InputHandler());
+  auto controlComponent = new ConnectionComponent(new Entity());
   
   class MockControl : public Control
   {
   public:
-    void update(PhysicsComponent p_sourceComponent, PhysicsComponent[] p_otherComponents)
+    void update(ConnectionComponent p_sourceComponent, ConnectionComponent[] p_otherComponents)
     {
     }
   }
   
   auto controller = new MockControl();
   
-  PhysicsComponent[] components = [];
+  ConnectionComponent[] components = [];
   
   assert(controller.nearbyEntities(controlComponent, components, 10.0).length == 0);
   
-  components ~= new PhysicsComponent(new Entity());
+  components ~= new ConnectionComponent(new Entity());
   
   assert(controller.nearbyEntities(controlComponent, components, 10.0).length == 1);
   
-  auto farAwayComponent = new PhysicsComponent(new Entity());
+  auto farAwayComponent = new ConnectionComponent(new Entity());
   
   farAwayComponent.entity.position(Vector(100.0, 100.0));
   components ~= farAwayComponent;
@@ -41,11 +42,11 @@ unittest
 abstract class Control
 {
 public:
-  abstract void update(PhysicsComponent p_sourceComponent, PhysicsComponent[] p_otherComponents);
+  abstract void update(ConnectionComponent p_sourceComponent, ConnectionComponent[] p_otherComponents);
   
 
 protected:
-  Entity[] nearbyEntities(PhysicsComponent p_sourceComponent, PhysicsComponent[] p_candidateComponents, float p_radius)
+  Entity[] nearbyEntities(ConnectionComponent p_sourceComponent, ConnectionComponent[] p_candidateComponents, float p_radius)
   in
   {
     assert(p_radius > 0.0);

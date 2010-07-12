@@ -2,13 +2,18 @@ module ConnectionSubSystem;
 
 import std.conv;
 
+import Control;
 import Entity;
+import FlockControl;
+import InputHandler;
+import PlayerControl;
 import SubSystem : SubSystem;
+import Vector : Vector;
 
 
 unittest
 {
-  auto sys = new ConnectionSubSystem();
+  auto sys = new ConnectionSubSystem(new InputHandler());
   
   Entity ship = new Entity();
   ship.setValue("mass", "2.0");
@@ -45,15 +50,107 @@ unittest
 
 class ConnectionComponent
 {
+public:
+  this(Entity p_entity)
+  {
+    m_entity = p_entity;
+    
+    m_force = Vector.origo;
+    m_torque = 0.0;
+    
+    m_reload = 0.0;
+  }
+  
+  Entity entity()
+  {
+    return m_entity;
+  }
 
+  Vector force()
+  {
+    return m_force;
+  }
+  
+  float torque()
+  {
+    return m_torque;
+  }
+  
+  
+  void force(Vector p_force)
+  {
+    m_force = p_force;
+  }
+  
+  void torque(float p_torque)
+  {
+    m_torque = p_torque;
+  }
+  
+  float reload()
+  {
+    return m_reload;
+  }
+  
+  void reload(float p_reload)
+  {
+    m_reload = p_reload;
+  }
+  
+  
+private:
+  Entity m_entity;
+  
+  Vector m_force;
+  float m_torque;
+  
+  float m_reload;
 }
 
 
 class ConnectionSubSystem : public SubSystem!(ConnectionComponent)
 {
+public:
+  this(InputHandler p_inputHandler)
+  {
+    m_playerControl = new PlayerControl(p_inputHandler);
+  }
+  
+  
+  void dilldall()
+  {
+    foreach (component; components)
+    {
+      // let eventual controller do its thing
+      if (component in m_controlMapping)
+      {
+        //writeln(to!string(m_controlMapping[component].nearbyEntities(components, component, 10.0).length) ~ " components nearby");
+        m_controlMapping[component].update(component, components);
+      }
+    }
+  }
+
+
 protected:
   ConnectionComponent createComponent(Entity p_entity)
   {
-    return new ConnectionComponent();
+    auto newComponent = new ConnectionComponent(p_entity);
+    
+    if (p_entity.getValue("control") == "player")
+    {
+      m_controlMapping[newComponent] = m_playerControl;
+    }
+    
+    if (p_entity.getValue("control") == "flocker")
+    {
+      m_controlMapping[newComponent] = new FlockControl(2.5, 0.5, 20.0, 0.3);
+    }
+    
+    return newComponent;
   }
+  
+  
+private:
+  PlayerControl m_playerControl;
+  Control[ConnectionComponent] m_controlMapping;
 }

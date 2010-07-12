@@ -7,9 +7,9 @@ import std.stdio;
 
 import CollisionSubSystem;
 import Entity;
-import FlockControl;
+//import FlockControl;
 import InputHandler;
-import PlayerControl;
+//import PlayerControl;
 import SubSystem : SubSystem;
 import Vector : Vector;
 
@@ -202,7 +202,7 @@ class PhysicsSubSystem : public SubSystem!(PhysicsComponent)
 public:
   this(InputHandler p_inputHandler)
   {
-    m_playerControl = new PlayerControl(p_inputHandler);
+    //m_playerControl = new PlayerControl(p_inputHandler);
   }
   
   
@@ -223,11 +223,11 @@ public:
       component.torque = component.torque + (component.rotation * -2.5);
       
       // let eventual controller do its thing
-      if (component in m_controlMapping)
+      /*if (component in m_controlMapping)
       {
         //writeln(to!string(m_controlMapping[component].nearbyEntities(components, component, 10.0).length) ~ " components nearby");
         m_controlMapping[component].update(component, components);
-      }
+      }*/
       
       // handle collisions
       foreach (collision; component.entity.getAndClearCollisions)
@@ -295,7 +295,7 @@ protected:
     if (p_entity.getValue("velocity") == "randomize")
       newComponent.velocity = Vector(uniform(-1.5, 1.5), uniform(-1.5, 1.5));
     
-    if (p_entity.getValue("control") == "player")
+    /*if (p_entity.getValue("control") == "player")
     {
       m_controlMapping[newComponent] = m_playerControl;
     }
@@ -303,7 +303,7 @@ protected:
     if (p_entity.getValue("control") == "flocker")
     {
       m_controlMapping[newComponent] = new FlockControl(2.5, 0.5, 20.0, 0.3);
-    }
+    }*/
     
     newComponent.mass = to!float(p_entity.getValue("mass"));
     
@@ -311,6 +311,6 @@ protected:
   }
   
 private:
-  PlayerControl m_playerControl;
-  Control[PhysicsComponent] m_controlMapping;
+  //PlayerControl m_playerControl;
+  //Control[PhysicsComponent] m_controlMapping;
 }
