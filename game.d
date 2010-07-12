@@ -8,6 +8,7 @@ import std.stdio;
 import derelict.sdl.sdl;
 
 import CollisionSubSystem;
+import ConnectionSubSystem;
 import Display;
 import GraphicsSubSystem;
 import InputHandler;
