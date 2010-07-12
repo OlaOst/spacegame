@@ -126,7 +126,7 @@ public:
     m_inputHandler = new InputHandler();
     
     m_graphics = new GraphicsSubSystem();
-    m_physics = new PhysicsSubSystem(m_inputHandler);
+    m_physics = new PhysicsSubSystem();
     m_collision = new CollisionSubSystem();
     
     Entity player = new Entity();
