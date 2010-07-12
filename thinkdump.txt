@@ -96,3 +96,6 @@ entity.setValue("controller", "flocker.group1"); // create flocker with name gro
 a ship is a collection of connected entities
 there's an entity for the ship itself and separate entities for each module
 an engine module will listen for accelerate intents and apply force to the ship entity
+
+CollectionSubSystem or ConnectionSubSystem
+handles entity connections and how they relate

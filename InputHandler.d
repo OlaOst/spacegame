@@ -84,6 +84,9 @@ mixin(genEnum("Event",
   "PageUp", 
   "PageDown",
   "Space",
+  "LeftButton",
+  "RightButton",
+  "MiddleButton",
   "WheelUp",
   "WheelDown",
   "Pause"
@@ -111,6 +114,10 @@ public:
     
     m_keyEventMapping[SDLK_PAUSE] = Event.Pause;
     
+    m_buttonEventMapping[SDL_BUTTON_LEFT] = Event.LeftButton;
+    m_buttonEventMapping[SDL_BUTTON_MIDDLE] = Event.MiddleButton;
+    m_buttonEventMapping[SDL_BUTTON_RIGHT] = Event.RightButton;
+    
     m_buttonEventMapping[SDL_BUTTON_WHEELUP] = Event.WheelUp;
     m_buttonEventMapping[SDL_BUTTON_WHEELDOWN] = Event.WheelDown;
   }
@@ -120,8 +127,6 @@ public:
     //clearEvents();
     //foreach (event; m_events.keys)
       //m_events[event] = 0;
-      
-    //static Event[SDLKey] m_buttonEventMapping;
     
     // clear button event here
     // for now we just register buttonup events, because 

@@ -102,9 +102,7 @@ public:
     {
       glPushMatrix();
       
-      assert(component.position.x == component.position.x);
-      assert(component.position.y == component.position.y);
-      assert(component.position.z == component.position.z);
+      assert(component.position.isValid());
       
       glTranslatef(component.position.x, component.position.y, component.position.z);
       glRotatef(component.angle * (180.0 / PI), 0.0, 0.0, 1.0);
@@ -159,6 +157,18 @@ public:
             glVertex3f(cos(angle) * component.radius, sin(angle) * component.radius, 0.0);
           }
           glVertex3f(cos(0.0) * component.radius, sin(0.0) * component.radius, 0.0);
+        glEnd();
+      }
+      
+      // draw circle indicating radius in debug mode
+      debug
+      {
+        glColor3f(1.0, 1.0, 1.0);
+        glBegin(GL_LINE_LOOP);
+        for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 16)
+        {
+          glVertex3f(cos(angle) * component.radius, sin(angle) * component.radius, 0.0);
+        }
         glEnd();
       }
       
