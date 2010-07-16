@@ -134,14 +134,14 @@ public:
     m_torque = p_torque;
   }
   
-  float reload()
+  @property float reload()
   {
     return m_reload;
   }
   
-  void reload(float p_reload)
+  @property float reload(float p_reload)
   {
-    m_reload = p_reload;
+    return m_reload = p_reload;
   }
   
   
@@ -197,6 +197,26 @@ public:
       
       component.force = Vector.origo;
       component.torque = 0.0;
+    }
+  }
+  
+  
+  void updateFromPhysics(float p_time)
+  in
+  {
+    assert(p_time >= 0.0);
+  }
+  body
+  {
+    foreach (component; components)
+    {
+      if (component.reload > 0.0)
+        component.reload = component.reload - p_time;
+      
+      if (component.physicsComponent !is null)
+      {
+        //component.entity.position = component.physicsComponent.entity.position;
+      }
     }
   }
 

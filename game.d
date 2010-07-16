@@ -230,6 +230,8 @@ private:
       // collision must be updated before physics to make sure both entities in collisions are updated properly
       m_collision.update();
       m_physics.move(elapsedTime);
+      
+      m_connection.updateFromPhysics(elapsedTime);
     }
     
     m_graphics.draw();
