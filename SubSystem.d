@@ -53,7 +53,7 @@ public:
   }
   
 
-protected:
+//protected:
   ComponentType[] findComponents(Entity p_entity)
   {
     // TODO: this could problably be rangified or lambdified
@@ -66,6 +66,8 @@ protected:
         
     return foundComponents;
   }
+  
+protected:
   
   Entity getEntity(ComponentType p_component)
   {

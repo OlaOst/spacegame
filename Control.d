@@ -8,7 +8,7 @@ import Vector : Vector;
 
 unittest
 {
-  auto connectionSystem = new ConnectionSubSystem(new InputHandler());
+  auto connectionSystem = new ConnectionSubSystem(new InputHandler(), new PhysicsSubSystem());
   auto controlComponent = new ConnectionComponent(new Entity());
   
   class MockControl : public Control

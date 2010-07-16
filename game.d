@@ -112,6 +112,7 @@ invariant()
   assert(m_graphics !is null, "Game didn't initialize graphics");
   assert(m_physics !is null, "Game didn't initialize physics");
   assert(m_collision !is null, "Game didn't initialize collision system");
+  assert(m_connection !is null, "Game didn't initialize connection system");
 }
 
 public:
@@ -128,6 +129,7 @@ public:
     m_graphics = new GraphicsSubSystem();
     m_physics = new PhysicsSubSystem();
     m_collision = new CollisionSubSystem();
+    m_connection = new ConnectionSubSystem(m_inputHandler, m_physics);
     
     Entity player = new Entity();
 
@@ -143,6 +145,7 @@ public:
     m_graphics.registerEntity(player);
     m_physics.registerEntity(player);
     //m_collision.registerEntity(player);
+    m_connection.registerEntity(player);
     
     for (int n = 0; n < 40; n++)
     {
@@ -163,6 +166,7 @@ public:
       m_graphics.registerEntity(npc);
       m_physics.registerEntity(npc);
       m_collision.registerEntity(npc);
+      m_connection.registerEntity(npc);
     }
     
     m_starfield = new Starfield(m_graphics, 10.0);
@@ -221,6 +225,8 @@ private:
 
     if (!m_paused)
     {
+      m_connection.updateFromControllers();
+    
       // collision must be updated before physics to make sure both entities in collisions are updated properly
       m_collision.update();
       m_physics.move(elapsedTime);
@@ -246,7 +252,7 @@ private:
     }
     if (m_inputHandler.hasEvent(Event.WheelUp))
     {
-      m_graphics.zoomIn(elapsedTime * 5.0);
+      m_graphics.zoomIn(elapsedTime * 15.0);
       //m_starfield.populate(20.0);
     }
     if (m_inputHandler.hasEvent(Event.PageDown)) 
@@ -256,7 +262,7 @@ private:
     }
     if(m_inputHandler.hasEvent(Event.WheelDown))
     {
-      m_graphics.zoomOut(elapsedTime * 5.0);
+      m_graphics.zoomOut(elapsedTime * 15.0);
       //m_starfield.populate(20.0);
     }
     
@@ -287,6 +293,7 @@ private:
   GraphicsSubSystem m_graphics;
   PhysicsSubSystem m_physics;
   CollisionSubSystem m_collision;
+  ConnectionSubSystem m_connection;
   
   Starfield m_starfield;
   

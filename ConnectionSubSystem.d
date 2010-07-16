@@ -7,6 +7,7 @@ import Entity;
 import FlockControl;
 import InputHandler;
 import PlayerControl;
+import PhysicsSubSystem;
 import SubSystem : SubSystem;
 import Vector : Vector;
 
@@ -24,7 +25,7 @@ unittest
     }
   }
   
-  auto sys = new ConnectionSubSystem(new InputHandler());
+  auto sys = new ConnectionSubSystem(new InputHandler(), new PhysicsSubSystem());
   
   Entity ship = new Entity();
   ship.setValue("mass", "2.0");
@@ -45,6 +46,9 @@ unittest
   
   sys.updateFromControllers();
   
+  // assert that force from controller got propagated from engine to ship
+  assert(sys.findComponents(ship)[0].force == Vector(1.0, 0.0));
+    
   // the engine has a controller
   // the controller sends accelerate intent to engine
   // the connection system propagates the engine force to its owner entity
@@ -54,12 +58,10 @@ unittest
   
   // 1. entities are updated from controllers
   // 2. connection system propagates intents and stuff to top level entity
+  // 2b. physics component need to update force and torque and etc from connection component 
   // 3. physics update top level entity
   // 4. connection system propagates position and stuff to children of top level entities
-  
-  // right now controllers directly update physics components
-  // they should update connection components instead
-  
+
   
   // is the engine entity accelerating?
   // then the ship entity needs to move
@@ -101,6 +103,16 @@ public:
     m_owner = p_owner;
   }
   
+  PhysicsComponent physicsComponent()
+  {
+    return m_physicsComponent;
+  }
+  
+  void physicsComponent(PhysicsComponent p_physicsComponent)
+  {
+    m_physicsComponent = p_physicsComponent;
+  }
+  
   Vector force()
   {
     return m_force;
@@ -138,6 +150,8 @@ private:
   
   ConnectionComponent m_owner;
   
+  PhysicsComponent m_physicsComponent;
+  
   Vector m_force;
   float m_torque;
   
@@ -148,8 +162,10 @@ private:
 class ConnectionSubSystem : public SubSystem!(ConnectionComponent)
 {
 public:
-  this(InputHandler p_inputHandler)
+  this(InputHandler p_inputHandler, PhysicsSubSystem p_physics)
   {
+    m_physics = p_physics;
+    
     m_playerControl = new PlayerControl(p_inputHandler);
   }
   
@@ -163,14 +179,24 @@ public:
       {
         //writeln(to!string(m_controlMapping[component].nearbyEntities(components, component, 10.0).length) ~ " components nearby");
         m_controlMapping[component].update(component, components);
-        
-        // propagate stuff from controller to owner
-        if (component.owner !is null)
-        {
-          component.owner.force = component.owner.force + component.force;
-          component.owner.torque = component.owner.torque + component.torque;
-        }
       }
+	  
+      // propagate stuff from controller to owner
+      if (component.owner !is null)
+      {
+        component.owner.force = component.owner.force + component.force;
+        component.owner.torque = component.owner.torque + component.torque;
+      }
+      
+      // update physics component
+      if (component.physicsComponent !is null)
+      {
+        component.physicsComponent.force = component.physicsComponent.force + component.force;
+        component.physicsComponent.torque = component.physicsComponent.torque + component.torque;
+      }
+      
+      component.force = Vector.origo;
+      component.torque = 0.0;
     }
   }
 
@@ -203,11 +229,16 @@ protected:
       m_controlMapping[newComponent] = new FlockControl(2.5, 0.5, 20.0, 0.3);
     }
     
+    if (m_physics.findComponents(p_entity).length > 0)
+      newComponent.physicsComponent = m_physics.findComponents(p_entity)[0];
+    
     return newComponent;
   }
   
   
 private:
+  PhysicsSubSystem m_physics;
+  
   PlayerControl m_playerControl;
   Control[ConnectionComponent] m_controlMapping;
 }
