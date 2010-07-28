@@ -2,6 +2,7 @@ module Vector;
 
 import std.conv;
 import std.math;
+import std.string;
 
 
 unittest
@@ -46,6 +47,10 @@ unittest
   Vector wrong = Vector(NaN(0), NaN(0));
   
   assert(wrong.isValid() == false);
+  
+  auto vectorFromString = Vector.fromString("1 2 3");
+  
+  assert(vectorFromString.x == 1 && vectorFromString.y == 2 && vectorFromString.z == 3);
 }
 
 
@@ -132,5 +137,19 @@ struct Vector
   static Vector fromAngle(float p_angle)
   {
     return Vector(cos(p_angle), sin(p_angle));
+  }
+  
+  
+  static Vector fromString(string p_values)
+  {
+    auto values = p_values.split();
+    
+    if (values.length == 3)
+      return Vector(to!float(values[0]), to!float(values[1]), to!float(values[2]));
+    else if (values.length == 2)
+      return Vector(to!float(values[0]), to!float(values[1]));
+      
+      
+    assert(false, "Vector fromString needs 2 or 3 values, " ~ p_values ~ " can't be parsed as a vector");
   }
 }

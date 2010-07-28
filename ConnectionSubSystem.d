@@ -1,6 +1,7 @@
 module ConnectionSubSystem;
 
 import std.conv;
+import std.stdio;
 
 import Control;
 import Entity;
@@ -19,36 +20,52 @@ unittest
   {
   public:
     void update(ConnectionComponent p_sourceComponent, ConnectionComponent[] p_otherComponents)
-    {
+    {      
       p_sourceComponent.force = Vector(1.0, 0.0);
       p_sourceComponent.torque = 0.0;
     }
   }
   
-  auto sys = new ConnectionSubSystem(new InputHandler(), new PhysicsSubSystem());
+  auto physics = new PhysicsSubSystem();
+  auto sys = new ConnectionSubSystem(new InputHandler(), physics);
   
   Entity ship = new Entity();
   ship.setValue("mass", "2.0");
-  ship.setValue("control", "mock");
   
+  physics.registerEntity(ship);
   sys.registerEntity(ship);
   
-  // macgyver in the mock control here, we don't want to know about it in the createComponent implementation
-  sys.m_controlMapping[sys.findComponents(ship)[0]] = new MockControl();
-  
+
   Entity engine = new Entity();
   engine.setValue("owner", to!string(ship.id));
+  engine.setValue("relativePosition", "1 0");
   engine.setValue("mass", "1.0");
+  engine.setValue("control", "mock");
   
   sys.registerEntity(engine);
   
-  assert(sys.findComponents(engine)[0].owner.entity == ship);
+  // macgyver in the mock control here, we don't want to know about it in the createComponent implementation
+  auto controller = new MockControl();
+  sys.m_controlMapping[sys.findComponents(engine)[0]] = controller;
+
+  auto engineComponent = sys.findComponents(engine)[0];
   
+  assert(engineComponent.relativePosition == Vector(1.0, 0.0), "Engine didn't set relative position to 1 0 0, it's " ~ engineComponent.relativePosition.toString());
+  assert(engineComponent.owner.entity == ship);
+
   sys.updateFromControllers();
+
+  assert(physics.findComponents(ship)[0].force == Vector(1.0, 0.0), "Force didn't get propagated from controller component to physics component: " ~ physics.findComponents(ship)[0].force.toString());
   
-  // assert that force from controller got propagated from engine to ship
-  assert(sys.findComponents(ship)[0].force == Vector(1.0, 0.0));
-    
+  physics.move(1.0);
+  
+  // TODO: we need to take combined mass of ship and engine into account, this assumes just a mass of 1
+  assert(ship.position == Vector(1, 0, 0));
+  
+  sys.updateFromPhysics(1.0);
+  
+  assert(engine.position == engineComponent.relativePosition + ship.position);
+  
   // the engine has a controller
   // the controller sends accelerate intent to engine
   // the connection system propagates the engine force to its owner entity
@@ -74,6 +91,20 @@ class ConnectionComponent
 invariant()
 {
   assert(m_entity !is null);
+  
+  assert(m_force.isValid());
+  assert(m_relativePosition.isValid());
+  assert(m_relativeAngle == m_relativeAngle);
+  
+  // if the component has an owner, it should not have a grandparent
+  // also the owner has to have a physics component
+  // so it's not a tree structure
+  // if an engine is connected to a skeleton, the owner component is still the ship, not the skeleton
+  if (m_owner !is null)
+  {
+    assert(m_owner.owner is null);
+    assert(m_owner.physicsComponent !is null);
+  }
 }
 
 
@@ -81,6 +112,9 @@ public:
   this(Entity p_entity)
   {
     m_entity = p_entity;
+    
+    m_relativePosition = Vector.origo;
+    m_relativeAngle = 0.0;
     
     m_force = Vector.origo;
     m_torque = 0.0;
@@ -111,6 +145,26 @@ public:
   void physicsComponent(PhysicsComponent p_physicsComponent)
   {
     m_physicsComponent = p_physicsComponent;
+  }
+  
+  Vector relativePosition()
+  {
+    return m_relativePosition;
+  }
+  
+  void relativePosition(Vector p_relativePosition)
+  {
+    m_relativePosition = p_relativePosition;
+  }
+  
+  float relativeAngle()
+  {
+    return m_relativeAngle;
+  }
+  
+  void relativeAngle(float p_relativeAngle)
+  {
+    m_relativeAngle = p_relativeAngle;
   }
   
   Vector force()
@@ -152,6 +206,9 @@ private:
   
   PhysicsComponent m_physicsComponent;
   
+  Vector m_relativePosition;
+  float m_relativeAngle;
+  
   Vector m_force;
   float m_torque;
   
@@ -178,21 +235,15 @@ public:
       if (component in m_controlMapping)
       {
         //writeln(to!string(m_controlMapping[component].nearbyEntities(components, component, 10.0).length) ~ " components nearby");
+        
         m_controlMapping[component].update(component, components);
       }
 	  
       // propagate stuff from controller to owner
-      if (component.owner !is null)
+      if (component.owner !is null && component.owner.physicsComponent !is null)
       {
-        component.owner.force = component.owner.force + component.force;
-        component.owner.torque = component.owner.torque + component.torque;
-      }
-      
-      // update physics component
-      if (component.physicsComponent !is null)
-      {
-        component.physicsComponent.force = component.physicsComponent.force + component.force;
-        component.physicsComponent.torque = component.physicsComponent.torque + component.torque;
+        component.owner.physicsComponent.force = component.owner.physicsComponent.force + component.force;
+        component.owner.physicsComponent.torque = component.owner.physicsComponent.torque + component.torque;
       }
       
       component.force = Vector.origo;
@@ -213,9 +264,10 @@ public:
       if (component.reload > 0.0)
         component.reload = component.reload - p_time;
       
-      if (component.physicsComponent !is null)
+      if (component.owner !is null)
       {
-        //component.entity.position = component.physicsComponent.entity.position;
+        component.entity.position = component.relativePosition + component.owner.physicsComponent.entity.position;
+        component.entity.angle = component.relativeAngle + component.owner.physicsComponent.entity.angle;
       }
     }
   }
@@ -238,6 +290,11 @@ protected:
           break;
         }
       }
+    }
+    
+    if (p_entity.getValue("relativePosition").length > 0)
+    {
+      newComponent.relativePosition = Vector.fromString(p_entity.getValue("relativePosition"));
     }
     
     if (p_entity.getValue("control") == "player")

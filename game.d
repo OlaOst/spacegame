@@ -79,12 +79,18 @@ unittest
   
   // test that game moves entity according to input
   {
-    Entity entity = new Entity();
+    Entity ship = new Entity();
+    ship.setValue("mass", "4.0");
     
-    entity.setValue("control", "player");
-    entity.setValue("mass", "4.0");
+    Entity engine = new Entity();
+    engine.setValue("owner", to!string(ship.id));
+    engine.setValue("relativePosition", "1 0");
+    engine.setValue("mass", "2.0");
+    engine.setValue("control", "player");
     
-    game.m_physics.registerEntity(entity);
+    game.m_physics.registerEntity(ship);
+    game.m_connection.registerEntity(ship);
+    game.m_connection.registerEntity(engine);
     
     SDL_Event upEvent;
     upEvent.type = SDL_KEYDOWN;
@@ -95,10 +101,15 @@ unittest
     game.m_inputHandler.pollEvents();
     
     Entity[] spawnList;
-        
-    game.m_physics.move(0.01);
     
-    assert(entity.position.x > 0.0);
+    assert(game.m_connection.findComponents(engine)[0].owner == game.m_connection.findComponents(ship)[0]);
+    
+    game.m_connection.updateFromControllers();
+    
+    game.m_physics.move(0.1);
+    game.m_connection.updateFromPhysics(0.1);
+    
+    assert(ship.position.x > 0.0);
   }
 }
 
@@ -131,21 +142,34 @@ public:
     m_collision = new CollisionSubSystem();
     m_connection = new ConnectionSubSystem(m_inputHandler, m_physics);
     
-    Entity player = new Entity();
+    Entity playerShip = new Entity();
 
-    player.setValue("control", "player");
-    player.setValue("drawtype", "triangle");
-    player.setValue("collisionType", "ship");
-    player.setValue("keepInCenter", "true");
-    player.setValue("radius", "2.0");
-    player.setValue("mass", "4.0");
+    //playerShip.setValue("control", "player");
+    playerShip.setValue("drawtype", "triangle");
+    playerShip.setValue("collisionType", "ship");
+    playerShip.setValue("keepInCenter", "true");
+    playerShip.setValue("radius", "2.0");
+    playerShip.setValue("mass", "4.0");
     
-    m_entities ~= player;
+    m_entities ~= playerShip;
     
-    m_graphics.registerEntity(player);
-    m_physics.registerEntity(player);
-    //m_collision.registerEntity(player);
-    m_connection.registerEntity(player);
+    m_graphics.registerEntity(playerShip);
+    m_physics.registerEntity(playerShip);
+    //m_collision.registerEntity(playerShip);
+    m_connection.registerEntity(playerShip);
+    
+    Entity playerEngine = new Entity();
+    
+    playerEngine.setValue("control", "player");
+    playerEngine.setValue("owner", to!string(playerShip.id));
+    playerEngine.setValue("relativePosition", "-1.0 0");
+    playerEngine.setValue("drawtype", "star");
+    playerEngine.setValue("radius", "0.5");
+    playerEngine.setValue("mass", "1.0");
+    
+    m_graphics.registerEntity(playerEngine);
+    m_connection.registerEntity(playerEngine);
+    m_physics.registerEntity(playerEngine);
     
     for (int n = 0; n < 40; n++)
     {

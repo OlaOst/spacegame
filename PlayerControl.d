@@ -1,6 +1,7 @@
 module PlayerControl;
 
 import std.conv;
+import std.stdio;
 
 import Control;
 import InputHandler;
@@ -75,7 +76,7 @@ public:
         p_sourceComponent.reload = 0.1;
       }
     }
-
+    
     p_sourceComponent.force = force;
     p_sourceComponent.torque = torque;
   }
