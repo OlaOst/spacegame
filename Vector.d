@@ -125,6 +125,16 @@ struct Vector
   }
   
   
+  Vector rotate(float p_angle)
+  {
+    auto c = cos(p_angle);
+    auto s = sin(p_angle);
+    
+    return Vector(x*c - y*s, y = x*s + y*c);
+  }
+  
+  
+  
   bool isValid() const
   {
     return (x==x && y==y && z==z);

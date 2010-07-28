@@ -266,7 +266,7 @@ public:
       
       if (component.owner !is null)
       {
-        component.entity.position = component.relativePosition + component.owner.physicsComponent.entity.position;
+        component.entity.position = component.relativePosition.rotate(component.owner.physicsComponent.entity.angle) + component.owner.physicsComponent.entity.position;
         component.entity.angle = component.relativeAngle + component.owner.physicsComponent.entity.angle;
       }
     }
@@ -295,6 +295,11 @@ protected:
     if (p_entity.getValue("relativePosition").length > 0)
     {
       newComponent.relativePosition = Vector.fromString(p_entity.getValue("relativePosition"));
+    }
+    
+    if (p_entity.getValue("relativeAngle").length > 0)
+    {
+      newComponent.relativeAngle = to!float(p_entity.getValue("relativeAngle"));
     }
     
     if (p_entity.getValue("control") == "player")
