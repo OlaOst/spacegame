@@ -83,7 +83,7 @@ protected:
     
     auto newComponent = new SoundComponent(buffer);
     
-    newComponent.shouldPlay = p_entity.getValue("shouldPlay") == "true";
+    newComponent.shouldPlay = true; // p_entity.getValue("shouldPlay") == "true";
     
     return newComponent;
   }

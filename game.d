@@ -143,12 +143,11 @@ public:
     m_physics = new PhysicsSubSystem();
     m_collision = new CollisionSubSystem();
     m_connection = new ConnectionSubSystem(m_inputHandler, m_physics);
-    m_sound = new SoundSubSystem(8);
+    m_sound = new SoundSubSystem(16);
     
     
     Entity startupDing = new Entity();
     startupDing.setValue("soundFile", "test.wav");
-    startupDing.setValue("shouldPlay", "true");
     m_sound.registerEntity(startupDing);
     
     Entity playerShip = new Entity();
@@ -330,6 +329,7 @@ private:
       m_graphics.registerEntity(spawn);
       m_physics.registerEntity(spawn);
       m_collision.registerEntity(spawn);
+      m_sound.registerEntity(spawn);
     }
     
     if (m_inputHandler.hasEvent(Event.PageUp))

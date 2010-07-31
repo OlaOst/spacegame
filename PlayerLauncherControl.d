@@ -1,6 +1,7 @@
 module PlayerLauncherControl;
 
 import std.conv;
+import std.random;
 import std.stdio;
 
 import Control;
@@ -64,6 +65,11 @@ public:
         bullet.lifetime = 5.0;
                 
         p_sourceComponent.entity.addSpawn(bullet);
+        
+        immutable string[4] sounds = ["mgshot1.wav", "mgshot2.wav", "mgshot3.wav", "mgshot4.wav"];
+        
+        //bullet.setValue("soundFile", sounds[uniform(0, sounds.length)]);
+        bullet.setValue("soundFile", sounds[0]);
         
         p_sourceComponent.reload = 0.1;
       }

@@ -143,6 +143,5 @@ private:
   string[string] m_values;
   
   Entity[] m_spawnList;
-  
   Collision[] m_collisionList;
 }
