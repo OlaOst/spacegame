@@ -143,11 +143,16 @@ public:
     m_physics = new PhysicsSubSystem();
     m_collision = new CollisionSubSystem();
     m_connection = new ConnectionSubSystem(m_inputHandler, m_physics);
-    m_sound = new SoundSubSystem();
+    m_sound = new SoundSubSystem(8);
+    
+    
+    Entity startupDing = new Entity();
+    startupDing.setValue("soundFile", "test.wav");
+    startupDing.setValue("shouldPlay", "true");
+    m_sound.registerEntity(startupDing);
     
     Entity playerShip = new Entity();
 
-    //playerShip.setValue("control", "player");
     playerShip.setValue("drawtype", "triangle");
     playerShip.setValue("collisionType", "ship");
     playerShip.setValue("keepInCenter", "true");

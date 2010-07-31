@@ -19,6 +19,14 @@ unittest
 class SoundComponent 
 {
 public:
+  this(ALuint p_buffer)
+  {
+    buffer = p_buffer;
+    shouldPlay = false;
+  }
+
+  ALuint buffer;
+  bool shouldPlay;
 }
 
 
@@ -26,44 +34,63 @@ class SoundSubSystem : public SubSystem!(SoundComponent)
 {
 invariant()
 {
-  assert(alGetError() == AL_NO_ERROR);
+  //assert(alGetError() == AL_NO_ERROR, "error code " ~ to!string(alGetError()));
 }
 
 
 public:
-  this()
+  this(uint p_sources)
   {
-    DerelictAL.load();
+    DerelictAL.load();  
     DerelictALUT.load();
     
     alutInit(null, null);
   
-    auto buffer = alutCreateBufferHelloWorld();
-      
-    assert(alGetError() == AL_NO_ERROR);
+    m_sources.length = p_sources;
   
-    //ALuint source;
-    alGenSources(1, &source);
-    alSourcei(source, AL_BUFFER, buffer);
+    for (int n = 0; n < p_sources; n++)
+    {
+      alGenSources(1, &m_sources[n]);
+    }
     
-    assert(alGetError() == AL_NO_ERROR);
-    
-    alSourcePlay(source);
+    m_lastSourcePlayed = 0;
   }
   
   void soundOff()
   {
-    //writeln("playing sound source " ~ to!string(source));
-    //alSourcePlay(source);
+    foreach (component; components)
+    {
+      if (component.shouldPlay)
+      {
+        alSourcei(m_sources[m_lastSourcePlayed], AL_BUFFER, component.buffer);
+        
+        //writeln("source " ~ to!string(m_source) ~ " playing buffer " ~ to!string(component.buffer));
+        alSourcePlay(m_sources[m_lastSourcePlayed]);
+
+        component.shouldPlay = false;
+        
+        m_lastSourcePlayed = (m_lastSourcePlayed + 1) % m_sources.length;
+      }
+    }
   }
-    
+
 protected:
   SoundComponent createComponent(Entity p_entity)
   {
-    return new SoundComponent();
+    assert(p_entity.getValue("soundFile").length > 0);
+    
+    auto buffer = alutCreateBufferFromFile(cast(char*)p_entity.getValue("soundFile"));
+    
+    auto newComponent = new SoundComponent(buffer);
+    
+    newComponent.shouldPlay = p_entity.getValue("shouldPlay") == "true";
+    
+    return newComponent;
   }
   
   
 private:
-  ALuint source;
+  ALuint[] m_sources;
+  
+  uint m_lastSourcePlayed;
 }
