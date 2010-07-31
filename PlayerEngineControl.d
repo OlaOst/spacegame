@@ -1,4 +1,4 @@
-module PlayerControl;
+module PlayerEngineControl;
 
 import std.conv;
 import std.stdio;
@@ -11,12 +11,12 @@ import Vector : Vector;
 
 unittest
 {
-  auto playerControl = new PlayerControl(new InputHandler());
+  auto control = new PlayerEngineControl(new InputHandler());
   
 }
 
 
-class PlayerControl : public Control
+class PlayerEngineControl : public Control
 {
 invariant()
 {
@@ -53,29 +53,6 @@ public:
       torque += 5.5;
     if (m_inputHandler.hasEvent(Event.RightKey))
       torque -= 5.5;
-
-    if (m_inputHandler.hasEvent(Event.Space))
-    {
-      if (p_sourceComponent.reload <= 0.0)
-      {
-        Entity bullet = new Entity();
-
-        bullet.setValue("drawtype", "bullet");
-        bullet.setValue("collisionType", "bullet");
-        bullet.setValue("radius", "0.1");
-        bullet.setValue("mass", "0.2");
-        bullet.setValue("spawnedFrom", to!string(p_sourceComponent.entity.id));
-
-        bullet.position = p_sourceComponent.entity.position;
-        bullet.angle = p_sourceComponent.entity.angle;
-        
-        bullet.lifetime = 5.0;
-        
-        p_sourceComponent.entity.addSpawn(bullet);
-        
-        p_sourceComponent.reload = 0.1;
-      }
-    }
     
     p_sourceComponent.force = force;
     p_sourceComponent.torque = torque;

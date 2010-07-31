@@ -7,7 +7,8 @@ import Control;
 import Entity;
 import FlockControl;
 import InputHandler;
-import PlayerControl;
+import PlayerEngineControl;
+import PlayerLauncherControl;
 import PhysicsSubSystem;
 import SubSystem : SubSystem;
 import Vector : Vector;
@@ -65,24 +66,6 @@ unittest
   sys.updateFromPhysics(1.0);
   
   assert(engine.position == engineComponent.relativePosition + ship.position);
-  
-  // the engine has a controller
-  // the controller sends accelerate intent to engine
-  // the connection system propagates the engine force to its owner entity
-  // the top level entity (the ship) aggregates forces and stuff from children entities
-  // only the top level entity should be in physics system
-  // when physics have updated top level entity positions, connection system needs to update all children entities
-  
-  // 1. entities are updated from controllers
-  // 2. connection system propagates intents and stuff to top level entity
-  // 2b. physics component need to update force and torque and etc from connection component 
-  // 3. physics update top level entity
-  // 4. connection system propagates position and stuff to children of top level entities
-
-  
-  // is the engine entity accelerating?
-  // then the ship entity needs to move
-  //sys.update...
 }
 
 
@@ -223,7 +206,8 @@ public:
   {
     m_physics = p_physics;
     
-    m_playerControl = new PlayerControl(p_inputHandler);
+    m_inputHandler = p_inputHandler;
+    //m_playerControl = new PlayerControl(p_inputHandler);
   }
   
   
@@ -244,6 +228,11 @@ public:
       {
         component.owner.physicsComponent.force = component.owner.physicsComponent.force + component.force;
         component.owner.physicsComponent.torque = component.owner.physicsComponent.torque + component.torque;
+        
+        auto spawns = component.entity.getAndClearSpawns();
+        
+        foreach (spawn; spawns)
+          component.owner.entity.addSpawn(spawn);
       }
       
       component.force = Vector.origo;
@@ -302,10 +291,19 @@ protected:
       newComponent.relativeAngle = to!float(p_entity.getValue("relativeAngle"));
     }
     
-    if (p_entity.getValue("control") == "player")
+    /*if (p_entity.getValue("control") == "player")
     {
       m_controlMapping[newComponent] = m_playerControl;
+    }*/
+    if (p_entity.getValue("control") == "playerEngine")
+    {
+      m_controlMapping[newComponent] = new PlayerEngineControl(m_inputHandler);
     }
+    if (p_entity.getValue("control") == "playerLauncher")
+    {
+      m_controlMapping[newComponent] = new PlayerLauncherControl(m_inputHandler);
+    }
+    
     if (p_entity.getValue("control") == "flocker")
     {
       m_controlMapping[newComponent] = new FlockControl(2.5, 0.5, 20.0, 0.3);
@@ -321,6 +319,8 @@ protected:
 private:
   PhysicsSubSystem m_physics;
   
-  PlayerControl m_playerControl;
+  //PlayerControl m_playerControl;
+  InputHandler m_inputHandler;
+  
   Control[ConnectionComponent] m_controlMapping;
 }

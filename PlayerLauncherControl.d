@@ -1,4 +1,4 @@
-module PlayerControl;
+module PlayerLauncherControl;
 
 import std.conv;
 import std.stdio;
@@ -11,12 +11,12 @@ import Vector : Vector;
 
 unittest
 {
-  auto playerControl = new PlayerControl(new InputHandler());
+  auto playerControl = new PlayerLauncherControl(new InputHandler());
   
 }
 
 
-class PlayerControl : public Control
+class PlayerLauncherControl : public Control
 {
 invariant()
 {
@@ -39,21 +39,11 @@ public:
   }
   body
   {
-    auto dir = Vector.fromAngle(p_sourceComponent.entity.angle);
+    //auto dir = Vector.fromAngle(p_sourceComponent.entity.angle);
     
-    auto force = p_sourceComponent.force;
-    auto torque = p_sourceComponent.torque;
+    //auto force = p_sourceComponent.force;
+    //auto torque = p_sourceComponent.torque;
     
-    if (m_inputHandler.hasEvent(Event.UpKey))
-      force += dir * 7.5;
-    if (m_inputHandler.hasEvent(Event.DownKey))
-      force -= dir * 7.5;
-    
-    if (m_inputHandler.hasEvent(Event.LeftKey))
-      torque += 5.5;
-    if (m_inputHandler.hasEvent(Event.RightKey))
-      torque -= 5.5;
-
     if (m_inputHandler.hasEvent(Event.Space))
     {
       if (p_sourceComponent.reload <= 0.0)
@@ -70,15 +60,15 @@ public:
         bullet.angle = p_sourceComponent.entity.angle;
         
         bullet.lifetime = 5.0;
-        
+                
         p_sourceComponent.entity.addSpawn(bullet);
         
         p_sourceComponent.reload = 0.1;
       }
     }
     
-    p_sourceComponent.force = force;
-    p_sourceComponent.torque = torque;
+    //p_sourceComponent.force = force;
+    //p_sourceComponent.torque = torque;
   }
   
   

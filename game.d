@@ -86,7 +86,7 @@ unittest
     engine.setValue("owner", to!string(ship.id));
     engine.setValue("relativePosition", "1 0");
     engine.setValue("mass", "2.0");
-    engine.setValue("control", "player");
+    engine.setValue("control", "playerEngine");
     
     game.m_physics.registerEntity(ship);
     game.m_connection.registerEntity(ship);
@@ -158,39 +158,91 @@ public:
     //m_collision.registerEntity(playerShip);
     m_connection.registerEntity(playerShip);
     
-    Entity playerEngine = new Entity();
+    Entity playerLeftEngine = new Entity();
     
-    playerEngine.setValue("control", "player");
-    playerEngine.setValue("owner", to!string(playerShip.id));
-    playerEngine.setValue("relativePosition", "-1.0 0");
-    playerEngine.setValue("drawtype", "star");
-    playerEngine.setValue("radius", "0.5");
-    playerEngine.setValue("mass", "1.0");
+    playerLeftEngine.setValue("control", "playerEngine");
+    playerLeftEngine.setValue("owner", to!string(playerShip.id));
+    playerLeftEngine.setValue("relativePosition", "-1.0 0.5 -0.1");
+    playerLeftEngine.setValue("drawtype", "star");
+    playerLeftEngine.setValue("radius", "0.5");
+    playerLeftEngine.setValue("mass", "1.0");
     
-    m_graphics.registerEntity(playerEngine);
-    m_connection.registerEntity(playerEngine);
-    m_physics.registerEntity(playerEngine);
+    m_graphics.registerEntity(playerLeftEngine);
+    m_connection.registerEntity(playerLeftEngine);
+    m_physics.registerEntity(playerLeftEngine);
+    
+    Entity playerRightEngine = new Entity();
+    
+    playerRightEngine.setValue("control", "playerEngine");
+    playerRightEngine.setValue("owner", to!string(playerShip.id));
+    playerRightEngine.setValue("relativePosition", "-1.0 -0.5 -0.1");
+    playerRightEngine.setValue("drawtype", "star");
+    playerRightEngine.setValue("radius", "0.5");
+    playerRightEngine.setValue("mass", "1.0");
+    
+    m_graphics.registerEntity(playerRightEngine);
+    m_connection.registerEntity(playerRightEngine);
+    m_physics.registerEntity(playerRightEngine);
+    
+    Entity playerLeftCannon = new Entity();
+    
+    playerLeftCannon.setValue("control", "playerLauncher");
+    playerLeftCannon.setValue("owner", to!string(playerShip.id));
+    playerLeftCannon.setValue("relativePosition", "0.5 0.75 0.1");
+    playerLeftCannon.setValue("drawtype", "star");
+    playerLeftCannon.setValue("radius", "0.33");
+    playerLeftCannon.setValue("mass", "0.5");
+    
+    m_graphics.registerEntity(playerLeftCannon);
+    m_connection.registerEntity(playerLeftCannon);
+    m_physics.registerEntity(playerLeftCannon);
+
+    Entity playerRightCannon = new Entity();
+    
+    playerRightCannon.setValue("control", "playerLauncher");
+    playerRightCannon.setValue("owner", to!string(playerShip.id));
+    playerRightCannon.setValue("relativePosition", "0.5 -0.75 0.1");
+    playerRightCannon.setValue("drawtype", "star");
+    playerRightCannon.setValue("radius", "0.33");
+    playerRightCannon.setValue("mass", "0.5");
+    
+    m_graphics.registerEntity(playerRightCannon);
+    m_connection.registerEntity(playerRightCannon);
+    m_physics.registerEntity(playerRightCannon);
     
     for (int n = 0; n < 40; n++)
     {
-      Entity npc = new Entity();
+      Entity npcShip = new Entity();
 
       //npc.setValue("control", "flocker");
-      npc.setValue("drawtype", "triangle");
-      npc.setValue("collisionType", "ship");
-      npc.setValue("velocity", "randomize");
-      npc.setValue("radius", "1.0");
-      npc.setValue("mass", "1.0");
+      npcShip.setValue("drawtype", "triangle");
+      npcShip.setValue("collisionType", "ship");
+      npcShip.setValue("velocity", "randomize");
+      npcShip.setValue("radius", "1.0");
+      npcShip.setValue("mass", "1.0");
       
-      npc.position = Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0));
-      npc.angle = uniform(0.0, PI*2);
+      npcShip.position = Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0));
+      npcShip.angle = uniform(0.0, PI*2);
       
-      m_entities ~= npc;
+      m_entities ~= npcShip;
     
-      m_graphics.registerEntity(npc);
-      m_physics.registerEntity(npc);
-      m_collision.registerEntity(npc);
-      m_connection.registerEntity(npc);
+      m_graphics.registerEntity(npcShip);
+      m_physics.registerEntity(npcShip);
+      m_collision.registerEntity(npcShip);
+      m_connection.registerEntity(npcShip);
+      
+      Entity npcEngine = new Entity();
+    
+      npcEngine.setValue("control", "flocker");
+      npcEngine.setValue("owner", to!string(npcShip.id));
+      npcEngine.setValue("relativePosition", "-0.5 0");
+      npcEngine.setValue("drawtype", "star");
+      npcEngine.setValue("radius", "0.33");
+      npcEngine.setValue("mass", "0.75");
+      
+      m_graphics.registerEntity(npcEngine);
+      m_connection.registerEntity(npcEngine);
+      m_physics.registerEntity(npcEngine);
     }
     
     m_starfield = new Starfield(m_graphics, 10.0);
