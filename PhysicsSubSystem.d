@@ -212,7 +212,7 @@ public:
     foreach (component; components)
     {
       // add spring force to center
-      component.force = component.force + (component.position * -0.05);
+      //component.force = component.force + (component.position * -0.05);
       
       // and some damping
       component.force = component.force + (component.velocity * -0.15);
@@ -270,7 +270,7 @@ protected:
       {
         if (spawnerCandidate.entity.id == spawnedFromId)
         {
-          Vector kick = Vector(cos(spawnerCandidate.entity.angle), sin(spawnerCandidate.entity.angle));
+          Vector kick = Vector.fromAngle(spawnerCandidate.entity.angle);
           
           // TODO: should be force from spawn value
           kick *= 25.0;

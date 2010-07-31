@@ -13,6 +13,7 @@ import Display;
 import GraphicsSubSystem;
 import InputHandler;
 import PhysicsSubSystem;
+import SoundSubSystem;
 import Starfield;
 import Timer;
 import Vector : Vector;
@@ -124,6 +125,7 @@ invariant()
   assert(m_physics !is null, "Game didn't initialize physics");
   assert(m_collision !is null, "Game didn't initialize collision system");
   assert(m_connection !is null, "Game didn't initialize connection system");
+  assert(m_sound !is null, "Game didn't initialize sound system");
 }
 
 public:
@@ -141,6 +143,7 @@ public:
     m_physics = new PhysicsSubSystem();
     m_collision = new CollisionSubSystem();
     m_connection = new ConnectionSubSystem(m_inputHandler, m_physics);
+    m_sound = new SoundSubSystem();
     
     Entity playerShip = new Entity();
 
@@ -233,7 +236,7 @@ public:
       
       Entity npcEngine = new Entity();
     
-      npcEngine.setValue("control", "flocker");
+      //npcEngine.setValue("control", "flocker");
       npcEngine.setValue("owner", to!string(npcShip.id));
       npcEngine.setValue("relativePosition", "-0.5 0");
       npcEngine.setValue("drawtype", "star");
@@ -311,6 +314,7 @@ private:
     }
     
     m_graphics.draw();
+    m_sound.soundOff();
     
     // TODO: we need to know what context we are in - input events signify different intents depending on context
     // ie up event in a menu context (move cursor up) vs up event in a ship control context (accelerate ship)
@@ -372,6 +376,7 @@ private:
   PhysicsSubSystem m_physics;
   CollisionSubSystem m_collision;
   ConnectionSubSystem m_connection;
+  SoundSubSystem m_sound;
   
   Starfield m_starfield;
   

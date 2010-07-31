@@ -55,6 +55,8 @@ public:
         bullet.setValue("radius", "0.1");
         bullet.setValue("mass", "0.2");
         bullet.setValue("spawnedFrom", to!string(p_sourceComponent.entity.id));
+        
+        //bullet.setValue("velocity", 
 
         bullet.position = p_sourceComponent.entity.position;
         bullet.angle = p_sourceComponent.entity.angle;

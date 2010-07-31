@@ -124,6 +124,11 @@ struct Vector
     return to!string(x) ~ " " ~ to!string(y) ~ " " ~ to!string(z);
   }
   
+  float[3] toArray()
+  {
+    return [x,y,z];
+  }
+  
   
   Vector rotate(float p_angle)
   {
@@ -143,12 +148,10 @@ struct Vector
   
   static Vector origo = Vector(0.0, 0.0, 0.0);
   
-  
   static Vector fromAngle(float p_angle)
   {
     return Vector(cos(p_angle), sin(p_angle));
   }
-  
   
   static Vector fromString(string p_values)
   {
