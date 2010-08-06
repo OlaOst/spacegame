@@ -411,6 +411,8 @@ private:
   ConnectionSubSystem m_connection;
   SoundSubSystem m_sound;
   
+  SubSystem m_subSystems;
+  
   Starfield m_starfield;
   
   Entity[] m_entities;
