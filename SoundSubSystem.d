@@ -34,7 +34,7 @@ import SubSystem : SubSystem;
 
 unittest
 {
-  auto sys = new SoundSubSystem();
+  auto sys = new SoundSubSystem(8);
 }
 
 
