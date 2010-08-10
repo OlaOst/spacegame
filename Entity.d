@@ -22,7 +22,10 @@
 
 module Entity;
 
+//import std.file;
+import std.stdio;
 import std.math;
+import std.string;
 
 import CollisionSubSystem;
 import Vector : Vector;
@@ -41,6 +44,15 @@ unittest
   Entity another = new Entity();
   
   assert(entity.id != another.id);
+  
+  
+  Entity fromFile = new Entity("data/shiproot.txt");
+  
+  assert(fromFile.getValue("drawtype") == "triangle");
+  assert(fromFile.getValue("collisionType") == "ship");
+  assert(fromFile.getValue("keepInCenter") == "true");
+  assert(fromFile.getValue("radius") == "2.0");
+  assert(fromFile.getValue("mass") == "4.0");
 }
 
 
@@ -64,6 +76,22 @@ public:
     m_id = m_idCounter++;
     
     m_lifetime = float.infinity;
+  }
+  
+  this(string p_file)
+  {
+    this();
+    
+    auto file = File(p_file, "r");
+    
+    string[string] filevalues;
+    
+    foreach (string line; lines(file))
+    {
+      auto keyval = line.split("=");
+      
+      m_values[keyval[0].strip] = keyval[1].strip;
+    }
   }
   
   Vector position()
