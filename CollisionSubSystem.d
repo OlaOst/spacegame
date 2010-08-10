@@ -145,7 +145,7 @@ public:
   {
     determineCollisions();
     calculateCollisionResponse();
-  }  
+  }
   
 
 protected:

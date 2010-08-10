@@ -1,0 +1,60 @@
+playerShip.setValue("drawtype", "triangle");
+playerShip.setValue("collisionType", "ship");
+playerShip.setValue("keepInCenter", "true");
+playerShip.setValue("radius", "2.0");
+playerShip.setValue("mass", "4.0");
+
+m_entities ~= playerShip;
+
+m_graphics.registerEntity(playerShip);
+m_physics.registerEntity(playerShip);
+//m_collision.registerEntity(playerShip);
+m_connection.registerEntity(playerShip);
+
+Entity playerLeftEngine = new Entity();
+
+playerLeftEngine.setValue("control", "playerEngine");
+playerLeftEngine.setValue("owner", to!string(playerShip.id));
+playerLeftEngine.setValue("relativePosition", "-1.0 0.5 -0.1");
+playerLeftEngine.setValue("drawtype", "star");
+playerLeftEngine.setValue("radius", "0.5");
+playerLeftEngine.setValue("mass", "1.0");
+
+m_graphics.registerEntity(playerLeftEngine);
+m_connection.registerEntity(playerLeftEngine);
+m_physics.registerEntity(playerLeftEngine);
+
+Entity playerRightEngine = new Entity();
+
+playerRightEngine.setValue("control", "playerEngine");
+playerRightEngine.setValue("owner", to!string(playerShip.id));
+playerRightEngine.setValue("relativePosition", "-1.0 -0.5 -0.1");
+playerRightEngine.setValue("drawtype", "star");
+playerRightEngine.setValue("radius", "0.5");
+playerRightEngine.setValue("mass", "1.0");
+
+m_graphics.registerEntity(playerRightEngine);
+m_connection.registerEntity(playerRightEngine);
+m_physics.registerEntity(playerRightEngine);
+
+Entity playerLeftCannon = new Entity();
+
+playerLeftCannon.setValue("control", "playerLauncher");
+playerLeftCannon.setValue("owner", to!string(playerShip.id));
+playerLeftCannon.setValue("relativePosition", "0.5 0.75 0.1");
+playerLeftCannon.setValue("drawtype", "star");
+playerLeftCannon.setValue("radius", "0.33");
+playerLeftCannon.setValue("mass", "0.5");
+
+m_graphics.registerEntity(playerLeftCannon);
+m_connection.registerEntity(playerLeftCannon);
+m_physics.registerEntity(playerLeftCannon);
+
+Entity playerRightCannon = new Entity();
+
+playerRightCannon.setValue("control", "playerLauncher");
+playerRightCannon.setValue("owner", to!string(playerShip.id));
+playerRightCannon.setValue("relativePosition", "0.5 -0.75 0.1");
+playerRightCannon.setValue("drawtype", "star");
+playerRightCannon.setValue("radius", "0.33");
+playerRightCannon.setValue("mass", "0.5");

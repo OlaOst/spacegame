@@ -1,0 +1,12 @@
+root = shiproot
+
+leftEngine.relativePosition = -1.0 0.5 -0.1
+rightEngine.relativePosition = 1.0 0.5 -0.1
+leftCannon.relativePosition = -0.5 0.75 0.1
+rightCannon.relativePosition = 0.5 0.75 0.1
+
+leftEngine.control = playerEngine
+rightEngine.control = playerEngine
+
+leftCannon.control = playerLauncher
+rightCannon.control = playerLauncher

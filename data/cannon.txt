@@ -1,0 +1,3 @@
+drawtype = star
+radius = 0.33
+mass = 0.5
