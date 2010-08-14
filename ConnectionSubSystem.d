@@ -252,11 +252,11 @@ public:
         component.owner.physicsComponent.torque = component.owner.physicsComponent.torque + component.torque;
         
         auto spawns = component.entity.getAndClearSpawns();
-        
+
         foreach (spawn; spawns)
           component.owner.entity.addSpawn(spawn);
       }
-      
+
       component.force = Vector.origo;
       component.torque = 0.0;
     }

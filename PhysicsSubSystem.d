@@ -306,6 +306,7 @@ protected:
     if (p_entity.getValue("velocity") == "randomize")
       newComponent.velocity = Vector(uniform(-1.5, 1.5), uniform(-1.5, 1.5));
     
+    assert(p_entity.getValue("mass").length > 0, "couldn't find mass for physics component");
     newComponent.mass = to!float(p_entity.getValue("mass"));
     
     return newComponent;

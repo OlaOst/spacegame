@@ -85,7 +85,7 @@ public:
         bullet.angle = p_sourceComponent.entity.angle;
         
         bullet.lifetime = 5.0;
-                
+        
         p_sourceComponent.entity.addSpawn(bullet);
         
         immutable string[4] sounds = ["mgshot1.wav", "mgshot2.wav", "mgshot3.wav", "mgshot4.wav"];

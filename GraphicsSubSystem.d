@@ -223,6 +223,7 @@ protected:
       m_centerEntity = p_entity;
     }
     
+    assert(p_entity.getValue("radius").length > 0, "Couldn't find radius for graphics component");
     float radius = to!float(p_entity.getValue("radius"));
     
     if (p_entity.getValue("drawtype") == "star")

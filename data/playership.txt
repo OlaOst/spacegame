@@ -5,10 +5,10 @@ rightEngine.source = engine.txt
 leftCannon.source = cannon.txt
 rightCannon.source = cannon.txt
 
-leftEngine.relativePosition = -1.0 0.5 -0.1
-rightEngine.relativePosition = 1.0 0.5 -0.1
-leftCannon.relativePosition = -0.5 0.75 0.1
-rightCannon.relativePosition = 0.5 0.75 0.1
+leftEngine.relativePosition = -0.75 -1.0 -0.1
+rightEngine.relativePosition = -0.75 1.0 -0.1
+leftCannon.relativePosition = 0.75 -0.75 0.1
+rightCannon.relativePosition = 0.75 0.75 0.1
 
 leftEngine.control = playerEngine
 rightEngine.control = playerEngine

@@ -22,9 +22,10 @@
 
 module Entity;
 
-//import std.file;
-import std.stdio;
+import std.algorithm;
+import std.conv;
 import std.math;
+import std.stdio;
 import std.string;
 
 import CollisionSubSystem;
@@ -88,9 +89,14 @@ public:
     
     foreach (string line; lines(file))
     {
-      auto keyval = line.split("=");
+      if (std.algorithm.find(line, '=').length > 0)
+      {
+        auto keyval = line.split("=");
+        
+        assert(keyval.length == 2, "unexpected value: " ~ to!string(keyval));
       
-      m_values[keyval[0].strip] = keyval[1].strip;
+        m_values[keyval[0].strip] = keyval[1].strip;
+      }
     }
   }
   
@@ -135,6 +141,11 @@ public:
       return m_values[p_name];
     else
       return null;
+  }
+  
+  @property string[string] values()
+  {
+	return m_values;
   }
     
   int id()

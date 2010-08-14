@@ -183,6 +183,9 @@ private:
   {
     m_collisions.length = 0;
 
+    if (components.length <= 1)
+      return;
+    
     // TODO: de-O^2 this, spatial hash or something
     for (uint firstIndex = 0; firstIndex < components.length-1; firstIndex++)
     {

@@ -22,6 +22,7 @@
 
 module Game;
 
+import std.algorithm;
 import std.conv;
 import std.math;
 import std.random;
@@ -172,74 +173,36 @@ public:
     startupDing.setValue("soundFile", "test.wav");
     m_sound.registerEntity(startupDing);
     
-    Entity playerShip = new Entity();
-
-    playerShip.setValue("drawtype", "triangle");
-    playerShip.setValue("collisionType", "ship");
-    playerShip.setValue("keepInCenter", "true");
-    playerShip.setValue("radius", "2.0");
-    playerShip.setValue("mass", "4.0");
+    Entity playerShip = new Entity("data/playership.txt");
     
-    m_entities ~= playerShip;
+    Entity playerRoot = new Entity("data/" ~ playerShip.getValue("root"));
+    
+    foreach (rootKey; playerRoot.values.keys)
+    {
+      playerShip.setValue(rootKey, playerRoot.getValue(rootKey));
+    }
     
     m_graphics.registerEntity(playerShip);
     m_physics.registerEntity(playerShip);
     //m_collision.registerEntity(playerShip);
     m_connection.registerEntity(playerShip);
     
-    Entity playerLeftEngine = new Entity();
+    foreach (subSource; filter!("a.endsWith(\".source\")")(playerShip.values.keys))
+    {
+      Entity subEntity = new Entity("data/" ~ playerShip.getValue(subSource));
+      
+      auto subName = subSource[0..std.string.indexOf(subSource, ".source")];
+      
+      subEntity.setValue("owner", to!string(playerShip.id));
+      subEntity.setValue("relativePosition", playerShip.getValue(subName ~ ".relativePosition"));
+      subEntity.setValue("control", playerShip.getValue(subName ~ ".control"));
+      
+      m_graphics.registerEntity(subEntity);
+      m_connection.registerEntity(subEntity);
+      m_physics.registerEntity(subEntity);
+    }
     
-    playerLeftEngine.setValue("control", "playerEngine");
-    playerLeftEngine.setValue("owner", to!string(playerShip.id));
-    playerLeftEngine.setValue("relativePosition", "-1.0 0.5 -0.1");
-    playerLeftEngine.setValue("drawtype", "star");
-    playerLeftEngine.setValue("radius", "0.5");
-    playerLeftEngine.setValue("mass", "1.0");
-    
-    m_graphics.registerEntity(playerLeftEngine);
-    m_connection.registerEntity(playerLeftEngine);
-    m_physics.registerEntity(playerLeftEngine);
-    
-    Entity playerRightEngine = new Entity();
-    
-    playerRightEngine.setValue("control", "playerEngine");
-    playerRightEngine.setValue("owner", to!string(playerShip.id));
-    playerRightEngine.setValue("relativePosition", "-1.0 -0.5 -0.1");
-    playerRightEngine.setValue("drawtype", "star");
-    playerRightEngine.setValue("radius", "0.5");
-    playerRightEngine.setValue("mass", "1.0");
-    
-    m_graphics.registerEntity(playerRightEngine);
-    m_connection.registerEntity(playerRightEngine);
-    m_physics.registerEntity(playerRightEngine);
-    
-    Entity playerLeftCannon = new Entity();
-    
-    playerLeftCannon.setValue("control", "playerLauncher");
-    playerLeftCannon.setValue("owner", to!string(playerShip.id));
-    playerLeftCannon.setValue("relativePosition", "0.5 0.75 0.1");
-    playerLeftCannon.setValue("drawtype", "star");
-    playerLeftCannon.setValue("radius", "0.33");
-    playerLeftCannon.setValue("mass", "0.5");
-    
-    m_graphics.registerEntity(playerLeftCannon);
-    m_connection.registerEntity(playerLeftCannon);
-    m_physics.registerEntity(playerLeftCannon);
-
-    Entity playerRightCannon = new Entity();
-    
-    playerRightCannon.setValue("control", "playerLauncher");
-    playerRightCannon.setValue("owner", to!string(playerShip.id));
-    playerRightCannon.setValue("relativePosition", "0.5 -0.75 0.1");
-    playerRightCannon.setValue("drawtype", "star");
-    playerRightCannon.setValue("radius", "0.33");
-    playerRightCannon.setValue("mass", "0.5");
-    
-    m_graphics.registerEntity(playerRightCannon);
-    m_connection.registerEntity(playerRightCannon);
-    m_physics.registerEntity(playerRightCannon);
-    
-    for (int n = 0; n < 40; n++)
+    for (int n = 0; n < 0; n++)
     {
       Entity npcShip = new Entity();
 
@@ -314,7 +277,7 @@ private:
         spawnList ~= entity.getAndClearSpawns();
         
         entity.lifetime = entity.lifetime - elapsedTime;
-        
+
         if (entity.lifetime < 0.0)
         {        
           m_physics.removeEntity(entity);
@@ -348,6 +311,8 @@ private:
     
     foreach (Entity spawn; spawnList)
     {
+      writeln("spawning something something");
+      
       m_entities ~= spawn;
       
       if (spawn.getValue("onlySound") != "true")
