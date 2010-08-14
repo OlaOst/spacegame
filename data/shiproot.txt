@@ -1,5 +1,4 @@
 drawtype = triangle
 collisionType = ship
-keepInCenter = true
 radius = 2.0
 mass = 4.0

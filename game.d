@@ -175,12 +175,7 @@ public:
     
     Entity playerShip = new Entity("data/playership.txt");
     
-    Entity playerRoot = new Entity("data/" ~ playerShip.getValue("root"));
-    
-    foreach (rootKey; playerRoot.values.keys)
-    {
-      playerShip.setValue(rootKey, playerRoot.getValue(rootKey));
-    }
+    m_entities ~= playerShip;
     
     m_graphics.registerEntity(playerShip);
     m_physics.registerEntity(playerShip);
@@ -194,47 +189,48 @@ public:
       auto subName = subSource[0..std.string.indexOf(subSource, ".source")];
       
       subEntity.setValue("owner", to!string(playerShip.id));
-      subEntity.setValue("relativePosition", playerShip.getValue(subName ~ ".relativePosition"));
-      subEntity.setValue("control", playerShip.getValue(subName ~ ".control"));
       
+      foreach (subSourceValue; filter!(delegate(x) { return x.startsWith(subName ~ "."); })(playerShip.values.keys))
+      {
+        subEntity.setValue(subSourceValue[std.string.indexOf(subSourceValue, '.')+1..$], playerShip.getValue(subSourceValue));
+      }
+
       m_graphics.registerEntity(subEntity);
       m_connection.registerEntity(subEntity);
       m_physics.registerEntity(subEntity);
     }
     
-    for (int n = 0; n < 0; n++)
+    for (int n = 0; n < 18; n++)
     {
-      Entity npcShip = new Entity();
-
-      //npc.setValue("control", "flocker");
-      npcShip.setValue("drawtype", "triangle");
-      npcShip.setValue("collisionType", "ship");
-      npcShip.setValue("velocity", "randomize");
-      npcShip.setValue("radius", "1.0");
-      npcShip.setValue("mass", "1.0");
+      Entity npcShip = new Entity("data/npcship.txt");
       
       npcShip.position = Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0));
       npcShip.angle = uniform(0.0, PI*2);
       
       m_entities ~= npcShip;
-    
+      
       m_graphics.registerEntity(npcShip);
       m_physics.registerEntity(npcShip);
       m_collision.registerEntity(npcShip);
       m_connection.registerEntity(npcShip);
       
-      Entity npcEngine = new Entity();
-    
-      //npcEngine.setValue("control", "flocker");
-      npcEngine.setValue("owner", to!string(npcShip.id));
-      npcEngine.setValue("relativePosition", "-0.5 0");
-      npcEngine.setValue("drawtype", "star");
-      npcEngine.setValue("radius", "0.33");
-      npcEngine.setValue("mass", "0.75");
-      
-      m_graphics.registerEntity(npcEngine);
-      m_connection.registerEntity(npcEngine);
-      m_physics.registerEntity(npcEngine);
+      foreach (subSource; filter!("a.endsWith(\".source\")")(npcShip.values.keys))
+      {
+        Entity subEntity = new Entity("data/" ~ npcShip.getValue(subSource));
+        
+        auto subName = subSource[0..std.string.indexOf(subSource, ".source")];
+        
+        subEntity.setValue("owner", to!string(npcShip.id));
+
+        foreach (subSourceValue; filter!(delegate(x) { return x.startsWith(subName ~ "."); })(npcShip.values.keys))
+        {
+          subEntity.setValue(subSourceValue[std.string.indexOf(subSourceValue, '.')+1..$], npcShip.getValue(subSourceValue));
+        }
+        
+        m_graphics.registerEntity(subEntity);
+        m_connection.registerEntity(subEntity);
+        m_physics.registerEntity(subEntity);
+      }
     }
     
     m_starfield = new Starfield(m_graphics, 10.0);
@@ -310,9 +306,7 @@ private:
     // ie up event in a menu context (move cursor up) vs up event in a ship control context (accelerate ship)
     
     foreach (Entity spawn; spawnList)
-    {
-      writeln("spawning something something");
-      
+    {      
       m_entities ~= spawn;
       
       if (spawn.getValue("onlySound") != "true")

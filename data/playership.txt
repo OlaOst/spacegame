@@ -1,5 +1,7 @@
 root = shiproot.txt
 
+keepInCenter = true
+
 leftEngine.source = engine.txt
 rightEngine.source = engine.txt
 leftCannon.source = cannon.txt

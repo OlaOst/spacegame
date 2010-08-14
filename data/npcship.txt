@@ -1,0 +1,12 @@
+root = shiproot.txt
+
+radius = 1.0
+mass = 1.0
+
+mainEngine.source = engine.txt
+
+mainEngine.mass = 0.33
+mainEngine.radius = 0.5
+
+mainEngine.relativePosition = -0.5 0.0
+mainEngine.control = flocker

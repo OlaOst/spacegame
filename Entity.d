@@ -83,11 +83,30 @@ public:
   {
     this();
     
-    auto file = File(p_file, "r");
+    loadValues(m_values, p_file);
+  }
+  
+  static void loadValues(ref string[string] p_values, string p_file)
+  {
+    string[] content;
     
-    string[string] filevalues;
-    
-    foreach (string line; lines(file))
+    if (p_file in m_fileCache)
+    {
+      content = m_fileCache[p_file];
+    }
+    else
+    {
+      auto file = File(p_file, "r");
+      
+      foreach (string line; lines(file))
+      {
+        m_fileCache[p_file] ~= line;
+      }
+      
+      content = m_fileCache[p_file];
+    }
+
+    foreach (string line; content)
     {
       if (std.algorithm.find(line, '=').length > 0)
       {
@@ -95,10 +114,15 @@ public:
         
         assert(keyval.length == 2, "unexpected value: " ~ to!string(keyval));
       
-        m_values[keyval[0].strip] = keyval[1].strip;
+        if (keyval[0].strip == "root")
+          loadValues(p_values, "data/" ~ keyval[1].strip);
+        
+        p_values[keyval[0].strip] = keyval[1].strip;
       }
     }
   }
+  
+  static string[][string] m_fileCache;
   
   Vector position()
   {
