@@ -98,20 +98,20 @@ unittest
   
   // test pixel coords to viewport coords
   inputHandler.setScreenResolution(100, 100);
-  assert(inputHandler.pixelToViewPort(50, 50) == Vector.origo, "50, 50 => " ~ inputHandler.pixelToViewPort(50, 50).toString());
-  assert(inputHandler.pixelToViewPort(0, 0) == Vector(-1, -1), "0, 0 => " ~ inputHandler.pixelToViewPort(0, 0).toString());
-  assert(inputHandler.pixelToViewPort(100, 100) == Vector(1, 1), "100, 100 => " ~ inputHandler.pixelToViewPort(100, 100).toString());
+  assert(inputHandler.pixelToViewPort(50, 50) == Vector(0, -0.0), "50, 50 => " ~ inputHandler.pixelToViewPort(50, 50).toString());
+  assert(inputHandler.pixelToViewPort(0, 0) == Vector(-1, 1), "0, 0 => " ~ inputHandler.pixelToViewPort(0, 0).toString());
+  assert(inputHandler.pixelToViewPort(100, 100) == Vector(1, -1), "100, 100 => " ~ inputHandler.pixelToViewPort(100, 100).toString());
   
   // test nonsquare resolutions, they will have the width or height beyond -1,1 if it's wider or taller than square
   inputHandler.setScreenResolution(200, 100); // -1,-1 to 1,1 defines a square area centered on the screen, with 50 px extra to the left and right
-  assert(inputHandler.pixelToViewPort(100, 50) == Vector.origo, "100, 50 => " ~ inputHandler.pixelToViewPort(100, 50).toString());
-  assert(inputHandler.pixelToViewPort(0, 0) == Vector(-2, -1), "0, 0 => " ~ inputHandler.pixelToViewPort(0, 0).toString());
-  assert(inputHandler.pixelToViewPort(200, 100) == Vector(2, 1), "200, 100 => " ~ inputHandler.pixelToViewPort(200, 100).toString());
+  assert(inputHandler.pixelToViewPort(100, 50) == Vector(0, -0.0), "100, 50 => " ~ inputHandler.pixelToViewPort(100, 50).toString());
+  assert(inputHandler.pixelToViewPort(0, 0) == Vector(-2, 1), "0, 0 => " ~ inputHandler.pixelToViewPort(0, 0).toString());
+  assert(inputHandler.pixelToViewPort(200, 100) == Vector(2, -1), "200, 100 => " ~ inputHandler.pixelToViewPort(200, 100).toString());
   
   inputHandler.setScreenResolution(100, 300); // -1,-1 to 1,1 defines a square area centered on the screen, with 50 px extra to the left and right
-  assert(inputHandler.pixelToViewPort(50, 150) == Vector.origo, "100, 50 => " ~ inputHandler.pixelToViewPort(100, 50).toString());
-  assert(inputHandler.pixelToViewPort(0, 0) == Vector(-1, -3), "0, 0 => " ~ inputHandler.pixelToViewPort(0, 0).toString());
-  assert(inputHandler.pixelToViewPort(100, 300) == Vector(1, 3), "200, 100 => " ~ inputHandler.pixelToViewPort(200, 100).toString());
+  assert(inputHandler.pixelToViewPort(50, 150) == Vector(0, -0.0), "100, 50 => " ~ inputHandler.pixelToViewPort(100, 50).toString());
+  assert(inputHandler.pixelToViewPort(0, 0) == Vector(-1, 3), "0, 0 => " ~ inputHandler.pixelToViewPort(0, 0).toString());
+  assert(inputHandler.pixelToViewPort(100, 300) == Vector(1, -3), "200, 100 => " ~ inputHandler.pixelToViewPort(200, 100).toString());
 }
 
 
@@ -292,7 +292,7 @@ private:
     int extraHeight = (m_screenHeight > m_screenWidth ? (m_screenHeight - m_screenWidth) : 0);
     
     return Vector((cast(float)(p_x - extraWidth/2) / cast(float)(m_screenWidth-extraWidth) - 0.5) * 2.0,
-                  (cast(float)(p_y - extraHeight/2) / cast(float)(m_screenHeight-extraHeight) - 0.5) * 2.0);
+                 -(cast(float)(p_y - extraHeight/2) / cast(float)(m_screenHeight-extraHeight) - 0.5) * 2.0);
   }
   
   
