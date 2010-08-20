@@ -34,11 +34,11 @@ unittest
   assert(timer.elapsedTime == 0.0);
   
   timer.start();
-  Thread.sleep(50_000); // sleep 5 ms
+  Thread.sleep(100_000); // sleep 10 ms (lower causes isse with too low sleep time, probably multiprocessor issue)
   timer.stop();
   
-  assert(timer.elapsedTime > 0.0049, "Timer reported too short time: " ~ to!string(timer.elapsedTime) ~ " seconds after sleeping 5 ms");
-  assert(timer.elapsedTime < 0.01, "Timer reported too long time: " ~ to!string(timer.elapsedTime) ~ " seconds after sleeping 5 ms");
+  assert(timer.elapsedTime > 0.0099, "Timer reported too short time: " ~ to!string(timer.elapsedTime) ~ " seconds after sleeping 10 ms");
+  assert(timer.elapsedTime < 0.015, "Timer reported too long time: " ~ to!string(timer.elapsedTime) ~ " seconds after sleeping 10 ms");
 }
 
 
