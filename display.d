@@ -31,7 +31,7 @@ import derelict.opengl.gl;
 import derelict.opengl.glu;
 
 
-void initDisplay()
+void initDisplay(int p_screenWidth, int p_screenHeight)
 {
   DerelictSDL.load();
   DerelictGL.load();
@@ -40,7 +40,7 @@ void initDisplay()
   SDL_Init(SDL_INIT_VIDEO);
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   
-  SDL_SetVideoMode(800, 600, 24, SDL_OPENGL);
+  SDL_SetVideoMode(p_screenWidth, p_screenHeight, 24, SDL_OPENGL);
   SDL_WM_SetCaption(toStringz("hello world"), null);
   
   DerelictGL.loadExtensions();
@@ -52,16 +52,16 @@ void initDisplay()
   
   //auto shader = glCreateShader(GL_FRAGMENT_SHADER);
    
-  setupGL();
+  setupGL(p_screenWidth, p_screenHeight);
 }
 
-void setupGL()
+void setupGL(int p_screenWidth, int p_screenHeight)
 {
   glMatrixMode(GL_PROJECTION);
   
   glLoadIdentity();
   
-  gluPerspective(90.0, 800.0 / 600.0, 0.1, 100.0);
+  gluPerspective(90.0, cast(float)p_screenWidth / cast(float)p_screenHeight, 0.1, 100.0);
   
   glMatrixMode(GL_MODELVIEW);
   

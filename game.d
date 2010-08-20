@@ -202,7 +202,7 @@ public:
       m_physics.registerEntity(subEntity);
     }
 
-    for (int n = 0; n < 18; n++)
+    for (int n = 0; n < 1; n++)
     {
       Entity npcShip = new Entity("data/npcship.txt");
       
@@ -237,7 +237,8 @@ public:
     
     m_starfield = new Starfield(m_graphics, 10.0);
     
-    initDisplay();
+    initDisplay(800, 600);
+    m_inputHandler.setScreenResolution(800, 600);
   }
  
   void run()

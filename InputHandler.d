@@ -28,6 +28,7 @@ import std.conv;
 import derelict.sdl.sdl;
 
 import EnumGen;
+import Vector : Vector;
 
 
 unittest
@@ -93,6 +94,24 @@ unittest
     inputHandler.receiveEvent(nadaKeyEvent);
   }
   assert(inputHandler.countEvents() == 0, "InputHandler registered an empty event");
+  
+  
+  // test pixel coords to viewport coords
+  inputHandler.setScreenResolution(100, 100);
+  assert(inputHandler.pixelToViewPort(50, 50) == Vector.origo, "50, 50 => " ~ inputHandler.pixelToViewPort(50, 50).toString());
+  assert(inputHandler.pixelToViewPort(0, 0) == Vector(-1, -1), "0, 0 => " ~ inputHandler.pixelToViewPort(0, 0).toString());
+  assert(inputHandler.pixelToViewPort(100, 100) == Vector(1, 1), "100, 100 => " ~ inputHandler.pixelToViewPort(100, 100).toString());
+  
+  // test nonsquare resolutions, they will have the width or height beyond -1,1 if it's wider or taller than square
+  inputHandler.setScreenResolution(200, 100); // -1,-1 to 1,1 defines a square area centered on the screen, with 50 px extra to the left and right
+  assert(inputHandler.pixelToViewPort(100, 50) == Vector.origo, "100, 50 => " ~ inputHandler.pixelToViewPort(100, 50).toString());
+  assert(inputHandler.pixelToViewPort(0, 0) == Vector(-2, -1), "0, 0 => " ~ inputHandler.pixelToViewPort(0, 0).toString());
+  assert(inputHandler.pixelToViewPort(200, 100) == Vector(2, 1), "200, 100 => " ~ inputHandler.pixelToViewPort(200, 100).toString());
+  
+  inputHandler.setScreenResolution(100, 300); // -1,-1 to 1,1 defines a square area centered on the screen, with 50 px extra to the left and right
+  assert(inputHandler.pixelToViewPort(50, 150) == Vector.origo, "100, 50 => " ~ inputHandler.pixelToViewPort(100, 50).toString());
+  assert(inputHandler.pixelToViewPort(0, 0) == Vector(-1, -3), "0, 0 => " ~ inputHandler.pixelToViewPort(0, 0).toString());
+  assert(inputHandler.pixelToViewPort(100, 300) == Vector(1, 3), "200, 100 => " ~ inputHandler.pixelToViewPort(200, 100).toString());
 }
 
 
@@ -165,7 +184,7 @@ public:
     }
   }
   
-  uint[Event] events()
+  int[Event] events()
   {
     return m_events;
   }
@@ -175,6 +194,16 @@ public:
     return m_events.get(p_event, 0) > 0;
   }
   
+  void setScreenResolution(int p_screenWidth, int p_screenHeight)
+  {
+    m_screenWidth = p_screenWidth;
+    m_screenHeight = p_screenHeight;
+  }
+  
+  Vector mousePos()
+  {
+    return m_mousePos;
+  }
   
 private:
   void receiveEvent(SDL_Event event)
@@ -230,10 +259,16 @@ private:
         break;
       }
       
+      case SDL_MOUSEMOTION:
+      {
+        //writeln("detected mouse motion, pixelpos: "  ~ Vector(event.motion.x, event.motion.y).toString() ~ ", screenpos: " ~ pixelToViewPort(event.motion.x, event.motion.y).toString());
+        m_mousePos = pixelToViewPort(event.motion.x, event.motion.y);
+      }
+      
       default:
         break;
     }
-  }   
+  }
   
   void clearEvents()
   {
@@ -251,9 +286,24 @@ private:
     return eventCount;
   }
   
+  Vector pixelToViewPort(int p_x, int p_y)
+  {
+    int extraWidth = (m_screenWidth > m_screenHeight ? (m_screenWidth - m_screenHeight) : 0);
+    int extraHeight = (m_screenHeight > m_screenWidth ? (m_screenHeight - m_screenWidth) : 0);
+    
+    return Vector((cast(float)(p_x - extraWidth/2) / cast(float)(m_screenWidth-extraWidth) - 0.5) * 2.0,
+                  (cast(float)(p_y - extraHeight/2) / cast(float)(m_screenHeight-extraHeight) - 0.5) * 2.0);
+  }
+  
+  
 private:  
-  uint[Event] m_events;
+  int[Event] m_events;
   
   static Event[SDLKey] m_keyEventMapping;
   static Event[SDLKey] m_buttonEventMapping;
+  
+  int m_screenWidth;
+  int m_screenHeight;
+  
+  Vector m_mousePos;
 }
