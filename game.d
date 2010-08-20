@@ -278,7 +278,7 @@ private:
         entity.lifetime = entity.lifetime - elapsedTime;
 
         if (entity.lifetime < 0.0)
-        {        
+        {
           m_physics.removeEntity(entity);
           m_graphics.removeEntity(entity);
           m_collision.removeEntity(entity);
@@ -301,6 +301,8 @@ private:
       
       m_connection.updateFromPhysics(elapsedTime);
     }
+    
+    m_graphics.mousePos = m_inputHandler.mousePos;
     
     m_graphics.draw();
     m_sound.soundOff();

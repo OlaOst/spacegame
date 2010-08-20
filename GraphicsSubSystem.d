@@ -41,6 +41,24 @@ unittest
   
   GraphicsSubSystem graphics = new GraphicsSubSystem();
   
+  Entity[] entitiesPointedAt = graphics.findEntitiesPointedAt(Vector.origo);
+  assert(entitiesPointedAt.length == 0);
+
+  Entity entity = new Entity();
+  
+  entity.setValue("drawtype", "triangle");
+  entity.setValue("radius", "1.0");
+  entity.setValue("keepInCenter", "true");
+  
+  graphics.registerEntity(entity);
+  
+  entitiesPointedAt = graphics.findEntitiesPointedAt(Vector.origo);
+  assert(entitiesPointedAt.length == 1);
+  
+  entitiesPointedAt = graphics.findEntitiesPointedAt(Vector(100, 100));
+  assert(entitiesPointedAt.length == 0);
+  
+  
   Entity deleteTest = new Entity();
   
   deleteTest.setValue("drawtype", "triangle");
@@ -49,16 +67,33 @@ unittest
   
   graphics.registerEntity(deleteTest);
   
+  entitiesPointedAt = graphics.findEntitiesPointedAt(Vector.origo);
+  assert(entitiesPointedAt.length == 2);
+  
   graphics.draw();
   
   {
-    // will cause access violation, but we're not supposed to delete objects anyway - use removeEntity instead
-    //delete deleteTest;
-    
     graphics.removeEntity(deleteTest);
   
     graphics.draw();
   }
+  
+  Entity another = new Entity();
+  
+  another.setValue("drawtype", "triangle");
+  another.setValue("radius", "2.0");
+  another.position = Vector(1.0, 0.0);
+  
+  graphics.registerEntity(another);
+  
+  entitiesPointedAt = graphics.findEntitiesPointedAt(Vector(0.5, 0.0));
+  assert(entitiesPointedAt.length == 2, to!string(entitiesPointedAt.length));
+  
+  entitiesPointedAt = graphics.findEntitiesPointedAt(Vector(1.5, 0.0));
+  assert(entitiesPointedAt.length == 1);
+  
+  entitiesPointedAt = graphics.findEntitiesPointedAt(Vector(3.5, 0.0));
+  assert(entitiesPointedAt.length == 0, to!string(entitiesPointedAt.length));
 }
 
 
@@ -90,6 +125,11 @@ public:
     return entity.angle;
   }
   
+  bool isPointedAt(Vector p_pos)
+  {
+    return ((position - p_pos).length2d < radius);
+  }
+  
   Drawtype drawType;
   float radius;
   
@@ -103,6 +143,7 @@ class GraphicsSubSystem : public SubSystem!(GraphicsComponent)
 invariant()
 {
   assert(m_zoom > 0.0);
+  assert(m_mousePos.isValid());
 }
 
 
@@ -110,6 +151,8 @@ public:
   this()
   {
     m_zoom = 0.02;
+    
+    m_mousePos = Vector.origo;
   }
   
   
@@ -190,7 +233,11 @@ public:
       // draw circle indicating radius in debug mode
       debug
       {
-        glColor3f(1.0, 1.0, 1.0);
+        if (component.isPointedAt(m_mousePos))
+          glColor3f(1.0, 1.0, 0.0);
+        else
+          glColor3f(1.0, 1.0, 1.0);
+        
         glBegin(GL_LINE_LOOP);
         for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 16)
         {
@@ -202,7 +249,25 @@ public:
       glPopMatrix();
     }
     
+    glColor3f(1.0, 0.0, 0.0);
+    glBegin(GL_LINE);
+      glVertex2f(0.0, 0.0);
+      glVertex2f(m_mousePos.x, m_mousePos.y);
+    glEnd();
+    
     glPopMatrix();
+  }
+  
+  Entity[] findEntitiesPointedAt(Vector p_pos)
+  {
+    Entity[] foundEntities;
+    foreach (component; components)
+    {
+      if ((component.position - p_pos).length2d < component.radius)
+        foundEntities ~= component.entity;
+    }
+    
+    return foundEntities;
   }
   
   void zoomIn(float p_time)
@@ -218,6 +283,12 @@ public:
   float zoom()
   {
     return m_zoom;
+  }
+  
+  // figure out world coords of the mouse pointer, from viewport coords
+  void mouseWorldPos(Vector p_mouseScreenPos)
+  {
+    m_mouseWorldPos = p_mouseScreenPos / m_zoom + m_centerEntity.position;
   }
   
 protected:
@@ -246,6 +317,8 @@ protected:
   
 private:
   float m_zoom;
+  
+  Vector m_mouseWorldPos;
   
   Entity m_centerEntity;
 }

@@ -136,6 +136,11 @@ mixin(genEnum("Event",
 
 class InputHandler
 {
+invariant()
+{
+  assert(m_mousePos.isValid());
+}
+
 public:
   this()
   {
@@ -161,6 +166,8 @@ public:
     
     m_buttonEventMapping[SDL_BUTTON_WHEELUP] = Event.WheelUp;
     m_buttonEventMapping[SDL_BUTTON_WHEELDOWN] = Event.WheelDown;
+    
+    m_mousePos = Vector.origo;
   }
   
   void pollEvents()

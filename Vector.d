@@ -109,6 +109,9 @@ struct Vector
   Vector opBinary(string op)(float p_right) if (op == "*")
   { return Vector(x * p_right, y * p_right, z * p_right); }
   
+  Vector opBinary(string op)(float p_right) if (op == "/")
+  { return Vector(x / p_right, y / p_right, z / p_right); }
+  
   Vector opOpAssign(string op)(Vector p_right) if (op == "+") 
   { return Vector(x += p_right.x, y += p_right.y, z += p_right.z); }
   
