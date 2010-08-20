@@ -24,11 +24,15 @@ module Vector;
 
 import std.conv;
 import std.math;
+import std.stdio;
 import std.string;
 
 
 unittest
 {
+  scope(success) writeln(__FILE__ ~ " unittests succeeded");
+  scope(failure) writeln(__FILE__ ~ " unittests failed");
+  
   Vector left = Vector(1.0, 0.0);
   Vector right = Vector(0.0, 1.0);
   
@@ -70,9 +74,11 @@ unittest
   
   assert(wrong.isValid() == false);
   
-  auto vectorFromString = Vector.fromString("1 2 3");
+  auto vector3dFromString = Vector.fromString("1 2 3");
+  assert(vector3dFromString.x == 1 && vector3dFromString.y == 2 && vector3dFromString.z == 3);
   
-  assert(vectorFromString.x == 1 && vectorFromString.y == 2 && vectorFromString.z == 3);
+  auto vector2dFromString = Vector.fromString("3 5");
+  assert(vector2dFromString.x == 3 && vector2dFromString.y == 5 && vector2dFromString.z == 0);
 }
 
 
@@ -93,28 +99,24 @@ struct Vector
   }
   
   float x, y, z;
-    
-  Vector opBinary(string s)(Vector p_right) 
-  if (s == "+") { return Vector(x + p_right.x, y + p_right.y, z + p_right.z); }
+
+  Vector opBinary(string op)(Vector p_right) if (op == "+") 
+  { return Vector(x + p_right.x, y + p_right.y, z + p_right.z); }
   
-  Vector opBinary(string s)(Vector p_right) 
-  if (s == "-") { return Vector(x - p_right.x, y - p_right.y, z - p_right.z); }
+  Vector opBinary(string op)(Vector p_right) if (op == "-") 
+  { return Vector(x - p_right.x, y - p_right.y, z - p_right.z); }
   
-  Vector opBinary(string s)(float p_right) if (s == "*")
-  {
-    return Vector(x * p_right, y * p_right, z * p_right);
-  }
+  Vector opBinary(string op)(float p_right) if (op == "*")
+  { return Vector(x * p_right, y * p_right, z * p_right); }
   
-  Vector opOpAssign(string s)(Vector p_right) 
-  if (s == "+=") { return Vector(x += p_right.x, y += p_right.y, z += p_right.z); }
+  Vector opOpAssign(string op)(Vector p_right) if (op == "+") 
+  { return Vector(x += p_right.x, y += p_right.y, z += p_right.z); }
   
-  Vector opOpAssign(string s)(Vector p_right) 
-  if (s == "-=") { return Vector(x -= p_right.x, y -= p_right.y, z -= p_right.z); }
+  Vector opOpAssign(string op)(Vector p_right) if (op == "-") 
+  { return Vector(x -= p_right.x, y -= p_right.y, z -= p_right.z); }
   
-  Vector opOpAssign(string s)(float p_right) if (s == "*=")
-  {
-    return Vector(x *= p_right, y *= p_right, z *= p_right);
-  }
+  Vector opOpAssign(string op)(float p_right) if (op == "*")
+  { return Vector(x *= p_right, y *= p_right, z *= p_right); }
   
   Vector normalized()
   out (result)
@@ -177,14 +179,13 @@ struct Vector
   
   static Vector fromString(string p_values)
   {
-    auto values = p_values.split();
+    auto values = (" " ~ p_values).split();
     
     if (values.length == 3)
-      return Vector(to!float(values[0]), to!float(values[1]), to!float(values[2]));
+      return Vector(to!float(values[0]=="0"?"0.0":values[0]), to!float(values[1]=="0"?"0.0":values[1]), to!float(values[2]=="0"?"0.0":values[2]));
     else if (values.length == 2)
-      return Vector(to!float(values[0]), to!float(values[1]));
-      
-      
+      return Vector(to!float(values[0]=="0"?"0.0":values[0]), to!float(values[1]=="0"?"0.0":values[1]));
+
     assert(false, "Vector fromString needs 2 or 3 values, " ~ p_values ~ " can't be parsed as a vector");
   }
 }
