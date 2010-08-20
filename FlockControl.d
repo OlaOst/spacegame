@@ -24,6 +24,7 @@ module FlockControl;
 
 import std.algorithm;
 import std.math;
+import std.stdio;
 
 import Control;
 import Entity;
@@ -33,21 +34,23 @@ import Vector : Vector;
 
 unittest
 {
+  scope(success) writeln(__FILE__ ~ " unittests succeeded");
+  scope(failure) writeln(__FILE__ ~ " unittests failed");
+
   // 0.5 avoid distance, 0.5 avoid weight, 5.0 flock distance, 0.3 flock weight
   FlockControl flock = new FlockControl(0.5, 0.5, 5.0, 0.3);
   
   // check that desired velocity is kept with no other boids in sight
-  assert(flock.desiredVelocity(/*Vector.origo,*/ []) == Vector.origo);
-  assert(flock.desiredVelocity(/*Vector(0.0, 1.0),*/ []) == Vector(0.0, 1.0));
+  assert(flock.desiredVelocity([]) == Vector.origo);
   
   // check that desired velocity is kept with one boid outside both avoid and flock distances
-  assert(flock.desiredVelocity(/*Vector(0.0, 1.0),*/ [Vector(0.0, 10.0)]) == Vector(0.0, 1.0));
+  assert(flock.desiredVelocity([Vector(0.0, 10.0)]) == Vector.origo);
   
   // check that desired velocity is changed away with one boid inside avoid distance
-  assert(flock.desiredVelocity(/*Vector(0.0, 1.0),*/ [Vector(0.0, 0.3)]).y < 1.0);
+  assert(flock.desiredVelocity([Vector(0.0, 0.3)]).y < 0.0);
   
   // check that desired velocity is changed towards with one boid outside avoid distance but inside flock distance
-  assert(flock.desiredVelocity(/*Vector(0.0, 1.0),*/ [Vector(0.0, 2.0)]).y > 1.0);
+  assert(flock.desiredVelocity([Vector(0.0, 2.0)]).y > 0.0);
   
   // check that desired velocity is kept with one boid in front and one in back (avoidance rules should nullify with those two)
   //assert(flock.desiredVelocity(/*Vector(0.0, 1.0),*/ [Vector(0.0, 1.0), Vector(0.0, -1.0)]) == Vector(0.0, 1.0), flock.desiredVelocity(Vector(0.0, 1.0), [Vector(0.0, 1.0), Vector(0.0, -1.0)]).toString());
@@ -93,7 +96,7 @@ public:
     foreach (entity; nearbyEntities(p_sourceComponent, p_otherComponents, 50.0))
       otherPositions ~= p_sourceComponent.entity.position - entity.position;
 
-    auto desiredVel = desiredVelocity(/*p_sourceComponent.velocity,*/ otherPositions);
+    auto desiredVel = desiredVelocity(otherPositions);
     
     assert(desiredVel.isValid());
 
@@ -108,11 +111,9 @@ public:
   
 private:
   // p_otherPositions are relative
-  Vector desiredVelocity(/*Vector p_currentVelocity,*/ Vector[] p_otherPositions)
+  Vector desiredVelocity(Vector[] p_otherPositions)
   in
-  {
-    //assert(p_currentVelocity.isValid());
-    
+  {    
     foreach (otherPos; p_otherPositions)
       assert(otherPos.isValid());
   }
@@ -122,7 +123,7 @@ private:
   }
   body
   {
-    Vector desiredVelocity = Vector.origo; //p_currentVelocity;
+    Vector desiredVelocity = Vector.origo;
     
     foreach (otherPosition; p_otherPositions)
     {      
