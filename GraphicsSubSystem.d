@@ -24,6 +24,7 @@ module GraphicsSubSystem;
 
 import std.conv;
 import std.math;
+import std.stdio;
 
 import derelict.opengl.gl;
 
@@ -34,6 +35,10 @@ import Vector : Vector;
 
 unittest
 {
+  scope(success) writeln(__FILE__ ~ " unittests succeeded");
+  scope(failure) writeln(__FILE__ ~ " unittests failed");
+
+  
   GraphicsSubSystem graphics = new GraphicsSubSystem();
   
   Entity deleteTest = new Entity();

@@ -38,6 +38,9 @@ import Vector : Vector;
 
 unittest
 {
+  scope(success) writeln(__FILE__ ~ " unittests succeeded");
+  scope(failure) writeln(__FILE__ ~ " unittests failed");
+  
   // this control will just apply force to the right
   class MockControl : public Control
   {

@@ -35,6 +35,9 @@ import Vector : Vector;
 
 unittest
 {
+  scope(success) writeln(__FILE__ ~ " unittests succeeded");
+  scope(failure) writeln(__FILE__ ~ " unittests failed");
+  
   PhysicsSubSystem physics = new PhysicsSubSystem();
   
   Entity entity = new Entity();

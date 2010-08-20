@@ -44,6 +44,9 @@ import Vector : Vector;
 
 unittest
 {
+  scope(success) writeln(__FILE__ ~ " unittests succeeded");
+  scope(failure) writeln(__FILE__ ~ " unittests failed");
+  
   Game game = new Game();
 
   // TODO: assert that Derelict SDL and GL loaded OK
@@ -99,7 +102,6 @@ unittest
     game.m_graphics.draw();
     game.m_physics.move(1.0);
   }
-  
   
   // test that game moves entity according to input
   {
@@ -199,7 +201,7 @@ public:
       m_connection.registerEntity(subEntity);
       m_physics.registerEntity(subEntity);
     }
-    
+
     for (int n = 0; n < 18; n++)
     {
       Entity npcShip = new Entity("data/npcship.txt");

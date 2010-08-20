@@ -34,6 +34,8 @@ int main(char[][] args)
   }
   else
   {
+    writeln("Starting game");
+    
     Game game = new Game();
     game.run();
   }

@@ -33,6 +33,9 @@ import Vector : Vector;
 
 unittest
 {
+  scope(success) writeln(__FILE__ ~ " unittests succeeded");
+  scope(failure) writeln(__FILE__ ~ " unittests failed");
+  
   auto sys = new CollisionSubSystem();
   
   Entity entity = new Entity();

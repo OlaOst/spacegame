@@ -34,6 +34,9 @@ import Vector : Vector;
 
 unittest
 {
+  scope(success) writeln(__FILE__ ~ " unittests succeeded");
+  scope(failure) writeln(__FILE__ ~ " unittests failed");
+  
   Entity entity = new Entity();
   
   assert(entity.position == Vector.origo);
@@ -51,7 +54,6 @@ unittest
   
   assert(fromFile.getValue("drawtype") == "triangle");
   assert(fromFile.getValue("collisionType") == "ship");
-  assert(fromFile.getValue("keepInCenter") == "true");
   assert(fromFile.getValue("radius") == "2.0");
   assert(fromFile.getValue("mass") == "4.0");
 }
@@ -73,7 +75,7 @@ public:
   {
     m_position = Vector.origo;
     m_angle = 0.0;
-        
+    
     m_id = m_idCounter++;
     
     m_lifetime = float.infinity;
@@ -113,6 +115,8 @@ public:
         auto keyval = line.split("=");
         
         assert(keyval.length == 2, "unexpected value: " ~ to!string(keyval));
+        assert(keyval[0].length > 0, "empty key");
+        assert(keyval[1].length > 0, "empty value");
       
         if (keyval[0].strip == "root")
           loadValues(p_values, "data/" ~ keyval[1].strip);
@@ -160,6 +164,11 @@ public:
   }
   
   string getValue(string p_name)
+  in
+  {
+    //assert(p_name in m_values);
+  }
+  body
   {
     if (p_name in m_values)
       return m_values[p_name];

@@ -34,6 +34,9 @@ import SubSystem : SubSystem;
 
 unittest
 {
+  scope(success) writeln(__FILE__ ~ " unittests succeeded");
+  scope(failure) writeln(__FILE__ ~ " unittests failed");
+  
   auto sys = new SoundSubSystem(8);
 }
 

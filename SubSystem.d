@@ -22,11 +22,16 @@
 
 module SubSystem;
 
+import std.stdio;
+
 import Entity;
 
 
 unittest
 {
+  scope(success) writeln(__FILE__ ~ " unittests succeeded");
+  scope(failure) writeln(__FILE__ ~ " unittests failed");
+  
   struct MockComponent {}
   
   class MockSubSystem : public SubSystem!(MockComponent)
@@ -54,7 +59,6 @@ unittest
   }
   assert(sys.components.length == 0);  
   assert(sys.findComponents(entity).length == 0);
-  
 }
 
 
