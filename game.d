@@ -302,7 +302,7 @@ private:
       m_connection.updateFromPhysics(elapsedTime);
     }
     
-    m_graphics.mousePos = m_inputHandler.mousePos;
+    m_graphics.mouseWorldPos = m_inputHandler.mousePos;
     
     m_graphics.draw();
     m_sound.soundOff();

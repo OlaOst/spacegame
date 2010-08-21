@@ -143,7 +143,7 @@ class GraphicsSubSystem : public SubSystem!(GraphicsComponent)
 invariant()
 {
   assert(m_zoom > 0.0);
-  assert(m_mousePos.isValid());
+  assert(m_mouseWorldPos.isValid());
 }
 
 
@@ -152,7 +152,7 @@ public:
   {
     m_zoom = 0.02;
     
-    m_mousePos = Vector.origo;
+    m_mouseWorldPos = Vector.origo;
   }
   
   
@@ -233,7 +233,7 @@ public:
       // draw circle indicating radius in debug mode
       debug
       {
-        if (component.isPointedAt(m_mousePos))
+        if (component.isPointedAt(m_mouseWorldPos))
           glColor3f(1.0, 1.0, 0.0);
         else
           glColor3f(1.0, 1.0, 1.0);
@@ -252,7 +252,7 @@ public:
     glColor3f(1.0, 0.0, 0.0);
     glBegin(GL_LINE);
       glVertex2f(0.0, 0.0);
-      glVertex2f(m_mousePos.x, m_mousePos.y);
+      glVertex2f(m_mouseWorldPos.x, m_mouseWorldPos.y);
     glEnd();
     
     glPopMatrix();
