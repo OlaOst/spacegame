@@ -37,6 +37,8 @@ unittest
 
   // assert that input responds to input
   assert(inputHandler.countEvents() == 0, "InputHandler not cleared on creation");
+  assert(inputHandler.isPressed(Event.UpKey) == false);
+  assert(inputHandler.eventState(Event.UpKey) == EventState.Unchanged);
   {
     SDL_Event upEvent;
     upEvent.type = SDL_KEYDOWN;
@@ -46,6 +48,7 @@ unittest
   }
   assert(inputHandler.countEvents() == 1, "InputHandler didn't register first event at all");
   assert(inputHandler.isPressed(Event.UpKey), "InputHandler didn't register first event correctly");
+  assert(inputHandler.eventState(Event.UpKey) == EventState.Pressed);
 
   {
     SDL_Event downEvent;
@@ -55,17 +58,42 @@ unittest
     inputHandler.receiveEvent(downEvent);
   }
   assert(inputHandler.countEvents() == 2, "InputHandler didn't register second event at all");
-  assert(inputHandler.isPressed(Event.UpKey), "InputHandler didn't register second event");
+  assert(inputHandler.isPressed(Event.UpKey), "InputHandler didn't register second event correctly");
+  assert(inputHandler.eventState(Event.UpKey) == EventState.Pressed);
   assert(inputHandler.isPressed(Event.DownKey), "InputHandler lost first event when registering the second");
+  assert(inputHandler.eventState(Event.DownKey) == EventState.Pressed);
+  
+  {
+    SDL_Event upReleaseEvent;
+    upReleaseEvent.type = SDL_KEYUP;
+    upReleaseEvent.key.keysym.sym = SDLK_UP;
+    
+    inputHandler.receiveEvent(upReleaseEvent);
+  }
+  assert(inputHandler.countEvents() == 2, "InputHandler didn't register key release event at all");
+  assert(inputHandler.isPressed(Event.UpKey) == false);
+  assert(inputHandler.eventState(Event.UpKey) == EventState.Released);
+  assert(inputHandler.isPressed(Event.DownKey), "InputHandler lost event when registering key release");
+  assert(inputHandler.eventState(Event.DownKey) == EventState.Pressed);
   
 
   {
+    inputHandler.clearEventStates();
+  }
+  assert(inputHandler.countEvents() == 0, "InputHandler didn't clear event states on request");
+  assert(inputHandler.isPressed(Event.UpKey) == false);
+  assert(inputHandler.eventState(Event.UpKey) == EventState.Unchanged);
+  assert(inputHandler.isPressed(Event.DownKey), "InputHandler lost pressed state when clearing event states");
+  assert(inputHandler.eventState(Event.DownKey) == EventState.Unchanged);
+  
+  {
     inputHandler.clearEvents();
   }
-  assert(inputHandler.countEvents() == 0, "InputHandler didn't clear events on request");
-   
-  // TODO: assert that both keyup and keydown events are handled properly
-  
+  assert(inputHandler.countEvents() == 0, "InputHandler didn't clear event states on request");
+  assert(inputHandler.isPressed(Event.UpKey) == false);
+  assert(inputHandler.eventState(Event.UpKey) == EventState.Unchanged);
+  assert(inputHandler.isPressed(Event.DownKey) == false, "InputHandler didn't clear pressed state when clearing all events");
+  assert(inputHandler.eventState(Event.DownKey) == EventState.Unchanged);
   
   {
     SDL_Event wheelUpEvent;
@@ -76,6 +104,7 @@ unittest
     
     inputHandler.receiveEvent(wheelUpEvent);
   }
+  assert(inputHandler.eventState(Event.WheelUp) == EventState.Pressed);
   assert(inputHandler.isPressed(Event.WheelUp), "InputHandler didn't register mouse wheel event");
   
   inputHandler.clearEvents();
@@ -91,7 +120,92 @@ unittest
     nadaKeyEvent.type = SDL_KEYDOWN;
     inputHandler.receiveEvent(nadaKeyEvent);
   }
-  assert(inputHandler.countEvents() == 0, "InputHandler registered an empty event");
+  assert(inputHandler.countEvents() == 0, "InputHandler registered an empty key event");
+  
+  
+  inputHandler.pollEvents();
+  inputHandler.clearEvents();
+  
+  
+  // assert that input responds to input
+  assert(inputHandler.countEvents() == 0, "InputHandler not cleared on creation");
+  assert(inputHandler.isPressed(Event.UpKey) == false);
+  assert(inputHandler.eventState(Event.UpKey) == EventState.Unchanged);
+  
+  inputHandler.pollEvents();
+
+  assert(inputHandler.countEvents() == 0, "InputHandler registered events when polling no events");
+  assert(inputHandler.isPressed(Event.UpKey) == false);
+  assert(inputHandler.eventState(Event.UpKey) == EventState.Unchanged);
+  
+  {
+    SDL_Event upEvent;
+    upEvent.type = SDL_KEYDOWN;
+    upEvent.key.keysym.sym = SDLK_UP;
+    
+    SDL_PushEvent(&upEvent);
+    inputHandler.pollEvents();
+  }
+  assert(inputHandler.countEvents() == 1, "InputHandler didn't register first event at all, events registered: " ~ to!string(inputHandler.countEvents()));
+  assert(inputHandler.isPressed(Event.UpKey), "InputHandler didn't register first event correctly");
+  assert(inputHandler.eventState(Event.UpKey) == EventState.Pressed);
+
+  {
+    SDL_Event downEvent;
+    downEvent.type = SDL_KEYDOWN;
+    downEvent.key.keysym.sym = SDLK_DOWN;
+    
+    SDL_PushEvent(&downEvent);
+    inputHandler.pollEvents();
+  }
+  assert(inputHandler.countEvents() == 1, "InputHandler didn't register second event at all, events registered: " ~ to!string(inputHandler.countEvents()));
+  assert(inputHandler.isPressed(Event.UpKey), "InputHandler didn't register second event correctly");
+  assert(inputHandler.eventState(Event.UpKey) == EventState.Unchanged);
+  assert(inputHandler.isPressed(Event.DownKey), "InputHandler lost first event when registering the second");
+  assert(inputHandler.eventState(Event.DownKey) == EventState.Pressed);
+  
+  {
+    SDL_Event upReleaseEvent;
+    upReleaseEvent.type = SDL_KEYUP;
+    upReleaseEvent.key.keysym.sym = SDLK_UP;
+    
+    SDL_PushEvent(&upReleaseEvent);
+    inputHandler.pollEvents();
+  }
+  assert(inputHandler.countEvents() == 1, "InputHandler didn't register key release event at all");
+  assert(inputHandler.isPressed(Event.UpKey) == false);
+  assert(inputHandler.eventState(Event.UpKey) == EventState.Released);
+  assert(inputHandler.isPressed(Event.DownKey), "InputHandler lost event when registering key release");
+  assert(inputHandler.eventState(Event.DownKey) == EventState.Unchanged);
+  
+  {
+    SDL_Event wheelUpEvent;
+    wheelUpEvent.type = SDL_MOUSEBUTTONDOWN;
+    wheelUpEvent.button.button = SDL_BUTTON_WHEELUP;
+    
+    SDL_PushEvent(&wheelUpEvent);
+    inputHandler.pollEvents();
+  }
+  assert(inputHandler.eventState(Event.WheelUp) == EventState.Pressed);
+  assert(inputHandler.isPressed(Event.WheelUp), "InputHandler didn't register mouse wheel event");
+  
+  inputHandler.pollEvents();
+  assert(inputHandler.eventState(Event.WheelUp) == EventState.Unchanged);
+  assert(inputHandler.isPressed(Event.WheelUp));
+  
+  {
+    SDL_Event wheelUpReleaseEvent;
+    wheelUpReleaseEvent.type = SDL_MOUSEBUTTONUP;
+    wheelUpReleaseEvent.button.button = SDL_BUTTON_WHEELUP;
+    
+    SDL_PushEvent(&wheelUpReleaseEvent);
+    inputHandler.pollEvents();
+  }
+  assert(inputHandler.eventState(Event.WheelUp) == EventState.Released);
+  assert(inputHandler.isPressed(Event.WheelUp) == false, "InputHandler didn't register mouse wheel event");
+  
+  // TODO: mouse wheel events get press and release in the same update, so we don't really register it properly
+  // need some way to tell that something was pushed and released in the same update
   
   
   // test pixel coords to viewport coords
@@ -150,7 +264,12 @@ invariant()
 public:
   this()
   {
-    clearEvents();
+    clearEventStates();
+    
+    foreach (event; m_events.keys)
+    {
+      m_pressedEvents[event] = false;
+    }
     
     m_keyEventMapping[SDLK_ESCAPE] = Event.Escape;
     
@@ -178,9 +297,7 @@ public:
   
   void pollEvents()
   {
-    //clearEvents();
-    //foreach (event; m_events.keys)
-      //m_events[event] = 0;
+    clearEventStates();
     
     // clear button event here
     // for now we just register buttonup events, because 
@@ -209,12 +326,7 @@ public:
   
   bool isPressed(const Event p_event)
   {
-    return eventState(p_event) == EventState.Pressed;
-  }
-  
-  bool isReleased(const Event p_event)
-  {
-    return eventState(p_event) == EventState.Released;
+    return m_pressedEvents.get(p_event, false);
   }
   
   void setScreenResolution(int p_screenWidth, int p_screenHeight)
@@ -234,30 +346,36 @@ private:
     switch (event.type)
     {
       case SDL_QUIT:
-        m_events[Event.Escape]++;
+        m_events[Event.Escape] = EventState.Released;
         break;
         
       case SDL_KEYDOWN:
       {
         if (event.key.keysym.sym in m_keyEventMapping)
+        {
           m_events[m_keyEventMapping[event.key.keysym.sym]] = EventState.Pressed;
-          
+          m_pressedEvents[m_keyEventMapping[event.key.keysym.sym]] = true;
+        }
         break;
       }
       
       case SDL_KEYUP:
       {
         if (event.key.keysym.sym in m_keyEventMapping)
-          if (m_events[m_keyEventMapping[event.key.keysym.sym]] > 0)
-            m_events[m_keyEventMapping[event.key.keysym.sym]] = EventState.Released;
-
+        {
+          m_events[m_keyEventMapping[event.key.keysym.sym]] = EventState.Released;
+          m_pressedEvents[m_keyEventMapping[event.key.keysym.sym]] = false;
+        }
         break;
       }
       
       case SDL_MOUSEBUTTONDOWN:
       {
         if (event.button.button in m_buttonEventMapping)
-          m_events[m_buttonEventMapping[event.button.button]]++;
+        {
+          m_events[m_buttonEventMapping[event.button.button]] = EventState.Pressed;
+          m_pressedEvents[m_buttonEventMapping[event.button.button]] = true;
+        }
           
         break;
       }
@@ -267,8 +385,10 @@ private:
         writeln("got mousebuttonup event with button " ~ to!string(event.button.button));
       
         if (event.button.button in m_buttonEventMapping)
-          m_events[m_buttonEventMapping[event.button.button]]++;
-          
+        {
+          m_events[m_buttonEventMapping[event.button.button]] = EventState.Released;
+          m_pressedEvents[m_buttonEventMapping[event.button.button]] = false;
+        }
         break;
       }
       
@@ -284,10 +404,19 @@ private:
     }
   }
   
-  void clearEvents()
+  void clearEventStates()
   {
     foreach (event; m_events.keys)
       m_events[event] = EventState.Unchanged;
+  }
+  
+  void clearEvents()
+  {
+    foreach (event; m_events.keys)
+    {
+      m_events[event] = EventState.Unchanged;
+      m_pressedEvents[event] = false;
+    }
   }
   
   int countEvents()
@@ -315,6 +444,7 @@ private:
   
 private:  
   EventState[Event] m_events;
+  bool[Event] m_pressedEvents;
   
   static Event[SDLKey] m_keyEventMapping;
   static Event[SDLKey] m_buttonEventMapping;

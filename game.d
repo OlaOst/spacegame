@@ -66,7 +66,10 @@ unittest
     
     game.update();
   }
-  assert(game.m_inputHandler.eventState(Event.UpKey) == EventState.Pressed, "Game didn't register input event");
+  assert(game.m_inputHandler.isPressed(Event.UpKey), "Game didn't register key press");
+  
+  game.update();  
+  assert(game.m_inputHandler.eventState(Event.UpKey) == EventState.Unchanged, "Game didn't register unchanged key event");
   
   {
     SDL_Event upReleaseEvent;
@@ -77,17 +80,7 @@ unittest
     
     game.update();
   }
-  assert(game.m_inputHandler.eventState(Event.UpKey) == EventState.Released, "Input didn't clear event after keyup event and update");
-  
-  {
-    SDL_Event quitEvent;
-    quitEvent.type = SDL_QUIT;
-    
-    SDL_PushEvent(&quitEvent);
-
-    game.update();
-  }
-  assert(!game.m_running, "Game didn't respond properly to quit event");
+  assert(game.m_inputHandler.eventState(Event.UpKey) == EventState.Released, "Input didn't register key release");
   
   {
     Entity entity = new Entity();
@@ -137,6 +130,17 @@ unittest
     
     assert(ship.position.x > 0.0);
   }
+  
+  
+  {
+    SDL_Event quitEvent;
+    quitEvent.type = SDL_QUIT;
+    
+    SDL_PushEvent(&quitEvent);
+
+    game.update();
+  }
+  assert(!game.m_running, "Game didn't respond properly to quit event");
 }
 
 
@@ -177,7 +181,7 @@ public:
     
     loadShip("playership.txt");
     
-    for (int n = 0; n < 5; n++)
+    for (int n = 0; n < 1; n++)
     {
       Entity npcShip = loadShip("npcship.txt");
       
@@ -296,12 +300,15 @@ private:
       m_graphics.zoomOut(p_elapsedTime * 15.0);
     }
 
-    if (m_inputHandler.isPressed(Event.Escape))
+    if (m_inputHandler.eventState(Event.Escape) == EventState.Released)
       m_running = false;
 
-    //m_paused = false;
-    if (m_inputHandler.isReleased(Event.Pause))
+    if (m_inputHandler.eventState(Event.Pause) == EventState.Released)
+    {
+      writeln("toggling pause state");
+      
       m_paused = !m_paused;
+    }
   }
   
   Entity loadShip(string p_file)
