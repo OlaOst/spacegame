@@ -66,7 +66,7 @@ unittest
     
     game.update();
   }
-  assert(game.m_inputHandler.hasEvent(Event.UpKey), "Game didn't register input event");
+  assert(game.m_inputHandler.eventState(Event.UpKey) == EventState.Pressed, "Game didn't register input event");
   
   {
     SDL_Event upReleaseEvent;
@@ -77,7 +77,7 @@ unittest
     
     game.update();
   }
-  assert(!game.m_inputHandler.hasEvent(Event.UpKey), "Input didn't clear event after keyup event and update");
+  assert(game.m_inputHandler.eventState(Event.UpKey) == EventState.Released, "Input didn't clear event after keyup event and update");
   
   {
     SDL_Event quitEvent;
@@ -87,7 +87,7 @@ unittest
 
     game.update();
   }
-  assert(!game.running, "Game didn't respond properly to quit event");
+  assert(!game.m_running, "Game didn't respond properly to quit event");
   
   {
     Entity entity = new Entity();
@@ -175,64 +175,14 @@ public:
     startupDing.setValue("soundFile", "test.wav");
     m_sound.registerEntity(startupDing);
     
-    Entity playerShip = new Entity("data/playership.txt");
+    loadShip("playership.txt");
     
-    m_entities ~= playerShip;
-    
-    m_graphics.registerEntity(playerShip);
-    m_physics.registerEntity(playerShip);
-    //m_collision.registerEntity(playerShip);
-    m_connection.registerEntity(playerShip);
-    
-    foreach (subSource; filter!("a.endsWith(\".source\")")(playerShip.values.keys))
+    for (int n = 0; n < 5; n++)
     {
-      Entity subEntity = new Entity("data/" ~ playerShip.getValue(subSource));
-      
-      auto subName = subSource[0..std.string.indexOf(subSource, ".source")];
-      
-      subEntity.setValue("owner", to!string(playerShip.id));
-      
-      foreach (subSourceValue; filter!(delegate(x) { return x.startsWith(subName ~ "."); })(playerShip.values.keys))
-      {
-        subEntity.setValue(subSourceValue[std.string.indexOf(subSourceValue, '.')+1..$], playerShip.getValue(subSourceValue));
-      }
-
-      m_graphics.registerEntity(subEntity);
-      m_connection.registerEntity(subEntity);
-      m_physics.registerEntity(subEntity);
-    }
-
-    for (int n = 0; n < 1; n++)
-    {
-      Entity npcShip = new Entity("data/npcship.txt");
+      Entity npcShip = loadShip("npcship.txt");
       
       npcShip.position = Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0));
       npcShip.angle = uniform(0.0, PI*2);
-      
-      m_entities ~= npcShip;
-      
-      m_graphics.registerEntity(npcShip);
-      m_physics.registerEntity(npcShip);
-      m_collision.registerEntity(npcShip);
-      m_connection.registerEntity(npcShip);
-      
-      foreach (subSource; filter!("a.endsWith(\".source\")")(npcShip.values.keys))
-      {
-        Entity subEntity = new Entity("data/" ~ npcShip.getValue(subSource));
-        
-        auto subName = subSource[0..std.string.indexOf(subSource, ".source")];
-        
-        subEntity.setValue("owner", to!string(npcShip.id));
-
-        foreach (subSourceValue; filter!(delegate(x) { return x.startsWith(subName ~ "."); })(npcShip.values.keys))
-        {
-          subEntity.setValue(subSourceValue[std.string.indexOf(subSourceValue, '.')+1..$], npcShip.getValue(subSourceValue));
-        }
-        
-        m_graphics.registerEntity(subEntity);
-        m_connection.registerEntity(subEntity);
-        m_physics.registerEntity(subEntity);
-      }
     }
     
     m_starfield = new Starfield(m_graphics, 10.0);
@@ -311,7 +261,7 @@ private:
     // ie up event in a menu context (move cursor up) vs up event in a ship control context (accelerate ship)
     
     foreach (Entity spawn; spawnList)
-    {      
+    {
       m_entities ~= spawn;
       
       if (spawn.getValue("onlySound") != "true")
@@ -324,40 +274,74 @@ private:
       m_sound.registerEntity(spawn);
     }
     
-    if (m_inputHandler.hasEvent(Event.PageUp))
-    {
-      m_graphics.zoomIn(elapsedTime * 2.0);
-      //m_starfield.populate(20.0);
-    }
-    if (m_inputHandler.hasEvent(Event.WheelUp))
-    {
-      m_graphics.zoomIn(elapsedTime * 15.0);
-      //m_starfield.populate(20.0);
-    }
-    if (m_inputHandler.hasEvent(Event.PageDown)) 
-    {
-      m_graphics.zoomOut(elapsedTime * 2.0);
-      //m_starfield.populate(20.0);
-    }
-    if(m_inputHandler.hasEvent(Event.WheelDown))
-    {
-      m_graphics.zoomOut(elapsedTime * 15.0);
-      //m_starfield.populate(20.0);
-    }
-    
-    if (m_inputHandler.hasEvent(Event.Escape))
-      m_running = false;
-      
-    m_paused = false;
-    if (m_inputHandler.hasEvent(Event.Pause))
-      m_paused = true;
+    handleInput(elapsedTime);
   }
   
-  bool running()
+  void handleInput(float p_elapsedTime)
   {
-    return m_running;
-  }
+    if (m_inputHandler.isPressed(Event.PageUp))
+    {
+      m_graphics.zoomIn(p_elapsedTime * 2.0);
+    }
+    if (m_inputHandler.isPressed(Event.WheelUp))
+    {
+      m_graphics.zoomIn(p_elapsedTime * 15.0);
+    }
+    if (m_inputHandler.isPressed(Event.PageDown)) 
+    {
+      m_graphics.zoomOut(p_elapsedTime * 2.0);
+    }
+    if(m_inputHandler.isPressed(Event.WheelDown))
+    {
+      m_graphics.zoomOut(p_elapsedTime * 15.0);
+    }
 
+    if (m_inputHandler.isPressed(Event.Escape))
+      m_running = false;
+
+    //m_paused = false;
+    if (m_inputHandler.isReleased(Event.Pause))
+      m_paused = !m_paused;
+  }
+  
+  Entity loadShip(string p_file)
+  {
+    Entity ship = new Entity("data/" ~ p_file);
+    
+    m_entities ~= ship;
+    
+    m_graphics.registerEntity(ship);
+    m_physics.registerEntity(ship);
+    m_connection.registerEntity(ship);
+    
+    if (ship.getValue("canCollide") == "true")
+      m_collision.registerEntity(ship);
+    
+    // load in submodules, signified by <modulename>.source = <module source filename>
+    foreach (subSource; filter!("a.endsWith(\".source\")")(ship.values.keys))
+    {
+      Entity subEntity = new Entity("data/" ~ ship.getValue(subSource));
+      
+      auto subName = subSource[0..std.string.indexOf(subSource, ".source")];
+      
+      subEntity.setValue("name", subName);
+      
+      subEntity.setValue("owner", to!string(ship.id));
+
+      // set extra values on submodule from the module that loads them in
+      foreach (subSourceValue; filter!(delegate(x) { return x.startsWith(subName ~ "."); })(ship.values.keys))
+      {
+        subEntity.setValue(subSourceValue[std.string.indexOf(subSourceValue, '.')+1..$], ship.getValue(subSourceValue));
+      }
+      
+      m_graphics.registerEntity(subEntity);
+      m_connection.registerEntity(subEntity);
+      m_physics.registerEntity(subEntity);
+    }
+    
+    return ship;
+  }
+  
   
 private:
   int m_updateCount;

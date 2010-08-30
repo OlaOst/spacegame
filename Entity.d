@@ -110,6 +110,10 @@ public:
 
     foreach (string line; content)
     {
+      // comment line signified by hashsign as first non-whitespace character
+      if (line.strip.length > 0 && line.strip[0] == '#')
+        continue;
+        
       if (std.algorithm.find(line, '=').length > 0)
       {
         auto keyval = line.split("=");

@@ -2,15 +2,17 @@ root = shiproot.txt
 
 keepInCenter = true
 
+skeleton.source = skeleton.txt
+
 leftEngine.source = engine.txt
 rightEngine.source = engine.txt
 leftCannon.source = cannon.txt
 rightCannon.source = cannon.txt
 
-leftEngine.relativePosition = -0.75 -1.0 -0.1
-rightEngine.relativePosition = -0.75 1.0 -0.1
-leftCannon.relativePosition = 0.75 -0.75 0.1
-rightCannon.relativePosition = 0.75 0.75 0.1
+leftEngine.connection = skeleton.lowerleft
+rightEngine.connection = skeleton.lowerright
+leftCannon.connection = skeleton.upperleft
+rightCannon.connection = skeleton.upperright
 
 leftEngine.control = playerEngine
 rightEngine.control = playerEngine

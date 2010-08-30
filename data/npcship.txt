@@ -3,6 +3,8 @@ root = shiproot.txt
 radius = 1.0
 mass = 1.0
 
+canCollide = true
+
 mainEngine.source = engine.txt
 
 mainEngine.mass = 0.33

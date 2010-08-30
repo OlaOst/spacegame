@@ -45,7 +45,7 @@ unittest
     inputHandler.receiveEvent(upEvent);
   }
   assert(inputHandler.countEvents() == 1, "InputHandler didn't register first event at all");
-  assert(inputHandler.hasEvent(Event.UpKey), "InputHandler didn't register first event correctly");
+  assert(inputHandler.isPressed(Event.UpKey), "InputHandler didn't register first event correctly");
 
   {
     SDL_Event downEvent;
@@ -55,8 +55,8 @@ unittest
     inputHandler.receiveEvent(downEvent);
   }
   assert(inputHandler.countEvents() == 2, "InputHandler didn't register second event at all");
-  assert(inputHandler.hasEvent(Event.UpKey), "InputHandler didn't register second event");
-  assert(inputHandler.hasEvent(Event.DownKey), "InputHandler lost first event when registering the second");
+  assert(inputHandler.isPressed(Event.UpKey), "InputHandler didn't register second event");
+  assert(inputHandler.isPressed(Event.DownKey), "InputHandler lost first event when registering the second");
   
 
   {
@@ -134,6 +134,14 @@ mixin(genEnum("Event",
 ]));
 
 
+enum EventState
+{
+  Unchanged,
+  Pressed,
+  Released
+}
+
+
 class InputHandler
 {
 invariant()
@@ -180,7 +188,7 @@ public:
     // for now we just register buttonup events, because 
     // wheel events are registered both up and down in the same game update
     foreach (buttonEvent; m_buttonEventMapping.values)
-      m_events[buttonEvent] = 0;
+      m_events[buttonEvent] = EventState.Unchanged;
     
     SDL_Event event;
     
@@ -191,14 +199,24 @@ public:
     }
   }
   
-  int[Event] events()
+  EventState[Event] events()
   {
     return m_events;
   }
   
-  bool hasEvent(const Event p_event)
+  EventState eventState(const Event p_event)
   {
-    return m_events.get(p_event, 0) > 0;
+    return m_events.get(p_event, EventState.Unchanged);
+  }
+  
+  bool isPressed(const Event p_event)
+  {
+    return eventState(p_event) == EventState.Pressed;
+  }
+  
+  bool isReleased(const Event p_event)
+  {
+    return eventState(p_event) == EventState.Released;
   }
   
   void setScreenResolution(int p_screenWidth, int p_screenHeight)
@@ -224,7 +242,7 @@ private:
       case SDL_KEYDOWN:
       {
         if (event.key.keysym.sym in m_keyEventMapping)
-          m_events[m_keyEventMapping[event.key.keysym.sym]]++;
+          m_events[m_keyEventMapping[event.key.keysym.sym]] = EventState.Pressed;
           
         break;
       }
@@ -233,7 +251,7 @@ private:
       {
         if (event.key.keysym.sym in m_keyEventMapping)
           if (m_events[m_keyEventMapping[event.key.keysym.sym]] > 0)
-            m_events[m_keyEventMapping[event.key.keysym.sym]]--;
+            m_events[m_keyEventMapping[event.key.keysym.sym]] = EventState.Released;
 
         break;
       }
@@ -266,6 +284,16 @@ private:
         break;
       }
       
+      case SDL_MOUSEBUTTONUP:
+      {
+        writeln("got mousebuttonup event with button " ~ to!string(event.button.button));
+      
+        if (event.button.button in m_buttonEventMapping)
+          m_events[m_buttonEventMapping[event.button.button]]++;
+          
+        break;
+      }
+      
       case SDL_MOUSEMOTION:
       {
         //writeln("detected mouse motion, pixelpos: "  ~ Vector(event.motion.x, event.motion.y).toString() ~ ", screenpos: " ~ pixelToViewPort(event.motion.x, event.motion.y).toString());
@@ -280,7 +308,7 @@ private:
   void clearEvents()
   {
     foreach (event; m_events.keys)
-      m_events[event] = 0;
+      m_events[event] = EventState.Unchanged;
   }
   
   int countEvents()
@@ -288,7 +316,10 @@ private:
     int eventCount = 0;
     
     foreach (event; m_events.keys)
-      eventCount += m_events[event];
+    {
+      if (m_events[event] != EventState.Unchanged)
+        eventCount++;
+    }
       
     return eventCount;
   }
@@ -304,7 +335,7 @@ private:
   
   
 private:  
-  int[Event] m_events;
+  EventState[Event] m_events;
   
   static Event[SDLKey] m_keyEventMapping;
   static Event[SDLKey] m_buttonEventMapping;

@@ -301,6 +301,9 @@ protected:
           kick *= 25.0;
           
           newComponent.velocity = spawnerCandidate.velocity + kick;
+          
+          writeln("spawn with velocity from spawner: " ~ spawnerCandidate.entity.getValue("name"));
+          
           //newComponent.force = kick;
         }
       }

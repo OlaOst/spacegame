@@ -67,7 +67,7 @@ public:
     //auto force = p_sourceComponent.force;
     //auto torque = p_sourceComponent.torque;
     
-    if (m_inputHandler.hasEvent(Event.Space))
+    if (m_inputHandler.isPressed(Event.Space))
     {
       if (p_sourceComponent.reload <= 0.0)
       {

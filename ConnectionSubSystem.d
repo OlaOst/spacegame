@@ -248,7 +248,7 @@ public:
         m_controlMapping[component].update(component, components);
       }
 	  
-      // propagate stuff from controller to owner
+      // propagate force/torque/stuff from controller to owner
       if (component.owner !is null && component.owner.physicsComponent !is null)
       {
         component.owner.physicsComponent.force = component.owner.physicsComponent.force + component.force;
@@ -282,6 +282,15 @@ public:
       {
         component.entity.position = component.relativePosition.rotate(component.owner.physicsComponent.entity.angle) + component.owner.physicsComponent.entity.position;
         component.entity.angle = component.relativeAngle + component.owner.physicsComponent.entity.angle;
+        
+        // update velocity, so that launcher entities can launch bullets with relative speed
+        // TODO: doesn't work, is velocity reset before spawn gets kicked off?
+        if (component.owner.physicsComponent !is null && component.physicsComponent !is null)
+        {
+          writeln("updating velocity from owner");
+          
+          component.owner.physicsComponent.velocity = component.physicsComponent.velocity;
+        }
       }
     }
   }
@@ -301,6 +310,29 @@ protected:
         if (component.entity.id == ownerId)
         {
           newComponent.owner = component;
+          break;
+        }
+      }
+    }
+    
+    if (p_entity.getValue("connection").length > 0)
+    {
+      auto connection = std.string.split(p_entity.getValue("connection"), ".");
+      
+      auto skeletonName = connection[0];
+      auto connectpointName = connection[1];
+      
+      // need to figure out skeleton entity. need to ask owner component for entity with a given name
+      //auto skeleton = newComponent.owner.findSubEntity(skeletonName);
+      
+      foreach (skeletonCandidate; components)
+      {
+        // same owner and same name -> should be unique
+        if (skeletonCandidate.owner == newComponent.owner && skeletonCandidate.entity.getValue("name") == skeletonName)
+        {
+          writeln("found connection to " ~ skeletonCandidate.entity.getValue("name") ~ " on point " ~ skeletonCandidate.entity.getValue("connectpoint." ~ connectpointName ~ ".position"));
+          
+          newComponent.relativePosition = Vector.fromString(skeletonCandidate.entity.getValue("connectpoint." ~ connectpointName ~ ".position"));
           break;
         }
       }
