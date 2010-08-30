@@ -286,9 +286,14 @@ public:
   }
   
   // figure out world coords of the mouse pointer, from viewport coords
-  void mouseWorldPos(Vector p_mouseScreenPos)
+  void calculateMouseWorldPos(Vector p_mouseScreenPos)
   {
     m_mouseWorldPos = p_mouseScreenPos / m_zoom + m_centerEntity.position;
+  }
+  
+  Vector mouseWorldPos()
+  {
+    return m_mouseWorldPos;
   }
   
 protected:

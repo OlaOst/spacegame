@@ -174,6 +174,10 @@ public:
     m_connection = new ConnectionSubSystem(m_inputHandler, m_physics);
     m_sound = new SoundSubSystem(16);
     
+    m_mouseEntity = new Entity();
+    m_mouseEntity.setValue("drawtype", "star");
+    m_mouseEntity.setValue("radius", "2.0");
+    m_graphics.registerEntity(m_mouseEntity);
     
     Entity startupDing = new Entity();
     startupDing.setValue("soundFile", "test.wav");
@@ -256,7 +260,7 @@ private:
       m_connection.updateFromPhysics(elapsedTime);
     }
     
-    m_graphics.mouseWorldPos = m_inputHandler.mousePos;
+    m_graphics.calculateMouseWorldPos(m_inputHandler.mousePos);
     
     m_graphics.draw();
     m_sound.soundOff();
@@ -283,6 +287,12 @@ private:
   
   void handleInput(float p_elapsedTime)
   {
+    if (m_inputHandler.isPressed(Event.LeftButton))
+    {
+      //writeln("registered left click on " ~ m_inputHandler.mousePos.toString());
+      m_mouseEntity.position = m_graphics.mouseWorldPos;
+    }
+  
     if (m_inputHandler.isPressed(Event.PageUp))
     {
       m_graphics.zoomIn(p_elapsedTime * 2.0);
@@ -369,4 +379,6 @@ private:
   Starfield m_starfield;
   
   Entity[] m_entities;
+  
+  Entity m_mouseEntity;
 }
