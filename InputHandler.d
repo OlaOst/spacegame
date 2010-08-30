@@ -67,7 +67,7 @@ unittest
   // TODO: assert that both keyup and keydown events are handled properly
   
   
-  /*{
+  {
     SDL_Event wheelUpEvent;
     wheelUpEvent.type = SDL_MOUSEBUTTONDOWN;
     wheelUpEvent.button.button = SDL_BUTTON_WHEELUP;
@@ -76,11 +76,9 @@ unittest
     
     inputHandler.receiveEvent(wheelUpEvent);
   }
-  assert(inputHandler.hasEvent(Event.WheelUp), "InputHandler didn't register mouse wheel event");*/
-  
+  assert(inputHandler.isPressed(Event.WheelUp), "InputHandler didn't register mouse wheel event");
   
   inputHandler.clearEvents();
-  
   
   {
     SDL_Event nadaEvent;
@@ -256,31 +254,11 @@ private:
         break;
       }
       
-      /*case SDL_MOUSEBUTTONDOWN:
-      {
-        writeln("got mousebuttondown event with button " ~ to!string(event.button.button));
-        
-        //writeln("buttonmapping: " ~ to!string(m_buttonEventMapping));
-        writeln("button in mapping: " ~ to!string(event.button.button in m_buttonEventMapping));
-        
-        if (event.button.button in m_buttonEventMapping)
-          m_events[m_buttonEventMapping[event.button.button]]++;
-
-        assert(hasEvent(Event.WheelUp));
-
-        break;
-      }*/
-      
       case SDL_MOUSEBUTTONDOWN:
       {
-        //writeln("got mousebuttonup event with button " ~ to!string(event.button.button));
-      
         if (event.button.button in m_buttonEventMapping)
           m_events[m_buttonEventMapping[event.button.button]]++;
           
-          //if (m_events[m_buttonEventMapping[event.button.button]] > 0)
-            //m_events[m_buttonEventMapping[event.button.button]]--;
-            
         break;
       }
       
@@ -296,8 +274,9 @@ private:
       
       case SDL_MOUSEMOTION:
       {
-        //writeln("detected mouse motion, pixelpos: "  ~ Vector(event.motion.x, event.motion.y).toString() ~ ", screenpos: " ~ pixelToViewPort(event.motion.x, event.motion.y).toString());
         m_mousePos = pixelToViewPort(event.motion.x, event.motion.y);
+        
+        break;
       }
       
       default:
