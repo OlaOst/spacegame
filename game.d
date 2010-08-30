@@ -177,7 +177,11 @@ public:
     m_mouseEntity = new Entity();
     m_mouseEntity.setValue("drawtype", "star");
     m_mouseEntity.setValue("radius", "2.0");
+    m_mouseEntity.setValue("mass", "1.0");
+    m_mouseEntity.setValue("position", "5.0, 0.0");
     m_graphics.registerEntity(m_mouseEntity);
+    m_physics.registerEntity(m_mouseEntity);
+    m_collision.registerEntity(m_mouseEntity);
     
     Entity startupDing = new Entity();
     startupDing.setValue("soundFile", "test.wav");
