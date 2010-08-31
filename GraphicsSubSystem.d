@@ -102,7 +102,23 @@ enum Drawtype
   Unknown,
   Triangle,
   Star,
-  Bullet
+  Bullet,
+  Vertices
+}
+
+struct Vertex
+{
+  float x,y;
+  float r,g,b;
+  
+  static Vertex fromString(string p_data)
+  {
+    auto comps = std.string.split(p_data, " ");
+    
+    assert(comps.length == 5);
+    
+    return Vertex(to!float(comps[0]), to!float(comps[1]), to!float(comps[2]), to!float(comps[3]), to!float(comps[4]));
+  }
 }
 
 struct GraphicsComponent 
@@ -133,8 +149,10 @@ public:
   Drawtype drawType;
   float radius;
   
+  Vertex[] vertices;
+  
 private:
-  Entity entity;  
+  Entity entity;
 }
 
 
@@ -213,6 +231,16 @@ public:
           glVertex3f(cos(0.0) * component.radius, sin(0.0) * component.radius, 0.0);
         glEnd();
       }
+      else if (component.drawType == Drawtype.Vertices)
+      {
+        glBegin(GL_POLYGON);
+        foreach (vertex; component.vertices)
+        {
+          glColor3f(vertex.r, vertex.g, vertex.b);
+          glVertex3f(vertex.x, vertex.y, 0.0);
+        }
+        glEnd();
+      }
       else if (component.drawType == Drawtype.Unknown)
       {
         // TODO: should just draw a big fat question mark here
@@ -228,7 +256,7 @@ public:
           }
           glVertex3f(cos(0.0) * component.radius, sin(0.0) * component.radius, 0.0);
         glEnd();
-      }
+      }      
       
       // draw circle indicating radius in debug mode
       debug
@@ -313,6 +341,23 @@ protected:
       return GraphicsComponent(p_entity, Drawtype.Triangle, radius);
     else if (p_entity.getValue("drawtype") == "bullet")
       return GraphicsComponent(p_entity, Drawtype.Bullet, radius);
+    else if (p_entity.getValue("drawtype") == "vertices")
+    {
+      if (p_entity.getValue("drawfile").length > 0)
+      {
+        GraphicsComponent component = GraphicsComponent(p_entity, Drawtype.Vertices, radius);
+
+        // (ab)use entity to just get out data here, since it has loading and caching capabilities
+        Entity drawfile = new Entity("data/" ~ p_entity.getValue("drawfile"));
+        
+        foreach (vertexData; drawfile.values)
+        {
+          component.vertices ~= Vertex.fromString(vertexData);
+        }
+        
+        return component;
+      }
+    }
     //else
       //return GraphicsComponent(p_entity, Drawtype.Unknown);
       

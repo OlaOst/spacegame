@@ -1,3 +1,4 @@
-drawtype = star
+drawtype = vertices
+drawfile = engineshape.txt
 radius = 0.5
 mass = 1.0

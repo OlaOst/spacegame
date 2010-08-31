@@ -1,0 +1,10 @@
+drawtype = vertices
+radius = 2.0
+mass = 4.0
+
+drawfile = skeletonshape.txt
+
+connectpoint.lowerleft.position = -0.95 -1.0
+connectpoint.lowerright.position = -0.95 1.0
+connectpoint.upperleft.position = 0.85 -0.85
+connectpoint.upperright.position = 0.85 0.85

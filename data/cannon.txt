@@ -1,3 +1,4 @@
-drawtype = star
+drawtype = vertices
+drawfile = cannonshape.txt
 radius = 0.33
 mass = 0.5
