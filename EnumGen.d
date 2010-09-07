@@ -27,6 +27,7 @@ unittest
 {
   mixin(genEnum("GenTest", 
   [
+  "Default",
   "One", 
   "Two", 
   "Three"
@@ -41,6 +42,9 @@ unittest
   assert(toString(GenTestFromString("Two")) == "Two");
   
   assert(GenTestFromString(toString(GenTest.Three)) == GenTest.Three);
+  
+  // defaults to the first enum value if it isn't found
+  assert(GenTestFromString("nosuchenumvalue") == GenTest.Default);
 }
 
 
@@ -60,7 +64,7 @@ pure string genEnum(string name, string[] values)
   enumDef = enumDef[0..$-1] ~ "}";
   
   toStrDef ~= "} } ";
-  fromStrDef ~= "} } ";
+  fromStrDef ~= "default: return " ~ name ~ "." ~ values[0] ~ "; } } ";
   
   return enumDef ~ "\n" ~ toStrDef ~ "\n" ~ fromStrDef;
 }

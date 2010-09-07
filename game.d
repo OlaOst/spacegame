@@ -180,8 +180,11 @@ public:
     m_mouseEntity.setValue("mass", "1.0");
     m_mouseEntity.setValue("position", "5.0, 0.0");
     m_graphics.registerEntity(m_mouseEntity);
-    m_physics.registerEntity(m_mouseEntity);
-    m_collision.registerEntity(m_mouseEntity);
+    //m_physics.registerEntity(m_mouseEntity);
+    //m_collision.registerEntity(m_mouseEntity);
+    
+    m_mouseSkeleton = new Entity("data/skeleton.txt");
+    m_graphics.registerEntity(m_mouseSkeleton);
     
     Entity startupDing = new Entity();
     startupDing.setValue("soundFile", "test.wav");
@@ -293,8 +296,15 @@ private:
   {
     if (m_inputHandler.isPressed(Event.LeftButton))
     {
-      //writeln("registered left click on " ~ m_inputHandler.mousePos.toString());
       m_mouseEntity.position = m_graphics.mouseWorldPos;
+    }
+    
+    if (m_inputHandler.eventState(Event.LeftButton) == EventState.Released)
+    {
+      // if mouse entity close by mouseskeleton contact point then snap to it
+      
+      if ((m_mouseEntity.position - m_mouseSkeleton.position).length2d < 2.5)
+        m_mouseEntity.position = m_mouseSkeleton.position;
     }
   
     if (m_inputHandler.isPressed(Event.PageUp))
@@ -385,4 +395,5 @@ private:
   Entity[] m_entities;
   
   Entity m_mouseEntity;
+  Entity m_mouseSkeleton;
 }

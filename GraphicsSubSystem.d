@@ -29,6 +29,7 @@ import std.stdio;
 import derelict.opengl.gl;
 
 import Entity;
+import EnumGen;
 import SubSystem : SubSystem;
 import Vector : Vector;
 
@@ -96,15 +97,14 @@ unittest
   assert(entitiesPointedAt.length == 0, to!string(entitiesPointedAt.length));
 }
 
-
-enum Drawtype
-{
-  Unknown,
-  Triangle,
-  Star,
-  Bullet,
-  Vertices
-}
+mixin(genEnum("DrawType",
+[
+  "Unknown",
+  "Triangle",
+  "Star",
+  "Bullet",
+  "Vertices"
+]));
 
 struct Vertex
 {
@@ -124,7 +124,7 @@ struct Vertex
 struct GraphicsComponent 
 {
 public:
-  this(Entity p_entity, Drawtype p_drawType, float p_radius)
+  this(Entity p_entity, DrawType p_drawType, float p_radius)
   {
     entity = p_entity;
     drawType = p_drawType;
@@ -146,10 +146,11 @@ public:
     return ((position - p_pos).length2d < radius);
   }
   
-  Drawtype drawType;
+  DrawType drawType;
   float radius;
   
   Vertex[] vertices;
+  Vector[] connectPoints;
   
 private:
   Entity entity;
@@ -195,7 +196,19 @@ public:
       glTranslatef(component.position.x, component.position.y, component.position.z);
       glRotatef(component.angle * (180.0 / PI), 0.0, 0.0, 1.0);
       
-      if (component.drawType == Drawtype.Triangle)
+      // draw connectpoinst
+      glDisable(GL_DEPTH_TEST);
+      foreach (connectPoint; component.connectPoints)
+      {
+        glPointSize(4.0);
+        glColor3f(1.0, 1.0, 1.0);
+        glBegin(GL_POINTS);
+          glVertex3f(connectPoint.x, connectPoint.y, 0.0);
+        glEnd();
+      }
+      glEnable(GL_DEPTH_TEST);
+      
+      if (component.drawType == DrawType.Triangle)
       {
         glBegin(GL_TRIANGLES);
           for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 3)
@@ -205,7 +218,7 @@ public:
           }
         glEnd();
       }
-      else if (component.drawType == Drawtype.Star)
+      else if (component.drawType == DrawType.Star)
       {
         glBegin(GL_TRIANGLE_FAN);
           glColor3f(1.0, 1.0, 1.0);
@@ -218,7 +231,7 @@ public:
           glVertex3f(cos(0.0) * component.radius, sin(0.0) * component.radius, 0.0);
         glEnd();
       }
-      else if (component.drawType == Drawtype.Bullet)
+      else if (component.drawType == DrawType.Bullet)
       {
         glBegin(GL_TRIANGLE_FAN);
           glColor3f(1.0, 1.0, 0.0);
@@ -231,7 +244,7 @@ public:
           glVertex3f(cos(0.0) * component.radius, sin(0.0) * component.radius, 0.0);
         glEnd();
       }
-      else if (component.drawType == Drawtype.Vertices)
+      else if (component.drawType == DrawType.Vertices)
       {
         glBegin(GL_POLYGON);
         foreach (vertex; component.vertices)
@@ -241,7 +254,7 @@ public:
         }
         glEnd();
       }
-      else if (component.drawType == Drawtype.Unknown)
+      else if (component.drawType == DrawType.Unknown)
       {
         // TODO: should just draw a big fat question mark here
         // or a cow
@@ -256,7 +269,7 @@ public:
           }
           glVertex3f(cos(0.0) * component.radius, sin(0.0) * component.radius, 0.0);
         glEnd();
-      }      
+      }
       
       // draw circle indicating radius in debug mode
       debug
@@ -335,33 +348,30 @@ protected:
     assert(p_entity.getValue("radius").length > 0, "Couldn't find radius for graphics component");
     float radius = to!float(p_entity.getValue("radius"));
     
-    if (p_entity.getValue("drawtype") == "star")
-      return GraphicsComponent(p_entity, Drawtype.Star, radius);
-    else if (p_entity.getValue("drawtype") == "triangle")
-      return GraphicsComponent(p_entity, Drawtype.Triangle, radius);
-    else if (p_entity.getValue("drawtype") == "bullet")
-      return GraphicsComponent(p_entity, Drawtype.Bullet, radius);
-    else if (p_entity.getValue("drawtype") == "vertices")
+    DrawType drawtype = DrawTypeFromString(p_entity.getValue("drawtype"));
+    
+    GraphicsComponent component = GraphicsComponent(p_entity, drawtype, radius);
+    
+    foreach (value; p_entity.values.keys)
     {
-      if (p_entity.getValue("drawfile").length > 0)
+      if (std.algorithm.startsWith(value, "connectpoint") > 0)
       {
-        GraphicsComponent component = GraphicsComponent(p_entity, Drawtype.Vertices, radius);
-
-        // (ab)use entity to just get out data here, since it has loading and caching capabilities
-        Entity drawfile = new Entity("data/" ~ p_entity.getValue("drawfile"));
-        
-        foreach (vertexData; drawfile.values)
-        {
-          component.vertices ~= Vertex.fromString(vertexData);
-        }
-        
-        return component;
+        component.connectPoints ~= Vector.fromString(p_entity.getValue(value));
       }
     }
-    //else
-      //return GraphicsComponent(p_entity, Drawtype.Unknown);
+    
+    if (drawtype == DrawType.Vertices && p_entity.getValue("drawfile").length > 0)
+    {    
+      // (ab)use entity to just get out data here, since it has loading and caching capabilities
+      Entity drawfile = new Entity("data/" ~ p_entity.getValue("drawfile"));
       
-    assert(0, "Tried to create graphics component from entity without drawtype value");
+      foreach (vertexData; drawfile.values)
+      {
+        component.vertices ~= Vertex.fromString(vertexData);
+      }
+    }
+    
+    return component;
   }
   
   

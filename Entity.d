@@ -182,7 +182,7 @@ public:
   
   @property string[string] values()
   {
-	return m_values;
+    return m_values;
   }
     
   int id()

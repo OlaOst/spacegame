@@ -1,4 +1,4 @@
-drawtype = vertices
+drawtype = Vertices
 radius = 2.0
 mass = 4.0
 
