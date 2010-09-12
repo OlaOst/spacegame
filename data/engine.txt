@@ -1,4 +1,3 @@
-drawtype = Vertices
-drawfile = engineshape.txt
+drawsource = engineshape.txt
 radius = 0.5
 mass = 1.0

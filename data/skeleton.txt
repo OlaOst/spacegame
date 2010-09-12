@@ -1,8 +1,7 @@
-drawtype = Vertices
 radius = 2.0
 mass = 4.0
 
-drawfile = skeletonshape.txt
+drawsource = skeletonshape.txt
 
 connectpoint.lowerleft.position = -0.95 -1.0
 connectpoint.lowerright.position = -0.95 1.0

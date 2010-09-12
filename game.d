@@ -329,8 +329,6 @@ private:
 
     if (m_inputHandler.eventState(Event.Pause) == EventState.Released)
     {
-      writeln("toggling pause state");
-      
       m_paused = !m_paused;
     }
   }

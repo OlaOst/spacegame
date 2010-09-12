@@ -1,4 +1,3 @@
-drawtype = Vertices
-drawfile = cannonshape.txt
+drawsource = cannonshape.txt
 radius = 0.33
 mass = 0.5

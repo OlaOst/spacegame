@@ -1,4 +1,4 @@
-drawtype = Triangle
+drawsource = Triangle
 collisionType = ship
 radius = 2.0
 mass = 4.0

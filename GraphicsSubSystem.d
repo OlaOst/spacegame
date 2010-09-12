@@ -22,6 +22,7 @@
 
 module GraphicsSubSystem;
 
+import std.algorithm;
 import std.conv;
 import std.math;
 import std.stdio;
@@ -47,7 +48,7 @@ unittest
 
   Entity entity = new Entity();
   
-  entity.setValue("drawtype", "triangle");
+  entity.setValue("drawsource", "Triangle");
   entity.setValue("radius", "1.0");
   entity.setValue("keepInCenter", "true");
   
@@ -62,7 +63,7 @@ unittest
   
   Entity deleteTest = new Entity();
   
-  deleteTest.setValue("drawtype", "triangle");
+  deleteTest.setValue("drawsource", "Triangle");
   deleteTest.setValue("radius", "1.0");
   deleteTest.setValue("keepInCenter", "true");
   
@@ -81,7 +82,7 @@ unittest
   
   Entity another = new Entity();
   
-  another.setValue("drawtype", "triangle");
+  another.setValue("drawsource", "Triangle");
   another.setValue("radius", "2.0");
   another.position = Vector(1.0, 0.0);
   
@@ -97,7 +98,7 @@ unittest
   assert(entitiesPointedAt.length == 0, to!string(entitiesPointedAt.length));
 }
 
-mixin(genEnum("DrawType",
+mixin(genEnum("DrawSource",
 [
   "Unknown",
   "Triangle",
@@ -124,10 +125,10 @@ struct Vertex
 struct GraphicsComponent 
 {
 public:
-  this(Entity p_entity, DrawType p_drawType, float p_radius)
+  this(Entity p_entity, float p_radius)
   {
     entity = p_entity;
-    drawType = p_drawType;
+    drawSource = DrawSource.Unknown;
     radius = p_radius;
   }
   
@@ -146,7 +147,7 @@ public:
     return ((position - p_pos).length2d < radius);
   }
   
-  DrawType drawType;
+  DrawSource drawSource;
   float radius;
   
   Vertex[] vertices;
@@ -208,7 +209,7 @@ public:
       }
       glEnable(GL_DEPTH_TEST);
       
-      if (component.drawType == DrawType.Triangle)
+      if (component.drawSource == DrawSource.Triangle)
       {
         glBegin(GL_TRIANGLES);
           for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 3)
@@ -218,7 +219,7 @@ public:
           }
         glEnd();
       }
-      else if (component.drawType == DrawType.Star)
+      else if (component.drawSource == DrawSource.Star)
       {
         glBegin(GL_TRIANGLE_FAN);
           glColor3f(1.0, 1.0, 1.0);
@@ -231,7 +232,7 @@ public:
           glVertex3f(cos(0.0) * component.radius, sin(0.0) * component.radius, 0.0);
         glEnd();
       }
-      else if (component.drawType == DrawType.Bullet)
+      else if (component.drawSource == DrawSource.Bullet)
       {
         glBegin(GL_TRIANGLE_FAN);
           glColor3f(1.0, 1.0, 0.0);
@@ -244,7 +245,7 @@ public:
           glVertex3f(cos(0.0) * component.radius, sin(0.0) * component.radius, 0.0);
         glEnd();
       }
-      else if (component.drawType == DrawType.Vertices)
+      else if (component.drawSource == DrawSource.Vertices)
       {
         glBegin(GL_POLYGON);
         foreach (vertex; component.vertices)
@@ -254,7 +255,7 @@ public:
         }
         glEnd();
       }
-      else if (component.drawType == DrawType.Unknown)
+      else if (component.drawSource == DrawSource.Unknown)
       {
         // TODO: should just draw a big fat question mark here
         // or a cow
@@ -348,9 +349,24 @@ protected:
     assert(p_entity.getValue("radius").length > 0, "Couldn't find radius for graphics component");
     float radius = to!float(p_entity.getValue("radius"));
     
-    DrawType drawtype = DrawTypeFromString(p_entity.getValue("drawtype"));
+    GraphicsComponent component = GraphicsComponent(p_entity, radius);
     
-    GraphicsComponent component = GraphicsComponent(p_entity, drawtype, radius);
+    if (looksLikeAFile(p_entity.getValue("drawsource")))
+    {
+      component.drawSource = DrawSource.Vertices;
+      
+      // (ab)use entity to just get out data here, since it has loading and caching capabilities
+      Entity drawfile = new Entity("data/" ~ p_entity.getValue("drawsource"));
+      
+      foreach (vertexData; drawfile.values)
+      {
+        component.vertices ~= Vertex.fromString(vertexData);
+      }
+    }
+    else
+    {
+      component.drawSource = DrawSourceFromString(p_entity.getValue("drawsource"));
+    }
     
     foreach (value; p_entity.values.keys)
     {
@@ -360,20 +376,14 @@ protected:
       }
     }
     
-    if (drawtype == DrawType.Vertices && p_entity.getValue("drawfile").length > 0)
-    {    
-      // (ab)use entity to just get out data here, since it has loading and caching capabilities
-      Entity drawfile = new Entity("data/" ~ p_entity.getValue("drawfile"));
-      
-      foreach (vertexData; drawfile.values)
-      {
-        component.vertices ~= Vertex.fromString(vertexData);
-      }
-    }
-    
     return component;
   }
-  
+
+private:
+  bool looksLikeAFile(string p_txt)
+  {
+    return endsWith(p_txt, ".txt") > 0;
+  }
   
 private:
   float m_zoom;
