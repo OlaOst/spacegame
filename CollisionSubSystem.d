@@ -24,6 +24,7 @@ module CollisionSubSystem;
 
 import std.algorithm;
 import std.conv;
+import std.exception;
 import std.stdio;
 
 import Entity;
@@ -142,7 +143,7 @@ protected:
   {
     float radius = to!float(p_entity.getValue("radius"));
     
-    assert(radius >= 0.0);
+    enforce(radius >= 0.0);
     
     CollisionType collisionType = CollisionType.Unknown;
     
@@ -159,7 +160,7 @@ protected:
         break;        
         
       default:
-        assert("Tried to create collision component from entity without collision type");
+        enforce("Tried to create collision component from entity without collision type");
         break;
     }
     

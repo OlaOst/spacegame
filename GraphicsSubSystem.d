@@ -24,6 +24,7 @@ module GraphicsSubSystem;
 
 import std.algorithm;
 import std.conv;
+import std.exception;
 import std.math;
 import std.stdio;
 
@@ -336,8 +337,10 @@ protected:
       m_centerEntity = p_entity;
     }
     
-    assert(p_entity.getValue("radius").length > 0, "Couldn't find radius for graphics component");
-    float radius = to!float(p_entity.getValue("radius"));
+    //enforce(p_entity.getValue("radius").length > 0, "Couldn't find radius for graphics component");
+    float radius = 1.0;
+    if (p_entity.getValue("radius").length > 0)
+      radius = to!float(p_entity.getValue("radius"));
     
     GraphicsComponent component = GraphicsComponent(p_entity, radius);
     

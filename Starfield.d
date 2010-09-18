@@ -73,7 +73,7 @@ public:
     {
       Entity star = new Entity();
       
-      star.setValue("drawtype", "star");
+      star.setValue("drawsource", "Star");
       star.setValue("radius", "0.25");
       
       star.angle = uniform(-3.14, 3.14);

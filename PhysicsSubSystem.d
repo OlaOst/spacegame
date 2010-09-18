@@ -23,6 +23,7 @@
 module PhysicsSubSystem;
 
 import std.conv;
+import std.exception;
 import std.math;
 import std.random;
 import std.stdio;
@@ -230,8 +231,9 @@ protected:
       newComponent.entity.velocity = Vector(uniform(-1.5, 1.5), uniform(-1.5, 1.5));
     }
     
-    assert(p_entity.getValue("mass").length > 0, "couldn't find mass for physics component");
-    newComponent.mass = to!float(p_entity.getValue("mass"));
+    //enforce(p_entity.getValue("mass").length > 0, "couldn't find mass for physics component");
+    if (p_entity.getValue("mass").length > 0)
+      newComponent.mass = to!float(p_entity.getValue("mass"));
     
     return newComponent;
   }

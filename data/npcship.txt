@@ -1,5 +1,3 @@
-root = shiproot.txt
-
 radius = 1.0
 mass = 1.0
 

@@ -53,7 +53,7 @@ unittest
   
   //Entity fromFile = new Entity("data/shiproot.txt");
   
-  //assert(fromFile.getValue("drawtype") == "triangle");
+  //assert(fromFile.getValue("drawsource") == "Triangle");
   //assert(fromFile.getValue("collisionType") == "ship");
   //assert(fromFile.getValue("radius") == "2.0");
   //assert(fromFile.getValue("mass") == "4.0");

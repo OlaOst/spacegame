@@ -85,7 +85,7 @@ unittest
   {
     Entity entity = new Entity();
     
-    entity.setValue("drawtype", "triangle");
+    entity.setValue("drawsource", "Triangle");
     entity.setValue("radius", "1.0");
     
     game.m_graphics.registerEntity(entity);
@@ -174,7 +174,7 @@ public:
     m_sound = new SoundSubSystem(16);
     
     m_mouseEntity = new Entity();
-    m_mouseEntity.setValue("drawtype", "star");
+    m_mouseEntity.setValue("drawsource", "star");
     m_mouseEntity.setValue("radius", "2.0");
     m_mouseEntity.setValue("mass", "1.0");
     m_mouseEntity.setValue("position", "5.0, 0.0");

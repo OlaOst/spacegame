@@ -73,7 +73,7 @@ public:
       {
         Entity bullet = new Entity();
 
-        bullet.setValue("drawtype", "bullet");
+        bullet.setValue("drawsource", "Bullet");
         bullet.setValue("collisionType", "bullet");
         bullet.setValue("radius", "0.1");
         bullet.setValue("mass", "0.2");

@@ -82,7 +82,7 @@ public:
 //protected:
   ComponentType[] findComponents(Entity p_entity)
   {
-    // TODO: this could problably be rangified or lambdified
+    // TODO: this could probably be rangified or lambdified
     
     ComponentType[] foundComponents;
     

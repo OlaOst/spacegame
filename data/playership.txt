@@ -1,5 +1,3 @@
-root = shiproot.txt
-
 keepInCenter = true
 
 skeleton.source = skeleton.txt
