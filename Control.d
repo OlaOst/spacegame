@@ -22,6 +22,9 @@
 
 module Control;
 
+import std.conv;
+import std.stdio;
+
 import Entity;
 import ConnectionSubSystem;
 import InputHandler;
@@ -30,7 +33,6 @@ import Vector : Vector;
 
 unittest
 {
-  auto connectionSystem = new ConnectionSubSystem(new InputHandler(), new PhysicsSubSystem());
   auto controlComponent = new ConnectionComponent(new Entity());
   
   class MockControl : public Control
@@ -53,7 +55,7 @@ unittest
   
   auto farAwayComponent = new ConnectionComponent(new Entity());
   
-  farAwayComponent.entity.position(Vector(100.0, 100.0));
+  farAwayComponent.entity.position = Vector(100.0, 100.0);
   components ~= farAwayComponent;
   
   assert(controller.nearbyEntities(controlComponent, components, 10.0).length == 1);
@@ -79,7 +81,9 @@ protected:
     foreach (candidateComponent; p_candidateComponents)
     {
       if (candidateComponent != p_sourceComponent && (candidateComponent.entity.position - p_sourceComponent.entity.position).length2d < p_radius)
+      {
         inRangeEntities ~= candidateComponent.entity;
+      }
     }
     return inRangeEntities;
   }

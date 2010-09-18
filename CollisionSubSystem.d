@@ -90,37 +90,23 @@ class CollisionComponent
 {
 invariant()
 {
-  assert(m_entity !is null);
-  assert(m_radius >= 0.0);
+  assert(entity !is null);
+  assert(radius >= 0.0);
 }
 
 public:
   this(Entity p_entity, float p_radius, CollisionType p_collisionType)
   {
-    m_entity = p_entity;
-    m_radius = p_radius;
-    m_collisionType = p_collisionType;
+    entity = p_entity;
+    radius = p_radius;
+    collisionType = p_collisionType;
   }
   
-  Entity entity()
-  {
-    return m_entity;
-  }
   
-  float radius()
-  {  
-    return m_radius;
-  }
-  
-  CollisionType collisionType()
-  {
-    return m_collisionType;
-  }
-
-private:
-  Entity m_entity;
-  float m_radius;
-  CollisionType m_collisionType;
+public:
+  Entity entity;
+  float radius;
+  CollisionType collisionType;
 }
 
 

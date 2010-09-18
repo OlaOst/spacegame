@@ -2,8 +2,6 @@ root = shiproot.txt
 
 keepInCenter = true
 
-#mass = 4.0
-
 skeleton.source = skeleton.txt
 
 leftEngine.source = engine.txt

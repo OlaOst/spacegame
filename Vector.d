@@ -98,6 +98,13 @@ struct Vector
     z = p_z;
   }
   
+  /*this(Vector p_original)
+  {
+    x = p_original.x;
+    y = p_original.y;
+    z = p_original.z;
+  }*/
+  
   float x, y, z;
 
   Vector opBinary(string op)(Vector p_right) if (op == "+") 
@@ -157,12 +164,12 @@ struct Vector
   }
   
   
-  Vector rotate(float p_angle)
+  const Vector rotate(float p_angle)
   {
     auto c = cos(p_angle);
     auto s = sin(p_angle);
     
-    return Vector(x*c - y*s, y = x*s + y*c);
+    return Vector(x*c - y*s, x*s + y*c);
   }
   
   
@@ -185,9 +192,11 @@ struct Vector
     auto values = (" " ~ p_values).split();
     
     if (values.length == 3)
-      return Vector(to!float(values[0]=="0"?"0.0":values[0]), to!float(values[1]=="0"?"0.0":values[1]), to!float(values[2]=="0"?"0.0":values[2]));
+      //return Vector(to!float(values[0]=="0"?"0.0":values[0]), to!float(values[1]=="0"?"0.0":values[1]), to!float(values[2]=="0"?"0.0":values[2]));
+      return Vector(to!float(values[0]), to!float(values[1]), to!float(values[2]));
     else if (values.length == 2)
-      return Vector(to!float(values[0]=="0"?"0.0":values[0]), to!float(values[1]=="0"?"0.0":values[1]));
+      //return Vector(to!float(values[0]=="0"?"0.0":values[0]), to!float(values[1]=="0"?"0.0":values[1]));
+      return Vector(to!float(values[0]), to!float(values[1]));
 
     assert(false, "Vector fromString needs 2 or 3 values, " ~ p_values ~ " can't be parsed as a vector");
   }

@@ -131,7 +131,6 @@ unittest
     assert(ship.position.x > 0.0);
   }
   
-  
   {
     SDL_Event quitEvent;
     quitEvent.type = SDL_QUIT;
@@ -339,7 +338,10 @@ private:
     
     m_entities ~= ship;
     
+    // shouldn't be necessary to register the owner ship entity to graphics since it's just sub-module entities that are drawn
+    // but since it might have the keepInCenter attribute graphics need to know about it
     m_graphics.registerEntity(ship);
+    
     m_physics.registerEntity(ship);
     m_connection.registerEntity(ship);
     

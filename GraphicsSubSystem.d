@@ -132,19 +132,9 @@ public:
     radius = p_radius;
   }
   
-  Vector position()
-  {
-    return entity.position;
-  }
-  
-  float angle()
-  {
-    return entity.angle;
-  }
-  
   bool isPointedAt(Vector p_pos)
   {
-    return ((position - p_pos).length2d < radius);
+    return ((entity.position - p_pos).length2d < radius);
   }
   
   DrawSource drawSource;
@@ -192,10 +182,10 @@ public:
     {
       glPushMatrix();
       
-      assert(component.position.isValid());
+      assert(component.entity.position.isValid());
       
-      glTranslatef(component.position.x, component.position.y, component.position.z);
-      glRotatef(component.angle * (180.0 / PI), 0.0, 0.0, 1.0);
+      glTranslatef(component.entity.position.x, component.entity.position.y, component.entity.position.z);
+      glRotatef(component.entity.angle * (180.0 / PI), 0.0, 0.0, 1.0);
       
       // draw connectpoinst
       glDisable(GL_DEPTH_TEST);
@@ -305,7 +295,7 @@ public:
     Entity[] foundEntities;
     foreach (component; components)
     {
-      if ((component.position - p_pos).length2d < component.radius)
+      if ((component.entity.position - p_pos).length2d < component.radius)
         foundEntities ~= component.entity;
     }
     

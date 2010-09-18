@@ -48,7 +48,7 @@ unittest
   
   assert(entity.position == Vector.origo);
   {
-    physics.components[0].m_velocity = Vector(1.0, 0.0);
+    physics.components[0].entity.velocity = Vector(1.0, 0.0);
     physics.move(1.0);
   }
   assert(entity.position.x > 0.0);
@@ -63,7 +63,7 @@ unittest
     auto spawnComp = physics.findComponents(spawn)[0];
     auto motherComp = physics.findComponents(entity)[0];
     
-    //assert(spawnComp.velocity == motherComp.velocity, "Spawned entity didn't get velocity vector copied from spawner");
+    //assert(spawnComp.entity.velocity == motherComp.entity.velocity, "Spawned entity didn't get velocity vector copied from spawner");
   }
   // TODO: what should happen when registering an entity whose spawnedFrom doesn't exists
   
@@ -84,98 +84,29 @@ class PhysicsComponent
 {
 invariant()
 {
-  assert(m_entity !is null, "Physics component had null entity");
+  assert(entity !is null, "Physics component had null entity");
   
-  assert(m_velocity.isValid());
-  assert(m_rotation == m_rotation);
+  assert(force.isValid());
+  assert(torque == torque);
   
-  assert(m_force.isValid());
-  assert(m_torque == m_torque);
-  
-  assert(m_reload == m_reload);
+  assert(reload == reload);
 }
+
 
 public:
   this(Entity p_entity)
   {  
-    m_entity = p_entity;
+    entity = p_entity;
     
-    m_velocity = Vector.origo;
-    m_force = Vector.origo;
+    force = Vector.origo;
     
-    m_rotation = 0.0;
-    m_torque = 0.0;
+    torque = 0.0;
     
-    m_mass = 1.0;
+    mass = 1.0;
     
-    m_reload = 0.0;
-  }
-  
-  Vector position()
-  {
-    return m_entity.position;
-  }
-  
-  Vector velocity()
-  {
-    return m_velocity;
-  }
-  
-  void velocity(Vector p_velocity)
-  {
-    m_velocity = p_velocity;
-  }
-  
-  float rotation()
-  {
-    return m_rotation;
-  }
-  
-  Vector force()
-  {
-    return m_force;
-  }
-  
-  void force(Vector p_force)
-  {
-    m_force = p_force;
-  }
-  
-  float torque()
-  {
-    return m_torque;
-  }
-  
-  void torque(float p_torque)
-  {
-    m_torque = p_torque;
+    reload = 0.0;
   }
 
-  Entity entity()
-  {
-    return m_entity;
-  }
-
-  
-  float reload()
-  {
-    return m_reload;
-  }
-  
-  void reload(float p_reload)
-  {
-    m_reload = p_reload;
-  }
-  
-  float mass()
-  {
-    return m_mass;
-  }
-  
-  void mass(float p_mass)
-  {
-    m_mass = p_mass;
-  }
   
 private:
   void move(float p_time)
@@ -185,37 +116,26 @@ private:
   }
   body
   {
-    //writeln("torque:   " ~ to!string(m_entity.torque));
-    //writeln("rotation: " ~ to!string(m_rotation));
-    //writeln("angle:    " ~ to!string(m_entity.angle));
+    entity.velocity += force * p_time;
+    entity.position += entity.velocity * p_time;
     
-    //writeln("force: " ~ m_entity.force.toString());
-    //writeln("vel:   " ~ m_velocity.toString());
-    //writeln("pos:   " ~ m_entity.position.toString());
+    entity.rotation += torque * p_time;
+    entity.angle += entity.rotation * p_time;
     
-    //writeln("time: " ~ to!string(p_time));
-    
-    m_velocity = m_velocity + m_force * p_time;
-    m_entity.position = m_entity.position + m_velocity * p_time;
-    
-    m_rotation = m_rotation + m_torque * p_time;
-    m_entity.angle = m_entity.angle + m_rotation * p_time;
-    
-    if (m_reload > 0.0)
-      m_reload -= p_time;
+    if (reload > 0.0)
+      reload -= p_time;
   }
   
-private:
-  Entity m_entity;
-  Vector m_velocity;
-  Vector m_force;
+
+public:
+  Entity entity;
+  Vector force;
   
-  float m_rotation;
-  float m_torque;
+  float torque;
   
-  float m_mass;
+  float mass;
   
-  float m_reload;
+  float reload;
 }
 
 
@@ -240,8 +160,8 @@ public:
       //component.force = component.force + (component.position * -0.05);
       
       // and some damping
-      component.force = component.force + (component.velocity * -0.15);
-      component.torque = component.torque + (component.rotation * -2.5);
+      component.force = component.force + (component.entity.velocity * -0.15);
+      component.torque = component.torque + (component.entity.rotation * -2.5);
       
       // handle collisions
       foreach (collision; component.entity.getAndClearCollisions)
@@ -257,7 +177,7 @@ public:
           auto collisionPhysicsComponent = possiblePhysicsComponents[0];
           
           // determine collision force
-          float collisionForce = (component.velocity * component.mass + collisionPhysicsComponent.velocity * collisionPhysicsComponent.mass).length2d;
+          float collisionForce = (component.entity.velocity * component.mass + collisionPhysicsComponent.entity.velocity * collisionPhysicsComponent.mass).length2d;
 
           // give a kick from the contactpoint
           component.force = component.force + (collision.contactPoint.normalized() * -collisionForce);
@@ -300,17 +220,15 @@ protected:
           // TODO: should be force from spawn value
           kick *= 25.0;
           
-          newComponent.velocity = spawnerCandidate.velocity + kick;
-          
-          writeln("spawn with velocity from spawner: " ~ spawnerCandidate.entity.getValue("name"));
-          
-          //newComponent.force = kick;
+          newComponent.entity.velocity = spawnerCandidate.entity.velocity + kick;
         }
       }
     }
     
     if (p_entity.getValue("velocity") == "randomize")
-      newComponent.velocity = Vector(uniform(-1.5, 1.5), uniform(-1.5, 1.5));
+    {
+      newComponent.entity.velocity = Vector(uniform(-1.5, 1.5), uniform(-1.5, 1.5));
+    }
     
     assert(p_entity.getValue("mass").length > 0, "couldn't find mass for physics component");
     newComponent.mass = to!float(p_entity.getValue("mass"));

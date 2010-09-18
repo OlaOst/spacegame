@@ -98,20 +98,20 @@ class ConnectionComponent
 {
 invariant()
 {
-  assert(m_entity !is null);
+  assert(entity !is null);
   
-  assert(m_force.isValid());
-  assert(m_relativePosition.isValid());
-  assert(m_relativeAngle == m_relativeAngle);
+  assert(force.isValid());
+  assert(relativePosition.isValid());
+  assert(relativeAngle == relativeAngle);
   
   // if the component has an owner, it should not have a grandparent
   // also the owner has to have a physics component
   // so it's not a tree structure
   // if an engine is connected to a skeleton, the owner component is still the ship, not the skeleton
-  if (m_owner !is null)
+  if (owner !is null)
   {
-    assert(m_owner.owner is null);
-    assert(m_owner.physicsComponent !is null);
+    assert(owner.owner is null);
+    assert(owner.physicsComponent !is null);
   }
 }
 
@@ -119,108 +119,32 @@ invariant()
 public:
   this(Entity p_entity)
   {
-    m_entity = p_entity;
+    entity = p_entity;
     
-    m_relativePosition = Vector.origo;
-    m_relativeAngle = 0.0;
+    relativePosition = Vector.origo;
+    relativeAngle = 0.0;
     
-    m_force = Vector.origo;
-    m_torque = 0.0;
+    force = Vector.origo;
+    torque = 0.0;
     
-    m_reload = 0.0;
-  }
-  
-  Entity entity()
-  {
-    return m_entity;
-  }
-
-  ConnectionComponent owner()
-  {
-    return m_owner;
-  }
-  
-  void owner(ConnectionComponent p_owner)
-  {
-    m_owner = p_owner;
-  }
-  
-  PhysicsComponent physicsComponent()
-  {
-    return m_physicsComponent;
-  }
-  
-  void physicsComponent(PhysicsComponent p_physicsComponent)
-  {
-    m_physicsComponent = p_physicsComponent;
-  }
-  
-  Vector relativePosition()
-  {
-    return m_relativePosition;
-  }
-  
-  void relativePosition(Vector p_relativePosition)
-  {
-    m_relativePosition = p_relativePosition;
-  }
-  
-  float relativeAngle()
-  {
-    return m_relativeAngle;
-  }
-  
-  void relativeAngle(float p_relativeAngle)
-  {
-    m_relativeAngle = p_relativeAngle;
-  }
-  
-  Vector force()
-  {
-    return m_force;
-  }
-  
-  float torque()
-  {
-    return m_torque;
-  }
+    reload = 0.0;
+  } 
   
   
-  void force(Vector p_force)
-  {
-    m_force = p_force;
-  }
+public:
+  Entity entity;
   
-  void torque(float p_torque)
-  {
-    m_torque = p_torque;
-  }
+  ConnectionComponent owner;
   
-  @property float reload()
-  {
-    return m_reload;
-  }
+  PhysicsComponent physicsComponent;
   
-  @property float reload(float p_reload)
-  {
-    return m_reload = p_reload;
-  }
+  Vector relativePosition;
+  float relativeAngle;
   
+  Vector force;
+  float torque;
   
-private:
-  Entity m_entity;
-  
-  ConnectionComponent m_owner;
-  
-  PhysicsComponent m_physicsComponent;
-  
-  Vector m_relativePosition;
-  float m_relativeAngle;
-  
-  Vector m_force;
-  float m_torque;
-  
-  float m_reload;
+  float reload;
 }
 
 
@@ -232,7 +156,6 @@ public:
     m_physics = p_physics;
     
     m_inputHandler = p_inputHandler;
-    //m_playerControl = new PlayerControl(p_inputHandler);
   }
   
   
@@ -243,16 +166,14 @@ public:
       // let eventual controller do its thing
       if (component in m_controlMapping)
       {
-        //writeln(to!string(m_controlMapping[component].nearbyEntities(components, component, 10.0).length) ~ " components nearby");
-        
         m_controlMapping[component].update(component, components);
       }
 	  
       // propagate force/torque/stuff from controller to owner
       if (component.owner !is null && component.owner.physicsComponent !is null)
       {
-        component.owner.physicsComponent.force = component.owner.physicsComponent.force + component.force;
-        component.owner.physicsComponent.torque = component.owner.physicsComponent.torque + component.torque;
+        component.owner.physicsComponent.force += component.force;
+        component.owner.physicsComponent.torque += component.torque;
         
         auto spawns = component.entity.getAndClearSpawns();
 
@@ -282,15 +203,10 @@ public:
       {
         component.entity.position = component.relativePosition.rotate(component.owner.physicsComponent.entity.angle) + component.owner.physicsComponent.entity.position;
         component.entity.angle = component.relativeAngle + component.owner.physicsComponent.entity.angle;
-        
-        // update velocity, so that launcher entities can launch bullets with relative speed
-        // TODO: doesn't work, is velocity reset before spawn gets kicked off?
-        if (component.owner.physicsComponent !is null && component.physicsComponent !is null)
-        {
-          writeln("updating velocity from owner");
-          
-          component.owner.physicsComponent.velocity = component.physicsComponent.velocity;
-        }
+
+        // TODO: do we need to take into account ship rotation and stuff here?
+        component.entity.velocity = component.owner.entity.velocity;
+        component.entity.rotation = component.owner.entity.rotation;
       }
     }
   }
@@ -348,10 +264,6 @@ protected:
       newComponent.relativeAngle = to!float(p_entity.getValue("relativeAngle"));
     }
     
-    /*if (p_entity.getValue("control") == "player")
-    {
-      m_controlMapping[newComponent] = m_playerControl;
-    }*/
     if (p_entity.getValue("control") == "playerEngine")
     {
       m_controlMapping[newComponent] = new PlayerEngineControl(m_inputHandler);
@@ -376,7 +288,6 @@ protected:
 private:
   PhysicsSubSystem m_physics;
   
-  //PlayerControl m_playerControl;
   InputHandler m_inputHandler;
   
   Control[ConnectionComponent] m_controlMapping;

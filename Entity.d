@@ -24,6 +24,7 @@ module Entity;
 
 import std.algorithm;
 import std.conv;
+import std.exception;
 import std.math;
 import std.stdio;
 import std.string;
@@ -63,40 +64,42 @@ class Entity
 {
 invariant()
 {
-  assert(m_position.x == m_position.x && m_position.y == m_position.y && m_position.z == m_position.z);
-  assert(m_angle == m_angle);
+  assert(position.isValid());
+  assert(velocity.isValid());
   
-  assert(m_lifetime == m_lifetime);
+  assert(angle == angle);
+  assert(rotation == rotation);
+  
+  assert(lifetime == lifetime);
 }
 
 
 public:
   this()
   {
-    m_position = Vector.origo;
-    m_angle = 0.0;
+    position = Vector.origo;
+    velocity = Vector.origo;
     
-    m_id = m_idCounter++;
+    angle = 0.0;
+    rotation = 0.0;
     
-    m_lifetime = float.infinity;
+    id = m_idCounter++;
+    
+    lifetime = float.infinity;
   }
   
   this(string p_file)
   {
     this();
     
-    loadValues(m_values, p_file);
+    loadValues(values, p_file);
   }
   
   static void loadValues(ref string[string] p_values, string p_file)
   {
     string[] content;
     
-    if (p_file in m_fileCache)
-    {
-      content = m_fileCache[p_file];
-    }
-    else
+    if (p_file !in m_fileCache)
     {
       auto file = File(p_file, "r");
       
@@ -104,9 +107,9 @@ public:
       {
         m_fileCache[p_file] ~= line;
       }
-      
-      content = m_fileCache[p_file];
     }
+
+    content = m_fileCache[p_file];
 
     foreach (string line; content)
     {
@@ -114,6 +117,7 @@ public:
       if (line.strip.length > 0 && line.strip[0] == '#')
         continue;
         
+      // parse key-value line
       if (std.algorithm.find(line, '=').length > 0)
       {
         auto keyval = line.split("=");
@@ -127,69 +131,26 @@ public:
         
         p_values[keyval[0].strip] = keyval[1].strip;
       }
+      else
+      {
+        //enforce(false, "Don't know how to parse this: " ~ line);
+      }
     }
-  }
-  
-  static string[][string] m_fileCache;
-  
-  Vector position()
-  {
-    return m_position;
-  }
-  
-  void position(Vector p_position)
-  {
-    m_position = p_position;
-  }
-  
-  float angle()
-  {
-    return m_angle;
-  }
-  
-  void angle(float p_angle)
-  {
-    m_angle = p_angle;
-  }
-  
-  float lifetime()
-  {
-    return m_lifetime;
-  }
-  
-  void lifetime(float p_lifetime)
-  {
-    m_lifetime = p_lifetime;
   }
   
   void setValue(string p_name, string p_value)
   {
-    m_values[p_name] = p_value;
+    values[p_name] = p_value;
   }
   
   string getValue(string p_name)
-  in
   {
-    //assert(p_name in m_values);
-  }
-  body
-  {
-    if (p_name in m_values)
-      return m_values[p_name];
+    if (p_name in values)
+      return values[p_name];
     else
       return null;
   }
-  
-  @property string[string] values()
-  {
-    return m_values;
-  }
     
-  int id()
-  {
-    return m_id;
-  }
-  
   void addSpawn(Entity p_spawn)
   {
     m_spawnList ~= p_spawn;
@@ -229,16 +190,22 @@ public:
   }
   
   
+public:
+  immutable int id;
+
+  Vector position;
+  Vector velocity;
+  
+  float angle;
+  float rotation;
+  
+  float lifetime;
+  
+  string[string] values;
+  
 private:
-  Vector m_position;
-  float m_angle;
-  
-  float m_lifetime;
-  
   static int m_idCounter;
-  int m_id;
-  
-  string[string] m_values;
+  private static string[][string] m_fileCache;
   
   Entity[] m_spawnList;
   Collision[] m_collisionList;
