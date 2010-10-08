@@ -123,13 +123,19 @@ public:
         auto keyval = line.split("=");
         
         assert(keyval.length == 2, "unexpected value: " ~ to!string(keyval));
-        assert(keyval[0].length > 0, "empty key");
-        assert(keyval[1].length > 0, "empty value");
+        
+        auto key = keyval[0].strip;
+        auto val = keyval[1].strip;
+        
+        assert(key.length > 0, "empty key");
+        assert(val.length > 0, "empty value");
       
-        if (keyval[0].strip == "root")
+        //writeln("setting key '" ~ key ~ "' to '" ~ val ~ "'");
+      
+        if (key == "root")
           loadValues(p_values, "data/" ~ keyval[1].strip);
         
-        p_values[keyval[0].strip] = keyval[1].strip;
+        p_values[key] = val;
       }
       else
       {
