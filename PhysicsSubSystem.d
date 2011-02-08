@@ -113,7 +113,15 @@ private:
   void move(float p_time)
   in
   {
+    assert(p_time == p_time);
     assert(p_time >= 0.0);
+    assert(force.isValid());
+    assert(torque == torque);
+  }
+  out
+  {
+    assert(entity.position.isValid());
+    assert(entity.velocity.isValid());
   }
   body
   {

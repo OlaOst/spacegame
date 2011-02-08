@@ -24,6 +24,7 @@ module Game;
 
 import std.algorithm;
 import std.conv;
+import std.datetime;
 import std.math;
 import std.random;
 import std.stdio;
@@ -38,7 +39,6 @@ import InputHandler;
 import PhysicsSubSystem;
 import SoundSubSystem;
 import Starfield;
-import Timer;
 import Vector : Vector;
 
 
@@ -147,7 +147,6 @@ class Game
 {
 invariant()
 {
-  assert(m_timer !is null, "Game didn't initialize timer");
   assert(m_inputHandler !is null, "Game didn't initialize input handler");
   assert(m_graphics !is null, "Game didn't initialize graphics");
   assert(m_physics !is null, "Game didn't initialize physics");
@@ -162,8 +161,6 @@ public:
     m_updateCount = 0;
     m_running = true;
     m_paused = false;
-    
-    m_timer = new Timer();
     
     m_inputHandler = new InputHandler();
     
@@ -223,9 +220,13 @@ private:
   void update()
   {
     m_timer.stop();
-    float elapsedTime = m_timer.elapsedTime;
+    
+    float elapsedTime = m_timer.peek.milliseconds * 0.001;
+    
     if (m_updateCount == 0)
       elapsedTime = 0.0;
+    
+    m_timer.reset();
     m_timer.start();
     
     m_updateCount++;
@@ -380,7 +381,7 @@ private:
   
   bool m_paused;
   
-  Timer m_timer;
+  StopWatch m_timer;
   
   InputHandler m_inputHandler;
   
