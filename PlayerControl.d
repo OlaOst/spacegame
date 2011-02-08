@@ -83,7 +83,7 @@ public:
         Entity bullet = new Entity();
 
         bullet.setValue("drawsource", "Bullet");
-        bullet.setValue("collisionType", "bullet");
+        bullet.setValue("collisionType", "Bullet");
         bullet.setValue("radius", "0.1");
         bullet.setValue("mass", "0.2");
         bullet.setValue("spawnedFrom", to!string(p_sourceComponent.entity.id));

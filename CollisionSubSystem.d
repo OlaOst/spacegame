@@ -27,6 +27,7 @@ import std.conv;
 import std.exception;
 import std.stdio;
 
+import EnumGen;
 import Entity;
 import SubSystem : SubSystem;
 import Vector : Vector;
@@ -41,7 +42,7 @@ unittest
   
   Entity entity = new Entity();
   entity.setValue("radius", "2.0");
-  entity.setValue("collisionType", "ship");
+  entity.setValue("collisionType", "Ship");
   
   sys.registerEntity(entity);
   
@@ -51,7 +52,7 @@ unittest
   
   Entity collide = new Entity();
   collide.setValue("radius", "2.0");
-  collide.setValue("collisionType", "bullet");
+  collide.setValue("collisionType", "Bullet");
   collide.position = Vector(1.0, 0.0);
   
   sys.registerEntity(collide);
@@ -66,7 +67,7 @@ unittest
   
   Entity noCollide = new Entity();
   noCollide.setValue("radius", "2.0");
-  noCollide.setValue("collisionType", "asteroid");
+  noCollide.setValue("collisionType", "Asteroid");
   noCollide.position = Vector(10.0, 0.0);
   
   sys.determineCollisions();
@@ -78,13 +79,16 @@ unittest
 }
 
 
-enum CollisionType
-{
-  Unknown,
-  Ship,
-  Asteroid,
-  Bullet
-}
+// TODO: use enumgen to create set/get functions for this enum
+
+mixin(genEnum("CollisionType",
+[
+  "Unknown",
+  "Ship",
+  "NpcShip",
+  "Asteroid",
+  "Bullet"
+]));
 
 
 class CollisionComponent
@@ -145,24 +149,8 @@ protected:
     
     enforce(radius >= 0.0);
     
-    CollisionType collisionType = CollisionType.Unknown;
-    
-    switch (p_entity.getValue("collisionType"))
-    {
-      case "ship":
-        collisionType = CollisionType.Ship;
-        break;
-      case "asteroid":
-        collisionType = CollisionType.Asteroid;
-        break;
-      case "bullet":
-        collisionType = CollisionType.Bullet;
-        break;        
-        
-      default:
-        enforce("Tried to create collision component from entity without collision type");
-        break;
-    }
+    auto collisionType = CollisionTypeFromString(p_entity.getValue("collisionType"));
+    enforce(collisionType != CollisionType.Unknown, "Tried to create collision component from entity with unknown collision type " ~ p_entity.getValue("collisionType"));
     
     return new CollisionComponent(p_entity, radius, collisionType);
   }
