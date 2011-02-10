@@ -71,6 +71,7 @@ invariant()
   assert(rotation == rotation);
   
   assert(lifetime == lifetime);
+  assert(health == health);
 }
 
 
@@ -86,6 +87,7 @@ public:
     id = m_idCounter++;
     
     lifetime = float.infinity;
+    health = float.infinity;
   }
   
   this(string p_file)
@@ -206,6 +208,7 @@ public:
   float rotation;
   
   float lifetime;
+  float health;
   
   string[string] values;
   

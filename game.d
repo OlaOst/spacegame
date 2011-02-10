@@ -188,7 +188,7 @@ public:
     
     loadShip("playership.txt");
     
-    for (int n = 0; n < 1; n++)
+    for (int n = 0; n < 10; n++)
     {
       Entity npcShip = loadShip("npcship.txt");
       
@@ -355,10 +355,13 @@ private:
   {
     Entity ship = new Entity("data/" ~ p_file);
     
+    if (ship.getValue("health"))
+      ship.health = to!float(ship.getValue("health"));
+    
     m_entities[ship.id] = ship;
     
-    // shouldn't be necessary to register the owner ship entity to graphics since it's just sub-module entities that are drawn
-    // but since it might have the keepInCenter attribute graphics need to know about it
+    // shouldn't be necessary to register the owner ship entity to graphics since only the sub-module entities are drawn
+    // but since the owner ship entity might have the keepInCenter attribute the graphics subsytem need to know about it
     m_graphics.registerEntity(ship);
     
     m_physics.registerEntity(ship);

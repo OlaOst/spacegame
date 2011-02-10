@@ -175,21 +175,30 @@ public:
       // handle collisions
       foreach (collision; component.entity.getAndClearCollisions)
       {
+        CollisionComponent self = (collision.first.entity == component.entity) ? collision.first : collision.second;
         CollisionComponent other = (collision.first.entity == component.entity) ? collision.second : collision.first;
         
-        // this physics component might have collided with a non-physics component, i.e. ship moving over and lighting up something in the background or the hud
+        // this physics component might have collided with a non-physics component, i.e. ship moving over and lighting up something in the background or the hud, like a targeting reticle
         auto possiblePhysicsComponents = findComponents(other.entity);
         
         // if we have physics component on the other collision component, we can do something physical
         if (possiblePhysicsComponents.length > 0)
         {
-          auto collisionPhysicsComponent = possiblePhysicsComponents[0];
+          auto otherPhysicsComponent = possiblePhysicsComponents[0];
           
           // determine collision force
-          float collisionForce = (component.entity.velocity * component.mass + collisionPhysicsComponent.entity.velocity * collisionPhysicsComponent.mass).length2d;
+          float collisionForce = (component.entity.velocity * component.mass + otherPhysicsComponent.entity.velocity * otherPhysicsComponent.mass).length2d;
 
           // give a kick from the contactpoint
           component.force = component.force + (collision.contactPoint.normalized() * -collisionForce);
+          
+          // reduce health for certain collisiontypes
+          if (self.collisionType == CollisionType.NpcShip && other.collisionType == CollisionType.Bullet)
+          {
+            debug write("reducing npc ship health from " ~ to!string(self.entity.health) ~ " to ");
+            self.entity.health -= otherPhysicsComponent.mass * other.entity.velocity.length2d();
+            debug writeln(to!string(self.entity.health));
+          }
         }
       }
       
