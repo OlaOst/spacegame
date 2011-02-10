@@ -190,46 +190,14 @@ public:
     enforce(fontError != FT_Err_Unknown_File_Format, "Error, font format unsupported");
     enforce(fontError == false, "Error loading font file");
     
-    FT_Set_Pixel_Sizes(m_face, 16, 16);
-    /*
-    auto glyphIndex = FT_Get_Char_Index(face, '?');
-    FT_Load_Glyph(face, glyphIndex, 0);
-    
-    FT_Render_Glyph(face.glyph, FT_Render_Mode.FT_RENDER_MODE_NORMAL);
-
-    writeln("glyph width: " ~ to!string(face.glyph.bitmap.width) ~ ", height:" ~ to!string(face.glyph.bitmap.rows));
-    
-    uint texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	
-    glTexImage2D(GL_TEXTURE_2D, 0, 1, 16, 16, 0, GL_RGBA, GL_UNSIGNED_BYTE, face.glyph.bitmap.buffer);
-    */
-    /*
-    bool Engine::ft_render_glyph(char c)
-    {
-      FT_UInt glyph_index = FT_Get_Char_Index(ft_face, c);	
-      FT_UInt error = FT_Load_Glyph(ft_face, glyph_index, FT_LOAD_DEFAULT);	
-      if (error)	{		return false;	}	
-      error = FT_Render_Glyph(ft_face->glyph, FT_RENDER_MODE_NORMAL);	
-      if (error)	{		return false;	}	
-      int width  = power2(ft_face->glyph->bitmap.width);	
-      int height = power2(ft_face->glyph->bitmap.rows);	
-      
-      glGenTextures(1, &texture);	
-      glBindTexture(GL_TEXTURE_2D, texture);	
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	
-      glTexImage2D(GL_TEXTURE_2D, 0, 1, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, &ft_face->glyph->bitmap.buffer);	
-      
-      return true;
-    }
-    */
+    FT_Set_Pixel_Sizes(m_face, 32, 32);
   }
   
   void renderChar(FT_Face face, char c)
   {
+    enum int glyphWidth = 32;
+    enum int glyphHeight = 32;
+    
     glEnable(GL_TEXTURE_2D);
     
     auto glyphIndex = FT_Get_Char_Index(face, c);
@@ -238,14 +206,27 @@ public:
     
     FT_Render_Glyph(face.glyph, FT_Render_Mode.FT_RENDER_MODE_NORMAL);
 
-    //writeln("glyph width: " ~ to!string(face.glyph.bitmap.width) ~ ", height:" ~ to!string(face.glyph.bitmap.rows));
+    auto unalignedGlyph = face.glyph.bitmap;
+    
+    GLubyte[2 * glyphWidth * glyphHeight] alignedGlyph;
+    
+    //writeln(to!string(unalignedGlyph.width) ~ " " ~ to!string(unalignedGlyph.rows));
+    
+    for (int y = 0; y < glyphHeight; y++)
+    {
+      for (int x = 0; x < glyphWidth; x++)
+      {
+        alignedGlyph[2 * (x+y*glyphWidth)] = alignedGlyph[2 * (x+y*glyphWidth)+1] = (x >= unalignedGlyph.width || y >= unalignedGlyph.rows) ? 0 : unalignedGlyph.buffer[x + unalignedGlyph.width * y];
+      }
+    }
+    
     
     uint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	
-    glTexImage2D(GL_TEXTURE_2D, 0, 1, 16, 16, 0, GL_RGBA, GL_UNSIGNED_BYTE, face.glyph.bitmap.buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, 1, glyphWidth, glyphHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, alignedGlyph.ptr);
   }
   
   void draw()
@@ -259,13 +240,13 @@ public:
     // pull back camera a bit so we can see entities with z=0.0
     glTranslatef(0.0, 0.0, -1.0);
     
-    renderChar(m_face, '?');
+    renderChar(m_face, 'æ');
     glBegin(GL_QUADS);
       glNormal3f(0.0, 0.0, 0.5);
-      glTexCoord2f(0.0, 0.0); glVertex3f(-1.0, -1.0, 0.0);
-      glTexCoord2f(1.0, 0.0); glVertex3f( 1.0, -1.0, 0.0);
-      glTexCoord2f(1.0, 1.0); glVertex3f( 1.0,  1.0, 0.0);
-      glTexCoord2f(0.0, 1.0); glVertex3f(-1.0,  1.0, 0.0);
+      glTexCoord2f(0.0, 1.0); glVertex3f(-1.0, -1.0, 0.0);
+      glTexCoord2f(1.0, 1.0); glVertex3f( 1.0, -1.0, 0.0);
+      glTexCoord2f(1.0, 0.0); glVertex3f( 1.0,  1.0, 0.0);
+      glTexCoord2f(0.0, 0.0); glVertex3f(-1.0,  1.0, 0.0);
     glEnd();
     
     if (m_centerEntity !is null)
