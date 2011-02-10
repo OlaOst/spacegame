@@ -236,6 +236,7 @@ private:
     
     if (!m_paused)
     {
+      Entity[] entitiesToRemove;
       foreach (Entity entity; m_entities)
       {
         spawnList ~= entity.getAndClearSpawns();
@@ -248,7 +249,24 @@ private:
           m_graphics.removeEntity(entity);
           m_collision.removeEntity(entity);
           m_sound.removeEntity(entity);
+          
+          entitiesToRemove ~= entity;
         }
+        
+        if (entity.health < 0.0)
+        {
+          m_physics.removeEntity(entity);
+          m_graphics.removeEntity(entity);
+          m_collision.removeEntity(entity);
+          m_sound.removeEntity(entity);
+          
+          entitiesToRemove ~= entity;
+        }
+      }
+      
+      foreach (entityToRemove; entitiesToRemove)
+      {
+        m_entities.remove(entityToRemove.id);
       }
     }
     
@@ -277,7 +295,7 @@ private:
     
     foreach (Entity spawn; spawnList)
     {
-      m_entities ~= spawn;
+      m_entities[spawn.id] = spawn;
       
       if (spawn.getValue("onlySound") != "true")
       {
@@ -337,7 +355,7 @@ private:
   {
     Entity ship = new Entity("data/" ~ p_file);
     
-    m_entities ~= ship;
+    m_entities[ship.id] = ship;
     
     // shouldn't be necessary to register the owner ship entity to graphics since it's just sub-module entities that are drawn
     // but since it might have the keepInCenter attribute graphics need to know about it
@@ -393,7 +411,7 @@ private:
     
   Starfield m_starfield;
   
-  Entity[] m_entities;
+  Entity[int] m_entities;
   
   Entity m_mouseEntity;
   Entity m_mouseSkeleton;
