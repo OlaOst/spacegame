@@ -79,8 +79,6 @@ unittest
 }
 
 
-// TODO: use enumgen to create set/get functions for this enum
-
 mixin(genEnum("CollisionType",
 [
   "Unknown",
