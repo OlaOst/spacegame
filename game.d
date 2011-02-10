@@ -33,7 +33,7 @@ import derelict.sdl.sdl;
 
 import CollisionSubSystem;
 import ConnectionSubSystem;
-import Display;
+//import Display;
 import GraphicsSubSystem;
 import InputHandler;
 import PhysicsSubSystem;
@@ -164,7 +164,10 @@ public:
     
     m_inputHandler = new InputHandler();
     
-    m_graphics = new GraphicsSubSystem();
+    int xres = 800;
+    int yres = 600;
+    
+    m_graphics = new GraphicsSubSystem(xres, yres);
     m_physics = new PhysicsSubSystem();
     m_collision = new CollisionSubSystem();
     m_connection = new ConnectionSubSystem(m_inputHandler, m_physics);
@@ -188,7 +191,7 @@ public:
     
     loadShip("playership.txt");
     
-    for (int n = 0; n < 10; n++)
+    for (int n = 0; n < 3; n++)
     {
       Entity npcShip = loadShip("npcship.txt");
       
@@ -198,8 +201,8 @@ public:
     
     m_starfield = new Starfield(m_graphics, 10.0);
     
-    initDisplay(800, 600);
-    m_inputHandler.setScreenResolution(800, 600);
+    //initDisplay(800, 600);
+    m_inputHandler.setScreenResolution(xres, yres);
   }
  
   void run()
@@ -269,9 +272,7 @@ private:
         m_entities.remove(entityToRemove.id);
       }
     }
-    
-    swapBuffers();
-    
+
     m_inputHandler.pollEvents();
 
     if (!m_paused)

@@ -45,10 +45,21 @@ void initDisplay(int p_screenWidth, int p_screenHeight)
   
   DerelictGL.loadExtensions();
   
-  //debug writeln("OpenGL version: " ~ to!string(glGetString(GL_VERSION)));
-  //debug writeln("OpenGL renderer: " ~ to!string(glGetString(GL_RENDERER)));
-  //debug writeln("OpenGL vendor: " ~ to!string(glGetString(GL_VENDOR)));
-  //debug writeln("Extensions: " ~ to!string(glGetString(GL_EXTENSIONS)));
+  debug writeln("OpenGL version: " ~ to!string(glGetString(GL_VERSION)));
+  debug writeln("OpenGL renderer: " ~ to!string(glGetString(GL_RENDERER)));
+  debug writeln("OpenGL vendor: " ~ to!string(glGetString(GL_VENDOR)));
+  /*debug writeln("Extensions: " ~ to!string(glGetString(GL_EXTENSIONS)));
+  
+  string[] loaded = DerelictGL.loadedExtensionNames;
+  string[] notLoaded = DerelictGL.notLoadedExtensionNames;
+   
+  writeln("Loaded extensions:");
+  foreach (n; loaded)
+    writeln(n);
+   
+  writeln("Not loaded extensions:");
+  foreach (n; notLoaded)
+    writeln(n); */
   
   //auto shader = glCreateShader(GL_FRAGMENT_SHADER);
    
@@ -68,6 +79,11 @@ void setupGL(int p_screenWidth, int p_screenHeight)
   glLoadIdentity();
   
   glEnable(GL_DEPTH_TEST);
+
+  //uint texture;
+  //glGenTextures(1, &texture);
+  //glBindTexture(GL_TEXTURE_2D, texture);
+  //glTexImage2D(GL_TEXTURE_2D, 0, 1, 16, 16, 0, GL_ALPHA, GL_UNSIGNED_BYTE, face.glyph.bitmap.buffer);
   
   //glCreateShader(GL_VERTEX_SHADER);
   

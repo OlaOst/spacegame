@@ -196,7 +196,7 @@ public:
           if (self.collisionType == CollisionType.NpcShip && other.collisionType == CollisionType.Bullet)
           {
             debug write("reducing npc ship health from " ~ to!string(self.entity.health) ~ " to ");
-            self.entity.health -= otherPhysicsComponent.mass * other.entity.velocity.length2d();
+            self.entity.health -= otherPhysicsComponent.mass * (other.entity.velocity.length2d() - self.entity.velocity.length2d());
             debug writeln(to!string(self.entity.health));
           }
         }

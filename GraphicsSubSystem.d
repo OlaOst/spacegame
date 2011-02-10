@@ -29,7 +29,9 @@ import std.math;
 import std.stdio;
 
 import derelict.opengl.gl;
+import derelict.freetype.ft;
 
+import Display;
 import Entity;
 import EnumGen;
 import SubSystem : SubSystem;
@@ -42,7 +44,7 @@ unittest
   scope(failure) writeln(__FILE__ ~ " unittests failed");
 
   
-  GraphicsSubSystem graphics = new GraphicsSubSystem();
+  GraphicsSubSystem graphics = new GraphicsSubSystem(256, 128);
   
   Entity[] entitiesPointedAt = graphics.findEntitiesPointedAt(Vector.origo);
   assert(entitiesPointedAt.length == 0);
@@ -97,6 +99,16 @@ unittest
   
   entitiesPointedAt = graphics.findEntitiesPointedAt(Vector(3.5, 0.0));
   assert(entitiesPointedAt.length == 0, to!string(entitiesPointedAt.length));
+  
+  
+  Entity text = new Entity();
+  text.setValue("drawsource", "Text");
+  text.setValue("radius", "3.0");
+  text.setValue("text", "hello spacegame");
+  
+  graphics.registerEntity(text);
+  
+  graphics.draw();
 }
 
 mixin(genEnum("DrawSource",
@@ -105,7 +117,8 @@ mixin(genEnum("DrawSource",
   "Triangle",
   "Star",
   "Bullet",
-  "Vertices"
+  "Vertices",
+  "Text"
 ]));
 
 struct Vertex
@@ -159,22 +172,101 @@ invariant()
 
 
 public:
-  this()
+  this(int p_screenWidth, int p_screenHeight)
   {
     m_zoom = 0.02;
     
     m_mouseWorldPos = Vector.origo;
+    
+    initDisplay(p_screenWidth, p_screenHeight);
+    
+    DerelictFT.load();
+    
+    FT_Library lib;
+    
+    enforce(FT_Init_FreeType(&lib) == false, "Error initializing FreeType");
+    
+    auto fontError = FT_New_Face(lib, "./freesansbold.ttf", 0, &m_face);
+    enforce(fontError != FT_Err_Unknown_File_Format, "Error, font format unsupported");
+    enforce(fontError == false, "Error loading font file");
+    
+    FT_Set_Pixel_Sizes(m_face, 16, 16);
+    /*
+    auto glyphIndex = FT_Get_Char_Index(face, '?');
+    FT_Load_Glyph(face, glyphIndex, 0);
+    
+    FT_Render_Glyph(face.glyph, FT_Render_Mode.FT_RENDER_MODE_NORMAL);
+
+    writeln("glyph width: " ~ to!string(face.glyph.bitmap.width) ~ ", height:" ~ to!string(face.glyph.bitmap.rows));
+    
+    uint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	
+    glTexImage2D(GL_TEXTURE_2D, 0, 1, 16, 16, 0, GL_RGBA, GL_UNSIGNED_BYTE, face.glyph.bitmap.buffer);
+    */
+    /*
+    bool Engine::ft_render_glyph(char c)
+    {
+      FT_UInt glyph_index = FT_Get_Char_Index(ft_face, c);	
+      FT_UInt error = FT_Load_Glyph(ft_face, glyph_index, FT_LOAD_DEFAULT);	
+      if (error)	{		return false;	}	
+      error = FT_Render_Glyph(ft_face->glyph, FT_RENDER_MODE_NORMAL);	
+      if (error)	{		return false;	}	
+      int width  = power2(ft_face->glyph->bitmap.width);	
+      int height = power2(ft_face->glyph->bitmap.rows);	
+      
+      glGenTextures(1, &texture);	
+      glBindTexture(GL_TEXTURE_2D, texture);	
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	
+      glTexImage2D(GL_TEXTURE_2D, 0, 1, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, &ft_face->glyph->bitmap.buffer);	
+      
+      return true;
+    }
+    */
   }
   
+  void renderChar(FT_Face face, char c)
+  {
+    glEnable(GL_TEXTURE_2D);
+    
+    auto glyphIndex = FT_Get_Char_Index(face, c);
+    
+    FT_Load_Glyph(face, glyphIndex, 0);
+    
+    FT_Render_Glyph(face.glyph, FT_Render_Mode.FT_RENDER_MODE_NORMAL);
+
+    //writeln("glyph width: " ~ to!string(face.glyph.bitmap.width) ~ ", height:" ~ to!string(face.glyph.bitmap.rows));
+    
+    uint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	
+    glTexImage2D(GL_TEXTURE_2D, 0, 1, 16, 16, 0, GL_RGBA, GL_UNSIGNED_BYTE, face.glyph.bitmap.buffer);
+  }
   
   void draw()
   {
+    swapBuffers();
+  
     glPushMatrix();
     
     glScalef(m_zoom, m_zoom, 1.0);
     
     // pull back camera a bit so we can see entities with z=0.0
     glTranslatef(0.0, 0.0, -1.0);
+    
+    renderChar(m_face, '?');
+    glBegin(GL_QUADS);
+      glNormal3f(0.0, 0.0, 0.5);
+      glTexCoord2f(0.0, 0.0); glVertex3f(-1.0, -1.0, 0.0);
+      glTexCoord2f(1.0, 0.0); glVertex3f( 1.0, -1.0, 0.0);
+      glTexCoord2f(1.0, 1.0); glVertex3f( 1.0,  1.0, 0.0);
+      glTexCoord2f(0.0, 1.0); glVertex3f(-1.0,  1.0, 0.0);
+    glEnd();
     
     if (m_centerEntity !is null)
       glTranslatef(-m_centerEntity.position.x, -m_centerEntity.position.y, 0.0);
@@ -199,6 +291,7 @@ public:
         glEnd();
       }
       glEnable(GL_DEPTH_TEST);
+      
       
       if (component.drawSource == DrawSource.Triangle)
       {
@@ -245,6 +338,12 @@ public:
           glVertex3f(vertex.x, vertex.y, 0.0);
         }
         glEnd();
+      }
+      else if (component.drawSource == DrawSource.Text)
+      {
+        auto text = component.entity.getValue("text");
+        
+        
       }
       else if (component.drawSource == DrawSource.Unknown)
       {
@@ -384,4 +483,6 @@ private:
   Vector m_mouseWorldPos;
   
   Entity m_centerEntity;
+  
+  FT_Face m_face;
 }
