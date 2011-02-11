@@ -191,6 +191,9 @@ public:
     enforce(fontError == false, "Error loading font file");
     
     FT_Set_Pixel_Sizes(m_face, 32, 32);
+    
+    
+    renderChar(m_face, '?');
   }
   
   void renderChar(FT_Face face, char c)
@@ -212,18 +215,38 @@ public:
     
     //writeln(to!string(unalignedGlyph.width) ~ " " ~ to!string(unalignedGlyph.rows));
     
-    for (int y = 0; y < glyphHeight; y++)
+    for (int j = 0; j < glyphHeight; j++)
     {
-      for (int x = 0; x < glyphWidth; x++)
+      for (int i = 0; i < glyphWidth; i++)
       {
-        alignedGlyph[2 * (x+y*glyphWidth)] = alignedGlyph[2 * (x+y*glyphWidth)+1] = (x >= unalignedGlyph.width || y >= unalignedGlyph.rows) ? 0 : unalignedGlyph.buffer[x + unalignedGlyph.width * y];
+        int coord = 2 * (i+j*glyphWidth);
+        
+        if (i >= unalignedGlyph.width || j >= unalignedGlyph.rows)
+          alignedGlyph[coord] = alignedGlyph[coord+1] = 0;
+        else
+          alignedGlyph[coord] = alignedGlyph[coord+1] = unalignedGlyph.buffer[i + unalignedGlyph.width*j];
+        
+        //alignedGlyph[2 * (i+j*glyphWidth)] = alignedGlyph[(2 * (i+j*glyphWidth))+1] = (i >= unalignedGlyph.width || j >= unalignedGlyph.rows) ? 0 : unalignedGlyph.buffer[i + unalignedGlyph.width * j];
       }
     }
     
+    /*for (int j = 0; j < glyphHeight; j++)
+    {
+      for (int i = 0; i < glyphWidth; i++)
+      {
+        write(to!string(alignedGlyph[2 * (i+j*glyphWidth)]) ~ " ");
+      }
+      write("\n");
+    }*/
     
     uint texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    
+    if (texture <= 0)
+    {
+      glGenTextures(1, &texture);
+      glBindTexture(GL_TEXTURE_2D, texture);
+    }
+    
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	
     glTexImage2D(GL_TEXTURE_2D, 0, 1, glyphWidth, glyphHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, alignedGlyph.ptr);
@@ -240,12 +263,12 @@ public:
     // pull back camera a bit so we can see entities with z=0.0
     glTranslatef(0.0, 0.0, -1.0);
     
-    renderChar(m_face, 'æ');
+    renderChar(m_face, '?');
     glBegin(GL_QUADS);
-      glNormal3f(0.0, 0.0, 0.5);
-      glTexCoord2f(0.0, 1.0); glVertex3f(-1.0, -1.0, 0.0);
-      glTexCoord2f(1.0, 1.0); glVertex3f( 1.0, -1.0, 0.0);
-      glTexCoord2f(1.0, 0.0); glVertex3f( 1.0,  1.0, 0.0);
+      glNormal3f(0.0, 0.0, 1.0);
+      glTexCoord2f(0.0, 0.5); glVertex3f(-1.0, -1.0, 0.0);
+      glTexCoord2f(0.5, 0.5); glVertex3f( 1.0, -1.0, 0.0);
+      glTexCoord2f(0.5, 0.0); glVertex3f( 1.0,  1.0, 0.0);
       glTexCoord2f(0.0, 0.0); glVertex3f(-1.0,  1.0, 0.0);
     glEnd();
     
