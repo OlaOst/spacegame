@@ -213,31 +213,17 @@ public:
     
     GLubyte[2 * glyphWidth * glyphHeight] alignedGlyph;
     
-    //writeln(to!string(unalignedGlyph.width) ~ " " ~ to!string(unalignedGlyph.rows));
+    auto widthOffset = (glyphWidth - unalignedGlyph.width) / 2;
+    auto heightOffset = (glyphHeight - unalignedGlyph.rows) / 2;
     
-    for (int j = 0; j < glyphHeight; j++)
+    for (int y = 0; y < unalignedGlyph.rows; y++)
     {
-      for (int i = 0; i < glyphWidth; i++)
+      for (int x = 0; x < unalignedGlyph.width; x++)
       {
-        int coord = 2 * (i+j*glyphWidth);
-        
-        if (i >= unalignedGlyph.width || j >= unalignedGlyph.rows)
-          alignedGlyph[coord] = alignedGlyph[coord+1] = 0;
-        else
-          alignedGlyph[coord] = alignedGlyph[coord+1] = unalignedGlyph.buffer[i + unalignedGlyph.width*j];
-        
-        //alignedGlyph[2 * (i+j*glyphWidth)] = alignedGlyph[(2 * (i+j*glyphWidth))+1] = (i >= unalignedGlyph.width || j >= unalignedGlyph.rows) ? 0 : unalignedGlyph.buffer[i + unalignedGlyph.width * j];
+        int coord = 2 * (x+widthOffset + (y+heightOffset)*glyphHeight);
+        alignedGlyph[coord] = alignedGlyph[coord+1] = unalignedGlyph.buffer[x + y*unalignedGlyph.width];
       }
     }
-    
-    /*for (int j = 0; j < glyphHeight; j++)
-    {
-      for (int i = 0; i < glyphWidth; i++)
-      {
-        write(to!string(alignedGlyph[2 * (i+j*glyphWidth)]) ~ " ");
-      }
-      write("\n");
-    }*/
     
     uint texture;
     
@@ -263,7 +249,7 @@ public:
     // pull back camera a bit so we can see entities with z=0.0
     glTranslatef(0.0, 0.0, -1.0);
     
-    renderChar(m_face, '?');
+    //renderChar(m_face, '?');
     glBegin(GL_QUADS);
       glNormal3f(0.0, 0.0, 1.0);
       glTexCoord2f(0.0, 0.5); glVertex3f(-1.0, -1.0, 0.0);
