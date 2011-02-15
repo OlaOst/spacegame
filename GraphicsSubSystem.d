@@ -319,7 +319,7 @@ public:
     glEnd();
     
     glTranslatef(0.0, 5.0, 0.0);
-    m_textRender.renderChar('c');
+    m_textRender.renderString("hello world");
     
     glPopMatrix();
   }

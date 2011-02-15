@@ -22,8 +22,10 @@ unittest
   
   // assert derelict freetype is loaded? supposed to be internal stuff, not part of interface
   
-  textRender.renderChar('1');
-  textRender.renderChar('1');
+  textRender.renderChar('1', false);
+  textRender.renderChar('1', false);
+  
+  textRender.renderString("hello world");
 }
 
 
@@ -46,34 +48,47 @@ public:
   }
   
   
-  void renderChar(char p_char)
+  void renderChar(char p_char, bool p_translate)
   {
     glEnable(GL_TEXTURE_2D);
     
     auto glyph = loadGlyph(p_char);
-    
+        
     assert(glyph);
+    
+    auto xCoord = cast(float)glyph.bitmap.width / 32.0;
+    auto yCoord = cast(float)glyph.bitmap.rows / 32.0;
+    
+    xCoord = yCoord = 1.0;
     
     glBindTexture(GL_TEXTURE_2D, glyph.textureId);
 
     glBegin(GL_QUADS);
       glNormal3f(0.0, 0.0, 1.0);
-      glTexCoord2f(0.0, 1.0); glVertex3f(-1.0, -1.0, 0.0);
-      glTexCoord2f(1.0, 1.0); glVertex3f( 1.0, -1.0, 0.0);
-      glTexCoord2f(1.0, 0.0); glVertex3f( 1.0,  1.0, 0.0);
-      glTexCoord2f(0.0, 0.0); glVertex3f(-1.0,  1.0, 0.0);
+      glTexCoord2f(0.0,    yCoord); glVertex3f(-(xCoord/yCoord), -1.0, 0.0);
+      glTexCoord2f(xCoord, yCoord); glVertex3f( (xCoord/yCoord), -1.0, 0.0);
+      glTexCoord2f(xCoord, 0.0);    glVertex3f( (xCoord/yCoord),  1.0, 0.0);
+      glTexCoord2f(0.0,    0.0);    glVertex3f(-(xCoord/yCoord),  1.0, 0.0);
     glEnd();
+    
+    if (p_translate)
+      glTranslatef(2.0 * xCoord/yCoord, 0.0, 0.0);
   }
 
+  
+  void renderString(string p_string)
+  {
+    foreach (letter; p_string)
+    {
+      renderChar(letter, true);
+    }
+  }
   
 private:
   GlyphTexture loadGlyph(char p_char)
   {
     if (p_char !in m_glyphs)
-    {
-      debug writeln("loading char " ~ p_char);
       m_glyphs[p_char] = createGlyphTexture(p_char);
-    }
     
     assert(m_glyphs[p_char]);
     
@@ -93,14 +108,11 @@ private:
     FT_Load_Glyph(m_face, glyphIndex, 0);
     FT_Render_Glyph(m_face.glyph, FT_Render_Mode.FT_RENDER_MODE_NORMAL);
 
-    debug writeln("ft_render_glyph");
     
     GlyphTexture glyph = new GlyphTexture();
 
     glyph.data = new GLubyte[4 * glyphWidth * glyphHeight];
     glyph.bitmap = m_face.glyph.bitmap;
-    
-    debug writeln("glyh.data, bitmap");
     
     auto unalignedGlyph = m_face.glyph.bitmap.buffer;
     
@@ -112,24 +124,18 @@ private:
       for (int x = 0; x < m_face.glyph.bitmap.width; x++)
       {
         int coord = 4 * (x+widthOffset + (y+heightOffset)*glyphHeight);
+        //int coord = 4 * (x + y*glyphHeight);
+        
         glyph.data[coord] = unalignedGlyph[x + y*m_face.glyph.bitmap.width];
       }
     }
-    
-    debug writeln("bitmap -> glyph.data");
 
     glGenTextures(1, &glyph.textureId);
     glBindTexture(GL_TEXTURE_2D, glyph.textureId);
     
-    debug writeln("glBindTexture");
-
-    debug writeln(to!string(*glyph.data.ptr));
-    
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	
     glTexImage2D(GL_TEXTURE_2D, 0, 1, glyphWidth, glyphHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, glyph.data.ptr);
-    
-    debug writeln("glTextImage2D");
     
     return glyph;
   }
