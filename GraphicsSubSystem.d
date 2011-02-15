@@ -35,6 +35,7 @@ import Display;
 import Entity;
 import EnumGen;
 import SubSystem : SubSystem;
+import TextRender;
 import Vector : Vector;
 
 
@@ -166,6 +167,7 @@ class GraphicsSubSystem : public SubSystem!(GraphicsComponent)
 {
 invariant()
 {
+  assert(m_textRender !is null);
   assert(m_zoom > 0.0);
   assert(m_mouseWorldPos.isValid());
 }
@@ -174,71 +176,17 @@ invariant()
 public:
   this(int p_screenWidth, int p_screenHeight)
   {
+    m_textRender = new TextRender();
+    
     m_zoom = 0.02;
     
     m_mouseWorldPos = Vector.origo;
     
     initDisplay(p_screenWidth, p_screenHeight);
-    
-    DerelictFT.load();
-    
-    FT_Library lib;
-    
-    enforce(FT_Init_FreeType(&lib) == false, "Error initializing FreeType");
-    
-    auto fontError = FT_New_Face(lib, "./freesansbold.ttf", 0, &m_face);
-    enforce(fontError != FT_Err_Unknown_File_Format, "Error, font format unsupported");
-    enforce(fontError == false, "Error loading font file");
-    
-    FT_Set_Pixel_Sizes(m_face, 32, 32);
-    
-    
-    renderChar(m_face, '?');
   }
   
-  void renderChar(FT_Face face, char c)
-  {
-    enum int glyphWidth = 32;
-    enum int glyphHeight = 32;
-    
-    glEnable(GL_TEXTURE_2D);
-    
-    auto glyphIndex = FT_Get_Char_Index(face, c);
-    
-    FT_Load_Glyph(face, glyphIndex, 0);
-    
-    FT_Render_Glyph(face.glyph, FT_Render_Mode.FT_RENDER_MODE_NORMAL);
-
-    auto unalignedGlyph = face.glyph.bitmap;
-    
-    GLubyte[2 * glyphWidth * glyphHeight] alignedGlyph;
-    
-    auto widthOffset = (glyphWidth - unalignedGlyph.width) / 2;
-    auto heightOffset = (glyphHeight - unalignedGlyph.rows) / 2;
-    
-    for (int y = 0; y < unalignedGlyph.rows; y++)
-    {
-      for (int x = 0; x < unalignedGlyph.width; x++)
-      {
-        int coord = 2 * (x+widthOffset + (y+heightOffset)*glyphHeight);
-        alignedGlyph[coord] = alignedGlyph[coord+1] = unalignedGlyph.buffer[x + y*unalignedGlyph.width];
-      }
-    }
-    
-    uint texture;
-    
-    if (texture <= 0)
-    {
-      glGenTextures(1, &texture);
-      glBindTexture(GL_TEXTURE_2D, texture);
-    }
-    
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	
-    glTexImage2D(GL_TEXTURE_2D, 0, 1, glyphWidth, glyphHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, alignedGlyph.ptr);
-  }
   
-  void draw()
+  void draw() 
   {
     swapBuffers();
   
@@ -249,17 +197,10 @@ public:
     // pull back camera a bit so we can see entities with z=0.0
     glTranslatef(0.0, 0.0, -1.0);
     
-    //renderChar(m_face, '?');
-    glBegin(GL_QUADS);
-      glNormal3f(0.0, 0.0, 1.0);
-      glTexCoord2f(0.0, 0.5); glVertex3f(-1.0, -1.0, 0.0);
-      glTexCoord2f(0.5, 0.5); glVertex3f( 1.0, -1.0, 0.0);
-      glTexCoord2f(0.5, 0.0); glVertex3f( 1.0,  1.0, 0.0);
-      glTexCoord2f(0.0, 0.0); glVertex3f(-1.0,  1.0, 0.0);
-    glEnd();
-    
     if (m_centerEntity !is null)
       glTranslatef(-m_centerEntity.position.x, -m_centerEntity.position.y, 0.0);
+    
+    glDisable(GL_TEXTURE_2D);
     
     foreach (component; components)
     {
@@ -377,6 +318,9 @@ public:
       glVertex2f(m_mouseWorldPos.x, m_mouseWorldPos.y);
     glEnd();
     
+    glTranslatef(0.0, 5.0, 0.0);
+    m_textRender.renderChar('c');
+    
     glPopMatrix();
   }
   
@@ -468,11 +412,11 @@ private:
   }
   
 private:
+  TextRender m_textRender;
+  
   float m_zoom;
   
   Vector m_mouseWorldPos;
   
   Entity m_centerEntity;
-  
-  FT_Face m_face;
 }
