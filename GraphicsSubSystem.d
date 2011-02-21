@@ -25,6 +25,7 @@ module GraphicsSubSystem;
 import std.algorithm;
 import std.conv;
 import std.exception;
+import std.format;
 import std.math;
 import std.stdio;
 
@@ -209,6 +210,14 @@ public:
       assert(component.entity.position.isValid());
       
       glTranslatef(component.entity.position.x, component.entity.position.y, component.entity.position.z);
+      
+      // show some data for entities, unrotated
+      glPushMatrix();
+        glTranslatef(0.0, component.radius*2, 0.0);
+        m_textRender.renderString(to!string(component.entity.velocity.length2d()));
+      glPopMatrix();
+      glDisable(GL_TEXTURE_2D);
+      
       glRotatef(component.entity.angle * (180.0 / PI), 0.0, 0.0, 1.0);
       
       // draw connectpoinst

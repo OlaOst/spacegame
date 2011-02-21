@@ -59,29 +59,36 @@ public:
     auto xCoord = cast(float)glyph.bitmap.width / 32.0;
     auto yCoord = cast(float)glyph.bitmap.rows / 32.0;
     
-    xCoord = yCoord = 1.0;
+    //xCoord = yCoord = 1.0;
     
     glBindTexture(GL_TEXTURE_2D, glyph.textureId);
 
     glBegin(GL_QUADS);
       glNormal3f(0.0, 0.0, 1.0);
-      glTexCoord2f(0.0,    yCoord); glVertex3f(-(xCoord/yCoord), -1.0, 0.0);
-      glTexCoord2f(xCoord, yCoord); glVertex3f( (xCoord/yCoord), -1.0, 0.0);
-      glTexCoord2f(xCoord, 0.0);    glVertex3f( (xCoord/yCoord),  1.0, 0.0);
-      glTexCoord2f(0.0,    0.0);    glVertex3f(-(xCoord/yCoord),  1.0, 0.0);
+      //glTexCoord2f(0.0,    yCoord); glVertex3f(-(xCoord/yCoord), -1.0, 0.0);
+      //glTexCoord2f(xCoord, yCoord); glVertex3f( (xCoord/yCoord), -1.0, 0.0);
+      //glTexCoord2f(xCoord, 0.0);    glVertex3f( (xCoord/yCoord),  1.0, 0.0);
+      //glTexCoord2f(0.0,    0.0);    glVertex3f(-(xCoord/yCoord),  1.0, 0.0);
+      
+      glTexCoord2f(0.0,    yCoord); glVertex3f(0.0,    0.0,    0.0);
+      glTexCoord2f(xCoord, yCoord); glVertex3f(xCoord, 0.0,    0.0);
+      glTexCoord2f(xCoord, 0.0);    glVertex3f(xCoord, yCoord, 0.0);
+      glTexCoord2f(0.0,    0.0);    glVertex3f(0.0,    yCoord, 0.0);
     glEnd();
     
     if (p_translate)
-      glTranslatef(2.0 * xCoord/yCoord, 0.0, 0.0);
+      glTranslatef(1.0 * xCoord/yCoord, 0.0, 0.0);
   }
 
   
   void renderString(string p_string)
   {
+    glPushMatrix();
+    
     foreach (letter; p_string)
-    {
       renderChar(letter, true);
-    }
+      
+    glPopMatrix();
   }
   
 private:
@@ -107,7 +114,6 @@ private:
     
     FT_Load_Glyph(m_face, glyphIndex, 0);
     FT_Render_Glyph(m_face.glyph, FT_Render_Mode.FT_RENDER_MODE_NORMAL);
-
     
     GlyphTexture glyph = new GlyphTexture();
 
@@ -116,6 +122,8 @@ private:
     
     auto unalignedGlyph = m_face.glyph.bitmap.buffer;
     
+    //debug writeln("glyph " ~ p_char ~ " buffer is " ~ to!string(m_face.glyph.bitmap.width) ~ "x" ~ to!string(m_face.glyph.bitmap.rows) ~ ", pitch is " ~ to!string(m_face.glyph.bitmap.pitch));
+    
     auto widthOffset = (glyphWidth - m_face.glyph.bitmap.width) / 2;
     auto heightOffset = (glyphHeight - m_face.glyph.bitmap.rows) / 2;
     
@@ -123,8 +131,8 @@ private:
     {
       for (int x = 0; x < m_face.glyph.bitmap.width; x++)
       {
-        int coord = 4 * (x+widthOffset + (y+heightOffset)*glyphHeight);
-        //int coord = 4 * (x + y*glyphHeight);
+        //int coord = 4 * (x+widthOffset + (y+heightOffset)*glyphHeight);
+        int coord = 4 * (x + y*glyphHeight);
         
         glyph.data[coord] = unalignedGlyph[x + y*m_face.glyph.bitmap.width];
       }
