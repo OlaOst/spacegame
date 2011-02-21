@@ -33,7 +33,6 @@ import derelict.sdl.sdl;
 
 import CollisionSubSystem;
 import ConnectionSubSystem;
-//import Display;
 import GraphicsSubSystem;
 import InputHandler;
 import PhysicsSubSystem;
@@ -200,8 +199,7 @@ public:
     }
     
     m_starfield = new Starfield(m_graphics, 10.0);
-    
-    //initDisplay(800, 600);
+
     m_inputHandler.setScreenResolution(xres, yres);
   }
  

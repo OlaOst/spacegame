@@ -246,7 +246,7 @@ protected:
         // same owner and same name -> should be unique
         if (skeletonCandidate.owner == newComponent.owner && skeletonCandidate.entity.getValue("name") == skeletonName)
         {
-          writeln("found connection to " ~ skeletonCandidate.entity.getValue("name") ~ " on point " ~ skeletonCandidate.entity.getValue("connectpoint." ~ connectpointName ~ ".position"));
+          //writeln("found connection to " ~ skeletonCandidate.entity.getValue("name") ~ " on point " ~ skeletonCandidate.entity.getValue("connectpoint." ~ connectpointName ~ ".position"));
           
           newComponent.relativePosition = Vector.fromString(skeletonCandidate.entity.getValue("connectpoint." ~ connectpointName ~ ".position"));
           break;

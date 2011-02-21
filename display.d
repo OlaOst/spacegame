@@ -23,16 +23,33 @@
 module Display;
 
 import std.conv;
+import std.exception;
 import std.stdio;
 import std.string;
 
 import derelict.sdl.sdl;
 import derelict.opengl.gl;
+//import derelict.opengl.glext;
 import derelict.opengl.glu;
+//import derelict.util.compat;
 
+import ShaderHandler;
+
+
+unittest
+{
+  scope(success) writeln(__FILE__ ~ " unittests succeeded");
+  scope(failure) writeln(__FILE__ ~ " unittests failed");
+  
+  initDisplay(1, 1);
+}
 
 void initDisplay(int p_screenWidth, int p_screenHeight)
 {
+  version(DerelictGL_ALL) debug writeln("DerelictGL_ALL defined");
+  version(DerelictGL_ARB) debug writeln("DerelictGL_ARB defined");
+  version(DerelictGL_EXT) debug writeln("DerelictGL_EXT defined");
+  
   DerelictSDL.load();
   DerelictGL.load();
   DerelictGLU.load();
@@ -46,25 +63,17 @@ void initDisplay(int p_screenWidth, int p_screenHeight)
   DerelictGL.loadExtensions();
   
   debug writeln("OpenGL version: " ~ to!string(glGetString(GL_VERSION)));
+  debug writeln("DerelictGL.maxVersion: " ~ to!string(DerelictGL.maxVersion));
   debug writeln("OpenGL renderer: " ~ to!string(glGetString(GL_RENDERER)));
   debug writeln("OpenGL vendor: " ~ to!string(glGetString(GL_VENDOR)));
-  /*debug writeln("Extensions: " ~ to!string(glGetString(GL_EXTENSIONS)));
   
-  string[] loaded = DerelictGL.loadedExtensionNames;
-  string[] notLoaded = DerelictGL.notLoadedExtensionNames;
-   
-  writeln("Loaded extensions:");
-  foreach (n; loaded)
-    writeln(n);
-   
-  writeln("Not loaded extensions:");
-  foreach (n; notLoaded)
-    writeln(n); */
+  string[] loaded = DerelictGL.loadedExtensionNames();
   
-  //auto shader = glCreateShader(GL_FRAGMENT_SHADER);
-   
+  shadify();
+  
   setupGL(p_screenWidth, p_screenHeight);
 }
+
 
 void setupGL(int p_screenWidth, int p_screenHeight)
 {
