@@ -29,9 +29,7 @@ import std.string;
 
 import derelict.sdl.sdl;
 import derelict.opengl.gl;
-//import derelict.opengl.glext;
 import derelict.opengl.glu;
-//import derelict.util.compat;
 
 import ShaderHandler;
 
@@ -69,7 +67,7 @@ void initDisplay(int p_screenWidth, int p_screenHeight)
   
   string[] loaded = DerelictGL.loadedExtensionNames();
   
-  shadify();
+  //shadify();
   
   setupGL(p_screenWidth, p_screenHeight);
 }
@@ -91,22 +89,13 @@ void setupGL(int p_screenWidth, int p_screenHeight)
   
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  //uint texture;
-  //glGenTextures(1, &texture);
-  //glBindTexture(GL_TEXTURE_2D, texture);
-  //glTexImage2D(GL_TEXTURE_2D, 0, 1, 16, 16, 0, GL_ALPHA, GL_UNSIGNED_BYTE, face.glyph.bitmap.buffer);
-  
-  //glCreateShader(GL_VERTEX_SHADER);
-  
-  //string[] sources = ["return;"];
-  
-  //glShaderSource(shaderid, 1, sources, null);
 }
 
 void swapBuffers()
 {
   SDL_GL_SwapBuffers();
+  
+  changeStuff();
   
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }

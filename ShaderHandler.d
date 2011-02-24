@@ -1,6 +1,8 @@
 module ShaderHandler;
 
 import std.conv;
+import std.exception;
+import std.math;
 import std.stdio;
 import std.string;
 
@@ -16,36 +18,44 @@ unittest
   debug writeln("are GL_ARB_shader_objects supported? " ~ to!string(DerelictGL.isExtensionSupported("GL_ARB_shader_objects")));
 }
 
+GLhandleARB program;
+
 void shadify()
 {
   string fragSource = "
+    uniform vec4 color;
+    varying vec4 vColor;
     void main(void)
     {
-      gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+      gl_FragColor = vColor ; //+ color; //vec4(0.0, 1.0, 0.0, 1.0);      
     }
   ";
   
   string vertexSource = "
+    varying vec4 vColor;
     void main(void)
     {
       vec4 a = gl_Vertex;
       
-      a.x = a.x * 0.5;
-      a.y = a.y * 1.5;
+      vColor = gl_Color.rgba;
+      
+      //a.x = a.x * 0.5;
+      //a.y = a.y * 0.5;
       
       gl_Position = gl_ModelViewProjectionMatrix * a;
     }
   ";
     
-  auto program = glCreateProgramObjectARB();
+  program = glCreateProgramObjectARB();
   
   createShader(fragSource, true, program);
-  //createShader(vertexSource, true, program);
+  createShader(vertexSource, false, program);
   
   glLinkProgramARB(program);
   
   glUseProgramObjectARB(program);
 }
+
 
 void createShader(string shaderSource, bool isFragmentShader, GLuint program)
 {
@@ -59,7 +69,6 @@ void createShader(string shaderSource, bool isFragmentShader, GLuint program)
   glCompileShaderARB(shader);
   
   GLint loglen;
-  
   debug
   {
     glGetObjectParameterivARB(shader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &loglen);
@@ -74,5 +83,20 @@ void createShader(string shaderSource, bool isFragmentShader, GLuint program)
     }
   }
   
+  glGetObjectParameterivARB(shader, GL_OBJECT_COMPILE_STATUS_ARB, &loglen);
+  enforce(loglen != 0, "Error compiling shader");
+  
   glAttachObjectARB(program, shader);
+}
+
+
+float wavy = 0.0;
+void changeStuff()
+{
+  GLint loc = glGetUniformLocationARB(program, "color");
+
+  wavy += 0.01;
+  
+  if (loc != -1)
+    glUniform4fARB(loc, (cos(wavy)+1.0)/2, 0.0, (sin(wavy)+1.0)/2, 0.0);
 }
