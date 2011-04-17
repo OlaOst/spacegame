@@ -20,7 +20,7 @@
  THE SOFTWARE.
 */
 
-module SoundSubSystem;
+module SubSystem.Sound;
 
 import std.conv;
 import std.stdio;
@@ -29,7 +29,7 @@ import derelict.openal.al;
 import derelict.openal.alut;
 
 import Entity;
-import SubSystem : SubSystem;
+import SubSystem.Base;
 
 
 unittest
@@ -55,7 +55,7 @@ public:
 }
 
 
-class SoundSubSystem : public SubSystem!(SoundComponent)
+class SoundSubSystem : public Base!(SoundComponent)
 {
 invariant()
 {

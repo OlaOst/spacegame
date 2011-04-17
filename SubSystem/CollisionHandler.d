@@ -20,7 +20,7 @@
  THE SOFTWARE.
 */
 
-module CollisionSubSystem;
+module SubSystem.CollisionHandler;
 
 import std.algorithm;
 import std.conv;
@@ -29,7 +29,7 @@ import std.stdio;
 
 import EnumGen;
 import Entity;
-import SubSystem : SubSystem;
+import SubSystem.Base;
 import Vector : Vector;
 
 
@@ -121,7 +121,7 @@ struct Collision
 }
 
 
-class CollisionSubSystem : public SubSystem!(CollisionComponent)
+class CollisionHandler : public Base!(CollisionComponent)
 {
 public:
   this()

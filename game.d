@@ -31,12 +31,12 @@ import std.stdio;
 
 import derelict.sdl.sdl;
 
-import CollisionSubSystem;
-import ConnectionSubSystem;
-import GraphicsSubSystem;
+import SubSystem.CollisionHandler;
+import SubSystem.ConnectionHandler;
+import SubSystem.Graphics;
+import SubSystem.Physics;
+import SubSystem.Sound;
 import InputHandler;
-import PhysicsSubSystem;
-import SoundSubSystem;
 import Starfield;
 import Vector : Vector;
 
@@ -166,10 +166,10 @@ public:
     int xres = 800;
     int yres = 600;
     
-    m_graphics = new GraphicsSubSystem(xres, yres);
-    m_physics = new PhysicsSubSystem();
-    m_collision = new CollisionSubSystem();
-    m_connection = new ConnectionSubSystem(m_inputHandler, m_physics);
+    m_graphics = new Graphics(xres, yres);
+    m_physics = new Physics();
+    m_collision = new CollisionHandler();
+    m_connection = new ConnectionHandler(m_inputHandler, m_physics);
     m_sound = new SoundSubSystem(16);
     
     m_mouseEntity = new Entity();
@@ -405,10 +405,10 @@ private:
   
   InputHandler m_inputHandler;
   
-  GraphicsSubSystem m_graphics;
-  PhysicsSubSystem m_physics;
-  CollisionSubSystem m_collision;
-  ConnectionSubSystem m_connection;
+  Graphics m_graphics;
+  Physics m_physics;
+  CollisionHandler m_collision;
+  ConnectionHandler m_connection;
   SoundSubSystem m_sound;
     
   Starfield m_starfield;

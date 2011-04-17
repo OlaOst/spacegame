@@ -20,7 +20,7 @@
  THE SOFTWARE.
 */
 
-module ConnectionSubSystem;
+module SubSystem.ConnectionHandler;
 
 import std.conv;
 import std.stdio;
@@ -31,8 +31,8 @@ import FlockControl;
 import InputHandler;
 import PlayerEngineControl;
 import PlayerLauncherControl;
-import PhysicsSubSystem;
-import SubSystem : SubSystem;
+import SubSystem.Physics;
+import SubSystem.Base;
 import Vector : Vector;
 
 
@@ -52,8 +52,8 @@ unittest
     }
   }
   
-  auto physics = new PhysicsSubSystem();
-  auto sys = new ConnectionSubSystem(new InputHandler(), physics);
+  auto physics = new Physics();
+  auto sys = new Connection(new InputHandler(), physics);
   
   Entity ship = new Entity();
   ship.setValue("mass", "2.0");
@@ -148,10 +148,10 @@ public:
 }
 
 
-class ConnectionSubSystem : public SubSystem!(ConnectionComponent)
+class ConnectionHandler : public Base!(ConnectionComponent)
 {
 public:
-  this(InputHandler p_inputHandler, PhysicsSubSystem p_physics)
+  this(InputHandler p_inputHandler, Physics p_physics)
   {
     m_physics = p_physics;
     
@@ -286,7 +286,7 @@ protected:
   
   
 private:
-  PhysicsSubSystem m_physics;
+  Physics m_physics;
   
   InputHandler m_inputHandler;
   

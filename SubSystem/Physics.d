@@ -20,7 +20,7 @@
  THE SOFTWARE.
 */
 
-module PhysicsSubSystem;
+module SubSystem.Physics;
 
 import std.conv;
 import std.exception;
@@ -28,9 +28,9 @@ import std.math;
 import std.random;
 import std.stdio;
 
-import CollisionSubSystem;
+import SubSystem.Base;
+import SubSystem.CollisionHandler;
 import Entity;
-import SubSystem : SubSystem;
 import Vector : Vector;
 
 
@@ -39,7 +39,7 @@ unittest
   scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
   
-  PhysicsSubSystem physics = new PhysicsSubSystem();
+  Physics physics = new Physics();
   
   Entity entity = new Entity();
   
@@ -148,7 +148,7 @@ public:
 }
 
 
-class PhysicsSubSystem : public SubSystem!(PhysicsComponent)
+class Physics : public Base!(PhysicsComponent)
 {
 public:
   this()

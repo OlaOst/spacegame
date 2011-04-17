@@ -26,7 +26,7 @@ import std.conv;
 import std.stdio;
 
 import Entity;
-import ConnectionSubSystem;
+import SubSystem.ConnectionHandler;
 import InputHandler;
 import Vector : Vector;
 

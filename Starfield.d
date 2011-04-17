@@ -25,7 +25,7 @@ module Starfield;
 import std.random;
 
 import Entity;
-import GraphicsSubSystem;
+import SubSystem.Graphics;
 import Vector : Vector;
 
 
@@ -47,7 +47,7 @@ invariant()
 
 public:
   // density - avg stars per square 'meter'
-  this(GraphicsSubSystem p_graphics, float p_density)
+  this(Graphics p_graphics, float p_density)
   {
     m_graphics = p_graphics;
     populate(p_density);
@@ -95,6 +95,6 @@ public:
   }
   
 private:
-  GraphicsSubSystem m_graphics;
+  Graphics m_graphics;
   Entity[] m_stars;
 }

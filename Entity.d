@@ -29,7 +29,7 @@ import std.math;
 import std.stdio;
 import std.string;
 
-import CollisionSubSystem;
+import SubSystem.CollisionHandler;
 import Vector : Vector;
 
 

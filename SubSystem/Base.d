@@ -20,7 +20,7 @@
  THE SOFTWARE.
 */
 
-module SubSystem;
+module SubSystem.Base;
 
 import std.stdio;
 
@@ -34,9 +34,9 @@ unittest
   
   struct MockComponent {}
   
-  class MockSubSystem : public SubSystem!(MockComponent)
+  class MockSubSystem : public Base!(MockComponent)
   {
-    protected:
+    private:
       MockComponent createComponent(Entity p_entity)
       {
         return MockComponent();
@@ -62,7 +62,7 @@ unittest
 }
 
 
-abstract class SubSystem(ComponentType)
+abstract class Base(ComponentType)
 {
 public:
   void registerEntity(Entity p_entity)
@@ -100,12 +100,14 @@ protected:
     return m_components[p_component];
   }
   
-  abstract ComponentType createComponent(Entity p_entity);
-  
   ComponentType[] components()
   {
     return m_components.keys;
   }
+
+
+protected:
+  abstract ComponentType createComponent(Entity p_entity);
   
   
 private:

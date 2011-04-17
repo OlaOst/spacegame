@@ -28,7 +28,7 @@ import std.stdio;
 
 import Control;
 import Entity;
-import ConnectionSubSystem;
+import SubSystem.ConnectionHandler;
 import Vector : Vector;
 
 

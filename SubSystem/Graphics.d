@@ -20,7 +20,7 @@
  THE SOFTWARE.
 */
 
-module GraphicsSubSystem;
+module SubSystem.Graphics;
 
 import std.algorithm;
 import std.conv;
@@ -35,7 +35,7 @@ import derelict.freetype.ft;
 import Display;
 import Entity;
 import EnumGen;
-import SubSystem : SubSystem;
+import SubSystem.Base;
 import TextRender;
 import Vector : Vector;
 
@@ -46,7 +46,7 @@ unittest
   scope(failure) writeln(__FILE__ ~ " unittests failed");
 
   
-  GraphicsSubSystem graphics = new GraphicsSubSystem(256, 128);
+  Graphics graphics = new Graphics(256, 128);
   
   Entity[] entitiesPointedAt = graphics.findEntitiesPointedAt(Vector.origo);
   assert(entitiesPointedAt.length == 0);
@@ -164,7 +164,7 @@ private:
 }
 
 
-class GraphicsSubSystem : public SubSystem!(GraphicsComponent)
+class Graphics : public Base!(GraphicsComponent)
 {
 invariant()
 {
