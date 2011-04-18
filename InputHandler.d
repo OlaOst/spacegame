@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2010 Ola Østtveit
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -28,11 +28,21 @@ import std.conv;
 import derelict.sdl.sdl;
 
 import EnumGen;
-import Vector : Vector;
+import common.Vector;
+
+pragma(lib, "DerelictUtil.lib");
+pragma(lib, "DerelictSDL.lib");
 
 
 unittest
 {
+  scope(success) writeln(__FILE__ ~ " unittests succeeded");
+  scope(failure) writeln(__FILE__ ~ " unittests failed");
+  
+  DerelictSDL.load();
+  
+  SDL_Init(SDL_INIT_VIDEO);
+  
   InputHandler inputHandler = new InputHandler();
 
   // assert that input responds to input

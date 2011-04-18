@@ -31,7 +31,7 @@ import Vector : Vector;
 
 unittest
 {
-  Starfield starfield = new Starfield(new GraphicsSubSystem(256, 128), 20);
+  Starfield starfield = new Starfield(new Graphics(256, 128), 20);
   
   assert(starfield.m_stars.length > 0);
 }

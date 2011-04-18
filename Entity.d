@@ -29,7 +29,7 @@ import std.math;
 import std.stdio;
 import std.string;
 
-import SubSystem.CollisionHandler;
+//import SubSystem.CollisionHandler;
 import Vector : Vector;
 
 
@@ -178,7 +178,7 @@ public:
     return tmp;
   }
 
-  void addCollision(Collision p_collision)
+  /*void addCollision(Collision p_collision)
   {
     m_collisionList ~= p_collision;
   }
@@ -195,7 +195,7 @@ public:
     m_collisionList.length = 0;
     
     return tmp;
-  }
+  }*/
   
   
 public:
@@ -217,5 +217,5 @@ private:
   private static string[][string] m_fileCache;
   
   Entity[] m_spawnList;
-  Collision[] m_collisionList;
+  //Collision[] m_collisionList;
 }

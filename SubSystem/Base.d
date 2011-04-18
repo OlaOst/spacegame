@@ -32,14 +32,14 @@ unittest
   scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
   
-  struct MockComponent {}
+  //struct MockComponent {}
   
-  class MockSubSystem : public Base!(MockComponent)
+  class MockSubSystem : public Base!(int)
   {
     private:
-      MockComponent createComponent(Entity p_entity)
+      int createComponent(Entity p_entity)
       {
-        return MockComponent();
+        return 0;
       }
   }
   MockSubSystem sys = new MockSubSystem();
@@ -62,54 +62,67 @@ unittest
 }
 
 
-abstract class Base(ComponentType)
+class Base(ComponentType) : public IBase!(ComponentType, Entity[ComponentType])
 {
-public:
-  void registerEntity(Entity p_entity)
+  public final void registerEntity(Entity p_entity)
   {
-    auto component = createComponent(p_entity);
-    m_components[component] = p_entity;
+    IregisterEntity(p_entity, m_store);
   }
   
-  void removeEntity(Entity p_entity)
+  public final void removeEntity(Entity p_entity)
   {
-    foreach (ComponentType component; m_components.keys)
-      if (m_components[component] == p_entity)
-        m_components.remove(component);
+    IremoveEntity(p_entity, m_store);
   }
   
-
-//protected:
-  ComponentType[] findComponents(Entity p_entity)
+  public final ComponentType[] findComponents(Entity p_entity)
   {
     // TODO: this could probably be rangified or lambdified
     
     ComponentType[] foundComponents;
     
-    foreach (ComponentType component; m_components.keys)
-      if (m_components[component] == p_entity)
+    foreach (ComponentType component; m_store.keys)
+      if (m_store[component] == p_entity)
         foundComponents ~= component;
-        
+
     return foundComponents;
   }
   
-protected:
-  
-  Entity getEntity(ComponentType p_component)
+  public final Entity getEntity(ComponentType p_component)
   {
-    return m_components[p_component];
+    return m_store[p_component];
   }
   
-  ComponentType[] components()
+  protected final ComponentType[] components()
   {
-    return m_components.keys;
+    return m_store.keys;
   }
+  
+  private Entity[ComponentType] m_store;
+}
 
 
-protected:
-  abstract ComponentType createComponent(Entity p_entity);
+interface IBase(ComponentType, ComponentStore)
+{
+public:
+  final void IregisterEntity(Entity p_entity, ComponentStore p_store)
+  {
+    auto component = createComponent(p_entity);
+    p_store[component] = p_entity;
+  }
   
+  final void IremoveEntity(Entity p_entity, ComponentStore p_store)
+  {
+    foreach (ComponentType component; p_store.keys)
+      if (p_store[component] == p_entity)
+        p_store.remove(component);
+  }
   
+  ComponentType[] findComponents(Entity p_entity);
+  
+protected: 
+  Entity getEntity(ComponentType p_component);  
+  ComponentType[] components();
+
 private:
-  Entity[ComponentType] m_components;
+  ComponentType createComponent(Entity p_entity);
 }
