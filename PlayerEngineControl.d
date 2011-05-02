@@ -25,10 +25,9 @@ module PlayerEngineControl;
 import std.conv;
 import std.stdio;
 
-import Control;
 import InputHandler;
-import SubSystem.ConnectionHandler;
-import Vector : Vector;
+import SubSystem.Controller;
+import common.Vector;
 
 
 unittest
@@ -53,7 +52,7 @@ public:
   }
   
   
-  void update(ConnectionComponent p_sourceComponent, ConnectionComponent[] p_otherComponents)
+  void update(ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents)
   out
   {
     //assert(p_sourceComponent.force.isValid());
@@ -61,7 +60,7 @@ public:
   }
   body
   {
-    auto dir = Vector.fromAngle(p_sourceComponent.entity.angle);
+    auto dir = Vector.fromAngle(p_sourceComponent.angle);
     
     auto force = p_sourceComponent.force;
     auto torque = p_sourceComponent.torque;

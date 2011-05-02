@@ -29,8 +29,8 @@ import std.math;
 import std.stdio;
 import std.string;
 
-//import SubSystem.CollisionHandler;
-import Vector : Vector;
+import SubSystem.CollisionHandler;
+import common.Vector;
 
 
 unittest
@@ -40,7 +40,7 @@ unittest
   
   Entity entity = new Entity();
   
-  assert(entity.position == Vector.origo);
+  //assert(entity.position == Vector.origo);
   
   entity.setValue("dummyValue", "123");
   
@@ -64,11 +64,11 @@ class Entity
 {
 invariant()
 {
-  assert(position.isValid());
-  assert(velocity.isValid());
+  //assert(position.isValid());
+  //assert(velocity.isValid());
   
-  assert(angle == angle);
-  assert(rotation == rotation);
+  //assert(angle == angle);
+  //assert(rotation == rotation);
   
   assert(lifetime == lifetime);
   assert(health == health);
@@ -78,11 +78,11 @@ invariant()
 public:
   this()
   {
-    position = Vector.origo;
-    velocity = Vector.origo;
+    //position = Vector.origo;
+    //velocity = Vector.origo;
     
-    angle = 0.0;
-    rotation = 0.0;
+    //angle = 0.0;
+    //rotation = 0.0;
     
     id = m_idCounter++;
     
@@ -178,7 +178,7 @@ public:
     return tmp;
   }
 
-  /*void addCollision(Collision p_collision)
+  void addCollision(Collision p_collision)
   {
     m_collisionList ~= p_collision;
   }
@@ -195,17 +195,17 @@ public:
     m_collisionList.length = 0;
     
     return tmp;
-  }*/
+  }
   
   
 public:
   immutable int id;
 
-  Vector position;
-  Vector velocity;
+  //Vector position;
+  //Vector velocity;
   
-  float angle;
-  float rotation;
+  //float angle;
+  //float rotation;
   
   float lifetime;
   float health;
@@ -217,5 +217,5 @@ private:
   private static string[][string] m_fileCache;
   
   Entity[] m_spawnList;
-  //Collision[] m_collisionList;
+  Collision[] m_collisionList;
 }

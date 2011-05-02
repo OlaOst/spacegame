@@ -25,7 +25,6 @@ module SubSystem.ConnectionHandler;
 import std.conv;
 import std.stdio;
 
-import Control;
 import Entity;
 import FlockControl;
 import InputHandler;
@@ -33,7 +32,7 @@ import PlayerEngineControl;
 import PlayerLauncherControl;
 import SubSystem.Physics;
 import SubSystem.Base;
-import Vector : Vector;
+import common.Vector;
 
 
 unittest
@@ -46,14 +45,14 @@ unittest
   {
   public:
     void update(ConnectionComponent p_sourceComponent, ConnectionComponent[] p_otherComponents)
-    {      
+    {
       p_sourceComponent.force = Vector(1.0, 0.0);
       p_sourceComponent.torque = 0.0;
     }
   }
   
   auto physics = new Physics();
-  auto sys = new Connection(new InputHandler(), physics);
+  auto sys = new ConnectionHandler(new InputHandler(), physics);
   
   Entity ship = new Entity();
   ship.setValue("mass", "2.0");
@@ -72,16 +71,16 @@ unittest
   
   // macgyver in the mock control here, we don't want to know about it in the createComponent implementation
   auto controller = new MockControl();
-  sys.m_controlMapping[sys.findComponents(engine)[0]] = controller;
+  sys.m_controlMapping[sys.getComponent(engine)] = controller;
 
-  auto engineComponent = sys.findComponents(engine)[0];
+  auto engineComponent = sys.getComponent(engine);
   
   assert(engineComponent.relativePosition == Vector(1.0, 0.0), "Engine didn't set relative position to 1 0 0, it's " ~ engineComponent.relativePosition.toString());
   assert(engineComponent.owner.entity == ship);
 
   sys.updateFromControllers();
 
-  assert(physics.findComponents(ship)[0].force == Vector(1.0, 0.0), "Force didn't get propagated from controller component to physics component: " ~ physics.findComponents(ship)[0].force.toString());
+  assert(physics.getComponent(ship).force == Vector(1.0, 0.0), "Force didn't get propagated from controller component to physics component: " ~ physics.getComponent(ship).force.toString());
   
   physics.move(1.0);
   
@@ -278,8 +277,8 @@ protected:
       m_controlMapping[newComponent] = new FlockControl(2.5, 0.5, 20.0, 0.3);
     }
     
-    if (m_physics.findComponents(p_entity).length > 0)
-      newComponent.physicsComponent = m_physics.findComponents(p_entity)[0];
+    if (m_physics.hasComponent(p_entity))
+      newComponent.physicsComponent = m_physics.getComponent(p_entity);
     
     return newComponent;
   }

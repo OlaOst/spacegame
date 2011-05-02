@@ -44,9 +44,9 @@ unittest
 
 void initDisplay(int p_screenWidth, int p_screenHeight)
 {
-  version(DerelictGL_ALL) debug writeln("DerelictGL_ALL defined");
-  version(DerelictGL_ARB) debug writeln("DerelictGL_ARB defined");
-  version(DerelictGL_EXT) debug writeln("DerelictGL_EXT defined");
+  //version(DerelictGL_ALL) debug writeln("DerelictGL_ALL defined");
+  //version(DerelictGL_ARB) debug writeln("DerelictGL_ARB defined");
+  //version(DerelictGL_EXT) debug writeln("DerelictGL_EXT defined");
   
   DerelictSDL.load();
   DerelictGL.load();
@@ -60,10 +60,10 @@ void initDisplay(int p_screenWidth, int p_screenHeight)
   
   DerelictGL.loadExtensions();
   
-  debug writeln("OpenGL version: " ~ to!string(glGetString(GL_VERSION)));
-  debug writeln("DerelictGL.maxVersion: " ~ to!string(DerelictGL.maxVersion));
-  debug writeln("OpenGL renderer: " ~ to!string(glGetString(GL_RENDERER)));
-  debug writeln("OpenGL vendor: " ~ to!string(glGetString(GL_VENDOR)));
+  //debug writeln("OpenGL version: " ~ to!string(glGetString(GL_VERSION)));
+  //debug writeln("DerelictGL.maxVersion: " ~ to!string(DerelictGL.maxVersion));
+  //debug writeln("OpenGL renderer: " ~ to!string(glGetString(GL_RENDERER)));
+  //debug writeln("OpenGL vendor: " ~ to!string(glGetString(GL_VENDOR)));
   
   string[] loaded = DerelictGL.loadedExtensionNames();
   

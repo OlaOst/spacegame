@@ -30,7 +30,7 @@ import std.stdio;
 import EnumGen;
 import Entity;
 import SubSystem.Base;
-import Vector : Vector;
+import common.Vector;
 
 
 unittest
@@ -52,30 +52,34 @@ unittest
   
   Entity collide = new Entity();
   collide.setValue("radius", "2.0");
-  collide.setValue("collisionType", "Bullet");
-  collide.position = Vector(1.0, 0.0);
-  
+  collide.setValue("collisionType", "Bullet");  
+
   sys.registerEntity(collide);
-  
+
+  sys.getComponent(collide).position = Vector(1.0, 0.0);
+
   assert(sys.collisions.length == 0);
   sys.determineCollisions();
   assert(sys.collisions.length == 1);
   
-  assert(sys.collisions[0].first.entity == entity);
-  assert(sys.collisions[0].second.entity == collide);
+  assert(sys.collisions[0].first == sys.getComponent(entity));
+  assert(sys.collisions[0].second == sys.getComponent(collide));
   
   
   Entity noCollide = new Entity();
   noCollide.setValue("radius", "2.0");
   noCollide.setValue("collisionType", "Asteroid");
-  noCollide.position = Vector(10.0, 0.0);
+  
+  sys.registerEntity(noCollide);
+  
+  sys.getComponent(noCollide).position = Vector(10.0, 0.0);
   
   sys.determineCollisions();
   assert(sys.collisions.length == 1);
   
   sys.calculateCollisionResponse();
   
-  assert(collide.lifetime <= 0.0);
+  assert(sys.getComponent(collide).lifetime <= 0.0);
 }
 
 
@@ -93,23 +97,26 @@ class CollisionComponent
 {
 invariant()
 {
-  assert(entity !is null);
+  assert(position.isValid());
   assert(radius >= 0.0);
 }
 
 public:
-  this(Entity p_entity, float p_radius, CollisionType p_collisionType)
+  this(float p_radius, CollisionType p_collisionType)
   {
-    entity = p_entity;
+    position = Vector.origo;
     radius = p_radius;
     collisionType = p_collisionType;
+    lifetime = float.infinity;
   }
   
   
 public:
-  Entity entity;
+  Vector position;
   float radius;
   CollisionType collisionType;
+  
+  float lifetime;
 }
 
 
@@ -141,6 +148,12 @@ public:
   
 
 protected:
+  bool canCreateComponent(Entity p_entity)
+  {
+    return p_entity.getValue("collisionType").length > 0;
+  }
+  
+  
   CollisionComponent createComponent(Entity p_entity)
   {
     float radius = to!float(p_entity.getValue("radius"));
@@ -150,7 +163,7 @@ protected:
     auto collisionType = CollisionTypeFromString(p_entity.getValue("collisionType"));
     enforce(collisionType != CollisionType.Unknown, "Tried to create collision component from entity with unknown collision type " ~ p_entity.getValue("collisionType"));
     
-    return new CollisionComponent(p_entity, radius, collisionType);
+    return new CollisionComponent(radius, collisionType);
   }
   
   
@@ -173,13 +186,13 @@ private:
         
         assert(first != second);
 
-        if ((first.entity.position - second.entity.position).length2d < (first.radius + second.radius))
+        if ((first.position - second.position).length2d < (first.radius + second.radius))
         {
           // determine contact point
-          Vector normalizedContactVector = (second.entity.position - first.entity.position).normalized(); // / (first.radius + second.radius); // * first.radius;
-      
+          Vector normalizedContactVector = (second.position - first.position).normalized(); // / (first.radius + second.radius); // * first.radius;
+
           Vector contactPoint = normalizedContactVector * (1.0/(first.radius + second.radius)) * first.radius;
-          
+
           m_collisions ~= Collision(first, second, contactPoint);
         }
       }
@@ -193,21 +206,21 @@ private:
       // bullets should disappear on contact - set lifetime to zero
       if (collision.first.collisionType == CollisionType.Bullet)
       {
-        collision.first.entity.lifetime = 0.0;
+        collision.first.lifetime = 0.0;
       }
       if (collision.second.collisionType == CollisionType.Bullet)
       {
-        collision.second.entity.lifetime = 0.0;
+        collision.second.lifetime = 0.0;
       }
       
       Entity collisionSound = new Entity();
       collisionSound.setValue("soundFile", "mgshot3.wav");
       collisionSound.setValue("onlySound", "true");
-      collision.first.entity.addSpawn(collisionSound);
-      collision.second.entity.addSpawn(collisionSound);
+      //collision.first.addSpawn(collisionSound);
+      //collision.second.addSpawn(collisionSound);
 
-      collision.first.entity.addCollision(collision);
-      collision.second.entity.addCollision(Collision(collision.second, collision.first, collision.contactPoint * -1));
+      //collision.first.addCollision(collision);
+      //collision.second.addCollision(Collision(collision.second, collision.first, collision.contactPoint * -1));
     }
   }
   

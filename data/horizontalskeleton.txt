@@ -1,0 +1,7 @@
+radius = 2.0
+mass = 3.0
+
+drawsource = horizontalskeletonshape.txt
+
+connectpoint.left.position = -0.8 0.0
+connectpoint.right.position = 0.8 0.0

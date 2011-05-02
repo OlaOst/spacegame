@@ -22,11 +22,12 @@
 
 module Starfield;
 
+import std.conv;
 import std.random;
 
 import Entity;
 import SubSystem.Graphics;
-import Vector : Vector;
+import common.Vector;
 
 
 unittest
@@ -76,11 +77,11 @@ public:
       star.setValue("drawsource", "Star");
       star.setValue("radius", "0.25");
       
-      star.angle = uniform(-3.14, 3.14);
+      star.setValue("angle", to!string(uniform(-3.14, 3.14)));
       
-      star.position = Vector(uniform(-3.0/m_graphics.zoom, 3.0/m_graphics.zoom), 
-                             uniform(-3.0/m_graphics.zoom, 3.0/m_graphics.zoom),
-                             uniform(-5.0, -3.0));
+      star.setValue("position", to!string(Vector(uniform(-3.0/m_graphics.zoom, 3.0/m_graphics.zoom), 
+                                                 uniform(-3.0/m_graphics.zoom, 3.0/m_graphics.zoom),
+                                                 uniform(-5.0, -3.0))));
       
       m_stars[n] = star;
       

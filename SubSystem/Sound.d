@@ -100,10 +100,13 @@ public:
   }
 
 protected:
+  bool canCreateComponent(Entity p_entity)
+  {
+    return p_entity.getValue("soundFile").length > 0;
+  }
+  
   SoundComponent createComponent(Entity p_entity)
   {
-    assert(p_entity.getValue("soundFile").length > 0);
-    
     auto buffer = alutCreateBufferFromFile(cast(char*)p_entity.getValue("soundFile"));
     
     auto newComponent = new SoundComponent(buffer);

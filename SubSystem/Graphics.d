@@ -1,4 +1,5 @@
 ﻿/*
+/*
  Copyright (c) 2010 Ola Østtveit
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -37,45 +38,45 @@ import Entity;
 import EnumGen;
 import SubSystem.Base;
 import TextRender;
-import Vector : Vector;
+import common.Vector;
 
 
 unittest
 {
   scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
-
   
   Graphics graphics = new Graphics(256, 128);
-  
-  Entity[] entitiesPointedAt = graphics.findEntitiesPointedAt(Vector.origo);
-  assert(entitiesPointedAt.length == 0);
+    
+  GraphicsComponent[] componentsPointedAt = graphics.findComponentsPointedAt(Vector.origo);
+  assert(componentsPointedAt.length == 0);
 
   Entity entity = new Entity();
   
   entity.setValue("drawsource", "Triangle");
   entity.setValue("radius", "1.0");
   entity.setValue("keepInCenter", "true");
-  
+    
   graphics.registerEntity(entity);
+  assert(graphics.components.length == 1);
   
-  entitiesPointedAt = graphics.findEntitiesPointedAt(Vector.origo);
-  assert(entitiesPointedAt.length == 1);
+  componentsPointedAt = graphics.findComponentsPointedAt(Vector.origo);
+  assert(componentsPointedAt.length == 1);
   
-  entitiesPointedAt = graphics.findEntitiesPointedAt(Vector(100, 100));
-  assert(entitiesPointedAt.length == 0);
-  
-  
+  componentsPointedAt = graphics.findComponentsPointedAt(Vector(100, 100));
+  assert(componentsPointedAt.length == 0);
+    
   Entity deleteTest = new Entity();
   
   deleteTest.setValue("drawsource", "Triangle");
   deleteTest.setValue("radius", "1.0");
-  deleteTest.setValue("keepInCenter", "true");
+  //deleteTest.setValue("keepInCenter", "true");
   
   graphics.registerEntity(deleteTest);
+  assert(graphics.components.length == 2);
   
-  entitiesPointedAt = graphics.findEntitiesPointedAt(Vector.origo);
-  assert(entitiesPointedAt.length == 2);
+  componentsPointedAt = graphics.findComponentsPointedAt(Vector.origo);
+  assert(componentsPointedAt.length == 2, "Should have 2 components pointed at, instead got " ~ to!string(componentsPointedAt.length));
   
   graphics.draw();
   
@@ -83,25 +84,24 @@ unittest
     graphics.removeEntity(deleteTest);
   
     graphics.draw();
-  }
+  }  
   
   Entity another = new Entity();
   
   another.setValue("drawsource", "Triangle");
   another.setValue("radius", "2.0");
-  another.position = Vector(1.0, 0.0);
+  another.setValue("position", "1.0 0.0");
   
   graphics.registerEntity(another);
   
-  entitiesPointedAt = graphics.findEntitiesPointedAt(Vector(0.5, 0.0));
-  assert(entitiesPointedAt.length == 2, to!string(entitiesPointedAt.length));
+  componentsPointedAt = graphics.findComponentsPointedAt(Vector(0.5, 0.0));
+  assert(componentsPointedAt.length == 2, to!string(componentsPointedAt.length));
   
-  entitiesPointedAt = graphics.findEntitiesPointedAt(Vector(1.5, 0.0));
-  assert(entitiesPointedAt.length == 1);
+  componentsPointedAt = graphics.findComponentsPointedAt(Vector(1.5, 0.0));
+  assert(componentsPointedAt.length == 1);
   
-  entitiesPointedAt = graphics.findEntitiesPointedAt(Vector(3.5, 0.0));
-  assert(entitiesPointedAt.length == 0, to!string(entitiesPointedAt.length));
-  
+  componentsPointedAt = graphics.findComponentsPointedAt(Vector(3.5, 0.0));
+  assert(componentsPointedAt.length == 0, to!string(componentsPointedAt.length));
   
   Entity text = new Entity();
   text.setValue("drawsource", "Text");
@@ -109,7 +109,7 @@ unittest
   text.setValue("text", "hello spacegame");
   
   graphics.registerEntity(text);
-  
+    
   graphics.draw();
 }
 
@@ -141,16 +141,18 @@ struct Vertex
 struct GraphicsComponent 
 {
 public:
-  this(Entity p_entity, float p_radius)
+  this(float p_radius)
   {
-    entity = p_entity;
+    position = velocity = Vector.origo;
+    angle = rotation = 0.0;
+    
     drawSource = DrawSource.Unknown;
     radius = p_radius;
   }
   
   bool isPointedAt(Vector p_pos)
   {
-    return ((entity.position - p_pos).length2d < radius);
+    return ((position - p_pos).length2d < radius);
   }
   
   DrawSource drawSource;
@@ -159,8 +161,25 @@ public:
   Vertex[] vertices;
   Vector[] connectPoints;
   
+  
+  @property Vector position() { return m_position; }
+  @property Vector position(Vector p_position) in { assert(p_position.isValid()); } body { return m_position = p_position; }
+  
+  @property Vector velocity() { return m_velocity; }
+  @property Vector velocity(Vector p_velocity) in { assert(p_velocity.isValid()); } body { return m_velocity = p_velocity; }
+  
+  @property float angle() { return m_angle; }
+  @property float angle(float p_angle) in { assert(p_angle == p_angle); } body { return m_angle = p_angle; }
+  
+  @property float rotation() { return m_rotation; }
+  @property float rotation(float p_rotation) in { assert(p_rotation == p_rotation); } body { return m_rotation = p_rotation; }
+  
 private:
-  Entity entity;
+  Vector m_position = Vector.origo;
+  Vector m_velocity = Vector.origo;
+  
+  float m_angle = 0.0;
+  float m_rotation = 0.0;
 }
 
 
@@ -198,8 +217,8 @@ public:
     // pull back camera a bit so we can see entities with z=0.0
     glTranslatef(0.0, 0.0, -1.0);
     
-    if (m_centerEntity !is null)
-      glTranslatef(-m_centerEntity.position.x, -m_centerEntity.position.y, 0.0);
+    assert(m_centerComponent.position.isValid());
+    glTranslatef(-m_centerComponent.position.x, -m_centerComponent.position.y, 0.0);
     
     glDisable(GL_TEXTURE_2D);
     
@@ -207,18 +226,17 @@ public:
     {
       glPushMatrix();
       
-      assert(component.entity.position.isValid());
-      
-      glTranslatef(component.entity.position.x, component.entity.position.y, component.entity.position.z);
+      assert(component.position.isValid());
+      glTranslatef(component.position.x, component.position.y, component.position.z);
       
       // show some data for entities, unrotated
       glPushMatrix();
         glTranslatef(0.0, component.radius*2, 0.0);
-        m_textRender.renderString(to!string(component.entity.velocity.length2d()));
+        m_textRender.renderString(to!string(component.velocity.length2d()));
       glPopMatrix();
       glDisable(GL_TEXTURE_2D);
       
-      glRotatef(component.entity.angle * (180.0 / PI), 0.0, 0.0, 1.0);
+      glRotatef(component.angle * (180.0 / PI), 0.0, 0.0, 1.0);
       
       // draw connectpoinst
       glDisable(GL_DEPTH_TEST);
@@ -281,9 +299,8 @@ public:
       }
       else if (component.drawSource == DrawSource.Text)
       {
-        auto text = component.entity.getValue("text");
-        
-        
+        //auto text = getEntity(component).getValue("text");
+        auto text = "remember to implement textstuff in graphicscomponent!";
       }
       else if (component.drawSource == DrawSource.Unknown)
       {
@@ -333,16 +350,16 @@ public:
     glPopMatrix();
   }
   
-  Entity[] findEntitiesPointedAt(Vector p_pos)
+  GraphicsComponent[] findComponentsPointedAt(Vector p_pos)
   {
-    Entity[] foundEntities;
+    GraphicsComponent[] foundComponents;
     foreach (component; components)
     {
-      if ((component.entity.position - p_pos).length2d < component.radius)
-        foundEntities ~= component.entity;
+      if ((component.position - p_pos).length2d < component.radius)
+        foundComponents ~= component;
     }
     
-    return foundEntities;
+    return foundComponents;
   }
   
   void zoomIn(float p_time)
@@ -363,7 +380,10 @@ public:
   // figure out world coords of the mouse pointer, from viewport coords
   void calculateMouseWorldPos(Vector p_mouseScreenPos)
   {
-    m_mouseWorldPos = p_mouseScreenPos / m_zoom + m_centerEntity.position;
+    assert(p_mouseScreenPos.isValid());
+    assert(m_centerComponent.position.isValid(), to!string(m_centerComponent.position));
+    
+    m_mouseWorldPos = p_mouseScreenPos / m_zoom + m_centerComponent.position;
   }
   
   Vector mouseWorldPos()
@@ -372,19 +392,25 @@ public:
   }
   
 protected:
+  bool canCreateComponent(Entity p_entity)
+  {
+    return p_entity.getValue("drawsource").length > 0;
+  }
+  
   GraphicsComponent createComponent(Entity p_entity)
   {
-    if (p_entity.getValue("keepInCenter") == "true")
-    {
-      m_centerEntity = p_entity;
-    }
-    
     //enforce(p_entity.getValue("radius").length > 0, "Couldn't find radius for graphics component");
     float radius = 1.0;
     if (p_entity.getValue("radius").length > 0)
       radius = to!float(p_entity.getValue("radius"));
     
-    GraphicsComponent component = GraphicsComponent(p_entity, radius);
+    GraphicsComponent component = GraphicsComponent(radius);
+    
+    if (p_entity.getValue("keepInCenter") == "true")
+    {
+      m_centerComponent = component;
+      assert(m_centerComponent.position.isValid());
+    }
     
     if (looksLikeAFile(p_entity.getValue("drawsource")))
     {
@@ -427,5 +453,5 @@ private:
   
   Vector m_mouseWorldPos;
   
-  Entity m_centerEntity;
+  GraphicsComponent m_centerComponent;
 }

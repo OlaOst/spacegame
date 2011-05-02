@@ -31,7 +31,7 @@ import std.stdio;
 import SubSystem.Base;
 import SubSystem.CollisionHandler;
 import Entity;
-import Vector : Vector;
+import common.Vector;
 
 
 unittest
@@ -47,12 +47,12 @@ unittest
   
   physics.registerEntity(entity);
   
-  assert(entity.position == Vector.origo);
+  assert(physics.getComponent(entity).position == Vector.origo);
   {
-    physics.components[0].entity.velocity = Vector(1.0, 0.0);
+    physics.getComponent(entity).velocity = Vector(1.0, 0.0);
     physics.move(1.0);
   }
-  assert(entity.position.x > 0.0);
+  assert(physics.getComponent(entity).position.x > 0.0);
   
   {
     Entity spawn = new Entity();
@@ -61,8 +61,8 @@ unittest
     
     physics.registerEntity(spawn);
     
-    auto spawnComp = physics.findComponents(spawn)[0];
-    auto motherComp = physics.findComponents(entity)[0];
+    auto spawnComp = physics.getComponent(spawn);
+    auto motherComp = physics.getComponent(entity);
     
     //assert(spawnComp.entity.velocity == motherComp.entity.velocity, "Spawned entity didn't get velocity vector copied from spawner");
   }
@@ -70,13 +70,14 @@ unittest
   
   
   {
-    Entity flocker = new Entity();
-    flocker.setValue("control", "flocker");
-    flocker.setValue("mass", "0.5");
+    Entity notAPhysicsEntity = new Entity();
+    notAPhysicsEntity.setValue("no mass value in this entity", "no mass at all");
     
-    physics.registerEntity(flocker);
+    auto componentsBefore = physics.components.length;
+    
+    physics.registerEntity(notAPhysicsEntity);
 
-    physics.move(1.0);
+    assert(physics.components.length == componentsBefore);
   }
 }
 
@@ -99,9 +100,9 @@ public:
   {  
     entity = p_entity;
     
-    force = Vector.origo;
+    force = velocity = position = Vector.origo;
     
-    torque = 0.0;
+    torque = rotation = angle = 0.0;
     
     mass = 1.0;
     
@@ -120,16 +121,16 @@ private:
   }
   out
   {
-    assert(entity.position.isValid());
-    assert(entity.velocity.isValid());
+    assert(position.isValid());
+    assert(velocity.isValid());
   }
   body
   {
-    entity.velocity += force * p_time;
-    entity.position += entity.velocity * p_time;
+    velocity += force * p_time;
+    position += velocity * p_time;
     
-    entity.rotation += torque * p_time;
-    entity.angle += entity.rotation * p_time;
+    rotation += torque * p_time;
+    angle += rotation * p_time;
     
     if (reload > 0.0)
       reload -= p_time;
@@ -138,8 +139,12 @@ private:
 
 public:
   Entity entity;
+  Vector position;
+  Vector velocity;
   Vector force;
   
+  float angle;
+  float rotation;
   float torque;
   
   float mass;
@@ -169,25 +174,23 @@ public:
       //component.force = component.force + (component.position * -0.05);
       
       // and some damping
-      component.force = component.force + (component.entity.velocity * -0.15);
-      component.torque = component.torque + (component.entity.rotation * -2.5);
+      component.force = component.force + (component.velocity * -0.15);
+      component.torque = component.torque + (component.rotation * -2.5);
       
-      // handle collisions
-      foreach (collision; component.entity.getAndClearCollisions)
+      // handle collisions TODO: but not in physics
+      /*foreach (collision; component.entity.getAndClearCollisions)
       {
         CollisionComponent self = (collision.first.entity == component.entity) ? collision.first : collision.second;
         CollisionComponent other = (collision.first.entity == component.entity) ? collision.second : collision.first;
         
-        // this physics component might have collided with a non-physics component, i.e. ship moving over and lighting up something in the background or the hud, like a targeting reticle
-        auto possiblePhysicsComponents = findComponents(other.entity);
-        
+        // this physics component might have collided with a non-physics component, i.e. ship moving over and lighting up something in the background or the hud, like a targeting reticle 
         // if we have physics component on the other collision component, we can do something physical
-        if (possiblePhysicsComponents.length > 0)
+        if (hasComponent(other.entity))
         {
-          auto otherPhysicsComponent = possiblePhysicsComponents[0];
+          auto otherPhysicsComponent = getComponent(other.entity);
           
           // determine collision force
-          float collisionForce = (component.entity.velocity * component.mass + otherPhysicsComponent.entity.velocity * otherPhysicsComponent.mass).length2d;
+          float collisionForce = (component.velocity * component.mass + otherPhysicsComponent.velocity * otherPhysicsComponent.mass).length2d;
 
           // give a kick from the contactpoint
           component.force = component.force + (collision.contactPoint.normalized() * -collisionForce);
@@ -201,16 +204,17 @@ public:
           }
         }
       }
+      */
       
       component.move(p_time);
       
       // do wraparound stuff      
-      //if (component.entity.position.length2d > 100.0)
-        //component.entity.position = component.entity.position * -1;
-      if (abs(component.entity.position.x) > 100.0)
-        component.entity.position = Vector(component.entity.position.x * -1, component.entity.position.y);
-      if (abs(component.entity.position.y) > 100.0)
-        component.entity.position = Vector(component.entity.position.x, component.entity.position.y * -1);
+      //if (component.position.length2d > 100.0)
+        //component.position = component.position * -1;
+      if (abs(component.position.x) > 100.0)
+        component.position = Vector(component.position.x * -1, component.position.y);
+      if (abs(component.position.y) > 100.0)
+        component.position = Vector(component.position.x, component.position.y * -1);
       
       // reset force and torque so they're ready for next update
       component.force = Vector.origo;
@@ -220,6 +224,12 @@ public:
   
   
 protected:
+  bool canCreateComponent(Entity p_entity)
+  {
+    return p_entity.getValue("mass").length > 0;
+  }
+  
+  
   PhysicsComponent createComponent(Entity p_entity)
   {
     auto newComponent = new PhysicsComponent(p_entity);
@@ -233,19 +243,22 @@ protected:
       {
         if (spawnerCandidate.entity.id == spawnedFromId)
         {
-          Vector kick = Vector.fromAngle(spawnerCandidate.entity.angle);
+          Vector kick = Vector.fromAngle(spawnerCandidate.angle);
           
           // TODO: should be force from spawn value
           kick *= 25.0;
           
-          newComponent.entity.velocity = spawnerCandidate.entity.velocity + kick;
+          newComponent.velocity = spawnerCandidate.velocity + kick;
         }
       }
     }
     
+    if (p_entity.getValue("position").length > 0)
+      newComponent.position = Vector.fromString(p_entity.getValue("position"));
+    
     if (p_entity.getValue("velocity") == "randomize")
     {
-      newComponent.entity.velocity = Vector(uniform(-1.5, 1.5), uniform(-1.5, 1.5));
+      newComponent.velocity = Vector(uniform(-1.5, 1.5), uniform(-1.5, 1.5));
     }
     
     //enforce(p_entity.getValue("mass").length > 0, "couldn't find mass for physics component");

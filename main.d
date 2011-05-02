@@ -22,23 +22,21 @@
 
 module main;
 
-import std.stdio;
+//import std.stdio;
 
 import Game;
 
-int main(char[][] args)
+void main(string[] args)
 {
   version(unittestsOnly)
   {
-    writeln("Checking unittest coverage - not running main program");
+    //writeln("Checking unittest coverage - not running main program");
   }
   else
   {
-    writeln("Starting game");
+    //writeln("Starting game");
     
     Game game = new Game();
     game.run();
   }
-  
-  return 0;
 }

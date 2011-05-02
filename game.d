@@ -32,13 +32,16 @@ import std.stdio;
 import derelict.sdl.sdl;
 
 import SubSystem.CollisionHandler;
-import SubSystem.ConnectionHandler;
+//import SubSystem.ConnectionHandler;
+import SubSystem.Controller;
 import SubSystem.Graphics;
 import SubSystem.Physics;
 import SubSystem.Sound;
+import SubSystem.Placer;
+import CommsCentral;
 import InputHandler;
 import Starfield;
-import Vector : Vector;
+import common.Vector;
 
 
 unittest
@@ -47,13 +50,13 @@ unittest
   scope(failure) writeln(__FILE__ ~ " unittests failed");
   
   Game game = new Game();
-
+  
   // TODO: assert that Derelict SDL and GL loaded OK
   
   assert(game.updateCount == 0);
   {
     game.update();
-  }
+  }  
   assert(game.updateCount == 1);
   
   {
@@ -106,9 +109,10 @@ unittest
     engine.setValue("mass", "2.0");
     engine.setValue("control", "playerEngine");
     
+    game.m_placer.registerEntity(ship);
     game.m_physics.registerEntity(ship);
-    game.m_connection.registerEntity(ship);
-    game.m_connection.registerEntity(engine);
+    //game.m_connection.registerEntity(ship);
+    //game.m_connection.registerEntity(engine);
     
     SDL_Event upEvent;
     upEvent.type = SDL_KEYDOWN;
@@ -120,14 +124,16 @@ unittest
     
     Entity[] spawnList;
     
-    assert(game.m_connection.findComponents(engine)[0].owner == game.m_connection.findComponents(ship)[0]);
+    //assert(game.m_connection.getComponent(engine).owner == game.m_connection.getComponent(ship));
     
-    game.m_connection.updateFromControllers();
+    //game.m_connection.updateFromControllers();
     
     game.m_physics.move(0.1);
-    game.m_connection.updateFromPhysics(0.1);
+    CommsCentral.mover(game.m_physics, game.m_placer);
+    //game.m_connection.updateFromPhysics(0.1);
     
-    assert(ship.position.x > 0.0);
+    //assert(game.m_physics.getComponent(ship).position.x > 0.0);
+    //assert(game.m_placer.getComponent(ship).position.x > 0.0);
   }
   
   {
@@ -139,6 +145,30 @@ unittest
     game.update();
   }
   assert(!game.m_running, "Game didn't respond properly to quit event");
+  
+  
+  auto comms = new Game();
+  
+  Entity thing = new Entity();
+  thing.setValue("position", "1 2 3");
+  thing.setValue("mass", "1");
+  thing.setValue("drawsource", "star");
+  
+  comms.m_placer.registerEntity(thing);
+  comms.m_physics.registerEntity(thing);
+  comms.m_graphics.registerEntity(thing);
+  
+  drawer(comms.m_placer, comms.m_graphics);
+  
+  assert(comms.m_graphics.getComponent(thing).position == Vector(1, 2, 3), to!string(comms.m_graphics.getComponent(thing).position));
+  
+  comms.m_physics.move(0.1);
+  
+  assert(comms.m_placer.getComponent(thing).position == Vector(1, 2, 3));
+  
+  mover(comms.m_physics, comms.m_placer);
+  
+  assert(comms.m_placer.getComponent(thing).position == comms.m_physics.getComponent(thing).position);
 }
 
 
@@ -149,9 +179,11 @@ invariant()
   assert(m_inputHandler !is null, "Game didn't initialize input handler");
   assert(m_graphics !is null, "Game didn't initialize graphics");
   assert(m_physics !is null, "Game didn't initialize physics");
+  assert(m_controller !is null, "Game didn't initalize controller");
   assert(m_collision !is null, "Game didn't initialize collision system");
-  assert(m_connection !is null, "Game didn't initialize connection system");
+  //assert(m_connection !is null, "Game didn't initialize connection system");
   assert(m_sound !is null, "Game didn't initialize sound system");
+  assert(m_placer !is null, "Game didn't initialize placer system");
 }
 
 public:
@@ -168,15 +200,18 @@ public:
     
     m_graphics = new Graphics(xres, yres);
     m_physics = new Physics();
+    m_controller = new Controller(m_inputHandler);
     m_collision = new CollisionHandler();
-    m_connection = new ConnectionHandler(m_inputHandler, m_physics);
+    //m_connection = new ConnectionHandler(m_inputHandler, m_physics);
     m_sound = new SoundSubSystem(16);
+    m_placer = new Placer();
     
     m_mouseEntity = new Entity();
     m_mouseEntity.setValue("drawsource", "star");
     m_mouseEntity.setValue("radius", "2.0");
     m_mouseEntity.setValue("mass", "1.0");
-    m_mouseEntity.setValue("position", "5.0, 0.0");
+    m_mouseEntity.setValue("position", "5.0 0.0");
+    m_placer.registerEntity(m_mouseEntity);
     m_graphics.registerEntity(m_mouseEntity);
     //m_physics.registerEntity(m_mouseEntity);
     //m_collision.registerEntity(m_mouseEntity);
@@ -194,8 +229,13 @@ public:
     {
       Entity npcShip = loadShip("npcship.txt");
       
-      npcShip.position = Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0));
-      npcShip.angle = uniform(0.0, PI*2);
+      assert(m_placer.hasComponent(npcShip));
+      
+      m_placer.getComponent(npcShip).position = Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0));
+      m_placer.getComponent(npcShip).angle = uniform(0.0, PI*2);
+      
+      //npcShip.position = Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0));
+      //npcShip.angle = uniform(0.0, PI*2);
     }
     
     m_starfield = new Starfield(m_graphics, 10.0);
@@ -222,7 +262,7 @@ private:
   {
     m_timer.stop();
     
-    float elapsedTime = m_timer.peek.milliseconds * 0.001;
+    float elapsedTime = m_timer.peek.msecs * 0.001;
     
     if (m_updateCount == 0)
       elapsedTime = 0.0;
@@ -246,8 +286,10 @@ private:
 
         if (entity.lifetime < 0.0)
         {
+          m_placer.removeEntity(entity);
           m_physics.removeEntity(entity);
           m_graphics.removeEntity(entity);
+          m_controller.removeEntity(entity);
           m_collision.removeEntity(entity);
           m_sound.removeEntity(entity);
           
@@ -256,8 +298,10 @@ private:
         
         if (entity.health < 0.0)
         {
+          m_placer.removeEntity(entity);
           m_physics.removeEntity(entity);
           m_graphics.removeEntity(entity);
+          m_controller.removeEntity(entity);
           m_collision.removeEntity(entity);
           m_sound.removeEntity(entity);
           
@@ -269,24 +313,28 @@ private:
       {
         m_entities.remove(entityToRemove.id);
       }
-    }
-
+    }   
+    
     m_inputHandler.pollEvents();
 
     if (!m_paused)
     {
-      m_connection.updateFromControllers();
+      //m_connection.updateFromControllers();
     
       // collision must be updated before physics to make sure both entities in collisions are updated properly
       m_collision.update();
       m_physics.move(elapsedTime);
+      m_controller.update();
       
-      m_connection.updateFromPhysics(elapsedTime);
+      CommsCentral.mover(m_physics, m_placer);
+      CommsCentral.controller(m_controller, m_physics);
+      //m_connection.updateFromPhysics(elapsedTime);
     }
+    CommsCentral.drawer(m_placer, m_graphics);
     
     m_graphics.calculateMouseWorldPos(m_inputHandler.mousePos);
-    
     m_graphics.draw();
+    
     m_sound.soundOff();
     
     // TODO: we need to know what context we are in - input events signify different intents depending on context
@@ -298,8 +346,10 @@ private:
       
       if (spawn.getValue("onlySound") != "true")
       {
+        m_placer.registerEntity(spawn);
         m_graphics.registerEntity(spawn);
         m_physics.registerEntity(spawn);
+        m_controller.registerEntity(spawn);
         m_collision.registerEntity(spawn);
       }
       
@@ -313,15 +363,19 @@ private:
   {
     if (m_inputHandler.isPressed(Event.LeftButton))
     {
-      m_mouseEntity.position = m_graphics.mouseWorldPos;
+      m_placer.getComponent(m_mouseEntity).position = m_graphics.mouseWorldPos;
+      //m_mouseEntity.position = m_graphics.mouseWorldPos;
     }
     
     if (m_inputHandler.eventState(Event.LeftButton) == EventState.Released)
     {
       // if mouse entity close by mouseskeleton contact point then snap to it
       
-      if ((m_mouseEntity.position - m_mouseSkeleton.position).length2d < 2.5)
-        m_mouseEntity.position = m_mouseSkeleton.position;
+      auto mousePos = m_placer.getComponent(m_mouseEntity).position;
+      auto mouseSkelPos = m_placer.getComponent(m_mouseSkeleton).position;
+      
+      if ((mousePos - mouseSkelPos).length2d < 2.5)
+        m_placer.getComponent(m_mouseEntity).position = mouseSkelPos;
     }
   
     if (m_inputHandler.isPressed(Event.PageUp))
@@ -361,10 +415,10 @@ private:
     
     // shouldn't be necessary to register the owner ship entity to graphics since only the sub-module entities are drawn
     // but since the owner ship entity might have the keepInCenter attribute the graphics subsytem need to know about it
+    m_placer.registerEntity(ship);
     m_graphics.registerEntity(ship);
-    
     m_physics.registerEntity(ship);
-    m_connection.registerEntity(ship);
+    //m_connection.registerEntity(ship);
     
     if (ship.getValue("canCollide") == "true")
       m_collision.registerEntity(ship);
@@ -386,8 +440,9 @@ private:
         subEntity.setValue(subSourceValue[std.string.indexOf(subSourceValue, '.')+1..$], ship.getValue(subSourceValue));
       }
       
+      m_placer.registerEntity(subEntity);
       m_graphics.registerEntity(subEntity);
-      m_connection.registerEntity(subEntity);
+      //m_connection.registerEntity(subEntity);
       m_physics.registerEntity(subEntity);
     }
     
@@ -405,10 +460,12 @@ private:
   
   InputHandler m_inputHandler;
   
+  Placer m_placer;
   Graphics m_graphics;
   Physics m_physics;
+  Controller m_controller;
   CollisionHandler m_collision;
-  ConnectionHandler m_connection;
+  //ConnectionHandler m_connection;
   SoundSubSystem m_sound;
     
   Starfield m_starfield;

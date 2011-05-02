@@ -26,10 +26,9 @@ import std.algorithm;
 import std.math;
 import std.stdio;
 
-import Control;
+import SubSystem.Controller;
 import Entity;
-import SubSystem.ConnectionHandler;
-import Vector : Vector;
+import common.Vector;
 
 
 unittest
@@ -83,7 +82,7 @@ public:
   }
   
   
-  void update(ConnectionComponent p_sourceComponent, ConnectionComponent[] p_otherComponents)
+  void update(ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents)
   out
   {
     assert(p_sourceComponent.force.isValid());
@@ -93,8 +92,8 @@ public:
   {
     Vector[] otherPositions = [];
     
-    foreach (entity; nearbyEntities(p_sourceComponent, p_otherComponents, 50.0))
-      otherPositions ~= p_sourceComponent.entity.position - entity.position;
+    foreach (otherComponent; p_otherComponents) //nearbyEntities(p_sourceComponent, p_otherComponents, 50.0))
+      otherPositions ~= p_sourceComponent.position - otherComponent.position;
 
     auto desiredVel = desiredVelocity(otherPositions);
     
@@ -102,7 +101,7 @@ public:
 
     p_sourceComponent.force = p_sourceComponent.force + desiredVel.normalized * 2.5;
     
-    Vector dir = Vector.fromAngle(p_sourceComponent.entity.angle);
+    Vector dir = Vector.fromAngle(p_sourceComponent.angle);
     
     //p_sourceComponent.torque = p_sourceComponent.torque + (atan2(dir.y, dir.x) - atan2(p_sourceComponent.velocity.y, p_sourceComponent.velocity.x));
     //p_sourceComponent.entity.angle = atan2(p_sourceComponent.velocity.y, p_sourceComponent.velocity.x);

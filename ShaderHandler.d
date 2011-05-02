@@ -12,10 +12,10 @@ import derelict.opengl.glext;
 
 unittest
 {
-  debug writeln("Can use glCreateShaderObjectARB : " ~ to!string(glCreateShaderObjectARB !is null));
-  debug writeln("Can use glCreateShader: " ~ to!string(glCreateShader !is null));
+  //debug writeln("Can use glCreateShaderObjectARB : " ~ to!string(glCreateShaderObjectARB !is null));
+  //debug writeln("Can use glCreateShader: " ~ to!string(glCreateShader !is null));
   
-  debug writeln("are GL_ARB_shader_objects supported? " ~ to!string(DerelictGL.isExtensionSupported("GL_ARB_shader_objects")));
+  //debug writeln("are GL_ARB_shader_objects supported? " ~ to!string(DerelictGL.isExtensionSupported("GL_ARB_shader_objects")));
 }
 
 GLhandleARB program;
@@ -79,7 +79,7 @@ void createShader(string shaderSource, bool isFragmentShader, GLuint program)
       infoLog.length = loglen;
       glGetInfoLogARB(shader, loglen, &loglen, infoLog.ptr);
       
-      writeln(to!string(infoLog));
+      //debug writeln(to!string(infoLog));
     }
   }
   

@@ -22,6 +22,7 @@
 
 module SubSystem.Base;
 
+import std.conv;
 import std.stdio;
 
 import Entity;
@@ -32,14 +33,16 @@ unittest
   scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
   
-  //struct MockComponent {}
+  struct MockComponent { }
   
-  class MockSubSystem : public Base!(int)
+  class MockSubSystem : public Base!(MockComponent)
   {
-    private:
-      int createComponent(Entity p_entity)
+    protected:
+      bool canCreateComponent(Entity p_entity) { return true; }
+      
+      MockComponent createComponent(Entity p_entity)
       {
-        return 0;
+        return MockComponent();
       }
   }
   MockSubSystem sys = new MockSubSystem();
@@ -50,79 +53,90 @@ unittest
   {
     sys.registerEntity(entity);
   }
-  assert(sys.components.length == 1);  
-  assert(sys.findComponents(entity).length == 1);  
-  assert(sys.getEntity(sys.findComponents(entity)[0]) == entity);
+  assert(sys.components.length == 1);
+  
+  Entity anotherEntity = new Entity();
+  sys.registerEntity(anotherEntity);
+  assert(sys.components.length == 2);
+  
   
   {
     sys.removeEntity(entity);
   }
-  assert(sys.components.length == 0);  
-  assert(sys.findComponents(entity).length == 0);
+  assert(sys.components.length == 1);  
+  assert(sys.hasComponent(entity) == false);
 }
 
 
-class Base(ComponentType) : public IBase!(ComponentType, Entity[ComponentType])
-{
-  public final void registerEntity(Entity p_entity)
-  {
-    IregisterEntity(p_entity, m_store);
-  }
-  
-  public final void removeEntity(Entity p_entity)
-  {
-    IremoveEntity(p_entity, m_store);
-  }
-  
-  public final ComponentType[] findComponents(Entity p_entity)
-  {
-    // TODO: this could probably be rangified or lambdified
-    
-    ComponentType[] foundComponents;
-    
-    foreach (ComponentType component; m_store.keys)
-      if (m_store[component] == p_entity)
-        foundComponents ~= component;
-
-    return foundComponents;
-  }
-  
-  public final Entity getEntity(ComponentType p_component)
-  {
-    return m_store[p_component];
-  }
-  
-  protected final ComponentType[] components()
-  {
-    return m_store.keys;
-  }
-  
-  private Entity[ComponentType] m_store;
-}
-
-
-interface IBase(ComponentType, ComponentStore)
+abstract class Base(ComponentType) : public IBase!(ComponentType)
 {
 public:
-  final void IregisterEntity(Entity p_entity, ComponentStore p_store)
+  final void registerEntity(Entity p_entity)
   {
-    auto component = createComponent(p_entity);
-    p_store[component] = p_entity;
+    scope(failure) writeln(to!string(this) ~ " failed loading entity: " ~ to!string(p_entity.values));
+    
+    if (canCreateComponent(p_entity))
+    {
+      auto component = createComponent(p_entity);
+    
+      m_entityToComponent[p_entity] = component;
+    }
   }
   
-  final void IremoveEntity(Entity p_entity, ComponentStore p_store)
+  final void removeEntity(Entity p_entity)
   {
-    foreach (ComponentType component; p_store.keys)
-      if (p_store[component] == p_entity)
-        p_store.remove(component);
+    m_entityToComponent.remove(p_entity);
   }
   
-  ComponentType[] findComponents(Entity p_entity);
+  final bool hasComponent(Entity p_entity)
+  {
+    return (p_entity in m_entityToComponent) !is null;
+  }
   
-protected: 
-  Entity getEntity(ComponentType p_component);  
-  ComponentType[] components();
-
+  final ref ComponentType getComponent(Entity p_entity)
+  in
+  {
+    assert(hasComponent(p_entity), "couldn't find component for entity " ~ to!string(p_entity.id) ~ " in " ~ to!string(this));
+  }
+  body
+  {
+    return m_entityToComponent[p_entity];
+  }
+  
+  void setComponent(Entity p_entity, ComponentType p_component)
+  {
+    m_entityToComponent[p_entity] = p_component;
+  }  
+  
+  final ComponentType[] components()
+  {
+    return m_entityToComponent.values;
+  }
+  
+  final Entity[] entities()
+  {
+    return m_entityToComponent.keys;
+  }
+  
+  
 private:
+  ComponentType[Entity] m_entityToComponent;
+}
+
+
+interface IBase(ComponentType)
+{
+public:
+  void registerEntity(Entity p_entity);
+  void removeEntity(Entity p_entity);  
+  
+  bool hasComponent(Entity p_entity);
+  ref ComponentType getComponent(Entity p_entity);
+  
+  ComponentType[] components();
+  Entity[] entities();  
+  
+protected:
+  bool canCreateComponent(Entity p_entity);
   ComponentType createComponent(Entity p_entity);
 }

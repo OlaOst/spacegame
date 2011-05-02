@@ -30,8 +30,8 @@ import derelict.sdl.sdl;
 import EnumGen;
 import common.Vector;
 
-pragma(lib, "DerelictUtil.lib");
-pragma(lib, "DerelictSDL.lib");
+//pragma(lib, "DerelictSDL.lib");
+//pragma(lib, "DerelictUtil.lib");
 
 
 unittest
@@ -392,8 +392,6 @@ private:
       
       case SDL_MOUSEBUTTONUP:
       {
-        writeln("got mousebuttonup event with button " ~ to!string(event.button.button));
-      
         if (event.button.button in m_buttonEventMapping)
         {
           m_events[m_buttonEventMapping[event.button.button]] = EventState.Released;

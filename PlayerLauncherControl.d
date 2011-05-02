@@ -26,10 +26,10 @@ import std.conv;
 import std.random;
 import std.stdio;
 
-import Control;
+import Entity;
 import InputHandler;
-import SubSystem.ConnectionHandler;
-import Vector : Vector;
+import SubSystem.Controller;
+import common.Vector;
 
 
 unittest
@@ -54,7 +54,7 @@ public:
   }
   
   
-  void update(ConnectionComponent p_sourceComponent, ConnectionComponent[] p_otherComponents)
+  void update(ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents)
   out
   {
     //assert(p_sourceComponent.force.isValid());
@@ -77,16 +77,16 @@ public:
         bullet.setValue("collisionType", "Bullet");
         bullet.setValue("radius", "0.1");
         bullet.setValue("mass", "0.2");
-        bullet.setValue("spawnedFrom", to!string(p_sourceComponent.entity.id));
+        //bullet.setValue("spawnedFrom", to!string(p_sourceComponent.entity.id));
         
         //bullet.setValue("velocity", 
 
-        bullet.position = p_sourceComponent.entity.position;
-        bullet.angle = p_sourceComponent.entity.angle;
+        bullet.setValue("position", to!string(p_sourceComponent.position));
+        bullet.setValue("angle", to!string(p_sourceComponent.angle));
         
         bullet.lifetime = 5.0;
         
-        p_sourceComponent.entity.addSpawn(bullet);
+        //p_sourceComponent.entity.addSpawn(bullet);
         
         immutable string[4] sounds = ["mgshot1.wav", "mgshot2.wav", "mgshot3.wav", "mgshot4.wav"];
         

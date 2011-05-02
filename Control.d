@@ -26,65 +26,45 @@ import std.conv;
 import std.stdio;
 
 import Entity;
-import SubSystem.ConnectionHandler;
+import SubSystem.Controller;
 import InputHandler;
-import Vector : Vector;
+import common.Vector;
 
 
 unittest
 {
-  auto controlComponent = new ConnectionComponent(new Entity());
+  auto controlComponent = ControlComponent();
   
   class MockControl : public Control
   {
   public:
-    void update(ConnectionComponent p_sourceComponent, ConnectionComponent[] p_otherComponents)
+    void update(ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents)
     {
     }
   }
   
   auto controller = new MockControl();
   
-  ConnectionComponent[] components = [];
+  ControlComponent[] components = [];
   
-  assert(controller.nearbyEntities(controlComponent, components, 10.0).length == 0);
+  assert(controller.findComponentsPointedAt(controlComponent, components, 10.0).length == 0);
   
-  components ~= new ConnectionComponent(new Entity());
+  components ~= ControlComponent();
   
-  assert(controller.nearbyEntities(controlComponent, components, 10.0).length == 1);
+  assert(controller.findComponentsPointedAt(controlComponent, components, 10.0).length == 1);
   
-  auto farAwayComponent = new ConnectionComponent(new Entity());
+  auto farAwayComponent = ControlComponent();
   
-  farAwayComponent.entity.position = Vector(100.0, 100.0);
+  farAwayComponent.position = Vector(100.0, 100.0);
   components ~= farAwayComponent;
   
-  assert(controller.nearbyEntities(controlComponent, components, 10.0).length == 1);
-  assert(controller.nearbyEntities(controlComponent, components, 1000.0).length == 2);
+  assert(controller.findComponentsPointedAt(controlComponent, components, 10.0).length == 1);
+  assert(controller.findComponentsPointedAt(controlComponent, components, 1000.0).length == 2);
 }
 
 
 abstract class Control
 {
 public:
-  abstract void update(ConnectionComponent p_sourceComponent, ConnectionComponent[] p_otherComponents);
-  
-
-protected:
-  Entity[] nearbyEntities(ConnectionComponent p_sourceComponent, ConnectionComponent[] p_candidateComponents, float p_radius)
-  in
-  {
-    assert(p_radius > 0.0);
-  }
-  body
-  {
-    Entity[] inRangeEntities = [];
-    foreach (candidateComponent; p_candidateComponents)
-    {
-      if (candidateComponent != p_sourceComponent && (candidateComponent.entity.position - p_sourceComponent.entity.position).length2d < p_radius)
-      {
-        inRangeEntities ~= candidateComponent.entity;
-      }
-    }
-    return inRangeEntities;
-  }
+  abstract void update(ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents);
 }

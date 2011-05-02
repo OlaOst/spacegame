@@ -25,10 +25,9 @@ module PlayerControl;
 import std.conv;
 import std.stdio;
 
-import Control;
 import InputHandler;
-import SubSystem.ConnectionHandler;
-import Vector : Vector;
+import SubSystem.Controller;
+import common.Vector;
 
 
 unittest
@@ -53,7 +52,7 @@ public:
   }
   
   
-  void update(ConnectionComponent p_sourceComponent, ConnectionComponent[] p_otherComponents)
+  void update(ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents)
   out
   {
     //assert(p_sourceComponent.force.isValid());
