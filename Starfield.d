@@ -92,7 +92,7 @@ public:
   
   void draw()
   {
-    m_graphics.draw();
+    m_graphics.update();
   }
   
 private:

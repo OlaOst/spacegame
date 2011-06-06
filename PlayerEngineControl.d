@@ -52,11 +52,12 @@ public:
   }
   
   
-  void update(ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents)
+  void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents)
   out
   {
-    //assert(p_sourceComponent.force.isValid());
-    //assert(p_sourceComponent.torque == p_sourceComponent.torque);
+    assert(p_sourceComponent.position.isValid());
+    assert(p_sourceComponent.force.isValid());
+    assert(p_sourceComponent.torque == p_sourceComponent.torque);
   }
   body
   {
@@ -66,14 +67,14 @@ public:
     auto torque = p_sourceComponent.torque;
     
     if (m_inputHandler.isPressed(Event.UpKey))
-      force += dir * 7.5;
+      force += dir * 1.5;
     if (m_inputHandler.isPressed(Event.DownKey))
-      force -= dir * 7.5;
+      force -= dir * 1.5;
     
     if (m_inputHandler.isPressed(Event.LeftKey))
-      torque += 5.5;
+      torque += 1.5;
     if (m_inputHandler.isPressed(Event.RightKey))
-      torque -= 5.5;
+      torque -= 1.5;
     
     p_sourceComponent.force = force;
     p_sourceComponent.torque = torque;

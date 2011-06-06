@@ -37,6 +37,9 @@ unittest
   
   class MockSubSystem : public Base!(MockComponent)
   {
+    public:
+      void update() {}
+      
     protected:
       bool canCreateComponent(Entity p_entity) { return true; }
       
@@ -68,7 +71,7 @@ unittest
 }
 
 
-abstract class Base(ComponentType) : public IBase!(ComponentType)
+abstract class Base(ComponentType) : public SubSystem, public ComponentFactory!(ComponentType)
 {
 public:
   final void registerEntity(Entity p_entity)
@@ -124,19 +127,27 @@ private:
 }
 
 
-interface IBase(ComponentType)
+interface ComponentFactory(ComponentType)
 {
 public:
-  void registerEntity(Entity p_entity);
-  void removeEntity(Entity p_entity);  
-  
   bool hasComponent(Entity p_entity);
   ref ComponentType getComponent(Entity p_entity);
   
   ComponentType[] components();
-  Entity[] entities();  
   
 protected:
   bool canCreateComponent(Entity p_entity);
   ComponentType createComponent(Entity p_entity);
+}
+
+
+interface SubSystem
+{
+ public:
+  void registerEntity(Entity p_entity);
+  void removeEntity(Entity p_entity);  
+  
+  void update();
+  
+  //Entity[] entities();
 }

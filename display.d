@@ -40,6 +40,12 @@ unittest
   scope(failure) writeln(__FILE__ ~ " unittests failed");
   
   initDisplay(1, 1);
+  teardownDisplay();
+}
+
+void teardownDisplay()
+{
+  //SDL_Quit();
 }
 
 void initDisplay(int p_screenWidth, int p_screenHeight)
@@ -52,20 +58,20 @@ void initDisplay(int p_screenWidth, int p_screenHeight)
   DerelictGL.load();
   DerelictGLU.load();
   
-  SDL_Init(SDL_INIT_VIDEO);
+  enforce(SDL_Init(SDL_INIT_VIDEO) == 0, "Failed to initialize SDL: " ~ to!string(SDL_GetError()));
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   
   SDL_SetVideoMode(p_screenWidth, p_screenHeight, 24, SDL_OPENGL);
-  SDL_WM_SetCaption(toStringz("hello world"), null);
+  //SDL_WM_SetCaption(toStringz("hello world"), null);
   
-  DerelictGL.loadExtensions();
+  //DerelictGL.loadExtensions();
   
   //debug writeln("OpenGL version: " ~ to!string(glGetString(GL_VERSION)));
   //debug writeln("DerelictGL.maxVersion: " ~ to!string(DerelictGL.maxVersion));
   //debug writeln("OpenGL renderer: " ~ to!string(glGetString(GL_RENDERER)));
   //debug writeln("OpenGL vendor: " ~ to!string(glGetString(GL_VENDOR)));
   
-  string[] loaded = DerelictGL.loadedExtensionNames();
+  //string[] loaded = DerelictGL.loadedExtensionNames();
   
   //shadify();
   
@@ -85,17 +91,19 @@ void setupGL(int p_screenWidth, int p_screenHeight)
   
   glLoadIdentity();
   
-  glEnable(GL_DEPTH_TEST);
+  //glEnable(GL_DEPTH_TEST);
   
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  //glEnable(GL_BLEND);
+  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
+
 
 void swapBuffers()
 {
   SDL_GL_SwapBuffers();
   
-  changeStuff();
+  //changeStuff();
   
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glLoadIdentity();
 }

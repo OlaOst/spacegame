@@ -50,7 +50,7 @@ public:
   
   void renderChar(char p_char, bool p_translate)
   {
-    glEnable(GL_TEXTURE_2D);
+    /*glEnable(GL_TEXTURE_2D);
     
     auto glyph = loadGlyph(p_char);
         
@@ -77,7 +77,7 @@ public:
     glEnd();
     
     if (p_translate)
-      glTranslatef(1.0 * xCoord/yCoord, 0.0, 0.0);
+      glTranslatef(1.0 * xCoord/yCoord, 0.0, 0.0);*/
   }
 
   

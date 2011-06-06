@@ -1,6 +1,5 @@
-position = 0 0
-
 keepInCenter = true
+connectTarget = true
 
 skeleton.source = skeleton.txt
 
@@ -9,10 +8,15 @@ rightEngine.source = engine.txt
 leftCannon.source = cannon.txt
 rightCannon.source = cannon.txt
 
-leftEngine.connection = skeleton.lowerleft
-rightEngine.connection = skeleton.lowerright
-leftCannon.connection = skeleton.upperleft
-rightCannon.connection = skeleton.upperright
+#leftEngine.connection = skeleton.lowerleft
+#rightEngine.connection = skeleton.lowerright
+#leftCannon.connection = skeleton.upperleft
+#rightCannon.connection = skeleton.upperright
+
+leftEngine.relativePosition = -0.95 -1.0
+rightEngine.relativePosition = -0.95 1.0
+leftCannon.relativePosition = 0.85 -0.85
+rightCannon.relativePosition = 0.85 0.85
 
 leftEngine.control = playerEngine
 rightEngine.control = playerEngine

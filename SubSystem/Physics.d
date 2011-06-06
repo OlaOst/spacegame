@@ -29,7 +29,6 @@ import std.random;
 import std.stdio;
 
 import SubSystem.Base;
-import SubSystem.CollisionHandler;
 import Entity;
 import common.Vector;
 
@@ -115,7 +114,7 @@ private:
   in
   {
     assert(p_time == p_time);
-    assert(p_time >= 0.0);
+    assert(p_time > 0.0);
     assert(force.isValid());
     assert(torque == torque);
   }
@@ -134,6 +133,10 @@ private:
     
     if (reload > 0.0)
       reload -= p_time;
+      
+    // reset force and torque after applying them
+    force = Vector.origo;
+    torque = 0.0;
   }
   
 
@@ -160,11 +163,22 @@ public:
   {
   }
   
+  void update()
+  {
+    move(m_timeStep);
+  }
   
+  void setTimeStep(float p_timeStep)
+  {
+    m_timeStep = p_timeStep;
+  }
+  
+
+private:
   void move(float p_time)
   in
   {
-    assert(p_time >= 0.0);
+    assert(p_time > 0.0, "Physics must have a positive nonzero timestep to update: " ~ to!string(p_time) ~ " doesn't cut it.");
   }
   body
   {
@@ -207,14 +221,6 @@ public:
       */
       
       component.move(p_time);
-      
-      // do wraparound stuff      
-      //if (component.position.length2d > 100.0)
-        //component.position = component.position * -1;
-      if (abs(component.position.x) > 100.0)
-        component.position = Vector(component.position.x * -1, component.position.y);
-      if (abs(component.position.y) > 100.0)
-        component.position = Vector(component.position.x, component.position.y * -1);
       
       // reset force and torque so they're ready for next update
       component.force = Vector.origo;
@@ -269,4 +275,5 @@ protected:
   }
   
 private:
+  float m_timeStep;
 }

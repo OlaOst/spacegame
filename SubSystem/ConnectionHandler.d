@@ -26,11 +26,6 @@ import std.conv;
 import std.stdio;
 
 import Entity;
-import FlockControl;
-import InputHandler;
-import PlayerEngineControl;
-import PlayerLauncherControl;
-import SubSystem.Physics;
 import SubSystem.Base;
 import common.Vector;
 
@@ -40,56 +35,30 @@ unittest
   scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
   
-  // this control will just apply force to the right
-  class MockControl : public Control
-  {
-  public:
-    void update(ConnectionComponent p_sourceComponent, ConnectionComponent[] p_otherComponents)
-    {
-      p_sourceComponent.force = Vector(1.0, 0.0);
-      p_sourceComponent.torque = 0.0;
-    }
-  }
-  
-  auto physics = new Physics();
-  auto sys = new ConnectionHandler(new InputHandler(), physics);
+  auto sys = new ConnectionHandler();
   
   Entity ship = new Entity();
-  ship.setValue("mass", "2.0");
+  ship.setValue("connectTarget", "true");
   
-  physics.registerEntity(ship);
   sys.registerEntity(ship);
   
-
   Entity engine = new Entity();
   engine.setValue("owner", to!string(ship.id));
   engine.setValue("relativePosition", "1 0");
-  engine.setValue("mass", "1.0");
-  engine.setValue("control", "mock");
+  //engine.setValue("mass", "1.0");
+  //engine.setValue("control", "mock");
   
   sys.registerEntity(engine);
   
-  // macgyver in the mock control here, we don't want to know about it in the createComponent implementation
-  auto controller = new MockControl();
-  sys.m_controlMapping[sys.getComponent(engine)] = controller;
-
   auto engineComponent = sys.getComponent(engine);
   
   assert(engineComponent.relativePosition == Vector(1.0, 0.0), "Engine didn't set relative position to 1 0 0, it's " ~ engineComponent.relativePosition.toString());
-  assert(engineComponent.owner.entity == ship);
-
-  sys.updateFromControllers();
-
-  assert(physics.getComponent(ship).force == Vector(1.0, 0.0), "Force didn't get propagated from controller component to physics component: " ~ physics.getComponent(ship).force.toString());
-  
-  physics.move(1.0);
+  //assert(engineComponent.owner.entity == ship);
   
   // TODO: we need to take combined mass of ship and engine into account, this assumes just a mass of 1
-  assert(ship.position == Vector(1, 0, 0));
+  //assert(ship.position == Vector(1, 0, 0));
   
-  sys.updateFromPhysics(1.0);
-  
-  assert(engine.position == engineComponent.relativePosition + ship.position);
+  //assert(engine.position == engineComponent.relativePosition + ship.position);
 }
 
 
@@ -97,161 +66,89 @@ class ConnectionComponent
 {
 invariant()
 {
-  assert(entity !is null);
-  
-  assert(force.isValid());
+  assert(owner !is null);
   assert(relativePosition.isValid());
   assert(relativeAngle == relativeAngle);
   
   // if the component has an owner, it should not have a grandparent
-  // also the owner has to have a physics component
   // so it's not a tree structure
   // if an engine is connected to a skeleton, the owner component is still the ship, not the skeleton
-  if (owner !is null)
+  /*if (owner !is null)
   {
     assert(owner.owner is null);
-    assert(owner.physicsComponent !is null);
-  }
+  }*/
 }
 
 
 public:
-  this(Entity p_entity)
+  this(Entity p_owner)
   {
-    entity = p_entity;
+    owner = p_owner;
     
     relativePosition = Vector.origo;
     relativeAngle = 0.0;
     
-    force = Vector.origo;
-    torque = 0.0;
+    //force = Vector.origo;
+    //torque = 0.0;
     
-    reload = 0.0;
+    //reload = 0.0;
   } 
   
   
 public:
-  Entity entity;
-  
-  ConnectionComponent owner;
-  
-  PhysicsComponent physicsComponent;
+  Entity owner;
   
   Vector relativePosition;
   float relativeAngle;
-  
-  Vector force;
-  float torque;
-  
-  float reload;
 }
 
 
 class ConnectionHandler : public Base!(ConnectionComponent)
 {
 public:
-  this(InputHandler p_inputHandler, Physics p_physics)
-  {
-    m_physics = p_physics;
-    
-    m_inputHandler = p_inputHandler;
-  }
+  void update() {}
   
-  
-  void updateFromControllers()
-  {
-    foreach (component; components)
-    {
-      // let eventual controller do its thing
-      if (component in m_controlMapping)
-      {
-        m_controlMapping[component].update(component, components);
-      }
-	  
-      // propagate force/torque/stuff from controller to owner
-      if (component.owner !is null && component.owner.physicsComponent !is null)
-      {
-        component.owner.physicsComponent.force += component.force;
-        component.owner.physicsComponent.torque += component.torque;
-        
-        auto spawns = component.entity.getAndClearSpawns();
-
-        foreach (spawn; spawns)
-          component.owner.entity.addSpawn(spawn);
-      }
-
-      component.force = Vector.origo;
-      component.torque = 0.0;
-    }
-  }
-  
-  
-  void updateFromPhysics(float p_time)
-  in
-  {
-    assert(p_time >= 0.0);
-  }
-  body
-  {
-    foreach (component; components)
-    {
-      if (component.reload > 0.0)
-        component.reload = component.reload - p_time;
-      
-      if (component.owner !is null)
-      {
-        component.entity.position = component.relativePosition.rotate(component.owner.physicsComponent.entity.angle) + component.owner.physicsComponent.entity.position;
-        component.entity.angle = component.relativeAngle + component.owner.physicsComponent.entity.angle;
-
-        // TODO: do we need to take into account ship rotation and stuff here?
-        component.entity.velocity = component.owner.entity.velocity;
-        component.entity.rotation = component.owner.entity.rotation;
-      }
-    }
-  }
-
-
 protected:
+  bool canCreateComponent(Entity p_entity)
+  {
+    return (p_entity.getValue("owner").length > 0 ||
+            p_entity.getValue("connectTarget").length > 0);
+  }
+  
+  
   ConnectionComponent createComponent(Entity p_entity)
   {
-    auto newComponent = new ConnectionComponent(p_entity);
+    Entity owner = null;
     
     if (p_entity.getValue("owner").length > 0)
     {
       int ownerId = to!int(p_entity.getValue("owner"));
       
-      foreach (component; components)
+      foreach (entity; entities)
       {
-        if (component.entity.id == ownerId)
+        if (entity.id == ownerId)
         {
-          newComponent.owner = component;
+          // this should maybe be an enforce instead? 
+          // nope, owner ids are translated from names in data files
+          // the name->entity.id translation should throw if it doesn't find a match
+          //assert(hasComponent(entity));
+          
+          //newComponent.owner = getComponent(entity);
+          owner = entity;
           break;
         }
       }
     }
     
-    if (p_entity.getValue("connection").length > 0)
+    // connectTargets are their own owners
+    if (p_entity.getValue("connectTarget").length > 0)
     {
-      auto connection = std.string.split(p_entity.getValue("connection"), ".");
-      
-      auto skeletonName = connection[0];
-      auto connectpointName = connection[1];
-      
-      // need to figure out skeleton entity. need to ask owner component for entity with a given name
-      //auto skeleton = newComponent.owner.findSubEntity(skeletonName);
-      
-      foreach (skeletonCandidate; components)
-      {
-        // same owner and same name -> should be unique
-        if (skeletonCandidate.owner == newComponent.owner && skeletonCandidate.entity.getValue("name") == skeletonName)
-        {
-          //writeln("found connection to " ~ skeletonCandidate.entity.getValue("name") ~ " on point " ~ skeletonCandidate.entity.getValue("connectpoint." ~ connectpointName ~ ".position"));
-          
-          newComponent.relativePosition = Vector.fromString(skeletonCandidate.entity.getValue("connectpoint." ~ connectpointName ~ ".position"));
-          break;
-        }
-      }
+      owner = p_entity;
     }
+    
+    assert(owner !is null, "Could not find owner with id " ~ p_entity.getValue("owner"));
+    
+    auto newComponent = new ConnectionComponent(owner);
     
     if (p_entity.getValue("relativePosition").length > 0)
     {
@@ -263,31 +160,9 @@ protected:
       newComponent.relativeAngle = to!float(p_entity.getValue("relativeAngle"));
     }
     
-    if (p_entity.getValue("control") == "playerEngine")
-    {
-      m_controlMapping[newComponent] = new PlayerEngineControl(m_inputHandler);
-    }
-    if (p_entity.getValue("control") == "playerLauncher")
-    {
-      m_controlMapping[newComponent] = new PlayerLauncherControl(m_inputHandler);
-    }
-    
-    if (p_entity.getValue("control") == "flocker")
-    {
-      m_controlMapping[newComponent] = new FlockControl(2.5, 0.5, 20.0, 0.3);
-    }
-    
-    if (m_physics.hasComponent(p_entity))
-      newComponent.physicsComponent = m_physics.getComponent(p_entity);
-    
     return newComponent;
   }
   
   
 private:
-  Physics m_physics;
-  
-  InputHandler m_inputHandler;
-  
-  Control[ConnectionComponent] m_controlMapping;
 }

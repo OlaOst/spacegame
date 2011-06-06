@@ -23,6 +23,7 @@
 module InputHandler;
 
 import std.stdio;
+import std.exception;
 import std.conv;
 
 import derelict.sdl.sdl;
@@ -41,7 +42,7 @@ unittest
   
   DerelictSDL.load();
   
-  SDL_Init(SDL_INIT_VIDEO);
+  enforce(SDL_Init(SDL_INIT_VIDEO) == 0, "Failed to initialize SDL: " ~ to!string(SDL_GetError()));
   
   InputHandler inputHandler = new InputHandler();
 
@@ -234,6 +235,9 @@ unittest
   assert(inputHandler.pixelToViewPort(50, 150) == Vector(0, -0.0), "100, 50 => " ~ inputHandler.pixelToViewPort(100, 50).toString());
   assert(inputHandler.pixelToViewPort(0, 0) == Vector(-1, 3), "0, 0 => " ~ inputHandler.pixelToViewPort(0, 0).toString());
   assert(inputHandler.pixelToViewPort(100, 300) == Vector(1, -3), "200, 100 => " ~ inputHandler.pixelToViewPort(200, 100).toString());
+  
+  
+  SDL_Quit();
 }
 
 
@@ -269,6 +273,9 @@ class InputHandler
 invariant()
 {
   assert(m_mousePos.isValid());
+  
+  //assert(m_screenWidth > 0);
+  //assert(m_screenHeight > 0);
 }
 
 public:
@@ -442,8 +449,13 @@ private:
   
   Vector pixelToViewPort(int p_x, int p_y)
   {
+    scope(failure) return Vector.origo;
+    
     int extraWidth = (m_screenWidth > m_screenHeight ? (m_screenWidth - m_screenHeight) : 0);
     int extraHeight = (m_screenHeight > m_screenWidth ? (m_screenHeight - m_screenWidth) : 0);
+    
+    assert((cast(float)(m_screenWidth - extraWidth) - 0.5) > 0, "div by 0, m_screenWidth: " ~ to!string(m_screenWidth) ~ ", extraWidth: " ~ to!string(extraWidth));
+    assert((cast(float)(m_screenHeight - extraHeight) - 0.5) > 0, "div by 0, m_screenHeight: " ~ to!string(m_screenHeight) ~ ", extraHeight: " ~ to!string(extraHeight));
     
     return Vector((cast(float)(p_x - extraWidth/2) / cast(float)(m_screenWidth-extraWidth) - 0.5) * 2.0,
                  -(cast(float)(p_y - extraHeight/2) / cast(float)(m_screenHeight-extraHeight) - 0.5) * 2.0);

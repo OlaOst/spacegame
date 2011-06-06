@@ -81,7 +81,7 @@ public:
     m_lastSourcePlayed = 0;
   }
   
-  void soundOff()
+  void update()
   {
     foreach (component; components)
     {

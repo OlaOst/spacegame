@@ -26,16 +26,17 @@ module main;
 
 import Game;
 
+
 void main(string[] args)
 {
-  version(unittestsOnly)
+  version(unittest)
   {
-    //writeln("Checking unittest coverage - not running main program");
+    // importing std.stdio here gives this compiler error: Assertion failure: '!vthis->csym' on line 713 in file 'glue.c' 
+    // with dmd 2.053
+    //writeln("Unittest run - not running main program");
   }
   else
   {
-    //writeln("Starting game");
-    
     Game game = new Game();
     game.run();
   }

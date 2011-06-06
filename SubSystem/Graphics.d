@@ -78,12 +78,12 @@ unittest
   componentsPointedAt = graphics.findComponentsPointedAt(Vector.origo);
   assert(componentsPointedAt.length == 2, "Should have 2 components pointed at, instead got " ~ to!string(componentsPointedAt.length));
   
-  graphics.draw();
+  graphics.update();
   
   {
     graphics.removeEntity(deleteTest);
   
-    graphics.draw();
+    graphics.update();
   }  
   
   Entity another = new Entity();
@@ -110,8 +110,9 @@ unittest
   
   graphics.registerEntity(text);
     
-  graphics.draw();
+  graphics.update();
 }
+
 
 mixin(genEnum("DrawSource",
 [
@@ -122,6 +123,7 @@ mixin(genEnum("DrawSource",
   "Vertices",
   "Text"
 ]));
+
 
 struct Vertex
 {
@@ -205,8 +207,23 @@ public:
     initDisplay(p_screenWidth, p_screenHeight);
   }
   
-  
-  void draw() 
+  ~this()
+  {
+    teardownDisplay();
+  }
+
+
+  void test()
+  {
+    glColor3f(1.0, 0.0, 0.0);
+    glBegin(GL_TRIANGLES);
+      glVertex2f(0.0, 1.0);
+      glVertex2f(0.87, -0.5);
+      glVertex2f(-0.87, -0.5);
+    glEnd();
+  }
+
+  void update() 
   {
     swapBuffers();
   
@@ -221,13 +238,15 @@ public:
     glTranslatef(-m_centerComponent.position.x, -m_centerComponent.position.y, 0.0);
     
     glDisable(GL_TEXTURE_2D);
-    
+
     foreach (component; components)
     {
       glPushMatrix();
       
       assert(component.position.isValid());
       glTranslatef(component.position.x, component.position.y, component.position.z);
+      
+      //writeln("graphics comp pos: " ~ component.position.toString());
       
       // show some data for entities, unrotated
       glPushMatrix();
@@ -239,7 +258,7 @@ public:
       glRotatef(component.angle * (180.0 / PI), 0.0, 0.0, 1.0);
       
       // draw connectpoinst
-      glDisable(GL_DEPTH_TEST);
+      //glDisable(GL_DEPTH_TEST);
       foreach (connectPoint; component.connectPoints)
       {
         glPointSize(4.0);
@@ -248,7 +267,7 @@ public:
           glVertex3f(connectPoint.x, connectPoint.y, 0.0);
         glEnd();
       }
-      glEnable(GL_DEPTH_TEST);
+      //glEnable(GL_DEPTH_TEST);
       
       
       if (component.drawSource == DrawSource.Triangle)
@@ -338,11 +357,11 @@ public:
       glPopMatrix();
     }
     
-    glColor3f(1.0, 0.0, 0.0);
+    /*glColor3f(1.0, 0.0, 0.0);
     glBegin(GL_LINE);
       glVertex2f(0.0, 0.0);
       glVertex2f(m_mouseWorldPos.x, m_mouseWorldPos.y);
-    glEnd();
+    glEnd();*/
     
     glTranslatef(0.0, 5.0, 0.0);
     m_textRender.renderString("hello world");

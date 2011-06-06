@@ -23,6 +23,7 @@
 module FlockControl;
 
 import std.algorithm;
+import std.conv;
 import std.math;
 import std.stdio;
 
@@ -82,7 +83,7 @@ public:
   }
   
   
-  void update(ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents)
+  void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents)
   out
   {
     assert(p_sourceComponent.force.isValid());
@@ -93,7 +94,9 @@ public:
     Vector[] otherPositions = [];
     
     foreach (otherComponent; p_otherComponents) //nearbyEntities(p_sourceComponent, p_otherComponents, 50.0))
+    {
       otherPositions ~= p_sourceComponent.position - otherComponent.position;
+    }
 
     auto desiredVel = desiredVelocity(otherPositions);
     

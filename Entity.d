@@ -40,8 +40,6 @@ unittest
   
   Entity entity = new Entity();
   
-  //assert(entity.position == Vector.origo);
-  
   entity.setValue("dummyValue", "123");
   
   assert(entity.getValue("dummyValue"), "123");
@@ -49,14 +47,6 @@ unittest
   Entity another = new Entity();
   
   assert(entity.id != another.id);
-  
-  
-  //Entity fromFile = new Entity("data/shiproot.txt");
-  
-  //assert(fromFile.getValue("drawsource") == "Triangle");
-  //assert(fromFile.getValue("collisionType") == "ship");
-  //assert(fromFile.getValue("radius") == "2.0");
-  //assert(fromFile.getValue("mass") == "4.0");
 }
 
 
@@ -64,12 +54,6 @@ class Entity
 {
 invariant()
 {
-  //assert(position.isValid());
-  //assert(velocity.isValid());
-  
-  //assert(angle == angle);
-  //assert(rotation == rotation);
-  
   assert(lifetime == lifetime);
   assert(health == health);
 }
@@ -78,12 +62,6 @@ invariant()
 public:
   this()
   {
-    //position = Vector.origo;
-    //velocity = Vector.origo;
-    
-    //angle = 0.0;
-    //rotation = 0.0;
-    
     id = m_idCounter++;
     
     lifetime = float.infinity;
@@ -200,12 +178,6 @@ public:
   
 public:
   immutable int id;
-
-  //Vector position;
-  //Vector velocity;
-  
-  //float angle;
-  //float rotation;
   
   float lifetime;
   float health;

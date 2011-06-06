@@ -54,11 +54,11 @@ public:
   }
   
   
-  void update(ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents)
+  void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents)
   out
   {
-    //assert(p_sourceComponent.force.isValid());
-    //assert(p_sourceComponent.torque == p_sourceComponent.torque);
+    assert(p_sourceComponent.force.isValid());
+    assert(p_sourceComponent.torque == p_sourceComponent.torque);
   }
   body
   {
