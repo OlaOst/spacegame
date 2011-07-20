@@ -46,7 +46,6 @@ unittest
   engine.setValue("owner", to!string(ship.id));
   engine.setValue("relativePosition", "1 0");
   //engine.setValue("mass", "1.0");
-  //engine.setValue("control", "mock");
   
   sys.registerEntity(engine);
   
@@ -90,8 +89,6 @@ public:
     
     //force = Vector.origo;
     //torque = 0.0;
-    
-    //reload = 0.0;
   } 
   
   

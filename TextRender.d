@@ -21,6 +21,9 @@ unittest
   auto textRender = new TextRender();
   
   // assert derelict freetype is loaded? supposed to be internal stuff, not part of interface
+  // NOPE just load gl here if this file is unittested in isolation
+  DerelictGL.load();
+  
   
   textRender.renderChar('1', false);
   textRender.renderChar('1', false);

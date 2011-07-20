@@ -47,10 +47,10 @@ unittest
   assert(flock.desiredVelocity([Vector(0.0, 10.0)]) == Vector.origo);
   
   // check that desired velocity is changed away with one boid inside avoid distance
-  assert(flock.desiredVelocity([Vector(0.0, 0.3)]).y < 0.0);
+  assert(flock.desiredVelocity([Vector(0.0, 0.2)]).y > 0.0, "got undesired velocity: " ~ flock.desiredVelocity([Vector(0.0, 0.3)]).toString());
   
   // check that desired velocity is changed towards with one boid outside avoid distance but inside flock distance
-  assert(flock.desiredVelocity([Vector(0.0, 2.0)]).y > 0.0);
+  assert(flock.desiredVelocity([Vector(0.0, 2.0)]).y < 0.0);
   
   // check that desired velocity is kept with one boid in front and one in back (avoidance rules should nullify with those two)
   //assert(flock.desiredVelocity(/*Vector(0.0, 1.0),*/ [Vector(0.0, 1.0), Vector(0.0, -1.0)]) == Vector(0.0, 1.0), flock.desiredVelocity(Vector(0.0, 1.0), [Vector(0.0, 1.0), Vector(0.0, -1.0)]).toString());
@@ -101,13 +101,18 @@ public:
     auto desiredVel = desiredVelocity(otherPositions);
     
     assert(desiredVel.isValid());
-
-    p_sourceComponent.force = p_sourceComponent.force + desiredVel.normalized * 2.5;
+    
+    if (desiredVel.length2d() < 0.01)
+      return;
     
     Vector dir = Vector.fromAngle(p_sourceComponent.angle);
     
-    //p_sourceComponent.torque = p_sourceComponent.torque + (atan2(dir.y, dir.x) - atan2(p_sourceComponent.velocity.y, p_sourceComponent.velocity.x));
-    //p_sourceComponent.entity.angle = atan2(p_sourceComponent.velocity.y, p_sourceComponent.velocity.x);
+    float desiredTorque = dir.angle(desiredVel);
+    
+    if (desiredTorque < 0.1)
+      p_sourceComponent.force = p_sourceComponent.force + Vector(0.5, 0.0);
+
+    p_sourceComponent.torque = desiredTorque;
   }
 
   
@@ -130,9 +135,9 @@ private:
     foreach (otherPosition; p_otherPositions)
     {      
       if (otherPosition.length2d < m_avoidDistance)
-        desiredVelocity -= otherPosition.normalized() * m_avoidWeight;
+        desiredVelocity += otherPosition.normalized() * m_avoidWeight;
       else if (otherPosition.length2d < m_flockDistance)
-        desiredVelocity += otherPosition.normalized() * m_flockWeight;
+        desiredVelocity -= otherPosition.normalized() * m_flockWeight;
     }
     
     return desiredVelocity;

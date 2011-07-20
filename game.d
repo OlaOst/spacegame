@@ -26,6 +26,7 @@ import std.algorithm;
 import std.conv;
 import std.datetime;
 import std.math;
+import std.parallelism;
 import std.random;
 import std.stdio;
 
@@ -36,8 +37,10 @@ import SubSystem.ConnectionHandler;
 import SubSystem.Controller;
 import SubSystem.Graphics;
 import SubSystem.Physics;
-import SubSystem.Sound;
 import SubSystem.Placer;
+import SubSystem.Sound;
+import SubSystem.Spawner;
+
 import CommsCentral;
 import InputHandler;
 import Starfield;
@@ -74,6 +77,7 @@ unittest
   assert(game.m_physics.getComponent(testPhysics).force == Vector(0.0, 1.0, 0.0));
   
   game.m_physics.setTimeStep(0.1);
+  game.m_controller.setTimeStep(0.1);
   foreach (subSystem; game.m_subSystems)
     subSystem.update();
     
@@ -147,9 +151,10 @@ public:
     m_subSystems["graphics"] = m_graphics = new Graphics(xres, yres);
     m_subSystems["physics"] = m_physics = new Physics();
     m_subSystems["controller"] = m_controller = new Controller(m_inputHandler);
-    m_subSystems["collider"] = new CollisionHandler();
+    m_subSystems["collider"] = m_collider = new CollisionHandler();
     m_subSystems["connector"] = m_connector = new ConnectionHandler();
     m_subSystems["sound"] = new SoundSubSystem(16);
+    m_subSystems["spawner"] = m_spawner = new Spawner();
     
     m_mouseEntity = new Entity();
     m_mouseEntity.setValue("drawsource", "star");
@@ -171,7 +176,7 @@ public:
     
     loadShip("playership.txt", ["position" : "0 0 0"]);
     
-    for (int n = 0; n < 0; n++)
+    for (int n = 0; n < 10; n++)
     {
       Entity npcShip = loadShip("npcship.txt", ["position" : Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0)).toString(), "angle" : to!string(uniform(0.0, PI*2))]);
     }
@@ -180,6 +185,7 @@ public:
 
     m_inputHandler.setScreenResolution(xres, yres);
   }
+ 
  
   void run()
   {
@@ -195,6 +201,7 @@ private:
   {
     return m_updateCount;
   }
+  
   
   void update()
   {
@@ -216,8 +223,6 @@ private:
     Entity[] entitiesToRemove;
     foreach (Entity entity; m_entities)
     {
-      spawnList ~= entity.getAndClearSpawns();
-      
       entity.lifetime = entity.lifetime - elapsedTime;
 
       if (entity.lifetime < 0.0 || entity.health < 0.0)
@@ -240,14 +245,28 @@ private:
     {
       assert(elapsedTime > 0.0);
       m_physics.setTimeStep(elapsedTime);
+      m_controller.setTimeStep(elapsedTime);
       
-      foreach (subSystem; m_subSystems)
+      // the sdl/gl stuff in the graphics subsystem needs to run in the main thread for stuff to be shown on the screen
+      // so we filter the graphics subsystem out of the subsystem list 
+      // and explicitly update it outside the parallel foreach to ensure it runs in the main thread
+      /*m_graphics.update();
+      foreach (subSystem; taskPool.parallel(filter!(delegate (SubSystem.Base.SubSystem sys) { return sys !is m_graphics; })(m_subSystems.values)))
+      {
+        subSystem.update();
+      }*/
+      foreach (subSystem; m_subSystems.values)
         subSystem.update();
       
       CommsCentral.setPlacerFromPhysics(m_physics, m_placer);
       CommsCentral.setPhysicsFromController(m_controller, m_physics);
       CommsCentral.setPhysicsFromConnector(m_connector, m_physics);
       CommsCentral.setPlacerFromConnector(m_connector, m_placer);
+      CommsCentral.setControllerFromPlacer(m_placer, m_controller);
+      CommsCentral.setCollidersFromPlacer(m_placer, m_collider);
+      CommsCentral.calculateCollisionResponse(m_collider, m_physics);
+      CommsCentral.setSpawnerFromController(m_controller, m_spawner);
+      CommsCentral.setSpawnerFromPlacer(m_placer, m_spawner);
     }
     CommsCentral.setGraphicsFromPlacer(m_placer, m_graphics);
     
@@ -256,15 +275,14 @@ private:
     // TODO: we need to know what context we are in - input events signify different intents depending on context
     // ie up event in a menu context (move cursor up) vs up event in a ship control context (accelerate ship)
     
-    foreach (Entity spawn; spawnList)
+    foreach (Entity spawn; m_spawner.getAndClearSpawns())
     {
-      m_entities[spawn.id] = spawn;
-      
       registerEntity(spawn);
     }
     
     handleInput(elapsedTime);
   }
+  
   
   void handleInput(float p_elapsedTime)
   {
@@ -313,6 +331,7 @@ private:
     }
   }
   
+  
   Entity loadShip(string p_file, string[string] p_extraParams = null)
   {
     Entity ship = new Entity("data/" ~ p_file);
@@ -324,8 +343,6 @@ private:
     
     if (ship.getValue("health"))
       ship.health = to!float(ship.getValue("health"));
-    
-    m_entities[ship.id] = ship;
     
     // need to add sub entities after they're loaded
     // since the ship entity needs accumulated values from sub entities
@@ -375,6 +392,8 @@ private:
 
   void registerEntity(Entity p_entity)
   {
+    m_entities[p_entity.id] = p_entity;
+    
     foreach (subSystem; m_subSystems)
       subSystem.registerEntity(p_entity);
   }
@@ -396,8 +415,10 @@ private:
   Graphics m_graphics;
   Controller m_controller;
   ConnectionHandler m_connector;
+  CollisionHandler m_collider;
+  Spawner m_spawner;
   
-    
+  
   Starfield m_starfield;
   
   Entity[int] m_entities;

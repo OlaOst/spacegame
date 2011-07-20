@@ -54,21 +54,6 @@ unittest
   assert(physics.getComponent(entity).position.x > 0.0);
   
   {
-    Entity spawn = new Entity();
-    spawn.setValue("spawnedFrom", to!string(entity.id));
-    spawn.setValue("mass", "0.2");
-    
-    physics.registerEntity(spawn);
-    
-    auto spawnComp = physics.getComponent(spawn);
-    auto motherComp = physics.getComponent(entity);
-    
-    //assert(spawnComp.entity.velocity == motherComp.entity.velocity, "Spawned entity didn't get velocity vector copied from spawner");
-  }
-  // TODO: what should happen when registering an entity whose spawnedFrom doesn't exists
-  
-  
-  {
     Entity notAPhysicsEntity = new Entity();
     notAPhysicsEntity.setValue("no mass value in this entity", "no mass at all");
     
@@ -89,8 +74,6 @@ invariant()
   
   assert(force.isValid());
   assert(torque == torque);
-  
-  assert(reload == reload);
 }
 
 
@@ -104,8 +87,6 @@ public:
     torque = rotation = angle = 0.0;
     
     mass = 1.0;
-    
-    reload = 0.0;
   }
 
   
@@ -130,9 +111,6 @@ private:
     
     rotation += torque * p_time;
     angle += rotation * p_time;
-    
-    if (reload > 0.0)
-      reload -= p_time;
       
     // reset force and torque after applying them
     force = Vector.origo;
@@ -142,6 +120,7 @@ private:
 
 public:
   Entity entity;
+  
   Vector position;
   Vector velocity;
   Vector force;
@@ -151,8 +130,6 @@ public:
   float torque;
   
   float mass;
-  
-  float reload;
 }
 
 
@@ -194,8 +171,8 @@ private:
       // handle collisions TODO: but not in physics
       /*foreach (collision; component.entity.getAndClearCollisions)
       {
-        CollisionComponent self = (collision.first.entity == component.entity) ? collision.first : collision.second;
-        CollisionComponent other = (collision.first.entity == component.entity) ? collision.second : collision.first;
+        ColliderComponent self = (collision.first.entity == component.entity) ? collision.first : collision.second;
+        ColliderComponent other = (collision.first.entity == component.entity) ? collision.second : collision.first;
         
         // this physics component might have collided with a non-physics component, i.e. ship moving over and lighting up something in the background or the hud, like a targeting reticle 
         // if we have physics component on the other collision component, we can do something physical
@@ -240,25 +217,6 @@ protected:
   {
     auto newComponent = new PhysicsComponent(p_entity);
     
-    // spawns needs some stuff from spawnedFrom entity to know their initial position, direction, velocity, etc
-    if (p_entity.getValue("spawnedFrom"))
-    {
-      int spawnedFromId = to!int(p_entity.getValue("spawnedFrom"));
-      
-      foreach (spawnerCandidate; components)
-      {
-        if (spawnerCandidate.entity.id == spawnedFromId)
-        {
-          Vector kick = Vector.fromAngle(spawnerCandidate.angle);
-          
-          // TODO: should be force from spawn value
-          kick *= 25.0;
-          
-          newComponent.velocity = spawnerCandidate.velocity + kick;
-        }
-      }
-    }
-    
     if (p_entity.getValue("position").length > 0)
       newComponent.position = Vector.fromString(p_entity.getValue("position"));
     
@@ -266,6 +224,14 @@ protected:
     {
       newComponent.velocity = Vector(uniform(-1.5, 1.5), uniform(-1.5, 1.5));
     }
+    else if (p_entity.getValue("velocity").length > 0)
+    {
+      newComponent.velocity = Vector.fromString(p_entity.getValue("velocity"));
+    }
+    
+    if (p_entity.getValue("force").length > 0)
+      newComponent.force = Vector.fromString(p_entity.getValue("force"));
+      
     
     //enforce(p_entity.getValue("mass").length > 0, "couldn't find mass for physics component");
     if (p_entity.getValue("mass").length > 0)

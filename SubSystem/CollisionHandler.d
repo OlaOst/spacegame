@@ -93,7 +93,7 @@ mixin(genEnum("CollisionType",
 ]));
 
 
-class CollisionComponent
+class ColliderComponent
 {
 invariant()
 {
@@ -114,6 +114,10 @@ public:
 public:
   Vector position;
   float radius;
+  
+  Vector force;
+  Vector torque;
+  
   CollisionType collisionType;
   
   float lifetime;
@@ -122,13 +126,13 @@ public:
 
 struct Collision
 {
-  CollisionComponent first;
-  CollisionComponent second;
+  ColliderComponent first;
+  ColliderComponent second;
   Vector contactPoint;
 }
 
 
-class CollisionHandler : public Base!(CollisionComponent)
+class CollisionHandler : public Base!(ColliderComponent)
 {
 public:
   this()
@@ -154,7 +158,7 @@ protected:
   }
   
   
-  CollisionComponent createComponent(Entity p_entity)
+  ColliderComponent createComponent(Entity p_entity)
   {
     float radius = to!float(p_entity.getValue("radius"));
     
@@ -163,26 +167,28 @@ protected:
     auto collisionType = CollisionTypeFromString(p_entity.getValue("collisionType"));
     enforce(collisionType != CollisionType.Unknown, "Tried to create collision component from entity with unknown collision type " ~ p_entity.getValue("collisionType"));
     
-    return new CollisionComponent(radius, collisionType);
+    return new ColliderComponent(radius, collisionType);
   }
   
   
 private:
   void determineCollisions()
   {
+    //writeln("determineCollisions, length " ~ to!string(m_collisions.length) ~ ", capacity " ~ to!string(m_collisions.capacity));
     m_collisions.length = 0;
-
+    //m_collisions.clear();
+    
     if (components.length <= 1)
       return;
     
     // TODO: de-O^2 this, spatial hash or something
     for (uint firstIndex = 0; firstIndex < components.length-1; firstIndex++)
     {
-      CollisionComponent first = components[firstIndex];
+      ColliderComponent first = components[firstIndex];
       
       for (uint secondIndex = firstIndex + 1; secondIndex < components.length; secondIndex++)
       {
-        CollisionComponent second = components[secondIndex];
+        ColliderComponent second = components[secondIndex];
         
         assert(first != second);
 
@@ -192,7 +198,7 @@ private:
           Vector normalizedContactVector = (second.position - first.position).normalized(); // / (first.radius + second.radius); // * first.radius;
 
           Vector contactPoint = normalizedContactVector * (1.0/(first.radius + second.radius)) * first.radius;
-
+          
           m_collisions ~= Collision(first, second, contactPoint);
         }
       }

@@ -61,7 +61,8 @@ public:
   }
   body
   {
-    auto dir = Vector.fromAngle(p_sourceComponent.angle);
+    //auto dir = Vector.fromAngle(p_sourceComponent.angle);
+    auto dir = Vector(1.0, 0.0);
     
     auto force = p_sourceComponent.force;
     auto torque = p_sourceComponent.torque;

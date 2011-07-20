@@ -62,43 +62,14 @@ public:
   }
   body
   {
-    //auto dir = Vector.fromAngle(p_sourceComponent.entity.angle);
-    
-    //auto force = p_sourceComponent.force;
-    //auto torque = p_sourceComponent.torque;
-    
     if (m_inputHandler.isPressed(Event.Space))
     {
       if (p_sourceComponent.reload <= 0.0)
       {
-        Entity bullet = new Entity();
-
-        bullet.setValue("drawsource", "Bullet");
-        bullet.setValue("collisionType", "Bullet");
-        bullet.setValue("radius", "0.1");
-        bullet.setValue("mass", "0.2");
-        //bullet.setValue("spawnedFrom", to!string(p_sourceComponent.entity.id));
-        
-        //bullet.setValue("velocity", 
-
-        bullet.setValue("position", to!string(p_sourceComponent.position));
-        bullet.setValue("angle", to!string(p_sourceComponent.angle));
-        
-        bullet.lifetime = 5.0;
-        
-        //p_sourceComponent.entity.addSpawn(bullet);
-        
-        immutable string[4] sounds = ["mgshot1.wav", "mgshot2.wav", "mgshot3.wav", "mgshot4.wav"];
-        
-        //bullet.setValue("soundFile", sounds[uniform(0, sounds.length)]);
-        bullet.setValue("soundFile", sounds[0]);
-        
-        p_sourceComponent.reload = 0.1;
+        p_sourceComponent.isFiring = true;
+        p_sourceComponent.reload = 0.2;
       }
     }
-    
-    //p_sourceComponent.force = force;
-    //p_sourceComponent.torque = torque;
   }
   
   

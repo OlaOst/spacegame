@@ -181,7 +181,10 @@ struct Vector
     return Vector(x*c - y*s, x*s + y*c);
   }
   
-  
+  float angle(Vector p_right) const
+  {
+    return atan2(p_right.y, p_right.x) - atan2(y, x);
+  }
   
   bool isValid() const
   {

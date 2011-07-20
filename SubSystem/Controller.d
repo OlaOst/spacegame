@@ -15,7 +15,7 @@ interface Control
 {
   public:
     void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents);
-    /*in //contract in interface seems to fuck up things. try again with a dmd later than 2.052
+    /*out  // contract in interface seems to fuck up things. try again with a dmd later than 2.054, crashes in the parallell forloop in game.d
     {
       writeln("control.update in contract");
       
@@ -56,7 +56,10 @@ public:
   
   @property void reload(float p_reload) { m_reload = p_reload; }
   @property float reload() { return m_reload; }
-    
+
+  @property void isFiring(bool p_isFiring) { m_isFiring = p_isFiring; }
+  @property bool isFiring() { return m_isFiring; }
+  
 private:
   Vector m_position = Vector.origo;
   float m_angle = 0.0;
@@ -65,6 +68,8 @@ private:
   float m_torque = 0.0;
   
   float m_reload = 0.0;
+  
+  bool m_isFiring = false;
 }
 
 
@@ -90,10 +95,26 @@ public:
       component.force = Vector.origo;
       component.torque = 0.0;
       
+      component.isFiring = false;
+      
+      if (component.reload > 0.0)
+        component.reload = component.reload - m_timeStep;
+      
       component.control.update(component, components);
     }
   }
     
+  
+  void setTimeStep(float p_timeStep)
+  out
+  {
+    assert(m_timeStep >= 0.0);
+  }
+  body
+  {
+    m_timeStep = p_timeStep;
+  }
+  
     
 protected:
   bool canCreateComponent(Entity p_entity)
@@ -116,7 +137,8 @@ protected:
     
     if (p_entity.getValue("control") == "flocker")
     {
-      component.control = new FlockControl(2.5, 0.5, 20.0, 0.3);
+      component.control = new FlockControl(10.0, 1.5,     // distance & weight for avoid rule
+                                           50.0, 0.2);    // distance & weight for flock rule
     }
     
     assert(component.position.isValid());
@@ -126,4 +148,6 @@ protected:
     
 private:
   InputHandler m_inputHandler;
+  
+  float m_timeStep;
 }

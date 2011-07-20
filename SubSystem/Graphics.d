@@ -73,7 +73,7 @@ unittest
   //deleteTest.setValue("keepInCenter", "true");
   
   graphics.registerEntity(deleteTest);
-  assert(graphics.components.length == 2);
+  assert(graphics.components.length == 2, "Expected 2 registered components, instead got " ~ to!string(graphics.components.length));
   
   componentsPointedAt = graphics.findComponentsPointedAt(Vector.origo);
   assert(componentsPointedAt.length == 2, "Should have 2 components pointed at, instead got " ~ to!string(componentsPointedAt.length));
@@ -233,9 +233,11 @@ public:
     
     // pull back camera a bit so we can see entities with z=0.0
     glTranslatef(0.0, 0.0, -1.0);
-    
-    assert(m_centerComponent.position.isValid());
-    glTranslatef(-m_centerComponent.position.x, -m_centerComponent.position.y, 0.0);
+
+    assert(hasComponent(m_centerEntity));
+    auto centerComponent = getComponent(m_centerEntity);
+    assert(centerComponent.position.isValid());
+    glTranslatef(-centerComponent.position.x, -centerComponent.position.y, 0.0);
     
     glDisable(GL_TEXTURE_2D);
 
@@ -400,9 +402,11 @@ public:
   void calculateMouseWorldPos(Vector p_mouseScreenPos)
   {
     assert(p_mouseScreenPos.isValid());
-    assert(m_centerComponent.position.isValid(), to!string(m_centerComponent.position));
     
-    m_mouseWorldPos = p_mouseScreenPos / m_zoom + m_centerComponent.position;
+    auto centerComponent = getComponent(m_centerEntity);
+    assert(centerComponent.position.isValid());
+    
+    m_mouseWorldPos = p_mouseScreenPos / m_zoom + centerComponent.position;
   }
   
   Vector mouseWorldPos()
@@ -413,7 +417,8 @@ public:
 protected:
   bool canCreateComponent(Entity p_entity)
   {
-    return p_entity.getValue("drawsource").length > 0;
+    return (p_entity.getValue("drawsource").length > 0 ||
+            p_entity.getValue("keepInCenter").length > 0);
   }
   
   GraphicsComponent createComponent(Entity p_entity)
@@ -427,8 +432,8 @@ protected:
     
     if (p_entity.getValue("keepInCenter") == "true")
     {
-      m_centerComponent = component;
-      assert(m_centerComponent.position.isValid());
+      m_centerEntity = p_entity;
+      //assert(m_centerComponent.position.isValid());
     }
     
     if (looksLikeAFile(p_entity.getValue("drawsource")))
@@ -472,5 +477,5 @@ private:
   
   Vector m_mouseWorldPos;
   
-  GraphicsComponent m_centerComponent;
+  Entity m_centerEntity;
 }

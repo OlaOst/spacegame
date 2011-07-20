@@ -66,8 +66,15 @@ unittest
   {
     sys.removeEntity(entity);
   }
-  assert(sys.components.length == 1);  
+  assert(sys.components.length == 1);
   assert(sys.hasComponent(entity) == false);
+  
+  
+  sys.update();
+  assert(sys.components.length == 1);
+  
+  sys.update();
+  assert(sys.components.length == 1);
 }
 
 
@@ -83,11 +90,15 @@ public:
       auto component = createComponent(p_entity);
     
       m_entityToComponent[p_entity] = component;
+      //m_componentToEntity[component] = p_entity;
     }
   }
   
   final void removeEntity(Entity p_entity)
   {
+    //if (hasComponent(p_entity))
+      //m_componentToEntity.remove(getComponent(p_entity));
+      
     m_entityToComponent.remove(p_entity);
   }
   
@@ -106,13 +117,20 @@ public:
     return m_entityToComponent[p_entity];
   }
   
+  /*ref Entity getEntity(ComponentType p_componentType)
+  {
+    return m_componentToEntity[p_componentType];
+  }*/
+  
   void setComponent(Entity p_entity, ComponentType p_component)
   {
     m_entityToComponent[p_entity] = p_component;
+    //m_componentToEntity[p_component] = p_entity;
   }  
   
   final ComponentType[] components()
   {
+    //return m_componentToEntity.keys;
     return m_entityToComponent.values;
   }
   
@@ -124,6 +142,7 @@ public:
   
 private:
   ComponentType[Entity] m_entityToComponent;
+  //Entity[ComponentType] m_componentToEntity;
 }
 
 
@@ -148,6 +167,4 @@ interface SubSystem
   void removeEntity(Entity p_entity);  
   
   void update();
-  
-  //Entity[] entities();
 }

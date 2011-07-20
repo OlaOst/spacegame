@@ -63,7 +63,7 @@ pure string genEnum(string name, string[] values)
   
   enumDef = enumDef[0..$-1] ~ "}";
   
-  toStrDef ~= "} } ";
+  toStrDef ~= "default: return \"" ~ values[0] ~ "\";} } ";
   fromStrDef ~= "default: return " ~ name ~ "." ~ values[0] ~ "; } } ";
   
   return enumDef ~ "\n" ~ toStrDef ~ "\n" ~ fromStrDef;
