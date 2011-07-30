@@ -251,11 +251,11 @@ public:
       //writeln("graphics comp pos: " ~ component.position.toString());
       
       // show some data for entities, unrotated
-      glPushMatrix();
+      /*glPushMatrix();
         glTranslatef(0.0, component.radius*2, 0.0);
         m_textRender.renderString(to!string(component.velocity.length2d()));
       glPopMatrix();
-      glDisable(GL_TEXTURE_2D);
+      glDisable(GL_TEXTURE_2D);*/
       
       glRotatef(component.angle * (180.0 / PI), 0.0, 0.0, 1.0);
       
