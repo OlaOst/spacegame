@@ -1,3 +1,25 @@
+﻿/*
+ Copyright (c) 2011 Ola Øttveit
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+*/
+
 module TextRender;
 
 import std.conv;
@@ -109,6 +131,8 @@ public:
       renderChar(letter, true);
       
     glPopMatrix();
+    
+    glDisable(GL_TEXTURE_2D);
   }
   
   
@@ -144,17 +168,17 @@ private:
     
     auto unalignedGlyph = m_face.glyph.bitmap.buffer;
     
-    debug writeln("glyph " ~ p_char ~ 
+    /*debug writeln("glyph " ~ p_char ~ 
                   ", buffer is " ~ to!string(m_face.glyph.bitmap.width) ~ "x" ~ to!string(m_face.glyph.bitmap.rows) ~ 
                   ", pitch is " ~ to!string(m_face.glyph.bitmap.pitch) ~ 
                   ", metric is " ~ to!string(m_face.glyph.metrics.width/64) ~ "x" ~ to!string(m_face.glyph.metrics.height/64) ~ 
                   ", horizontal advance is " ~ to!string(m_face.glyph.metrics.horiAdvance/64) ~ 
-                  ", bearing is " ~ to!string(m_face.glyph.bitmap_left) ~ "x" ~ to!string(m_face.glyph.bitmap_top));
+                  ", bearing is " ~ to!string(m_face.glyph.bitmap_left) ~ "x" ~ to!string(m_face.glyph.bitmap_top));*/
     
     auto widthOffset = (glyphWidth - m_face.glyph.bitmap.width) / 2;
     auto heightOffset = (glyphHeight - m_face.glyph.bitmap.rows) / 2;
     
-    debug writeln("bitmap for " ~ p_char);
+    //debug writeln("bitmap for " ~ p_char);
     for (int y = 0; y < m_face.glyph.bitmap.rows; y++)
     {
       for (int x = 0; x < m_face.glyph.bitmap.width; x++)
@@ -163,11 +187,11 @@ private:
         
         glyph.data[coord] = unalignedGlyph[x + y*m_face.glyph.bitmap.width];
         
-        debug write(glyph.data[coord]>0?(to!string(glyph.data[coord]/26)):".");
+        //debug write(glyph.data[coord]>0?(to!string(glyph.data[coord]/26)):".");
       }
-      debug write("\n");
+      //debug write("\n");
     }
-    debug writeln("");
+    //debug writeln("");
     
     glGenTextures(1, &glyph.textureId);
     assert(glyph.textureId > 0, "Failed to generate texture id: " ~ to!string(glGetError()));

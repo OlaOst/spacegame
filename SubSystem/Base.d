@@ -90,15 +90,11 @@ public:
       auto component = createComponent(p_entity);
     
       m_entityToComponent[p_entity] = component;
-      //m_componentToEntity[component] = p_entity;
     }
   }
   
   final void removeEntity(Entity p_entity)
   {
-    //if (hasComponent(p_entity))
-      //m_componentToEntity.remove(getComponent(p_entity));
-      
     m_entityToComponent.remove(p_entity);
   }
   
@@ -107,7 +103,7 @@ public:
     return (p_entity in m_entityToComponent) !is null;
   }
   
-  final ref ComponentType getComponent(Entity p_entity)
+  final ComponentType getComponent(Entity p_entity) 
   in
   {
     assert(hasComponent(p_entity), "couldn't find component for entity " ~ to!string(p_entity.id) ~ " in " ~ to!string(this));
@@ -117,20 +113,13 @@ public:
     return m_entityToComponent[p_entity];
   }
   
-  /*ref Entity getEntity(ComponentType p_componentType)
-  {
-    return m_componentToEntity[p_componentType];
-  }*/
-  
   void setComponent(Entity p_entity, ComponentType p_component)
   {
     m_entityToComponent[p_entity] = p_component;
-    //m_componentToEntity[p_component] = p_entity;
   }  
   
-  final ComponentType[] components()
+  final ComponentType[] components() 
   {
-    //return m_componentToEntity.keys;
     return m_entityToComponent.values;
   }
   
@@ -142,7 +131,6 @@ public:
   
 private:
   ComponentType[Entity] m_entityToComponent;
-  //Entity[ComponentType] m_componentToEntity;
 }
 
 
@@ -150,7 +138,7 @@ interface ComponentFactory(ComponentType)
 {
 public:
   bool hasComponent(Entity p_entity);
-  ref ComponentType getComponent(Entity p_entity);
+  ComponentType getComponent(Entity p_entity);
   
   ComponentType[] components();
   
@@ -167,4 +155,23 @@ interface SubSystem
   void removeEntity(Entity p_entity);  
   
   void update();
+}
+
+
+// used in CommsCentral to set up how sub systems communicate with each other.
+// for example when the physics system needs to tell the placer system the newly calculated positions
+void subSystemCommunication(ReadComponent, WriteComponent)(Base!(ReadComponent) read, Base!(WriteComponent) write, WriteComponent delegate(ReadComponent, WriteComponent) componentTransform)
+{
+  foreach (entity; read.entities)
+  {
+    if (read.hasComponent(entity) && write.hasComponent(entity))
+    {
+      auto readComponent = read.getComponent(entity);
+      auto writeComponent = write.getComponent(entity);
+      
+      auto newComponent = componentTransform(readComponent, writeComponent);
+      
+      write.setComponent(entity, newComponent);
+    }
+  }
 }

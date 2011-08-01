@@ -1,3 +1,25 @@
+﻿/*
+ Copyright (c) 2011 Ola Østtveit
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+*/
+
 module CommsCentral;
 
 import std.conv;
@@ -15,80 +37,91 @@ import SubSystem.CollisionHandler;
 import SubSystem.Spawner;
 
 
+unittest
+{
+  auto placer = new Placer();
+  auto physics = new Physics();
+  
+  Entity entity = new Entity();
+  entity.setValue("position", "1 2");
+  entity.setValue("mass", "1");
+  
+  placer.registerEntity(entity);
+  physics.registerEntity(entity);
+  
+  assert(placer.hasComponent(entity));
+  assert(physics.hasComponent(entity));
+  
+  auto placerComp = placer.getComponent(entity);
+  placerComp.position = Vector(5, 6);
+  
+  placer.setComponent(entity, placerComp);
+  
+  assert(physics.getComponent(entity).position == Vector(1, 2), physics.getComponent(entity).position.toString());
+  
+  subSystemCommunication!(PlacerComponent, PhysicsComponent)(placer, physics, (PlacerComponent placeComp, PhysicsComponent physComp){ physComp.position = placeComp.position; return physComp; });
+  
+  assert(physics.getComponent(entity).position == Vector(5, 6), physics.getComponent(entity).position.toString());
+}
+
+
 void setPlacerFromPhysics(Physics physics, Placer placer)
 {
-  foreach (entity; physics.entities)
+  subSystemCommunication!(PhysicsComponent, PlacerComponent)(physics, placer, (PhysicsComponent physicsComponent, PlacerComponent placerComponent)
   {
-    if (placer.hasComponent(entity) && physics.hasComponent(entity))
-    {
-      auto physicsComponent = physics.getComponent(entity);
-      auto placeComponent = placer.getComponent(entity);
-      
-      placeComponent.position = physicsComponent.position;
-      placeComponent.velocity = physicsComponent.velocity;
-      
-      placeComponent.angle = physicsComponent.angle;
-      placeComponent.rotation = physicsComponent.rotation;
-      
-      placer.setComponent(entity, placeComponent);
-    }
-  }
+    placerComponent.position = physicsComponent.position;
+    placerComponent.velocity = physicsComponent.velocity;
+    
+    placerComponent.angle = physicsComponent.angle;
+    placerComponent.rotation = physicsComponent.rotation;
+    
+    return placerComponent;
+  });
 }
 
 
 void setGraphicsFromPlacer(Placer placer, Graphics graphics)
 {
-  foreach (entity; graphics.entities)
+  subSystemCommunication!(PlacerComponent, GraphicsComponent)(placer, graphics, (PlacerComponent placerComponent, GraphicsComponent graphicsComponent)
   {
-    if (graphics.hasComponent(entity) && placer.hasComponent(entity))
-    {
-      auto placerComponent = placer.getComponent(entity);
-      auto graphicsComponent = graphics.getComponent(entity);
-      
-      assert(placerComponent.position.isValid());
-      assert(placerComponent.velocity.isValid());
-      
-      graphicsComponent.position = placerComponent.position;
-      graphicsComponent.velocity = placerComponent.velocity;
-      
-      graphicsComponent.angle = placerComponent.angle;
-      graphicsComponent.rotation = placerComponent.rotation;
-      
-      graphics.setComponent(entity, graphicsComponent);
-    }
-  }
+    assert(placerComponent.position.isValid());
+    assert(placerComponent.velocity.isValid());
+    
+    graphicsComponent.position = placerComponent.position;
+    graphicsComponent.velocity = placerComponent.velocity;
+    
+    graphicsComponent.angle = placerComponent.angle;
+    graphicsComponent.rotation = placerComponent.rotation;
+    
+    return graphicsComponent;
+  });
 }
 
 // update position of connected entities so they don't fly off on their own
 void setPlacerFromConnector(ConnectionHandler connection, Placer placer)
 {
-  foreach (entity; connection.entities)
+  subSystemCommunication!(ConnectionComponent, PlacerComponent)(connection, placer, (ConnectionComponent connectionComponent, PlacerComponent placerComponent)
   {
-    if (placer.hasComponent(entity) && connection.hasComponent(entity))
-    {
-      auto connectionComponent = connection.getComponent(entity);
-      auto placerComponent = placer.getComponent(entity);
-      
-      // we don't need to do anything for connection targets/owners
-      if (connectionComponent.owner == entity)
-        continue;
-      
-      assert(connectionComponent.relativePosition.isValid());
-      assert(connectionComponent.relativeAngle == connectionComponent.relativeAngle);
-      
-      enforce(connectionComponent.owner !is null, "Owner entity was null for connection component with entity " ~ to!string(entity.id));      
-      enforce(placer.hasComponent(connectionComponent.owner), "owner entity " ~ to!string(connectionComponent.owner.id) ~ " did not have placer component");
-      auto ownerComponent = placer.getComponent(connectionComponent.owner);
-      
-      //placerComponent.position = Vector.fromAngle(ownerComponent.angle + connectionComponent.relativePosition.) * connectionComponent.relativePosition.length2d();
-      placerComponent.position = ownerComponent.position + connectionComponent.relativePosition.rotate(ownerComponent.angle);
-      placerComponent.angle = ownerComponent.angle + connectionComponent.relativeAngle;
-      
-      placerComponent.velocity = ownerComponent.velocity;
-      
-      placer.setComponent(entity, placerComponent);
-    }
-  }
+    // we don't need to do anything for connection targets/owners
+    //if (connectionComponent.owner == entity)
+      //continue;
+    
+    assert(connectionComponent.relativePosition.isValid());
+    assert(connectionComponent.relativeAngle == connectionComponent.relativeAngle);
+    
+    //enforce(connectionComponent.owner !is null, "Owner entity was null for connection component with entity " ~ to!string(entity.id));
+    enforce(connectionComponent.owner !is null, "Owner entity was null for connection component");
+    enforce(placer.hasComponent(connectionComponent.owner), "owner entity " ~ to!string(connectionComponent.owner.id) ~ " did not have placer component");
+    auto ownerComponent = placer.getComponent(connectionComponent.owner);
+    
+    //placerComponent.position = Vector.fromAngle(ownerComponent.angle + connectionComponent.relativePosition.) * connectionComponent.relativePosition.length2d();
+    placerComponent.position = ownerComponent.position + connectionComponent.relativePosition.rotate(ownerComponent.angle);
+    placerComponent.angle = ownerComponent.angle + connectionComponent.relativeAngle;
+    
+    placerComponent.velocity = ownerComponent.velocity;
+    
+    return placerComponent;
+  });
 }
 
 // engines etc needs to transfer force and torque correctly to the owner ship entity
@@ -123,74 +156,60 @@ void setPhysicsFromConnector(ConnectionHandler connection, Physics physics)
 // controllers can add forces, for example engine exhaust or gun recoil
 void setPhysicsFromController(Controller controller, Physics physics)
 {
-  foreach (entity; controller.entities)
+  subSystemCommunication!(ControlComponent, PhysicsComponent)(controller, physics, (ControlComponent controllerComponent, PhysicsComponent physicsComponent)
   {
-    if (physics.hasComponent(entity) && controller.hasComponent(entity))
-    {
-      auto controllerComponent = controller.getComponent(entity);
-      auto physicsComponent = physics.getComponent(entity);
-      
-      physicsComponent.force += controllerComponent.force;
-      physicsComponent.torque += controllerComponent.torque;
-      
-      physics.setComponent(entity, physicsComponent);
-    }
-  }
+    physicsComponent.force += controllerComponent.force;
+    physicsComponent.torque += controllerComponent.torque;
+    
+    return physicsComponent;
+  });
 }
 
 // controllers often need to know where they are, especially AI controllers
 void setControllerFromPlacer(Placer placer, Controller controller)
 {
-  foreach (entity; controller.entities)
+  subSystemCommunication!(PlacerComponent, ControlComponent)(placer, controller, (PlacerComponent placerComponent, ControlComponent controllerComponent)
   {
-    if (controller.hasComponent(entity) && placer.hasComponent(entity))
-    {
-      auto placerComponent = placer.getComponent(entity);
-      auto controllerComponent = controller.getComponent(entity);
-      
-      controllerComponent.position = placerComponent.position;
-      controllerComponent.angle = placerComponent.angle;
-      
-      controller.setComponent(entity, controllerComponent);
-    }
-  }
+    controllerComponent.position = placerComponent.position;
+    controllerComponent.angle = placerComponent.angle;
+    
+    return controllerComponent;
+  });
 }
 
 // collider components must know their position to know if they're colliding with something
 void setCollidersFromPlacer(Placer placer, CollisionHandler collisionHandler)
 {
-  foreach (entity; collisionHandler.entities)
+  subSystemCommunication!(PlacerComponent, ColliderComponent)(placer, collisionHandler, (PlacerComponent placerComponent, ColliderComponent colliderComponent)
   {
-    if (collisionHandler.hasComponent(entity) && placer.hasComponent(entity))
-    {
-      auto placerComponent = placer.getComponent(entity);
-      auto colliderComponent = collisionHandler.getComponent(entity);
-      
-      colliderComponent.position = placerComponent.position;
-      //ColliderComponent.angle = placerComponent.angle;
-      
-      collisionHandler.setComponent(entity, colliderComponent);
-    }
-  }
+    colliderComponent.position = placerComponent.position;
+    //ColliderComponent.angle = placerComponent.angle;
+    
+    return colliderComponent;
+  });
 }
 
 
 void calculateCollisionResponse(CollisionHandler collisionHandler, Physics physics)
 {
-  Entity[ColliderComponent] colliderToEntities;
+  Entity[int] colliderToEntities;
   
   foreach (entity; collisionHandler.entities)
   {
     if (collisionHandler.hasComponent(entity))
     {
-      colliderToEntities[collisionHandler.getComponent(entity)] = entity;
+      //writeln("entity " ~ to!string(entity.id) ~ " has collision component " ~ to!string(collisionHandler.getComponent(entity).id));
+      colliderToEntities[collisionHandler.getComponent(entity).id] = entity;
     }
   }
 
+  //writeln("collidertoentities: " ~ to!string(colliderToEntities.length));
+  
   foreach (collision; collisionHandler.collisions)
   {
-    auto firstEntity = colliderToEntities[collision.first];
-    auto secondEntity = colliderToEntities[collision.second];
+    //writeln("checking collision between collisioncomponent " ~ to!string(collision.first.id) ~ " and " ~ to!string(collision.second.id));
+    auto firstEntity = colliderToEntities[collision.first.id];
+    auto secondEntity = colliderToEntities[collision.second.id];
     
     // this physics component might have collided with a non-physics component, i.e. ship moving over and lighting up something in the background or the hud, like a targeting reticle 
     // we only do something physical with the collision if both collision components have corresponding physics components
@@ -208,7 +227,6 @@ void calculateCollisionResponse(CollisionHandler collisionHandler, Physics physi
       
       physics.setComponent(firstEntity, firstPhysicsComponent);
       physics.setComponent(secondEntity, secondPhysicsComponent);
-      
     }
     
     // reduce health for certain collisiontypes (should only be done if entity has component in HealthHandler or something - HealthHandler is not implemented yet
@@ -224,35 +242,23 @@ void calculateCollisionResponse(CollisionHandler collisionHandler, Physics physi
 
 void setSpawnerFromController(Controller controller, Spawner spawner)
 {
-  foreach (entity; spawner.entities)
+  subSystemCommunication!(ControlComponent, SpawnerComponent)(controller, spawner, (ControlComponent controllerComponent, SpawnerComponent spawnerComponent)
   {
-    if (controller.hasComponent(entity) && spawner.hasComponent(entity))
-    {
-      auto controllerComponent = controller.getComponent(entity);
-      auto spawnerComponent = spawner.getComponent(entity);
-      
-      spawnerComponent.isSpawning = controllerComponent.isFiring;
-      
-      spawner.setComponent(entity, spawnerComponent);
-    }
-  }
+    spawnerComponent.isSpawning = controllerComponent.isFiring;
+    
+    return spawnerComponent;
+  });
 }
 
 
 void setSpawnerFromPlacer(Placer placer, Spawner spawner)
 {
-  foreach (entity; spawner.entities)
+  subSystemCommunication!(PlacerComponent, SpawnerComponent)(placer, spawner, (PlacerComponent placerComponent, SpawnerComponent spawnerComponent)
   {
-    if (placer.hasComponent(entity) && spawner.hasComponent(entity))
-    {
-      auto placerComponent = placer.getComponent(entity);
-      auto spawnerComponent = spawner.getComponent(entity);
-      
-      spawnerComponent.position = placerComponent.position;
-      spawnerComponent.velocity = placerComponent.velocity;
-      spawnerComponent.angle = placerComponent.angle;
-      
-      spawner.setComponent(entity, spawnerComponent);
-    }
-  }
+    spawnerComponent.position = placerComponent.position;
+    spawnerComponent.velocity = placerComponent.velocity;
+    spawnerComponent.angle = placerComponent.angle;
+    
+    return spawnerComponent;
+  });
 }

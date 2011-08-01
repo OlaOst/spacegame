@@ -162,7 +162,7 @@ public:
   
   Vertex[] vertices;
   Vector[] connectPoints;
-  
+  Vertex color;
   
   @property Vector position() { return m_position; }
   @property Vector position(Vector p_position) in { assert(p_position.isValid()); } body { return m_position = p_position; }
@@ -176,12 +176,22 @@ public:
   @property float rotation() { return m_rotation; }
   @property float rotation(float p_rotation) in { assert(p_rotation == p_rotation); } body { return m_rotation = p_rotation; }
   
+  @property bool screenAbsolutePosition() { return m_screenAbsolutePosition; }
+  @property bool screenAbsolutePosition(bool p_screenAbsolutePosition) { return m_screenAbsolutePosition = p_screenAbsolutePosition; }
+  
+  @property string text() { return m_text; }
+  @property string text(string p_text) { return m_text = p_text; }
+  
 private:
   Vector m_position = Vector.origo;
   Vector m_velocity = Vector.origo;
   
   float m_angle = 0.0;
   float m_rotation = 0.0;
+  
+  bool m_screenAbsolutePosition = false;
+  
+  string m_text;
 }
 
 
@@ -212,17 +222,6 @@ public:
     teardownDisplay();
   }
 
-
-  void test()
-  {
-    glColor3f(1.0, 0.0, 0.0);
-    glBegin(GL_TRIANGLES);
-      glVertex2f(0.0, 1.0);
-      glVertex2f(0.87, -0.5);
-      glVertex2f(-0.87, -0.5);
-    glEnd();
-  }
-
   void update() 
   {
     swapBuffers();
@@ -244,6 +243,12 @@ public:
     foreach (component; components)
     {
       glPushMatrix();
+      
+      if (component.screenAbsolutePosition)
+      {
+        glTranslatef(centerComponent.position.x, centerComponent.position.y, 0.0);
+        glScalef(1.0/m_zoom, 1.0/m_zoom, 1.0);
+      }
       
       assert(component.position.isValid());
       glTranslatef(component.position.x, component.position.y, component.position.z);
@@ -320,8 +325,10 @@ public:
       }
       else if (component.drawSource == DrawSource.Text)
       {
-        //auto text = getEntity(component).getValue("text");
-        auto text = "remember to implement textstuff in graphicscomponent!";
+        glScalef(0.05, 0.05, 1.0);
+        
+        glColor3f(component.color.r, component.color.g, component.color.b);
+        m_textRender.renderString(component.text);
       }
       else if (component.drawSource == DrawSource.Unknown)
       {
@@ -459,6 +466,26 @@ protected:
       {
         component.connectPoints ~= Vector.fromString(p_entity.getValue(value));
       }
+    }
+    
+    if (p_entity.getValue("position").length > 0)
+    {
+      component.position = Vector.fromString(p_entity.getValue("position"));
+    }
+    
+    if (p_entity.getValue("screenAbsolutePosition").length > 0)
+    {
+      component.screenAbsolutePosition = true;
+    }
+    
+    if (p_entity.getValue("text").length > 0)
+    {
+      component.text = p_entity.getValue("text");
+    }
+    
+    if (p_entity.getValue("color").length > 0)
+    {
+      component.color = Vertex.fromString("0 0 " ~ p_entity.getValue("color"));
     }
     
     return component;

@@ -110,13 +110,14 @@ unittest
   assert(game.m_physics.hasComponent(testController));
   assert(game.m_controller.hasComponent(testController)); 
   
-  game.m_controller.getComponent(testController).control = new class () Control 
-                                                        {
-                                                          override void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents) 
-                                                          {
-                                                            p_sourceComponent.force = Vector(1.0, 1.0, 0.0);
-                                                          }
-                                                        };
+  game.m_controller.getComponent(testController).control = 
+      new class () Control 
+      {
+        override void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents) 
+        {
+          p_sourceComponent.force = Vector(1.0, 1.0, 0.0);
+        }
+      };
   
   assert(game.m_controller.getComponent(testController).control !is null);
   
@@ -174,6 +175,15 @@ public:
     
     registerEntity(startupDing);
     
+    m_fpsDisplay = new Entity();
+    m_fpsDisplay.setValue("drawsource", "Text");
+    m_fpsDisplay.setValue("text", "here we should see fps");
+    m_fpsDisplay.setValue("screenAbsolutePosition", "true");
+    m_fpsDisplay.setValue("position", "-1.0 0.7");
+    m_fpsDisplay.setValue("color", "1.0 1.0 1.0");
+    
+    registerEntity(m_fpsDisplay);
+    
     loadShip("playership.txt", ["position" : "0 0 0"]);
     
     for (int n = 0; n < 10; n++)
@@ -220,12 +230,21 @@ private:
     
     Entity[] spawnList;
     
-    Entity[] entitiesToRemove;
-    foreach (Entity entity; m_entities)
+    Entity[] entitiesToRemove;       
+    
+    foreach (entity; m_entities)
     {
       entity.lifetime = entity.lifetime - elapsedTime;
 
-      if (entity.lifetime < 0.0 || entity.health < 0.0)
+      bool removeEntity = false;
+      
+      if (m_collider.hasComponent(entity))
+      {
+        if (m_collider.getComponent(entity).lifetime <= 0.0)
+          removeEntity = true;
+      }
+      
+      if (entity.lifetime <= 0.0 || entity.health <= 0.0 || removeEntity)
       {
         foreach (subSystem; m_subSystems)
           subSystem.removeEntity(entity);
@@ -250,13 +269,13 @@ private:
       // the sdl/gl stuff in the graphics subsystem needs to run in the main thread for stuff to be shown on the screen
       // so we filter the graphics subsystem out of the subsystem list 
       // and explicitly update it outside the parallel foreach to ensure it runs in the main thread
-      /*m_graphics.update();
+      m_graphics.update();
       foreach (subSystem; taskPool.parallel(filter!(delegate (SubSystem.Base.SubSystem sys) { return sys !is m_graphics; })(m_subSystems.values)))
       {
         subSystem.update();
-      }*/
-      foreach (subSystem; m_subSystems.values)
-        subSystem.update();
+      }
+      //foreach (subSystem; m_subSystems.values)
+        //subSystem.update();
       
       CommsCentral.setPlacerFromPhysics(m_physics, m_placer);
       CommsCentral.setPhysicsFromController(m_controller, m_physics);
@@ -270,6 +289,10 @@ private:
     }
     CommsCentral.setGraphicsFromPlacer(m_placer, m_graphics);
     
+    auto fpsDisplayComponent = m_graphics.getComponent(m_fpsDisplay);
+    fpsDisplayComponent.text = "FPS: " ~ to!string(cast(int)(1.0 / elapsedTime));
+    m_graphics.setComponent(m_fpsDisplay, fpsDisplayComponent);
+    
     m_graphics.calculateMouseWorldPos(m_inputHandler.mousePos);
     
     // TODO: we need to know what context we are in - input events signify different intents depending on context
@@ -281,6 +304,8 @@ private:
     }
     
     handleInput(elapsedTime);
+    
+    SDL_Delay(20);
   }
   
   
@@ -425,4 +450,5 @@ private:
   
   Entity m_mouseEntity;
   Entity m_mouseSkeleton;
+  Entity m_fpsDisplay;
 }

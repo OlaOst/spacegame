@@ -31,7 +31,7 @@ interface Control
 
 class ControlComponent
 {
-invariant()
+/*invariant()
 {
   assert(m_position.isValid(), "ControlComponent position not valid: " ~ m_position.toString());
   assert(m_force.isValid());
@@ -60,16 +60,18 @@ public:
   @property void isFiring(bool p_isFiring) { m_isFiring = p_isFiring; }
   @property bool isFiring() { return m_isFiring; }
   
-private:
-  Vector m_position = Vector.origo;
-  float m_angle = 0.0;
+private:*/
+  Control control;
   
-  Vector m_force = Vector.origo;
-  float m_torque = 0.0;
+  Vector position = Vector.origo;
+  float angle = 0.0;
   
-  float m_reload = 0.0;
+  Vector force = Vector.origo;
+  float torque = 0.0;
   
-  bool m_isFiring = false;
+  float reload = 0.0;
+  
+  bool isFiring = false;
 }
 
 

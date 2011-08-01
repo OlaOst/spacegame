@@ -40,11 +40,15 @@ unittest
   
   auto sys = new CollisionHandler();
   
+  assert(sys.entities.length == 0);
+  
   Entity entity = new Entity();
   entity.setValue("radius", "2.0");
   entity.setValue("collisionType", "Ship");
   
   sys.registerEntity(entity);
+  
+  assert(sys.entities.length == 1);
   
   assert(sys.collisions.length == 0);
   sys.determineCollisions();
@@ -55,6 +59,8 @@ unittest
   collide.setValue("collisionType", "Bullet");  
 
   sys.registerEntity(collide);
+  
+  assert(sys.entities.length == 2);
 
   sys.getComponent(collide).position = Vector(1.0, 0.0);
 
@@ -69,17 +75,18 @@ unittest
   Entity noCollide = new Entity();
   noCollide.setValue("radius", "2.0");
   noCollide.setValue("collisionType", "Asteroid");
+  noCollide.setValue("position", "10 0");
   
   sys.registerEntity(noCollide);
   
-  sys.getComponent(noCollide).position = Vector(10.0, 0.0);
+  assert(sys.entities.length == 3);
   
   sys.determineCollisions();
-  assert(sys.collisions.length == 1);
+  assert(sys.collisions.length == 1, "Should be 1 collision, instead got " ~ to!string(sys.collisions.length));
   
   sys.calculateCollisionResponse();
   
-  assert(sys.getComponent(collide).lifetime <= 0.0);
+  assert(sys.getComponent(collide).lifetime <= 0.0, "Collided bullet didn't get lifetime zeroed: " ~ to!string(sys.getComponent(collide).lifetime));
 }
 
 
@@ -95,23 +102,16 @@ mixin(genEnum("CollisionType",
 
 class ColliderComponent
 {
-invariant()
-{
-  assert(position.isValid());
-  assert(radius >= 0.0);
-}
-
-public:
   this(float p_radius, CollisionType p_collisionType)
   {
     position = Vector.origo;
     radius = p_radius;
     collisionType = p_collisionType;
     lifetime = float.infinity;
+    
+    id = idCounter++;
   }
   
-  
-public:
   Vector position;
   float radius;
   
@@ -121,6 +121,9 @@ public:
   CollisionType collisionType;
   
   float lifetime;
+  
+  static int idCounter = 0;
+  int id;
 }
 
 
@@ -167,7 +170,12 @@ protected:
     auto collisionType = CollisionTypeFromString(p_entity.getValue("collisionType"));
     enforce(collisionType != CollisionType.Unknown, "Tried to create collision component from entity with unknown collision type " ~ p_entity.getValue("collisionType"));
     
-    return new ColliderComponent(radius, collisionType);
+    auto colliderComponent = new ColliderComponent(radius, collisionType);
+    
+    if (p_entity.getValue("position").length > 0)
+      colliderComponent.position = Vector.fromString(p_entity.getValue("position"));
+    
+    return colliderComponent;
   }
   
   
@@ -190,7 +198,7 @@ private:
       {
         ColliderComponent second = components[secondIndex];
         
-        assert(first != second);
+        assert(first != second, "collider component with index " ~ to!string(firstIndex) ~ " is equal to component with index " ~ to!string(secondIndex));
 
         if ((first.position - second.position).length2d < (first.radius + second.radius))
         {
@@ -207,7 +215,7 @@ private:
   
   void calculateCollisionResponse()
   {
-    foreach (collision; m_collisions)
+    foreach (ref collision; m_collisions)
     {
       // bullets should disappear on contact - set lifetime to zero
       if (collision.first.collisionType == CollisionType.Bullet)

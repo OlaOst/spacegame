@@ -8,7 +8,7 @@ import common.Vector;
 import SubSystem.Base;
 
 
-struct PlaceComponent
+struct PlacerComponent
 {
   Vector position = Vector.origo;
   Vector velocity = Vector.origo;
@@ -18,7 +18,7 @@ struct PlaceComponent
 }
 
 
-class Placer : public Base!(PlaceComponent)
+class Placer : public Base!(PlacerComponent)
 {
 public:
   void update() 
@@ -42,9 +42,9 @@ protected:
   }
   
   
-  PlaceComponent createComponent(Entity p_entity)
+  PlacerComponent createComponent(Entity p_entity)
   {
-    auto component = PlaceComponent();
+    auto component = PlacerComponent();
     
     if (p_entity.getValue("position").length > 0)
       component.position = Vector.fromString(p_entity.getValue("position"));

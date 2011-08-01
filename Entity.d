@@ -136,25 +136,6 @@ public:
     else
       return null;
   }
-    
-  /*void addSpawn(Entity p_spawn)
-  {
-    m_spawnList ~= p_spawn;
-  }
-  
-  Entity[] getAndClearSpawns()
-  out
-  {
-    assert(m_spawnList.length == 0);
-  }
-  body
-  {
-    Entity[] tmp = m_spawnList;
-    
-    m_spawnList.length = 0;
-    
-    return tmp;
-  }*/
 
   void addCollision(Collision p_collision)
   {
@@ -188,6 +169,5 @@ private:
   static int m_idCounter;
   private static string[][string] m_fileCache;
   
-  //Entity[] m_spawnList;
   Collision[] m_collisionList;
 }
