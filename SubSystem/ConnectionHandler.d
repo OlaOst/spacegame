@@ -66,7 +66,7 @@ unittest
   connectPointsEntity.setValue("name", "connectPointsEntity");
   //connectPointsEntity.setValue("connectTarget", "true");
   connectPointsEntity.setValue("connectpoint.lower.position", "0 -1");
-  connectPointsEntity.setValue("connectpoint.upper.position", "0 1");
+  //connectPointsEntity.setValue("connectpoint.upper.position", "0 1");
   
   sys.registerEntity(connectPointsEntity);
   
@@ -83,13 +83,18 @@ unittest
   auto connectingComponent = sys.getComponent(connectingEntity);
   
   assert(connectingComponent.relativePosition == Vector(0, -1));
+  
+  // reload connectPointsComponent, check if connectpoint is no longer empty
+  connectPointsComponent = sys.getComponent(connectPointsEntity);
+  assert(connectPointsComponent.connectPoints[0].empty == false);
 }
 
 
 struct ConnectPoint
 {
   string name;
-  Vector position;
+  Vector position = Vector.origo;
+  bool empty = true;
 }
 
 
@@ -169,6 +174,7 @@ protected:
         
         ConnectPoint connectPoint;
         connectPoint.name = connectPointName;
+        connectPoint.empty = true;
         if (connectPointAttribute == "position")
           connectPoint.position = Vector.fromString(p_entity.getValue(value));
           
@@ -194,13 +200,15 @@ protected:
         {
           auto connectComponent = getComponent(connectEntity);
           
-          foreach (connectPoint; connectComponent.connectPoints)
+          foreach (ref connectPoint; connectComponent.connectPoints)
           {
             if (connectPoint.name == connectPointName)
             {
+              connectPoint.empty = false;
+              setComponent(connectEntity, connectComponent);
+              
               relativePosition = connectPoint.position;
               foundConnectPoint = true;
-              //owner = connectEntity;
               break;
             }
           }

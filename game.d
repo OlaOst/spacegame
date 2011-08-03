@@ -35,6 +35,7 @@ import derelict.sdl.sdl;
 import SubSystem.CollisionHandler;
 import SubSystem.ConnectionHandler;
 import SubSystem.Controller;
+import SubSystem.DragDropHandler;
 import SubSystem.Graphics;
 import SubSystem.Physics;
 import SubSystem.Placer;
@@ -154,23 +155,26 @@ public:
     m_subSystems["controller"] = m_controller = new Controller(m_inputHandler);
     m_subSystems["collider"] = m_collider = new CollisionHandler();
     m_subSystems["connector"] = m_connector = new ConnectionHandler();
-    m_subSystems["sound"] = new SoundSubSystem(16);
+    m_subSystems["sound"] = new SoundSubSystem(16);    
     m_subSystems["spawner"] = m_spawner = new Spawner();
+    m_subSystems["dragdropper"] = m_dragdropper = new DragDropHandler();
     
     m_mouseEntity = new Entity();
     m_mouseEntity.setValue("drawsource", "star");
     m_mouseEntity.setValue("radius", "2.0");
     //m_mouseEntity.setValue("mass", "1.0");
-    m_mouseEntity.setValue("position", "5.0 0.0");
+    m_mouseEntity.setValue("position", "5 0");
+    
+    m_draggables ~= m_mouseEntity;
     
     registerEntity(m_mouseEntity);
     
-    m_mouseSkeleton = new Entity("data/skeleton.txt");
-    m_mouseSkeleton.setValue("position", "0 0 0");
+    m_testSkeleton = new Entity("data/skeleton.txt");
+    m_testSkeleton.setValue("position", "0 -5 0");
     
-    registerEntity(m_mouseSkeleton);
+    registerEntity(m_testSkeleton);
     
-    assert(m_connector.hasComponent(m_mouseSkeleton));
+    assert(m_connector.hasComponent(m_testSkeleton));
     
     Entity startupDing = new Entity();
     startupDing.setValue("soundFile", "test.wav");
@@ -291,10 +295,13 @@ private:
     }
     CommsCentral.setGraphicsFromPlacer(m_placer, m_graphics);
     
-    //writeln("player entity id: " ~ to!string(m_playerShip.id));
-    //writeln("player placer pos: " ~ m_placer.getComponent(m_playerShip).position.toString());
-    //writeln("player graphx pos: " ~ m_graphics.getComponent(m_playerShip).position.toString());
-    //writeln("player physic pos: " ~ m_physics.getComponent(m_playerShip).position.toString());
+    if (m_dragEntity !is null)
+    {
+      auto dragComp = m_placer.getComponent(m_dragEntity);
+      dragComp.position = m_graphics.mouseWorldPos;
+      
+      m_placer.setComponent(m_dragEntity, dragComp);
+    }
     
     m_fpsBuffer[m_updateCount % m_fpsBuffer.length] = floor(1.0 / elapsedTime);
     
@@ -322,35 +329,73 @@ private:
   {
     if (m_inputHandler.isPressed(Event.LeftButton))
     {
-      auto mouseComp = m_placer.getComponent(m_mouseEntity);
-      mouseComp.position = m_graphics.mouseWorldPos;
+      //auto mouseComp = m_placer.getComponent(m_mouseEntity);
+      auto mouseComp = m_graphics.getComponent(m_mouseEntity);
       
-      m_placer.setComponent(m_mouseEntity, mouseComp);
+      foreach (draggable; m_draggables)
+      {
+        auto dragComp = m_graphics.getComponent(draggable);
+        
+        if ((dragComp.position - m_graphics.mouseWorldPos).length2d < dragComp.radius)
+        {
+          m_dragEntity = draggable;
+          break;
+        }
+      }
+      /*
+      if ((mouseComp.position - m_graphics.mouseWorldPos).length2d < mouseComp.radius)
+      {
+        mouseComp.position = m_graphics.mouseWorldPos;
+        auto mousePosComp = m_placer.getComponent(m_mouseEntity);
+        mousePosComp.position = mouseComp.position;
+      
+        m_graphics.setComponent(m_mouseEntity, mouseComp);
+        m_placer.setComponent(m_mouseEntity, mousePosComp);
+      }
+      */
     }
     
     if (m_inputHandler.eventState(Event.LeftButton) == EventState.Released)
     {
       // if mouse entity close by mouseskeleton contact point then snap to it
       
-      assert(m_placer.hasComponent(m_mouseEntity));
-      assert(m_placer.hasComponent(m_mouseSkeleton));
-      
-      auto mousePos = m_placer.getComponent(m_mouseEntity).position;
-      auto mouseSkelPos = m_placer.getComponent(m_mouseSkeleton).position;
-      
-      auto connectPoints = m_connector.getComponent(m_mouseSkeleton).connectPoints;
-      
-      foreach (connectPoint; connectPoints)
+      if (m_dragEntity !is null)
       {
-        auto connectPointPos = connectPoint.position;
+        assert(m_placer.hasComponent(m_dragEntity));
+        assert(m_placer.hasComponent(m_testSkeleton));
         
-        if ((mousePos - connectPointPos).length2d < 1.0)
+        auto dragPos = m_placer.getComponent(m_dragEntity).position;
+        auto testSkelPos = m_placer.getComponent(m_testSkeleton).position;
+        
+        auto connectPoints = m_connector.getComponent(m_testSkeleton).connectPoints;
+
+        foreach (connectPoint; connectPoints)
         {
-          auto mouseComp = m_placer.getComponent(m_mouseEntity);
-          mouseComp.position = connectPointPos;
+          auto connectPointPos = testSkelPos + connectPoint.position;
           
-          m_placer.setComponent(m_mouseEntity, mouseComp);
+          if (connectPoint.empty && (dragPos - connectPointPos).length2d < 1.0)
+          {
+            // set up mouseentity to be connected to mouseskeleton, then duplicate it
+            
+            m_dragEntity.setValue("position", connectPointPos.toString());
+            m_dragEntity.setValue("owner", to!string(m_testSkeleton.id));
+            m_dragEntity.setValue("connection", m_testSkeleton.getValue("name") ~ "." ~ connectPoint.name);
+            
+            registerEntity(m_dragEntity);
+            
+            
+            // TODO: create duplicate of drag entity
+            /*m_mouseEntity = new Entity();
+            m_mouseEntity.setValue("drawsource", "star");
+            m_mouseEntity.setValue("radius", "2.0");
+            m_mouseEntity.setValue("position", "5 0");
+            
+            registerEntity(m_mouseEntity);*/
+            
+            break;
+          }
         }
+        m_dragEntity = null;
       }
     }
   
@@ -469,7 +514,7 @@ private:
   ConnectionHandler m_connector;
   CollisionHandler m_collider;
   Spawner m_spawner;
-  
+  DragDropHandler m_dragdropper; 
   
   Starfield m_starfield;
   
@@ -478,7 +523,11 @@ private:
   Entity m_playerShip;
   
   Entity m_mouseEntity;
-  Entity m_mouseSkeleton;
+  Entity m_testSkeleton;
+  
+  Entity[] m_draggables;
+  Entity m_dragEntity;
+  
   Entity m_fpsDisplay;
   float[20] m_fpsBuffer;
 }

@@ -58,6 +58,10 @@ unittest
   }
   assert(sys.components.length == 1);
   
+  // it shouldn't be possible to double-register the same entity to a system
+  sys.registerEntity(entity);
+  assert(sys.components.length == 1);
+  
   Entity anotherEntity = new Entity();
   sys.registerEntity(anotherEntity);
   assert(sys.components.length == 2);
@@ -85,7 +89,7 @@ public:
   {
     scope(failure) writeln(to!string(this) ~ " failed loading entity: " ~ to!string(p_entity.values));
     
-    if (canCreateComponent(p_entity))
+    if (canCreateComponent(p_entity) && !hasComponent(p_entity)) // don't register entity if it's already registered
     {
       auto component = createComponent(p_entity);
     
