@@ -1,5 +1,5 @@
 drawsource = cannonshape.txt
-radius = 0.33
+radius = 0.75
 mass = 0.5
 spawns = bullets
 spawnForce = 10

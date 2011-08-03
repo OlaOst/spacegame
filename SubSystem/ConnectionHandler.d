@@ -124,9 +124,6 @@ public:
     
     relativePosition = Vector.origo;
     relativeAngle = 0.0;
-    
-    //force = Vector.origo;
-    //torque = 0.0;
   } 
   
   

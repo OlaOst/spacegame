@@ -159,27 +159,33 @@ public:
     m_subSystems["spawner"] = m_spawner = new Spawner();
     m_subSystems["dragdropper"] = m_dragdropper = new DragDropHandler();
     
-    //m_mouseEntity = new Entity();
-    //m_mouseEntity.setValue("drawsource", "star");
-    //m_mouseEntity.setValue("radius", "2.0");
-    //m_mouseEntity.setValue("mass", "1.0");
-    //m_mouseEntity.setValue("position", "5 0");
-    
-    //registerEntity(m_mouseEntity);
-    //m_draggables ~= m_mouseEntity;
-    
     Entity dragEngine = new Entity("data/engine.txt");
+    dragEngine.setValue("source", "data/engine.txt");
+    dragEngine.setValue("isBluePrint", "true");
     dragEngine.setValue("position", "5 0 0");
-    
     registerEntity(dragEngine);
     m_draggables ~= dragEngine;
     
-    m_testSkeleton = new Entity("data/skeleton.txt");
-    m_testSkeleton.setValue("position", "0 -5 0");
+    Entity dragCannon = new Entity("data/cannon.txt");
+    dragCannon.setValue("source", "data/cannon.txt");
+    dragCannon.setValue("isBluePrint", "true");
+    dragCannon.setValue("position", "7 0 0");
+    registerEntity(dragCannon);
+    m_draggables ~= dragCannon;
     
-    registerEntity(m_testSkeleton);
+    Entity dragSkeleton = new Entity("data/skeleton.txt");
+    dragSkeleton.setValue("source", "data/skeleton.txt");
+    dragSkeleton.setValue("isBluePrint", "true");
+    dragSkeleton.setValue("position", "9 0 0");
+    registerEntity(dragSkeleton);
+    m_draggables ~= dragSkeleton;
     
-    assert(m_connector.hasComponent(m_testSkeleton));
+    auto buildShipRootSkeleton = new Entity("data/skeleton.txt");
+    buildShipRootSkeleton.setValue("position", "0 -5 0");
+    registerEntity(buildShipRootSkeleton);
+    m_buildShip ~= buildShipRootSkeleton;
+    
+    assert(m_connector.hasComponent(buildShipRootSkeleton));
     
     Entity startupDing = new Entity();
     startupDing.setValue("soundFile", "test.wav");
@@ -199,7 +205,8 @@ public:
     
     for (int n = 0; n < 0; n++)
     {
-      Entity npcShip = loadShip("npcship.txt", ["position" : Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0)).toString(), "angle" : to!string(uniform(0.0, PI*2))]);
+      Entity npcShip = loadShip("npcship.txt", ["position" : Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0)).toString(), 
+                                                "angle" : to!string(uniform(0.0, PI*2))]);
     }
     
     //m_starfield = new Starfield(m_graphics, 10.0);
@@ -293,9 +300,15 @@ private:
       
       if (m_dragEntity !is null)
       {
-        auto dragComp = m_placer.getComponent(m_dragEntity);
-        dragComp.position = m_graphics.mouseWorldPos;
-        m_placer.setComponent(m_dragEntity, dragComp);
+        auto dragPosComp = m_placer.getComponent(m_dragEntity);
+        auto dragGfxComp = m_graphics.getComponent(m_dragEntity);
+        auto dragPhysComp = m_physics.getComponent(m_dragEntity);
+        
+        dragPosComp.position = dragGfxComp.position = dragPhysComp.position = m_graphics.mouseWorldPos;
+        
+        m_placer.setComponent(m_dragEntity, dragPosComp);
+        m_graphics.setComponent(m_dragEntity, dragGfxComp);
+        m_physics.setComponent(m_dragEntity, dragPhysComp);
       }
       
       CommsCentral.setPhysicsFromController(m_controller, m_physics);
@@ -337,66 +350,102 @@ private:
   {
     if (m_inputHandler.isPressed(Event.LeftButton))
     {
-      //auto mouseComp = m_placer.getComponent(m_mouseEntity);
-      //auto mouseComp = m_graphics.getComponent(m_mouseEntity);
-      
-      foreach (draggable; m_draggables)
+      if (m_dragEntity is null)
       {
-        auto dragComp = m_graphics.getComponent(draggable);
-        
-        if ((dragComp.position - m_graphics.mouseWorldPos).length2d < dragComp.radius)
+        foreach (draggable; m_draggables)
         {
-          m_dragEntity = draggable;
+          auto dragComp = m_graphics.getComponent(draggable);
           
-          // break eventual connection of drag entity
-          if (m_connector.hasComponent(m_dragEntity))
-            m_connector.removeEntity(m_dragEntity);
-          
-          break;
+          if ((dragComp.position - m_graphics.mouseWorldPos).length2d < dragComp.radius)
+          {
+            Entity entityToDrag = draggable;
+            
+            // create copy of entity if it's a blueprint
+            if (draggable.getValue("isBluePrint") == "true")
+            {
+              entityToDrag = new Entity(draggable.getValue("source"));
+              entityToDrag.setValue("position", draggable.getValue("position"));
+              
+              m_draggables ~= entityToDrag;
+              
+              registerEntity(entityToDrag);
+            }
+            
+            m_dragEntity = entityToDrag;
+            
+            // break eventual connection of drag entity
+            if (m_connector.hasComponent(entityToDrag))
+              m_connector.removeEntity(entityToDrag);
+            
+            break;
+          }
         }
       }
     }
     
     if (m_inputHandler.eventState(Event.LeftButton) == EventState.Released)
     {
-      // if drag entity close to testskeleton contact point then connect to it
+      // if drag entity is close to an empty skeleton contact point then connect to it
       
       if (m_dragEntity !is null)
       {
         assert(m_placer.hasComponent(m_dragEntity));
-        assert(m_placer.hasComponent(m_testSkeleton));
+        assert(m_placer.hasComponent(m_buildShip[0]));
         
         auto dragPos = m_placer.getComponent(m_dragEntity).position;
-        auto testSkelPos = m_placer.getComponent(m_testSkeleton).position;
+        //auto buildShipRootSkeletonPosition = m_placer.getComponent(m_buildShip[0]).position;
+        bool dragEntityConnected = false;
         
-        auto connectPoints = m_connector.getComponent(m_testSkeleton).connectPoints;
+        foreach (buildShipEntity; m_buildShip)
+        {
+          auto buildShipEntityPosition = m_placer.getComponent(buildShipEntity).position;
+          
+          if (m_connector.hasComponent(buildShipEntity))
+          {
+            auto connectPoints = m_connector.getComponent(buildShipEntity).connectPoints;
+            
+            foreach (connectPoint; connectPoints)
+            {
+              auto connectPointPos = buildShipEntityPosition + connectPoint.position;
+              
+              if (connectPoint.empty && (dragPos - connectPointPos).length2d < 1.0)
+              {
+                m_dragEntity.setValue("position", connectPointPos.toString());
+                m_dragEntity.setValue("owner", to!string(buildShipEntity.id));
+                m_dragEntity.setValue("connection", buildShipEntity.getValue("name") ~ "." ~ connectPoint.name);
+                
+                registerEntity(m_dragEntity);
+                
+                m_buildShip ~= m_dragEntity;
+                
+                dragEntityConnected = true;
+                break;
+              }
+            }
+          }
+          if (dragEntityConnected)
+            break;
+        }
+        
+        /*
+        auto connectPoints = m_connector.getComponent(m_buildShip[0]).connectPoints;
 
         foreach (connectPoint; connectPoints)
         {
-          auto connectPointPos = testSkelPos + connectPoint.position;
+          auto connectPointPos = buildShipRootSkeletonPosition + connectPoint.position;
           
           if (connectPoint.empty && (dragPos - connectPointPos).length2d < 1.0)
           {
-            // set up mouseentity to be connected to mouseskeleton, then duplicate it
-            
             m_dragEntity.setValue("position", connectPointPos.toString());
-            m_dragEntity.setValue("owner", to!string(m_testSkeleton.id));
-            m_dragEntity.setValue("connection", m_testSkeleton.getValue("name") ~ "." ~ connectPoint.name);
+            m_dragEntity.setValue("owner", to!string(m_buildShip[0].id));
+            m_dragEntity.setValue("connection", m_buildShip[0].getValue("name") ~ "." ~ connectPoint.name);
             
             registerEntity(m_dragEntity);
-            
-            
-            // TODO: create duplicate of drag entity
-            /*m_mouseEntity = new Entity();
-            m_mouseEntity.setValue("drawsource", "star");
-            m_mouseEntity.setValue("radius", "2.0");
-            m_mouseEntity.setValue("position", "5 0");
-            
-            registerEntity(m_mouseEntity);*/
             
             break;
           }
         }
+        */
         m_dragEntity = null;
       }
     }
@@ -524,8 +573,7 @@ private:
 
   Entity m_playerShip;
   
-  //Entity m_mouseEntity;
-  Entity m_testSkeleton;
+  Entity[] m_buildShip;
   
   Entity[] m_draggables;
   Entity m_dragEntity;

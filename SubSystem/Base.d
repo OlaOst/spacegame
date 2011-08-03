@@ -89,7 +89,7 @@ public:
   {
     scope(failure) writeln(to!string(this) ~ " failed loading entity: " ~ to!string(p_entity.values));
     
-    if (canCreateComponent(p_entity) && !hasComponent(p_entity)) // don't register entity if it's already registered
+    if (canCreateComponent(p_entity) /*&& !hasComponent(p_entity)*/) // register entity if it's already registered, the component should be overwritten
     {
       auto component = createComponent(p_entity);
     
