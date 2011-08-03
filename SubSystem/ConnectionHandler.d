@@ -109,9 +109,10 @@ invariant()
   // if the component has an owner, it should not have a grandparent
   // so it's not a tree structure
   // if an engine is connected to a skeleton, the owner component is still the ship, not the skeleton
+  // the ship should be its own owner
   /*if (owner !is null)
   {
-    assert(owner.owner is null);
+    assert(getComponent(owner).owner is this);
   }*/
 }
 
@@ -135,7 +136,7 @@ public:
   Vector relativePosition;
   float relativeAngle;
   
-  ConnectPoint[] connectPoints;
+  ConnectPoint[string] connectPoints;
 }
 
 
@@ -143,6 +144,24 @@ class ConnectionHandler : public Base!(ConnectionComponent)
 {
 public:
   void update() {}
+  
+  
+  override void removeEntity(Entity p_entity)
+  {
+    auto comp = getComponent(p_entity);
+    
+    if (comp.owner !is p_entity)
+    {
+      auto ownerComp = getComponent(comp.owner);
+      
+      auto connectPointName = p_entity.getValue("connection").split(".")[1];
+      
+      ownerComp.connectPoints[connectPointName].empty = true;
+    }
+    
+    super.removeEntity(p_entity);
+  }
+  
   
 protected:
   bool canCreateComponent(Entity p_entity)
@@ -159,7 +178,7 @@ protected:
   {
     Entity owner = null;
     
-    ConnectPoint[] connectPoints;
+    ConnectPoint[string] connectPoints;
     
     foreach (value; p_entity.values.keys)
     {
@@ -178,7 +197,7 @@ protected:
         if (connectPointAttribute == "position")
           connectPoint.position = Vector.fromString(p_entity.getValue(value));
           
-        connectPoints ~= connectPoint;
+        connectPoints[connectPointName] = connectPoint;
         
         // connectTargets are their own owners
         owner = p_entity;
@@ -188,11 +207,10 @@ protected:
     Vector relativePosition = Vector.origo;    
     if (p_entity.getValue("connection").length > 0)
     {
-      auto stuff = p_entity.getValue("connection").split(".");
+      auto connectionData = p_entity.getValue("connection").split(".");
       
-      auto connectEntityName = stuff[0];
-      auto connectPointName = stuff[1];
-      bool foundConnectPoint = false;
+      auto connectEntityName = connectionData[0];
+      auto connectPointName = connectionData[1];
       
       foreach (connectEntity; entities)
       {
@@ -200,21 +218,17 @@ protected:
         {
           auto connectComponent = getComponent(connectEntity);
           
-          foreach (ref connectPoint; connectComponent.connectPoints)
+          auto connectPoint = connectPointName in connectComponent.connectPoints;
+          
+          if (connectPoint)
           {
-            if (connectPoint.name == connectPointName)
-            {
-              connectPoint.empty = false;
-              setComponent(connectEntity, connectComponent);
-              
-              relativePosition = connectPoint.position;
-              foundConnectPoint = true;
-              break;
-            }
+            connectPoint.empty = false;
+            setComponent(connectEntity, connectComponent);
+            
+            relativePosition = connectPoint.position;
+            break;
           }
         }
-        if (foundConnectPoint)
-          break;
       }
     }
     
@@ -264,8 +278,7 @@ protected:
     }
     
     return newComponent;
-  }
-  
+  }  
   
 private:
 }

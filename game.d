@@ -159,15 +159,20 @@ public:
     m_subSystems["spawner"] = m_spawner = new Spawner();
     m_subSystems["dragdropper"] = m_dragdropper = new DragDropHandler();
     
-    m_mouseEntity = new Entity();
-    m_mouseEntity.setValue("drawsource", "star");
-    m_mouseEntity.setValue("radius", "2.0");
+    //m_mouseEntity = new Entity();
+    //m_mouseEntity.setValue("drawsource", "star");
+    //m_mouseEntity.setValue("radius", "2.0");
     //m_mouseEntity.setValue("mass", "1.0");
-    m_mouseEntity.setValue("position", "5 0");
+    //m_mouseEntity.setValue("position", "5 0");
     
-    m_draggables ~= m_mouseEntity;
+    //registerEntity(m_mouseEntity);
+    //m_draggables ~= m_mouseEntity;
     
-    registerEntity(m_mouseEntity);
+    Entity dragEngine = new Entity("data/engine.txt");
+    dragEngine.setValue("position", "5 0 0");
+    
+    registerEntity(dragEngine);
+    m_draggables ~= dragEngine;
     
     m_testSkeleton = new Entity("data/skeleton.txt");
     m_testSkeleton.setValue("position", "0 -5 0");
@@ -284,24 +289,27 @@ private:
         //subSystem.update();
       
       CommsCentral.setPlacerFromPhysics(m_physics, m_placer);
-      CommsCentral.setPhysicsFromController(m_controller, m_physics);
-      CommsCentral.setPhysicsFromConnector(m_connector, m_physics);
       CommsCentral.setPlacerFromConnector(m_connector, m_placer);
+      
+      if (m_dragEntity !is null)
+      {
+        auto dragComp = m_placer.getComponent(m_dragEntity);
+        dragComp.position = m_graphics.mouseWorldPos;
+        m_placer.setComponent(m_dragEntity, dragComp);
+      }
+      
+      CommsCentral.setPhysicsFromController(m_controller, m_physics);
+      CommsCentral.setSpawnerFromController(m_controller, m_spawner);
+      
+      CommsCentral.setPhysicsFromConnector(m_connector, m_physics);
+      
       CommsCentral.setControllerFromPlacer(m_placer, m_controller);
       CommsCentral.setCollidersFromPlacer(m_placer, m_collider);
-      CommsCentral.calculateCollisionResponse(m_collider, m_physics);
-      CommsCentral.setSpawnerFromController(m_controller, m_spawner);
       CommsCentral.setSpawnerFromPlacer(m_placer, m_spawner);
+      
+      CommsCentral.calculateCollisionResponse(m_collider, m_physics);
     }
     CommsCentral.setGraphicsFromPlacer(m_placer, m_graphics);
-    
-    if (m_dragEntity !is null)
-    {
-      auto dragComp = m_placer.getComponent(m_dragEntity);
-      dragComp.position = m_graphics.mouseWorldPos;
-      
-      m_placer.setComponent(m_dragEntity, dragComp);
-    }
     
     m_fpsBuffer[m_updateCount % m_fpsBuffer.length] = floor(1.0 / elapsedTime);
     
@@ -330,7 +338,7 @@ private:
     if (m_inputHandler.isPressed(Event.LeftButton))
     {
       //auto mouseComp = m_placer.getComponent(m_mouseEntity);
-      auto mouseComp = m_graphics.getComponent(m_mouseEntity);
+      //auto mouseComp = m_graphics.getComponent(m_mouseEntity);
       
       foreach (draggable; m_draggables)
       {
@@ -339,25 +347,19 @@ private:
         if ((dragComp.position - m_graphics.mouseWorldPos).length2d < dragComp.radius)
         {
           m_dragEntity = draggable;
+          
+          // break eventual connection of drag entity
+          if (m_connector.hasComponent(m_dragEntity))
+            m_connector.removeEntity(m_dragEntity);
+          
           break;
         }
       }
-      /*
-      if ((mouseComp.position - m_graphics.mouseWorldPos).length2d < mouseComp.radius)
-      {
-        mouseComp.position = m_graphics.mouseWorldPos;
-        auto mousePosComp = m_placer.getComponent(m_mouseEntity);
-        mousePosComp.position = mouseComp.position;
-      
-        m_graphics.setComponent(m_mouseEntity, mouseComp);
-        m_placer.setComponent(m_mouseEntity, mousePosComp);
-      }
-      */
     }
     
     if (m_inputHandler.eventState(Event.LeftButton) == EventState.Released)
     {
-      // if mouse entity close by mouseskeleton contact point then snap to it
+      // if drag entity close to testskeleton contact point then connect to it
       
       if (m_dragEntity !is null)
       {
@@ -522,7 +524,7 @@ private:
 
   Entity m_playerShip;
   
-  Entity m_mouseEntity;
+  //Entity m_mouseEntity;
   Entity m_testSkeleton;
   
   Entity[] m_draggables;

@@ -97,7 +97,7 @@ public:
     }
   }
   
-  final void removeEntity(Entity p_entity)
+  void removeEntity(Entity p_entity)
   {
     m_entityToComponent.remove(p_entity);
   }
