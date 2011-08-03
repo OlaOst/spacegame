@@ -22,8 +22,10 @@
 
 module SubSystem.ConnectionHandler;
 
+import std.algorithm;
 import std.conv;
 import std.stdio;
+import std.string;
 
 import Entity;
 import SubSystem.Base;
@@ -38,7 +40,7 @@ unittest
   auto sys = new ConnectionHandler();
   
   Entity ship = new Entity();
-  ship.setValue("connectTarget", "true");
+  ship.setValue("connectpoint.testpoint.position", "1 0");
   
   sys.registerEntity(ship);
   
@@ -58,6 +60,36 @@ unittest
   //assert(ship.position == Vector(1, 0, 0));
   
   //assert(engine.position == engineComponent.relativePosition + ship.position);
+  
+  
+  auto connectPointsEntity = new Entity();
+  connectPointsEntity.setValue("name", "connectPointsEntity");
+  //connectPointsEntity.setValue("connectTarget", "true");
+  connectPointsEntity.setValue("connectpoint.lower.position", "0 -1");
+  connectPointsEntity.setValue("connectpoint.upper.position", "0 1");
+  
+  sys.registerEntity(connectPointsEntity);
+  
+  auto connectPointsComponent = sys.getComponent(connectPointsEntity);
+  
+  assert(connectPointsComponent.connectPoints.length > 0);
+  
+  auto connectingEntity = new Entity();
+  connectingEntity.setValue("owner", to!string(connectPointsEntity.id));
+  connectingEntity.setValue("connection", "connectPointsEntity.lower");
+  
+  sys.registerEntity(connectingEntity);
+  
+  auto connectingComponent = sys.getComponent(connectingEntity);
+  
+  assert(connectingComponent.relativePosition == Vector(0, -1));
+}
+
+
+struct ConnectPoint
+{
+  string name;
+  Vector position;
 }
 
 
@@ -97,6 +129,8 @@ public:
   
   Vector relativePosition;
   float relativeAngle;
+  
+  ConnectPoint[] connectPoints;
 }
 
 
@@ -108,8 +142,11 @@ public:
 protected:
   bool canCreateComponent(Entity p_entity)
   {
-    return (p_entity.getValue("owner").length > 0 ||
-            p_entity.getValue("connectTarget").length > 0);
+    foreach (value; p_entity.values.keys)
+      if (value.startsWith("connectpoint"))
+        return true;
+        
+    return p_entity.getValue("owner").length > 0;
   }
   
   
@@ -117,35 +154,96 @@ protected:
   {
     Entity owner = null;
     
+    ConnectPoint[] connectPoints;
+    
+    foreach (value; p_entity.values.keys)
+    {
+      if (value.startsWith("connectpoint"))
+      {
+        auto connectPointData = value.split(".");
+        
+        assert(connectPointData.length == 3);
+        
+        auto connectPointName = connectPointData[1];
+        auto connectPointAttribute = connectPointData[2];
+        
+        ConnectPoint connectPoint;
+        connectPoint.name = connectPointName;
+        if (connectPointAttribute == "position")
+          connectPoint.position = Vector.fromString(p_entity.getValue(value));
+          
+        connectPoints ~= connectPoint;
+        
+        // connectTargets are their own owners
+        owner = p_entity;
+      }
+    }
+    
+    Vector relativePosition = Vector.origo;    
+    if (p_entity.getValue("connection").length > 0)
+    {
+      auto stuff = p_entity.getValue("connection").split(".");
+      
+      auto connectEntityName = stuff[0];
+      auto connectPointName = stuff[1];
+      bool foundConnectPoint = false;
+      
+      foreach (connectEntity; entities)
+      {
+        if (connectEntity.getValue("name") == connectEntityName)
+        {
+          auto connectComponent = getComponent(connectEntity);
+          
+          foreach (connectPoint; connectComponent.connectPoints)
+          {
+            if (connectPoint.name == connectPointName)
+            {
+              relativePosition = connectPoint.position;
+              foundConnectPoint = true;
+              //owner = connectEntity;
+              break;
+            }
+          }
+        }
+        if (foundConnectPoint)
+          break;
+      }
+    }
+    
     if (p_entity.getValue("owner").length > 0)
     {
       int ownerId = to!int(p_entity.getValue("owner"));
       
-      foreach (entity; entities)
+      if (ownerId == p_entity.id)
       {
-        if (entity.id == ownerId)
+        owner = p_entity;
+      }
+      else
+      {
+      
+        foreach (entity; entities)
         {
-          // this should maybe be an enforce instead? 
-          // nope, owner ids are translated from names in data files
-          // the name->entity.id translation should throw if it doesn't find a match
-          //assert(hasComponent(entity));
-          
-          //newComponent.owner = getComponent(entity);
-          owner = entity;
-          break;
+          if (entity.id == ownerId)
+          {
+            // this should maybe be an enforce instead? 
+            // nope, owner ids are translated from names in data files
+            // the name->entity.id translation should throw if it doesn't find a match
+            //assert(hasComponent(entity));
+            
+            //newComponent.owner = getComponent(entity);
+            owner = entity;
+            break;
+          }
         }
       }
-    }
-    
-    // connectTargets are their own owners
-    if (p_entity.getValue("connectTarget").length > 0)
-    {
-      owner = p_entity;
     }
     
     assert(owner !is null, "Could not find owner with id " ~ p_entity.getValue("owner"));
     
     auto newComponent = new ConnectionComponent(owner);
+    
+    newComponent.relativePosition = relativePosition;
+    newComponent.connectPoints = connectPoints;
     
     if (p_entity.getValue("relativePosition").length > 0)
     {

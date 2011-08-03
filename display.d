@@ -85,13 +85,17 @@ void setupGL(int p_screenWidth, int p_screenHeight)
   
   glLoadIdentity();
   
-  gluPerspective(90.0, cast(float)p_screenWidth / cast(float)p_screenHeight, 0.1, 100.0);
+  //gluPerspective(90.0, cast(float)p_screenWidth / cast(float)p_screenHeight, 0.1, 100.0);
+  
+  float widthHeightRatio = cast(float)p_screenWidth / cast(float)p_screenHeight;
+  
+  gluOrtho2D(-widthHeightRatio, widthHeightRatio, -1.0, 1.0);
   
   glMatrixMode(GL_MODELVIEW);
   
   glLoadIdentity();
   
-  //glEnable(GL_DEPTH_TEST);
+  glEnable(GL_DEPTH_TEST);
   
   //glEnable(GL_BLEND);
   //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

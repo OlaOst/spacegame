@@ -70,7 +70,6 @@ unittest
   
   deleteTest.setValue("drawsource", "Triangle");
   deleteTest.setValue("radius", "1.0");
-  //deleteTest.setValue("keepInCenter", "true");
   
   graphics.registerEntity(deleteTest);
   assert(graphics.components.length == 2, "Expected 2 registered components, instead got " ~ to!string(graphics.components.length));
@@ -231,11 +230,12 @@ public:
     glScalef(m_zoom, m_zoom, 1.0);
     
     // pull back camera a bit so we can see entities with z=0.0
-    glTranslatef(0.0, 0.0, -1.0);
+    glTranslatef(0.0, 0.0, 0.0);
 
     assert(hasComponent(m_centerEntity));
     auto centerComponent = getComponent(m_centerEntity);
     assert(centerComponent.position.isValid());
+    
     glTranslatef(-centerComponent.position.x, -centerComponent.position.y, 0.0);
     
     glDisable(GL_TEXTURE_2D);
@@ -440,7 +440,6 @@ protected:
     if (p_entity.getValue("keepInCenter") == "true")
     {
       m_centerEntity = p_entity;
-      //assert(m_centerComponent.position.isValid());
     }
     
     if (looksLikeAFile(p_entity.getValue("drawsource")))

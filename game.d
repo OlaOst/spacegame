@@ -170,6 +170,8 @@ public:
     
     registerEntity(m_mouseSkeleton);
     
+    assert(m_connector.hasComponent(m_mouseSkeleton));
+    
     Entity startupDing = new Entity();
     startupDing.setValue("soundFile", "test.wav");
     
@@ -184,9 +186,9 @@ public:
     
     registerEntity(m_fpsDisplay);
     
-    loadShip("playership.txt", ["position" : "0 0 0"]);
+    m_playerShip = loadShip("playership.txt", ["position" : "0 0 0"]);        
     
-    for (int n = 0; n < 10; n++)
+    for (int n = 0; n < 0; n++)
     {
       Entity npcShip = loadShip("npcship.txt", ["position" : Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0)).toString(), "angle" : to!string(uniform(0.0, PI*2))]);
     }
@@ -289,8 +291,15 @@ private:
     }
     CommsCentral.setGraphicsFromPlacer(m_placer, m_graphics);
     
+    //writeln("player entity id: " ~ to!string(m_playerShip.id));
+    //writeln("player placer pos: " ~ m_placer.getComponent(m_playerShip).position.toString());
+    //writeln("player graphx pos: " ~ m_graphics.getComponent(m_playerShip).position.toString());
+    //writeln("player physic pos: " ~ m_physics.getComponent(m_playerShip).position.toString());
+    
+    m_fpsBuffer[m_updateCount % m_fpsBuffer.length] = floor(1.0 / elapsedTime);
+    
     auto fpsDisplayComponent = m_graphics.getComponent(m_fpsDisplay);
-    fpsDisplayComponent.text = "FPS: " ~ to!string(cast(int)(1.0 / elapsedTime));
+    fpsDisplayComponent.text = "FPS: " ~ to!string(cast(int)(reduce!"a+b"(m_fpsBuffer)/m_fpsBuffer.length));
     m_graphics.setComponent(m_fpsDisplay, fpsDisplayComponent);
     
     m_graphics.calculateMouseWorldPos(m_inputHandler.mousePos);
@@ -313,7 +322,10 @@ private:
   {
     if (m_inputHandler.isPressed(Event.LeftButton))
     {
-      m_placer.getComponent(m_mouseEntity).position = m_graphics.mouseWorldPos;
+      auto mouseComp = m_placer.getComponent(m_mouseEntity);
+      mouseComp.position = m_graphics.mouseWorldPos;
+      
+      m_placer.setComponent(m_mouseEntity, mouseComp);
     }
     
     if (m_inputHandler.eventState(Event.LeftButton) == EventState.Released)
@@ -326,8 +338,20 @@ private:
       auto mousePos = m_placer.getComponent(m_mouseEntity).position;
       auto mouseSkelPos = m_placer.getComponent(m_mouseSkeleton).position;
       
-      if ((mousePos - mouseSkelPos).length2d < 2.5)
-        m_placer.getComponent(m_mouseEntity).position = mouseSkelPos;
+      auto connectPoints = m_connector.getComponent(m_mouseSkeleton).connectPoints;
+      
+      foreach (connectPoint; connectPoints)
+      {
+        auto connectPointPos = connectPoint.position;
+        
+        if ((mousePos - connectPointPos).length2d < 1.0)
+        {
+          auto mouseComp = m_placer.getComponent(m_mouseEntity);
+          mouseComp.position = connectPointPos;
+          
+          m_placer.setComponent(m_mouseEntity, mouseComp);
+        }
+      }
     }
   
     if (m_inputHandler.isPressed(Event.PageUp))
@@ -406,6 +430,9 @@ private:
     if (accumulatedMass > 0.0)
       ship.setValue("mass", to!string(accumulatedMass));
     
+    // ship entity is its own owner, this is also needed to register it to connection system
+    ship.setValue("owner", to!string(ship.id));
+    
     registerEntity(ship);
     
     foreach (subEntity; subEntitiesToAdd)
@@ -447,8 +474,11 @@ private:
   Starfield m_starfield;
   
   Entity[int] m_entities;
+
+  Entity m_playerShip;
   
   Entity m_mouseEntity;
   Entity m_mouseSkeleton;
   Entity m_fpsDisplay;
+  float[20] m_fpsBuffer;
 }
