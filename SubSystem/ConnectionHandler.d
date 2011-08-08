@@ -23,9 +23,12 @@
 module SubSystem.ConnectionHandler;
 
 import std.algorithm;
+import std.array;
 import std.conv;
+import std.range;
 import std.stdio;
 import std.string;
+import std.typetuple;
 
 import Entity;
 import SubSystem.Base;
@@ -86,7 +89,7 @@ unittest
   
   // reload connectPointsComponent, check if connectpoint is no longer empty
   connectPointsComponent = sys.getComponent(connectPointsEntity);
-  assert(connectPointsComponent.connectPoints[0].empty == false);
+  assert(connectPointsComponent.connectPoints["lower"].empty == false);
 }
 
 
@@ -105,15 +108,6 @@ invariant()
   assert(owner !is null);
   assert(relativePosition.isValid());
   assert(relativeAngle == relativeAngle);
-  
-  // if the component has an owner, it should not have a grandparent
-  // so it's not a tree structure
-  // if an engine is connected to a skeleton, the owner component is still the ship, not the skeleton
-  // the ship should be its own owner
-  /*if (owner !is null)
-  {
-    assert(getComponent(owner).owner is this);
-  }*/
 }
 
 
@@ -133,6 +127,8 @@ public:
   Vector relativePosition;
   float relativeAngle;
   
+  ConnectionComponent connectedTo = null;
+  
   ConnectPoint[string] connectPoints;
 }
 
@@ -145,22 +141,54 @@ public:
   
   override void removeEntity(Entity p_entity)
   {
-    auto comp = getComponent(p_entity);
-    
-    if (comp.owner !is p_entity)
-    {
-      auto ownerComp = getComponent(comp.owner);
-      
-      auto connectPointName = p_entity.getValue("connection").split(".")[1];
-      
-      ownerComp.connectPoints[connectPointName].empty = true;
-    }
-    
+    disconnectEntity(p_entity);
     super.removeEntity(p_entity);
+  }
+  
+  // disconnect an entity and update owners connectpoints etc
+  void disconnectEntity(Entity p_entity)
+  {
+    if (hasComponent(p_entity))
+    {
+      auto comp = getComponent(p_entity);
+
+      // set connectpoint.empty = true so it's free for other entities
+      // TODO: the owner entity isn't necessarily the entity it's connected to
+      if (comp.owner !is p_entity)
+      {
+        auto connectPointName = extractEntityAndConnectPointName(p_entity.getValue("connection"))[1];
+      
+        foreach (siblingEntity; entities)
+        {
+          // only look at entites whose owner is the same as p_entity
+          if (siblingEntity == p_entity || getComponent(siblingEntity).owner != comp.owner)
+            continue;
+            
+          auto siblingComp = getComponent(siblingEntity);
+          
+          if (connectPointName in siblingComp.connectPoints)
+          {
+            siblingComp.connectPoints[connectPointName].empty = true;
+            break;
+          }
+        }
+      }
+      
+      // a disconnected entity owns itself
+      comp.owner = p_entity;
+    }
   }
   
   
 protected:
+  override void registerEntity(Entity p_entity)
+  {
+    super.registerEntity(p_entity);
+    
+    
+  }
+
+
   bool canCreateComponent(Entity p_entity)
   {
     foreach (value; p_entity.values.keys)
@@ -169,7 +197,7 @@ protected:
         
     return p_entity.getValue("owner").length > 0;
   }
-  
+
   
   ConnectionComponent createComponent(Entity p_entity)
   {
@@ -196,7 +224,7 @@ protected:
           
         connectPoints[connectPointName] = connectPoint;
         
-        // connectTargets are their own owners
+        // entities with connectpoints are their own owners to begin with
         owner = p_entity;
       }
     }
@@ -204,28 +232,46 @@ protected:
     Vector relativePosition = Vector.origo;    
     if (p_entity.getValue("connection").length > 0)
     {
-      auto connectionData = p_entity.getValue("connection").split(".");
+      // connectionData looks like 'entityname.connectpointname'
+      // entityname may contain '.' characters, so everything until the last '.' is entityname, rest is connectpointname
+      // so we split into entity and connectpoint name by reversing and splitting by first '.' (which will be the last) and reversing again to get out names
+      //auto connectionData = findSplit(retro(p_entity.getValue("connection")), ".");
       
-      auto connectEntityName = connectionData[0];
-      auto connectPointName = connectionData[1];
+      auto entityAndConnectPointName = extractEntityAndConnectPointName(p_entity.getValue("connection"));
       
-      foreach (connectEntity; entities)
+      auto connectEntityName = entityAndConnectPointName[0];
+      auto connectPointName = entityAndConnectPointName[1];
+      
+      Entity connectEntity;
+      
+      foreach (cand; entities)
       {
-        if (connectEntity.getValue("name") == connectEntityName)
+        if (cand.getValue("name") == connectEntityName)
         {
-          auto connectComponent = getComponent(connectEntity);
-          
-          auto connectPoint = connectPointName in connectComponent.connectPoints;
-          
-          if (connectPoint)
-          {
-            connectPoint.empty = false;
-            setComponent(connectEntity, connectComponent);
-            
-            relativePosition = connectPoint.position;
-            break;
-          }
+          connectEntity = cand;
+          break;
         }
+      }
+      
+      assert(connectEntity !is null, "Could not find entity named " ~ connectEntityName);
+      assert(hasComponent(connectEntity), "Could not find connectcomponent for connection entity named " ~ connectEntityName);
+      
+      auto connectComponent = getComponent(connectEntity);
+      
+      auto connectPoint = connectPointName in connectComponent.connectPoints;
+      
+      if (connectPoint && connectPoint.empty)
+      {
+        connectPoint.empty = false;
+        setComponent(connectEntity, connectComponent);
+        
+        writeln("filling connectpoint " ~ connectPointName ~ " on " ~ connectEntity.getValue("name") ~ " with id " ~ to!string(connectEntity.id));
+        
+        writeln("connectpoints in connectionhandler.registerentity: " ~ to!string(getComponent(connectEntity).connectPoints));
+        
+        assert(getComponent(connectEntity).connectPoints[connectPointName].empty == false);
+        
+        relativePosition = connectPoint.position;
       }
     }
     
@@ -278,4 +324,16 @@ protected:
   }  
   
 private:
+}
+
+
+// returns [0] == entity name, [1] == connect point name
+string[2] extractEntityAndConnectPointName(string p_data)
+{
+  // p_data looks like 'entityname.connectpointname'
+  // entityname may contain '.' characters, so everything until the last '.' is entityname, rest is connectpointname
+  // so we split into entity and connectpoint name by reversing and splitting by first '.' (which will be the last) and reversing again to get out names
+  auto connectionData = findSplit(retro(p_data), ".");
+
+  return [to!string(retro(to!string((connectionData[2])))), to!string(retro(to!string((connectionData[0]))))];
 }

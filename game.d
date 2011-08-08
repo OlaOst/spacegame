@@ -23,6 +23,7 @@
 module Game;
 
 import std.algorithm;
+import std.array;
 import std.conv;
 import std.datetime;
 import std.math;
@@ -149,6 +150,7 @@ public:
     int xres = 800;
     int yres = 600;
     
+    
     m_subSystems["placer"] = m_placer = new Placer();
     m_subSystems["graphics"] = m_graphics = new Graphics(xres, yres);
     m_subSystems["physics"] = m_physics = new Physics();
@@ -159,38 +161,55 @@ public:
     m_subSystems["spawner"] = m_spawner = new Spawner();
     m_subSystems["dragdropper"] = m_dragdropper = new DragDropHandler();
     
-    Entity dragEngine = new Entity("data/engine.txt");
-    dragEngine.setValue("source", "data/engine.txt");
-    dragEngine.setValue("isBluePrint", "true");
-    dragEngine.setValue("position", "5 0 0");
-    registerEntity(dragEngine);
-    m_draggables ~= dragEngine;
     
-    Entity dragCannon = new Entity("data/cannon.txt");
-    dragCannon.setValue("source", "data/cannon.txt");
-    dragCannon.setValue("isBluePrint", "true");
-    dragCannon.setValue("position", "7 0 0");
-    registerEntity(dragCannon);
-    m_draggables ~= dragCannon;
+    m_trashBin = new Entity();
+    m_trashBin.setValue("position", "-5 0 0");
+    m_trashBin.setValue("drawsource", "unknown");
+    m_trashBin.setValue("radius", "1");
+    registerEntity(m_trashBin);
     
-    Entity dragSkeleton = new Entity("data/skeleton.txt");
-    dragSkeleton.setValue("source", "data/skeleton.txt");
-    dragSkeleton.setValue("isBluePrint", "true");
-    dragSkeleton.setValue("position", "9 0 0");
-    registerEntity(dragSkeleton);
-    m_draggables ~= dragSkeleton;
     
-    auto buildShipRootSkeleton = new Entity("data/skeleton.txt");
+    Entity engineBlueprint = new Entity("data/engine.txt");
+    engineBlueprint.setValue("source", "data/engine.txt");
+    engineBlueprint.setValue("isBlueprint", "true");
+    engineBlueprint.setValue("position", "5 0 0");
+    engineBlueprint.setValue("name", "engineBlueprint");
+    registerEntity(engineBlueprint);
+    
+    Entity cannonBlueprint = new Entity("data/cannon.txt");
+    cannonBlueprint.setValue("source", "data/cannon.txt");
+    cannonBlueprint.setValue("isBlueprint", "true");
+    cannonBlueprint.setValue("position", "7 0 0");
+    cannonBlueprint.setValue("name", "cannonBlueprint");
+    registerEntity(cannonBlueprint);
+    
+    Entity horizontalSkeletonBlueprint = new Entity("data/horizontalskeleton.txt");
+    horizontalSkeletonBlueprint.setValue("source", "data/horizontalskeleton.txt");
+    horizontalSkeletonBlueprint.setValue("isBlueprint", "true");
+    horizontalSkeletonBlueprint.setValue("position", "9 0 0");
+    horizontalSkeletonBlueprint.setValue("name", "horizontalSkeletonBlueprint");
+    registerEntity(horizontalSkeletonBlueprint);
+    
+    Entity verticalSkeletonBlueprint = new Entity("data/verticalskeleton.txt");
+    verticalSkeletonBlueprint.setValue("source", "data/verticalskeleton.txt");
+    verticalSkeletonBlueprint.setValue("isBlueprint", "true");
+    verticalSkeletonBlueprint.setValue("position", "11 0 0");
+    verticalSkeletonBlueprint.setValue("name", "verticalSkeletonBlueprint");
+    registerEntity(verticalSkeletonBlueprint);
+
+    
+    auto buildShipRootSkeleton = new Entity("data/verticalskeleton.txt");
     buildShipRootSkeleton.setValue("position", "0 -5 0");
     registerEntity(buildShipRootSkeleton);
-    m_buildShip ~= buildShipRootSkeleton;
     
     assert(m_connector.hasComponent(buildShipRootSkeleton));
+    
     
     Entity startupDing = new Entity();
     startupDing.setValue("soundFile", "test.wav");
     
     registerEntity(startupDing);
+    
     
     m_fpsDisplay = new Entity();
     m_fpsDisplay.setValue("drawsource", "Text");
@@ -200,6 +219,7 @@ public:
     m_fpsDisplay.setValue("color", "1.0 1.0 1.0");
     
     registerEntity(m_fpsDisplay);
+    
     
     m_playerShip = loadShip("playership.txt", ["position" : "0 0 0"]);        
     
@@ -262,19 +282,13 @@ private:
           removeEntity = true;
       }
       
+      // can't directly call removeEntity here since it touches m_entities and we're looping inside it
       if (entity.lifetime <= 0.0 || entity.health <= 0.0 || removeEntity)
-      {
-        foreach (subSystem; m_subSystems)
-          subSystem.removeEntity(entity);
-        
         entitiesToRemove ~= entity;
-      }
     }
     
     foreach (entityToRemove; entitiesToRemove)
-    {
-      m_entities.remove(entityToRemove.id);
-    }
+      removeEntity(entityToRemove);
     
     m_inputHandler.pollEvents();
 
@@ -300,15 +314,31 @@ private:
       
       if (m_dragEntity !is null)
       {
-        auto dragPosComp = m_placer.getComponent(m_dragEntity);
-        auto dragGfxComp = m_graphics.getComponent(m_dragEntity);
-        auto dragPhysComp = m_physics.getComponent(m_dragEntity);
+        assert(m_placer.hasComponent(m_dragEntity));
         
-        dragPosComp.position = dragGfxComp.position = dragPhysComp.position = m_graphics.mouseWorldPos;
+        if (m_placer.hasComponent(m_dragEntity))
+        {
+          auto dragPosComp = m_placer.getComponent(m_dragEntity);
+          dragPosComp.position = m_graphics.mouseWorldPos;
+          
+          m_placer.setComponent(m_dragEntity, dragPosComp);
+        }
         
-        m_placer.setComponent(m_dragEntity, dragPosComp);
-        m_graphics.setComponent(m_dragEntity, dragGfxComp);
-        m_physics.setComponent(m_dragEntity, dragPhysComp);
+        if (m_graphics.hasComponent(m_dragEntity))
+        {
+          auto dragGfxComp = m_graphics.getComponent(m_dragEntity);
+          dragGfxComp.position = m_graphics.mouseWorldPos;
+          
+          m_graphics.setComponent(m_dragEntity, dragGfxComp);
+        }
+        
+        if (m_physics.hasComponent(m_dragEntity))
+        {
+          auto dragPhysComp = m_physics.getComponent(m_dragEntity);
+          dragPhysComp.position = m_graphics.mouseWorldPos;
+          
+          m_physics.setComponent(m_dragEntity, dragPhysComp);
+        }
       }
       
       CommsCentral.setPhysicsFromController(m_controller, m_physics);
@@ -326,9 +356,12 @@ private:
     
     m_fpsBuffer[m_updateCount % m_fpsBuffer.length] = floor(1.0 / elapsedTime);
     
-    auto fpsDisplayComponent = m_graphics.getComponent(m_fpsDisplay);
-    fpsDisplayComponent.text = "FPS: " ~ to!string(cast(int)(reduce!"a+b"(m_fpsBuffer)/m_fpsBuffer.length));
-    m_graphics.setComponent(m_fpsDisplay, fpsDisplayComponent);
+    if (m_graphics.hasComponent(m_fpsDisplay))
+    {
+      auto fpsDisplayComponent = m_graphics.getComponent(m_fpsDisplay);
+      fpsDisplayComponent.text = "FPS: " ~ to!string(cast(int)(reduce!"a+b"(m_fpsBuffer)/m_fpsBuffer.length));
+      m_graphics.setComponent(m_fpsDisplay, fpsDisplayComponent);
+    }
     
     m_graphics.calculateMouseWorldPos(m_inputHandler.mousePos);
     
@@ -352,8 +385,13 @@ private:
     {
       if (m_dragEntity is null)
       {
-        foreach (draggable; m_draggables)
+        foreach (draggable; m_entities)
         {
+          if (m_graphics.hasComponent(draggable) == false)
+            continue;
+            
+          assert(m_graphics.hasComponent(draggable), "Couldn't find graphics component for draggable entity " ~ to!string(draggable.values) ~ " with id " ~ to!string(draggable.id));
+          
           auto dragComp = m_graphics.getComponent(draggable);
           
           if ((dragComp.position - m_graphics.mouseWorldPos).length2d < dragComp.radius)
@@ -361,21 +399,28 @@ private:
             Entity entityToDrag = draggable;
             
             // create copy of entity if it's a blueprint
-            if (draggable.getValue("isBluePrint") == "true")
+            if (draggable.getValue("isBlueprint") == "true")
             {
-              entityToDrag = new Entity(draggable.getValue("source"));
-              entityToDrag.setValue("position", draggable.getValue("position"));
-              
-              m_draggables ~= entityToDrag;
+              entityToDrag = new Entity(draggable.getValue("source"), draggable.values);
+              entityToDrag.setValue("isBlueprint", "false");
+              entityToDrag.setValue("name", draggable.getValue("source") ~ ":" ~ to!string(entityToDrag.id));
               
               registerEntity(entityToDrag);
             }
             
             m_dragEntity = entityToDrag;
             
-            // break eventual connection of drag entity
             if (m_connector.hasComponent(entityToDrag))
-              m_connector.removeEntity(entityToDrag);
+            {
+              m_connector.disconnectEntity(entityToDrag);
+            }
+            
+            if (m_controller.hasComponent(entityToDrag) && entityToDrag.getValue("control").length > 0)
+            {
+              m_controller.removeEntity(entityToDrag);
+            }
+            
+            // TODO: reset physics forces, velocity and other stuff?
             
             break;
           }
@@ -386,66 +431,80 @@ private:
     if (m_inputHandler.eventState(Event.LeftButton) == EventState.Released)
     {
       // if drag entity is close to an empty skeleton contact point then connect to it
-      
       if (m_dragEntity !is null)
       {
         assert(m_placer.hasComponent(m_dragEntity));
-        assert(m_placer.hasComponent(m_buildShip[0]));
         
         auto dragPos = m_placer.getComponent(m_dragEntity).position;
-        //auto buildShipRootSkeletonPosition = m_placer.getComponent(m_buildShip[0]).position;
         bool dragEntityConnected = false;
         
-        foreach (buildShipEntity; m_buildShip)
+        auto trashBinPos = m_placer.getComponent(m_trashBin).position;
+        
+        // don't trash the trashbin...
+        
+        assert(m_dragEntity.getValue("radius").length > 0, "Couldn't find radius for drag entity " ~ m_dragEntity.getValue("name"));
+        
+        if (m_dragEntity != m_trashBin && (dragPos - trashBinPos).length2d < to!float(m_dragEntity.getValue("radius")))
         {
-          auto buildShipEntityPosition = m_placer.getComponent(buildShipEntity).position;
+          writeln("trashing entity " ~ to!string(m_dragEntity.getValue("name")));
           
-          if (m_connector.hasComponent(buildShipEntity))
+          removeEntity(m_dragEntity);
+        }
+        else
+        {
+          foreach (connectEntity; m_entities)
           {
-            auto connectPoints = m_connector.getComponent(buildShipEntity).connectPoints;
-            
-            foreach (connectPoint; connectPoints)
+            if (connectEntity.id == m_dragEntity.id)
+              continue;
+
+            if (m_connector.hasComponent(connectEntity))
             {
-              auto connectPointPos = buildShipEntityPosition + connectPoint.position;
+              auto ownerEntity = m_connector.getComponent(connectEntity).owner;
               
-              if (connectPoint.empty && (dragPos - connectPointPos).length2d < 1.0)
+              //if (ownerEntity != m_playerShip)
+                //continue;
+              
+              auto entityPosition = m_placer.getComponent(connectEntity).position;
+              auto connectPoints = m_connector.getComponent(connectEntity).connectPoints;
+              
+              foreach (connectPoint; connectPoints)
               {
-                m_dragEntity.setValue("position", connectPointPos.toString());
-                m_dragEntity.setValue("owner", to!string(buildShipEntity.id));
-                m_dragEntity.setValue("connection", buildShipEntity.getValue("name") ~ "." ~ connectPoint.name);
+                auto connectPointPos = entityPosition + connectPoint.position;
                 
-                registerEntity(m_dragEntity);
+                assert(connectEntity.getValue("radius").length > 0);
                 
-                m_buildShip ~= m_dragEntity;
-                
-                dragEntityConnected = true;
-                break;
+                // snap to connectpoint
+                if (connectPoint.empty && (dragPos - connectPointPos).length2d < to!float(connectEntity.getValue("radius")))
+                {
+                  m_dragEntity.setValue("position", connectPointPos.toString());
+                  m_dragEntity.setValue("owner", to!string(m_connector.getComponent(connectEntity).owner.id));
+                  m_dragEntity.setValue("connection", connectEntity.getValue("name") ~ "." ~ connectPoint.name);
+                  
+                  if (ownerEntity == m_playerShip)
+                  {
+                    if (m_dragEntity.getValue("source") == "data/engine.txt")
+                      m_dragEntity.setValue("control", "playerEngine");
+                    
+                    if (m_dragEntity.getValue("source") == "data/cannon.txt")
+                      m_dragEntity.setValue("control", "playerLauncher");
+                  }
+                  
+                  registerEntity(m_dragEntity);
+
+                  writeln("connectpoints in game.connectstuff: " ~ to!string(m_connector.getComponent(connectEntity).connectPoints));
+                  
+                  assert(m_connector.hasComponent(connectEntity));
+                  assert(m_connector.getComponent(connectEntity).connectPoints[connectPoint.name].empty == false, "Connectpoint " ~ connectPoint.name ~ " on " ~ connectEntity.getValue("name") ~ " with id " ~ to!string(connectEntity.id) ~ " still empty after connecting entity " ~ m_dragEntity.getValue("name"));
+                  
+                  dragEntityConnected = true;
+                  break;
+                }
               }
             }
-          }
-          if (dragEntityConnected)
-            break;
-        }
-        
-        /*
-        auto connectPoints = m_connector.getComponent(m_buildShip[0]).connectPoints;
-
-        foreach (connectPoint; connectPoints)
-        {
-          auto connectPointPos = buildShipRootSkeletonPosition + connectPoint.position;
-          
-          if (connectPoint.empty && (dragPos - connectPointPos).length2d < 1.0)
-          {
-            m_dragEntity.setValue("position", connectPointPos.toString());
-            m_dragEntity.setValue("owner", to!string(m_buildShip[0].id));
-            m_dragEntity.setValue("connection", m_buildShip[0].getValue("name") ~ "." ~ connectPoint.name);
-            
-            registerEntity(m_dragEntity);
-            
-            break;
+            if (dragEntityConnected)
+              break;
           }
         }
-        */
         m_dragEntity = null;
       }
     }
@@ -479,12 +538,7 @@ private:
   
   Entity loadShip(string p_file, string[string] p_extraParams = null)
   {
-    Entity ship = new Entity("data/" ~ p_file);
-    
-    foreach (extraParam; p_extraParams.keys)
-    {
-      ship.setValue(extraParam, p_extraParams[extraParam]);
-    }
+    Entity ship = new Entity("data/" ~ p_file, p_extraParams);
     
     if (ship.getValue("health"))
       ship.health = to!float(ship.getValue("health"));
@@ -547,6 +601,15 @@ private:
   }
   
   
+  void removeEntity(Entity p_entity)
+  {
+    foreach (subSystem; m_subSystems)
+      subSystem.removeEntity(p_entity);
+    
+    m_entities.remove(p_entity.id);
+  }
+  
+  
 private:
   int m_updateCount;
   bool m_running;
@@ -573,9 +636,7 @@ private:
 
   Entity m_playerShip;
   
-  Entity[] m_buildShip;
-  
-  Entity[] m_draggables;
+  Entity m_trashBin;
   Entity m_dragEntity;
   
   Entity m_fpsDisplay;

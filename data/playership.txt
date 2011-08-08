@@ -1,4 +1,4 @@
-keepInCenter = true
+#keepInCenter = true
 
 skeleton.source = skeleton.txt
 

@@ -64,6 +64,8 @@ public:
   {
     id = m_idCounter++;
     
+    values["name"] = to!string(id);
+    
     lifetime = float.infinity;
     health = float.infinity;
   }
@@ -72,7 +74,19 @@ public:
   {
     this();
     
+    values["name"] = p_file ~ ":" ~ to!string(id);
+    
     loadValues(values, p_file);
+  }
+  
+  this(string p_file, string[string] p_extraParams)
+  {
+    this(p_file);
+    
+    foreach (extraParam; p_extraParams.keys)
+    {
+      setValue(extraParam, p_extraParams[extraParam]);
+    }
   }
   
   static void loadValues(ref string[string] p_values, string p_file)

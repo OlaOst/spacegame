@@ -85,11 +85,12 @@ unittest
 abstract class Base(ComponentType) : public SubSystem, public ComponentFactory!(ComponentType)
 {
 public:
-  final void registerEntity(Entity p_entity)
+  void registerEntity(Entity p_entity)
   {
     scope(failure) writeln(to!string(this) ~ " failed loading entity: " ~ to!string(p_entity.values));
     
-    if (canCreateComponent(p_entity) /*&& !hasComponent(p_entity)*/) // register entity if it's already registered, the component should be overwritten
+    // if the entity is already registered, the component will be overwritten
+    if (canCreateComponent(p_entity))
     {
       auto component = createComponent(p_entity);
     

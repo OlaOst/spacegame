@@ -31,36 +31,6 @@ interface Control
 
 class ControlComponent
 {
-/*invariant()
-{
-  assert(m_position.isValid(), "ControlComponent position not valid: " ~ m_position.toString());
-  assert(m_force.isValid());
-  assert(m_angle == m_angle);
-  assert(m_torque == m_torque);
-}
-
-public:
-  Control control;
-  
-  @property void position(Vector p_position) { m_position = p_position; }
-  @property Vector position() { return m_position; }
-    
-  @property void angle(float p_angle) { m_angle = p_angle; }
-  @property float angle() { return m_angle; }
-    
-  @property void force(Vector p_force) { m_force = p_force; }
-  @property Vector force() { return m_force; }
-  
-  @property void torque(float p_torque) { m_torque = p_torque; }
-  @property float torque() { return m_torque; }
-  
-  @property void reload(float p_reload) { m_reload = p_reload; }
-  @property float reload() { return m_reload; }
-
-  @property void isFiring(bool p_isFiring) { m_isFiring = p_isFiring; }
-  @property bool isFiring() { return m_isFiring; }
-  
-private:*/
   Control control;
   
   Vector position = Vector.origo;

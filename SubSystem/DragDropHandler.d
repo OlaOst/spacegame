@@ -39,10 +39,15 @@ unittest
   //   then that entity will follow the mouse position until left mouse button is released
   //   if the entity is connected to something we must disconnect it - something like connectionHander.removeEntity(dragEntity) might be enough?
   
-  //Entity[] draggables;
-  //Entity dragEntity;
+  auto sys = new DragDropHandler();
   
-  //Vector mousePos(1, 0);
+  Entity draggable = new Entity();
+  draggable.setValue("isBluePrint", "true");
+  
+  sys.registerEntity(draggable);
+  
+  assert(sys.hasComponent(draggable));
+  
     
 }
 
@@ -64,7 +69,7 @@ public:
 protected:
   bool canCreateComponent(Entity p_entity)
   {
-    return false;
+    return p_entity.getValue("isBluePrint") == "true";
   }
   
   DragDropComponent createComponent(Entity p_entity)

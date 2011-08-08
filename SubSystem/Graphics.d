@@ -133,7 +133,7 @@ struct Vertex
   {
     auto comps = std.string.split(p_data, " ");
     
-    assert(comps.length == 5);
+    assert(comps.length == 5, "should have 5 things in comps, got " ~ p_data ~ " instead");
     
     return Vertex(to!float(comps[0]), to!float(comps[1]), to!float(comps[2]), to!float(comps[3]), to!float(comps[4]));
   }
@@ -154,6 +154,11 @@ public:
   bool isPointedAt(Vector p_pos)
   {
     return ((position - p_pos).length2d < radius);
+  }
+  
+  bool isOverlapping(GraphicsComponent p_other)
+  {
+    return ((position - p_other.position).length2d < (radius + p_other.radius));
   }
   
   DrawSource drawSource;
@@ -209,7 +214,7 @@ public:
   {
     m_textRender = new TextRender();
     
-    m_zoom = 0.02;
+    m_zoom = 0.1;
     
     m_mouseWorldPos = Vector.origo;
     
@@ -232,11 +237,15 @@ public:
     // pull back camera a bit so we can see entities with z=0.0
     glTranslatef(0.0, 0.0, 0.0);
 
-    assert(hasComponent(m_centerEntity));
-    auto centerComponent = getComponent(m_centerEntity);
+    auto centerComponent = GraphicsComponent();
     assert(centerComponent.position.isValid());
+    if (hasComponent(m_centerEntity))
+    {
+      centerComponent = getComponent(m_centerEntity);
+      assert(centerComponent.position.isValid());
     
-    glTranslatef(-centerComponent.position.x, -centerComponent.position.y, 0.0);
+      glTranslatef(-centerComponent.position.x, -centerComponent.position.y, 0.0);
+    }
     
     glDisable(GL_TEXTURE_2D);
 
@@ -247,6 +256,7 @@ public:
       if (component.screenAbsolutePosition)
       {
         glTranslatef(centerComponent.position.x, centerComponent.position.y, 0.0);
+          
         glScalef(1.0/m_zoom, 1.0/m_zoom, 1.0);
       }
       
@@ -271,7 +281,7 @@ public:
         glPointSize(4.0);
         glColor3f(1.0, 1.0, 1.0);
         glBegin(GL_POINTS);
-          glVertex3f(connectPoint.x, connectPoint.y, 0.0);
+          glVertex3f(connectPoint.x, connectPoint.y, 1.0);
         glEnd();
       }
       //glEnable(GL_DEPTH_TEST);
@@ -410,9 +420,11 @@ public:
   {
     assert(p_mouseScreenPos.isValid());
     
-    auto centerComponent = getComponent(m_centerEntity);
-    assert(centerComponent.position.isValid());
-    
+    auto centerComponent = GraphicsComponent();
+    if (hasComponent(m_centerEntity))
+      centerComponent = getComponent(m_centerEntity);
+      
+    assert(centerComponent.position.isValid(), "Invalid center component position: " ~ centerComponent.position.toString());
     m_mouseWorldPos = p_mouseScreenPos / m_zoom + centerComponent.position;
   }
   
@@ -449,9 +461,10 @@ protected:
       // (ab)use entity to just get out data here, since it has loading and caching capabilities
       Entity drawfile = new Entity("data/" ~ p_entity.getValue("drawsource"));
       
-      foreach (vertexData; drawfile.values)
+      foreach (vertexName, vertexData; drawfile.values)
       {
-        component.vertices ~= Vertex.fromString(vertexData);
+        if (vertexName.startsWith("vertex"))
+          component.vertices ~= Vertex.fromString(vertexData);
       }
     }
     else
