@@ -174,6 +174,8 @@ public:
         }
       }
       
+      comp.relativePosition = Vector.origo;
+      
       // a disconnected entity owns itself
       comp.owner = p_entity;
     }
@@ -267,11 +269,9 @@ protected:
         
         writeln("filling connectpoint " ~ connectPointName ~ " on " ~ connectEntity.getValue("name") ~ " with id " ~ to!string(connectEntity.id));
         
-        writeln("connectpoints in connectionhandler.registerentity: " ~ to!string(getComponent(connectEntity).connectPoints));
-        
         assert(getComponent(connectEntity).connectPoints[connectPointName].empty == false);
         
-        relativePosition = connectPoint.position;
+        relativePosition = getComponent(connectEntity).relativePosition + connectPoint.position;
       }
     }
     

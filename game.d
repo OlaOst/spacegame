@@ -359,7 +359,14 @@ private:
     if (m_graphics.hasComponent(m_fpsDisplay))
     {
       auto fpsDisplayComponent = m_graphics.getComponent(m_fpsDisplay);
-      fpsDisplayComponent.text = "FPS: " ~ to!string(cast(int)(reduce!"a+b"(m_fpsBuffer)/m_fpsBuffer.length));
+      
+      int fpsValue = cast(int)(reduce!"a+b"(m_fpsBuffer)/m_fpsBuffer.length);
+      
+      if (fpsValue < 0)
+        fpsDisplayComponent.text = "FPS: ??";
+      else
+        fpsDisplayComponent.text = "FPS: " ~ to!string(fpsValue);
+        
       m_graphics.setComponent(m_fpsDisplay, fpsDisplayComponent);
     }
     
@@ -392,11 +399,32 @@ private:
             
           assert(m_graphics.hasComponent(draggable), "Couldn't find graphics component for draggable entity " ~ to!string(draggable.values) ~ " with id " ~ to!string(draggable.id));
           
-          auto dragComp = m_graphics.getComponent(draggable);
+          auto dragGfxComp = m_graphics.getComponent(draggable);
           
-          if ((dragComp.position - m_graphics.mouseWorldPos).length2d < dragComp.radius)
+          if ((dragGfxComp.position - m_graphics.mouseWorldPos).length2d < dragGfxComp.radius)
           {
             Entity entityToDrag = draggable;
+            
+            // we don't want to drag something if it has stuff connected to it. 
+            // if you want to drag a skeleton module, you should drag off all connected modules first
+            // TODO: should be possible to drag stuff with connected stuff, but drag'n'drop needs to be more robust first
+            if (m_connector.hasComponent(entityToDrag))
+            {
+              auto dragConnectComp = m_connector.getComponent(entityToDrag);
+              bool skipThisEntity = false;
+              
+              foreach (connectPoint; dragConnectComp.connectPoints)
+              {
+                if (connectPoint.empty == false)
+                {
+                  skipThisEntity = true;
+                  break;
+                }
+              }
+              
+              if (skipThisEntity)
+                continue;
+            }
             
             // create copy of entity if it's a blueprint
             if (draggable.getValue("isBlueprint") == "true")
@@ -410,14 +438,14 @@ private:
             
             m_dragEntity = entityToDrag;
             
-            if (m_connector.hasComponent(entityToDrag))
+            if (m_connector.hasComponent(m_dragEntity))
             {
-              m_connector.disconnectEntity(entityToDrag);
+              m_connector.disconnectEntity(m_dragEntity);
             }
             
-            if (m_controller.hasComponent(entityToDrag) && entityToDrag.getValue("control").length > 0)
+            if (m_controller.hasComponent(m_dragEntity) && m_dragEntity.getValue("control").length > 0)
             {
-              m_controller.removeEntity(entityToDrag);
+              m_controller.removeEntity(m_dragEntity);
             }
             
             // TODO: reset physics forces, velocity and other stuff?
@@ -490,8 +518,6 @@ private:
                   }
                   
                   registerEntity(m_dragEntity);
-
-                  writeln("connectpoints in game.connectstuff: " ~ to!string(m_connector.getComponent(connectEntity).connectPoints));
                   
                   assert(m_connector.hasComponent(connectEntity));
                   assert(m_connector.getComponent(connectEntity).connectPoints[connectPoint.name].empty == false, "Connectpoint " ~ connectPoint.name ~ " on " ~ connectEntity.getValue("name") ~ " with id " ~ to!string(connectEntity.id) ~ " still empty after connecting entity " ~ m_dragEntity.getValue("name"));
