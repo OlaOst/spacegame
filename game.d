@@ -266,9 +266,7 @@ private:
     m_updateCount++;
     
     
-    Entity[] spawnList;
-    
-    Entity[] entitiesToRemove;       
+    Entity[] entitiesToRemove;
     
     foreach (entity; m_entities)
     {
@@ -371,9 +369,6 @@ private:
     }
     
     m_graphics.calculateMouseWorldPos(m_inputHandler.mousePos);
-    
-    // TODO: we need to know what context we are in - input events signify different intents depending on context
-    // ie up event in a menu context (move cursor up) vs up event in a ship control context (accelerate ship)
     
     foreach (Entity spawn; m_spawner.getAndClearSpawns())
     {

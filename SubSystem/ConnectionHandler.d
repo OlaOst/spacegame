@@ -153,7 +153,6 @@ public:
       auto comp = getComponent(p_entity);
 
       // set connectpoint.empty = true so it's free for other entities
-      // TODO: the owner entity isn't necessarily the entity it's connected to
       if (comp.owner !is p_entity)
       {
         auto connectPointName = extractEntityAndConnectPointName(p_entity.getValue("connection"))[1];
