@@ -116,6 +116,7 @@ unittest
 mixin(genEnum("DrawSource",
 [
   "Unknown",
+  "Invisible",
   "Triangle",
   "Star",
   "Bullet",
@@ -287,6 +288,9 @@ public:
       //glEnable(GL_DEPTH_TEST);
       
       
+      if (component.drawSource == DrawSource.Invisible)
+      {
+      }
       if (component.drawSource == DrawSource.Triangle)
       {
         glBegin(GL_TRIANGLES);
@@ -432,6 +436,17 @@ public:
   {
     return m_mouseWorldPos;
   }
+  
+  void setCenterEntity(Entity p_entity)
+  {
+    m_centerEntity = p_entity;
+  }
+  
+  Entity getCenterEntity()
+  {
+    return m_centerEntity;
+  }
+  
   
 protected:
   bool canCreateComponent(Entity p_entity)

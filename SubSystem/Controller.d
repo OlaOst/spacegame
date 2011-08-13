@@ -72,6 +72,8 @@ public:
       if (component.reload > 0.0)
         component.reload = component.reload - m_timeStep;
       
+      assert(component.control !is null);
+      
       component.control.update(component, components);
     }
   }
@@ -91,7 +93,7 @@ public:
 protected:
   bool canCreateComponent(Entity p_entity)
   {
-    return p_entity.getValue("control").length > 0;
+    return (p_entity.getValue("control").length > 0);
   }
    
   ControlComponent createComponent(Entity p_entity)
@@ -112,6 +114,9 @@ protected:
       component.control = new FlockControl(10.0, 1.5,     // distance & weight for avoid rule
                                            50.0, 0.2);    // distance & weight for flock rule
     }
+    
+    if (p_entity.getValue("control") == "nothing")
+      component.control = new class () Control { override void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents) {} };
     
     assert(component.position.isValid());
     

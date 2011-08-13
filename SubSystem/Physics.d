@@ -106,10 +106,10 @@ private:
   }
   body
   {
-    velocity += force * p_time;
+    velocity += (force / mass) * p_time;
     position += velocity * p_time;
     
-    rotation += torque * p_time;
+    rotation += (torque / mass) * p_time;
     angle += rotation * p_time;
       
     // reset force and torque after applying them

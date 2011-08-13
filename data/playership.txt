@@ -1,4 +1,5 @@
-#keepInCenter = true
+keepInCenter = true
+drawsource = Invisible
 
 skeleton.source = skeleton.txt
 

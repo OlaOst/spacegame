@@ -163,6 +163,7 @@ public:
     
     
     m_trashBin = new Entity();
+    m_trashBin.setValue("name", "trashbin");
     m_trashBin.setValue("position", "-5 0 0");
     m_trashBin.setValue("drawsource", "unknown");
     m_trashBin.setValue("radius", "1");
@@ -198,13 +199,6 @@ public:
     registerEntity(verticalSkeletonBlueprint);
 
     
-    auto buildShipRootSkeleton = new Entity("data/verticalskeleton.txt");
-    buildShipRootSkeleton.setValue("position", "0 -5 0");
-    registerEntity(buildShipRootSkeleton);
-    
-    assert(m_connector.hasComponent(buildShipRootSkeleton));
-    
-    
     Entity startupDing = new Entity();
     startupDing.setValue("soundFile", "test.wav");
     
@@ -221,7 +215,7 @@ public:
     registerEntity(m_fpsDisplay);
     
     
-    m_playerShip = loadShip("playership.txt", ["position" : "0 0 0"]);        
+    m_playerShip = loadShip("playership.txt", ["position" : "0 0 0"]);
     
     for (int n = 0; n < 0; n++)
     {
@@ -299,13 +293,15 @@ private:
       // the sdl/gl stuff in the graphics subsystem needs to run in the main thread for stuff to be shown on the screen
       // so we filter the graphics subsystem out of the subsystem list 
       // and explicitly update it outside the parallel foreach to ensure it runs in the main thread
-      m_graphics.update();
-      foreach (subSystem; taskPool.parallel(filter!(delegate (SubSystem.Base.SubSystem sys) { return sys !is m_graphics; })(m_subSystems.values)))
+      //m_graphics.update();
+      //foreach (subSystem; taskPool.parallel(filter!(delegate (SubSystem.Base.SubSystem sys) { return sys !is m_graphics; })(m_subSystems.values)))
+      //{
+      //  subSystem.update();
+      //}
+      foreach (subSystem; m_subSystems.values)
       {
         subSystem.update();
       }
-      //foreach (subSystem; m_subSystems.values)
-        //subSystem.update();
       
       CommsCentral.setPlacerFromPhysics(m_physics, m_placer);
       CommsCentral.setPlacerFromConnector(m_connector, m_placer);
@@ -370,7 +366,7 @@ private:
     
     m_graphics.calculateMouseWorldPos(m_inputHandler.mousePos);
     
-    foreach (Entity spawn; m_spawner.getAndClearSpawns())
+    foreach (spawn; m_spawner.getAndClearSpawns())
     {
       registerEntity(spawn);
     }
@@ -391,10 +387,14 @@ private:
         {
           if (m_graphics.hasComponent(draggable) == false)
             continue;
-            
+          
           assert(m_graphics.hasComponent(draggable), "Couldn't find graphics component for draggable entity " ~ to!string(draggable.values) ~ " with id " ~ to!string(draggable.id));
           
           auto dragGfxComp = m_graphics.getComponent(draggable);
+          
+          // screenAbsolutePosition is true for GUI and screen elements - we don't want to drag them here
+          if (dragGfxComp.screenAbsolutePosition)
+            continue;
           
           if ((dragGfxComp.position - m_graphics.mouseWorldPos).length2d < dragGfxComp.radius)
           {
@@ -407,6 +407,10 @@ private:
             {
               auto dragConnectComp = m_connector.getComponent(entityToDrag);
               bool skipThisEntity = false;
+              
+              // self-owned components should not be draggable, if they're not blueprints
+              if (dragConnectComp.owner == entityToDrag && entityToDrag.getValue("isBlueprint") != "true")
+                continue;
               
               foreach (connectPoint; dragConnectComp.connectPoints)
               {
@@ -438,6 +442,7 @@ private:
               m_connector.disconnectEntity(m_dragEntity);
             }
             
+            // we don't want dragged entities to be controlled
             if (m_controller.hasComponent(m_dragEntity) && m_dragEntity.getValue("control").length > 0)
             {
               m_controller.removeEntity(m_dragEntity);
@@ -484,9 +489,6 @@ private:
             {
               auto ownerEntity = m_connector.getComponent(connectEntity).owner;
               
-              //if (ownerEntity != m_playerShip)
-                //continue;
-              
               auto entityPosition = m_placer.getComponent(connectEntity).position;
               auto connectPoints = m_connector.getComponent(connectEntity).connectPoints;
               
@@ -499,8 +501,10 @@ private:
                 // snap to connectpoint
                 if (connectPoint.empty && (dragPos - connectPointPos).length2d < to!float(connectEntity.getValue("radius")))
                 {
+                  auto ownerEntity = m_connector.getComponent(connectEntity).owner;
+                  
                   m_dragEntity.setValue("position", connectPointPos.toString());
-                  m_dragEntity.setValue("owner", to!string(m_connector.getComponent(connectEntity).owner.id));
+                  m_dragEntity.setValue("owner", to!string(ownerEntity.id));
                   m_dragEntity.setValue("connection", connectEntity.getValue("name") ~ "." ~ connectPoint.name);
                   
                   if (ownerEntity == m_playerShip)
@@ -517,6 +521,28 @@ private:
                   assert(m_connector.hasComponent(connectEntity));
                   assert(m_connector.getComponent(connectEntity).connectPoints[connectPoint.name].empty == false, "Connectpoint " ~ connectPoint.name ~ " on " ~ connectEntity.getValue("name") ~ " with id " ~ to!string(connectEntity.id) ~ " still empty after connecting entity " ~ m_dragEntity.getValue("name"));
                   
+                  // update position, mass etc of owner entity
+                  Vector centerOfMass = m_placer.getComponent(ownerEntity).position;
+                  float totalMass = 0.0;
+                  foreach (ownedEntity; m_connector.getOwnedEntities(ownerEntity))
+                  {
+                    if (m_physics.hasComponent(ownedEntity))
+                    {
+                      auto ownedPhysComp = m_physics.getComponent(ownedEntity);
+                      auto ownedConnectComp = m_connector.getComponent(ownedEntity);
+                      
+                      totalMass += ownedPhysComp.mass;
+                      //centerOfMass += ownedPhysComp.position * ownedPhysComp.mass;
+                      centerOfMass += ownedConnectComp.relativePosition * ownedPhysComp.mass;
+                    }
+                  }
+                  writeln("connected entity, center of mass: " ~ centerOfMass.toString() ~ ", total mass: " ~ to!string(totalMass));
+                  
+                  ownerEntity.setValue("mass", to!string(totalMass));
+                  //ownerEntity.setValue("position", centerOfMass.toString());
+                  
+                  registerEntity(ownerEntity);
+                  
                   dragEntityConnected = true;
                   break;
                 }
@@ -526,7 +552,99 @@ private:
               break;
           }
         }
+        
+        // create a new owner entity if the dragentity owns itself
+        // the dragentity is a module, the owner is supposed to be like a ship entity aggregating the module entities making up the ship
+        if (m_connector.hasComponent(m_dragEntity))
+        {
+          auto dragConnectComp = m_connector.getComponent(m_dragEntity);
+          
+          if (dragConnectComp.owner == m_dragEntity)
+          {
+            auto ownerEntity = new Entity();
+            
+            // TODO: set up values in ownerEntity so that it can recreate the ship with modules if it's saved and loaded again
+            // look in playership.txt for how values should be set up
+            
+            ownerEntity.setValue("owner", to!string(ownerEntity.id));
+            
+            if (m_placer.hasComponent(m_dragEntity))
+              ownerEntity.setValue("position", m_placer.getComponent(m_dragEntity).position.toString());
+              
+            if (m_physics.hasComponent(m_dragEntity))
+              ownerEntity.setValue("mass", to!string(m_physics.getComponent(m_dragEntity).mass));
+            
+            m_dragEntity.setValue("owner", to!string(ownerEntity.id));
+            
+            writeln("creating owner entity " ~ to!string(ownerEntity.id));
+            
+            registerEntity(ownerEntity);
+            registerEntity(m_dragEntity);
+          }
+        }
+        
         m_dragEntity = null;
+      }
+    }
+    
+    // transfer ship control with rightclick
+    if (m_inputHandler.eventState(Event.RightButton) == EventState.Released)
+    {
+      foreach (entity; m_entities)
+      {
+        if (entity != m_playerShip && m_placer.hasComponent(entity) && entity.getValue("radius").length > 0)
+        {
+          auto position = m_placer.getComponent(entity).position;
+          
+          if ((position - m_graphics.mouseWorldPos).length2d < to!float(entity.getValue("radius")))
+          {
+            if (m_connector.hasComponent(entity))
+            {
+              auto entityOwner = m_connector.getComponent(entity).owner;
+              
+              // remove control from eventual old playership so we don't end up controlling multiple ships at once
+              if (m_playerShip !is null && m_playerShip != entityOwner)
+              {
+                foreach (oldOwnedEntity; m_connector.getOwnedEntities(m_playerShip))
+                {
+                  writeln("removing control from entity " ~ oldOwnedEntity.getValue("name"));
+                  
+                  m_controller.removeEntity(oldOwnedEntity);
+                }
+              }
+              
+              m_playerShip = m_connector.getComponent(entity).owner;
+              
+              // disable eventual old center entity
+              auto oldCenterEntity = m_graphics.getCenterEntity();
+              
+              if (oldCenterEntity !is null)
+                oldCenterEntity.setValue("keepInCenter", "false");
+              
+              m_playerShip.setValue("keepInCenter", "true");
+              m_playerShip.setValue("drawsource", "Invisible");
+              
+              // also set as center
+              m_graphics.registerEntity(m_playerShip);
+              
+              // give player control to new playership
+              foreach (ownedEntity; m_connector.getOwnedEntities(m_playerShip))
+              {
+                if (ownedEntity.getValue("source") == "data/engine.txt" || ownedEntity.getValue("source") == "engine.txt")
+                  ownedEntity.setValue("control", "playerEngine");
+
+                if (ownedEntity.getValue("source") == "data/cannon.txt" || ownedEntity.getValue("source") == "cannon.txt")
+                  ownedEntity.setValue("control", "playerLauncher");
+
+                debug writeln("setting player control on " ~ ownedEntity.getValue("name") ~ " to " ~ ownedEntity.getValue("control") ~ " with source " ~ ownedEntity.getValue("source"));
+
+                registerEntity(ownedEntity);
+              }
+              
+              break;
+            }
+          }
+        }
       }
     }
   
@@ -615,6 +733,7 @@ private:
 
   void registerEntity(Entity p_entity)
   {
+    //debug writeln("Registering entity " ~ to!string(p_entity.id) ~ " with values " ~ to!string(p_entity.values));
     m_entities[p_entity.id] = p_entity;
     
     foreach (subSystem; m_subSystems)
@@ -626,6 +745,22 @@ private:
   {
     foreach (subSystem; m_subSystems)
       subSystem.removeEntity(p_entity);
+    
+    if (m_connector.hasComponent(p_entity))
+    {
+      auto owner = m_connector.getComponent(p_entity).owner;
+      auto ownedEntities = m_connector.getOwnedEntities(owner);
+      
+      writeln("removing " ~ p_entity.getValue("name") ~ ", owned entities: " ~ to!string(ownedEntities.length));
+      
+      // we don't want owner entities without owned entities hanging around
+      // so if the entity we remove is the last owned entity, we also remove the owner entity
+      if (ownedEntities.length == 1 && ownedEntities[0] == p_entity)
+      {
+        writeln("removing owner entity " ~ owner.getValue("name"));
+        removeEntity(owner);
+      }
+    }
     
     m_entities.remove(p_entity.id);
   }

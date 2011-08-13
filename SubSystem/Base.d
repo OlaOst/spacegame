@@ -115,6 +115,7 @@ public:
   }
   body
   {
+    assert(p_entity in m_entityToComponent, "couldn't find component for entity " ~ p_entity.getValue("name") ~ " with id " ~ to!string(p_entity.id) ~ " in " ~ to!string(this));
     return m_entityToComponent[p_entity];
   }
   
@@ -132,7 +133,11 @@ public:
   {
     return m_entityToComponent.keys;
   }
-  
+
+  final string name()
+  {
+    return this.classinfo.name;
+  }
   
 private:
   ComponentType[Entity] m_entityToComponent;
@@ -159,7 +164,11 @@ interface SubSystem
   void registerEntity(Entity p_entity);
   void removeEntity(Entity p_entity);  
   
+  bool hasComponent(Entity p_entity);
+  
   void update();
+  
+  string name();
 }
 
 

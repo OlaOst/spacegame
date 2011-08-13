@@ -150,17 +150,18 @@ public:
   {
     if (hasComponent(p_entity))
     {
-      auto comp = getComponent(p_entity);
+      auto componentToDisconnect = getComponent(p_entity);
 
       // set connectpoint.empty = true so it's free for other entities
-      if (comp.owner !is p_entity)
+      if (componentToDisconnect.owner !is p_entity)
       {
+        auto entityName = extractEntityAndConnectPointName(p_entity.getValue("connection"))[0];
         auto connectPointName = extractEntityAndConnectPointName(p_entity.getValue("connection"))[1];
       
         foreach (siblingEntity; entities)
         {
           // only look at entites whose owner is the same as p_entity
-          if (siblingEntity == p_entity || getComponent(siblingEntity).owner != comp.owner)
+          if (siblingEntity == p_entity || getComponent(siblingEntity).owner != componentToDisconnect.owner || entityName != siblingEntity.getValue("name"))
             continue;
             
           auto siblingComp = getComponent(siblingEntity);
@@ -173,22 +174,32 @@ public:
         }
       }
       
-      comp.relativePosition = Vector.origo;
+      componentToDisconnect.relativePosition = Vector.origo;
       
       // a disconnected entity owns itself
-      comp.owner = p_entity;
+      componentToDisconnect.owner = p_entity;
+      
+      // TODO: any entities connected to p_entity needs to have stuff updated - owner, relativePosition, etc
+      // might be better to look for any entities with owner = original owner
     }
   }
   
   
-protected:
-  override void registerEntity(Entity p_entity)
+  Entity[] getOwnedEntities(Entity p_entity)
   {
-    super.registerEntity(p_entity);
+    Entity[] owned;
     
+    foreach (entity; entities)
+    {
+      if (getComponent(entity).owner == p_entity && entity != p_entity)
+        owned ~= entity;
+    }
     
+    return owned;
   }
-
+  
+  
+protected:
 
   bool canCreateComponent(Entity p_entity)
   {
@@ -265,8 +276,6 @@ protected:
       {
         connectPoint.empty = false;
         setComponent(connectEntity, connectComponent);
-        
-        writeln("filling connectpoint " ~ connectPointName ~ " on " ~ connectEntity.getValue("name") ~ " with id " ~ to!string(connectEntity.id));
         
         assert(getComponent(connectEntity).connectPoints[connectPointName].empty == false);
         
