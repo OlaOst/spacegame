@@ -36,7 +36,6 @@ import derelict.sdl.sdl;
 import SubSystem.CollisionHandler;
 import SubSystem.ConnectionHandler;
 import SubSystem.Controller;
-import SubSystem.DragDropHandler;
 import SubSystem.Graphics;
 import SubSystem.Physics;
 import SubSystem.Placer;
@@ -44,6 +43,7 @@ import SubSystem.Sound;
 import SubSystem.Spawner;
 
 import CommsCentral;
+import DragDropHandler;
 import InputHandler;
 import Starfield;
 import common.Vector;
@@ -159,8 +159,6 @@ public:
     m_subSystems["connector"] = m_connector = new ConnectionHandler();
     m_subSystems["sound"] = new SoundSubSystem(16);    
     m_subSystems["spawner"] = m_spawner = new Spawner();
-    m_subSystems["dragdropper"] = m_dragdropper = new DragDropHandler();
-    
     
     m_trashBin = new Entity();
     m_trashBin.setValue("name", "trashbin");
@@ -306,6 +304,7 @@ private:
       CommsCentral.setPlacerFromPhysics(m_physics, m_placer);
       CommsCentral.setPlacerFromConnector(m_connector, m_placer);
       
+      // this block should be handled in DragDropHandler
       if (m_dragEntity !is null)
       {
         assert(m_placer.hasComponent(m_dragEntity));
@@ -334,6 +333,7 @@ private:
           m_physics.setComponent(m_dragEntity, dragPhysComp);
         }
       }
+      
       
       CommsCentral.setPhysicsFromController(m_controller, m_physics);
       CommsCentral.setSpawnerFromController(m_controller, m_spawner);
@@ -392,7 +392,7 @@ private:
           
           auto dragGfxComp = m_graphics.getComponent(draggable);
           
-          // screenAbsolutePosition is true for GUI and screen elements - we don't want to drag them here
+          // screenAbsolutePosition is true for GUI and screen elements - we don't want to drag them
           if (dragGfxComp.screenAbsolutePosition)
             continue;
           
@@ -403,27 +403,8 @@ private:
             // we don't want to drag something if it has stuff connected to it. 
             // if you want to drag a skeleton module, you should drag off all connected modules first
             // TODO: should be possible to drag stuff with connected stuff, but drag'n'drop needs to be more robust first
-            if (m_connector.hasComponent(entityToDrag))
-            {
-              auto dragConnectComp = m_connector.getComponent(entityToDrag);
-              bool skipThisEntity = false;
-              
-              // self-owned components should not be draggable, if they're not blueprints
-              if (dragConnectComp.owner == entityToDrag && entityToDrag.getValue("isBlueprint") != "true")
-                continue;
-              
-              foreach (connectPoint; dragConnectComp.connectPoints)
-              {
-                if (connectPoint.empty == false)
-                {
-                  skipThisEntity = true;
-                  break;
-                }
-              }
-              
-              if (skipThisEntity)
-                continue;
-            }
+            if (m_connector.getConnectedEntities(entityToDrag).length > 0)
+              continue;
             
             // create copy of entity if it's a blueprint
             if (draggable.getValue("isBlueprint") == "true")
@@ -445,7 +426,11 @@ private:
             // we don't want dragged entities to be controlled
             if (m_controller.hasComponent(m_dragEntity) && m_dragEntity.getValue("control").length > 0)
             {
+              m_dragEntity.setValue("control", "nothing");
+              
               m_controller.removeEntity(m_dragEntity);
+              
+              assert(m_controller.hasComponent(m_dragEntity) == false);
             }
             
             // TODO: reset physics forces, velocity and other stuff?
@@ -474,8 +459,6 @@ private:
         
         if (m_dragEntity != m_trashBin && (dragPos - trashBinPos).length2d < to!float(m_dragEntity.getValue("radius")))
         {
-          writeln("trashing entity " ~ to!string(m_dragEntity.getValue("name")));
-          
           removeEntity(m_dragEntity);
         }
         else
@@ -498,8 +481,8 @@ private:
                 
                 assert(connectEntity.getValue("radius").length > 0);
                 
-                // snap to connectpoint
-                if (connectPoint.empty && (dragPos - connectPointPos).length2d < to!float(connectEntity.getValue("radius")))
+                // snap to (empty) connectpoint
+                if (connectPoint.connectedEntity is null && (dragPos - connectPointPos).length2d < to!float(connectEntity.getValue("radius")))
                 {
                   auto ownerEntity = m_connector.getComponent(connectEntity).owner;
                   
@@ -519,7 +502,7 @@ private:
                   registerEntity(m_dragEntity);
                   
                   assert(m_connector.hasComponent(connectEntity));
-                  assert(m_connector.getComponent(connectEntity).connectPoints[connectPoint.name].empty == false, "Connectpoint " ~ connectPoint.name ~ " on " ~ connectEntity.getValue("name") ~ " with id " ~ to!string(connectEntity.id) ~ " still empty after connecting entity " ~ m_dragEntity.getValue("name"));
+                  assert(m_connector.getComponent(connectEntity).connectPoints[connectPoint.name].connectedEntity !is null, "Connectpoint " ~ connectPoint.name ~ " on " ~ connectEntity.getValue("name") ~ " with id " ~ to!string(connectEntity.id) ~ " still empty after connecting entity " ~ m_dragEntity.getValue("name"));
                   
                   // update position, mass etc of owner entity
                   Vector centerOfMass = m_placer.getComponent(ownerEntity).position;
@@ -576,8 +559,6 @@ private:
             
             m_dragEntity.setValue("owner", to!string(ownerEntity.id));
             
-            writeln("creating owner entity " ~ to!string(ownerEntity.id));
-            
             registerEntity(ownerEntity);
             registerEntity(m_dragEntity);
           }
@@ -607,8 +588,6 @@ private:
               {
                 foreach (oldOwnedEntity; m_connector.getOwnedEntities(m_playerShip))
                 {
-                  writeln("removing control from entity " ~ oldOwnedEntity.getValue("name"));
-                  
                   m_controller.removeEntity(oldOwnedEntity);
                 }
               }
@@ -636,9 +615,9 @@ private:
                 if (ownedEntity.getValue("source") == "data/cannon.txt" || ownedEntity.getValue("source") == "cannon.txt")
                   ownedEntity.setValue("control", "playerLauncher");
 
-                debug writeln("setting player control on " ~ ownedEntity.getValue("name") ~ " to " ~ ownedEntity.getValue("control") ~ " with source " ~ ownedEntity.getValue("source"));
 
-                registerEntity(ownedEntity);
+                //registerEntity(ownedEntity);
+                m_controller.registerEntity(ownedEntity);
               }
               
               break;
@@ -751,13 +730,10 @@ private:
       auto owner = m_connector.getComponent(p_entity).owner;
       auto ownedEntities = m_connector.getOwnedEntities(owner);
       
-      writeln("removing " ~ p_entity.getValue("name") ~ ", owned entities: " ~ to!string(ownedEntities.length));
-      
       // we don't want owner entities without owned entities hanging around
       // so if the entity we remove is the last owned entity, we also remove the owner entity
       if (ownedEntities.length == 1 && ownedEntities[0] == p_entity)
       {
-        writeln("removing owner entity " ~ owner.getValue("name"));
         removeEntity(owner);
       }
     }
@@ -784,7 +760,6 @@ private:
   ConnectionHandler m_connector;
   CollisionHandler m_collider;
   Spawner m_spawner;
-  DragDropHandler m_dragdropper; 
   
   Starfield m_starfield;
   

@@ -234,10 +234,9 @@ public:
     glPushMatrix();
     
     glScalef(m_zoom, m_zoom, 1.0);
-    
-    // pull back camera a bit so we can see entities with z=0.0
-    glTranslatef(0.0, 0.0, 0.0);
 
+    glTranslatef(0.0, 0.0, -512.0);
+    
     auto centerComponent = GraphicsComponent();
     assert(centerComponent.position.isValid());
     if (hasComponent(m_centerEntity))
@@ -262,16 +261,16 @@ public:
       }
       
       assert(component.position.isValid());
+      
       glTranslatef(component.position.x, component.position.y, component.position.z);
       
-      //writeln("graphics comp pos: " ~ component.position.toString());
-      
       // show some data for entities, unrotated
-      /*glPushMatrix();
+      glPushMatrix();
         glTranslatef(0.0, component.radius*2, 0.0);
-        m_textRender.renderString(to!string(component.velocity.length2d()));
+        //m_textRender.renderString(to!string(component.velocity.length2d()));
+        m_textRender.renderString(to!string(component.text));
       glPopMatrix();
-      glDisable(GL_TEXTURE_2D);*/
+      glDisable(GL_TEXTURE_2D);
       
       glRotatef(component.angle * (180.0 / PI), 0.0, 0.0, 1.0);
       

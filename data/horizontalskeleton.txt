@@ -3,5 +3,5 @@ mass = 3.0
 
 drawsource = horizontalskeletonshape.txt
 
-connectpoint.left.position = -0.8 0.0
-connectpoint.right.position = 0.8 0.0
+connectpoint.left.position = -0.8 0.0 -1
+connectpoint.right.position = 0.8 0.0 1

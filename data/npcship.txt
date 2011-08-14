@@ -3,7 +3,6 @@ mass = 1.0
 
 health = 25.0
 
-#connectTarget = true
 canCollide = true
 collisionType = NpcShip
 

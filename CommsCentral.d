@@ -93,6 +93,8 @@ void setGraphicsFromPlacer(Placer placer, Graphics graphics)
     graphicsComponent.angle = placerComponent.angle;
     graphicsComponent.rotation = placerComponent.rotation;
     
+    //writeln("graphics from placer, pos is " ~ graphicsComponent.position.toString());
+    
     return graphicsComponent;
   });
 }
@@ -116,9 +118,12 @@ void setPlacerFromConnector(ConnectionHandler connection, Placer placer)
     
     //placerComponent.position = Vector.fromAngle(ownerComponent.angle + connectionComponent.relativePosition.) * connectionComponent.relativePosition.length2d();
     placerComponent.position = ownerComponent.position + connectionComponent.relativePosition.rotate(ownerComponent.angle);
+    placerComponent.position.z += connectionComponent.relativePosition.z; // z component not transferred in rotate operation
     placerComponent.angle = ownerComponent.angle + connectionComponent.relativeAngle;
     
     placerComponent.velocity = ownerComponent.velocity;
+    
+    //writeln("placer from connector, pos is " ~ placerComponent.position.toString());
     
     return placerComponent;
   });

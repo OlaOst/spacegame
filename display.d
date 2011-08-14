@@ -89,7 +89,8 @@ void setupGL(int p_screenWidth, int p_screenHeight)
   
   float widthHeightRatio = cast(float)p_screenWidth / cast(float)p_screenHeight;
   
-  gluOrtho2D(-widthHeightRatio, widthHeightRatio, -1.0, 1.0);
+  //gluOrtho2D(-widthHeightRatio, widthHeightRatio, -1.0, 1.0);
+  glOrtho(-widthHeightRatio, widthHeightRatio, -1.0, 1.0, 0.0, 1000.0);
   
   glMatrixMode(GL_MODELVIEW);
   

@@ -25,6 +25,7 @@ module SubSystem.DragDropHandler;
 import std.stdio;
 
 import common.Vector;
+import InputHandler;
 import SubSystem.Base;
 
 
@@ -39,7 +40,9 @@ unittest
   //   then that entity will follow the mouse position until left mouse button is released
   //   if the entity is connected to something we must disconnect it - something like connectionHander.removeEntity(dragEntity) might be enough?
   
-  auto sys = new DragDropHandler();
+  auto inputHandler = new InputHandler();
+  
+  auto sys = new DragDropHandler(inputHandler);
   
   Entity draggable = new Entity();
   draggable.setValue("isBluePrint", "true");
@@ -48,7 +51,7 @@ unittest
   
   assert(sys.hasComponent(draggable));
   
-    
+  sys.startDrag(draggable);
 }
 
 
@@ -61,6 +64,12 @@ struct DragDropComponent
 class DragDropHandler : public Base!(DragDropComponent)
 {
 public:
+  this(InputHandler p_inputHandler)
+  {
+    m_inputHandler = p_inputHandler;
+  }
+  
+  
   void update()
   {
   
@@ -76,4 +85,16 @@ protected:
   {
     return DragDropComponent();
   }
+  
+  
+private:
+  void startDrag(Entity p_entity)
+  {
+  
+  }
+  
+  
+  
+private:
+  InputHandler m_inputHandler;
 }

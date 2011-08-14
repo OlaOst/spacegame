@@ -87,9 +87,9 @@ unittest
   
   assert(connectingComponent.relativePosition == Vector(0, -1));
   
-  // reload connectPointsComponent, check if connectpoint is no longer empty
+  // reload connectPointsComponent, check if connectpoint has correct connectedEntity
   connectPointsComponent = sys.getComponent(connectPointsEntity);
-  assert(connectPointsComponent.connectPoints["lower"].empty == false);
+  assert(connectPointsComponent.connectPoints["lower"].connectedEntity == connectingEntity);
 }
 
 
@@ -97,7 +97,7 @@ struct ConnectPoint
 {
   string name;
   Vector position = Vector.origo;
-  bool empty = true;
+  Entity connectedEntity = null;
 }
 
 
@@ -152,7 +152,7 @@ public:
     {
       auto componentToDisconnect = getComponent(p_entity);
 
-      // set connectpoint.empty = true so it's free for other entities
+      // set connectpoint.connectedEntity = null so it's free for other entities
       if (componentToDisconnect.owner !is p_entity)
       {
         auto entityName = extractEntityAndConnectPointName(p_entity.getValue("connection"))[0];
@@ -168,7 +168,7 @@ public:
           
           if (connectPointName in siblingComp.connectPoints)
           {
-            siblingComp.connectPoints[connectPointName].empty = true;
+            siblingComp.connectPoints[connectPointName].connectedEntity = null;
             break;
           }
         }
@@ -199,6 +199,25 @@ public:
   }
   
   
+  Entity[] getConnectedEntities(Entity p_entity)
+  {
+    if (hasComponent(p_entity) == false)
+      return [];
+      
+    Entity[] connectedEntities;
+    
+    auto connectPoints = getComponent(p_entity).connectPoints;
+    
+    foreach (connectPoint; connectPoints)
+    {
+      if (connectPoint.connectedEntity !is null)
+        connectedEntities ~= connectPoint.connectedEntity;
+    }
+    
+    return connectedEntities;
+  }
+  
+  
 protected:
 
   bool canCreateComponent(Entity p_entity)
@@ -206,7 +225,7 @@ protected:
     foreach (value; p_entity.values.keys)
       if (value.startsWith("connectpoint"))
         return true;
-        
+
     return p_entity.getValue("owner").length > 0;
   }
 
@@ -230,7 +249,7 @@ protected:
         
         ConnectPoint connectPoint;
         connectPoint.name = connectPointName;
-        connectPoint.empty = true;
+        connectPoint.connectedEntity = null;
         if (connectPointAttribute == "position")
           connectPoint.position = Vector.fromString(p_entity.getValue(value));
           
@@ -272,12 +291,12 @@ protected:
       
       auto connectPoint = connectPointName in connectComponent.connectPoints;
       
-      if (connectPoint && connectPoint.empty)
+      if (connectPoint && connectPoint.connectedEntity is null)
       {
-        connectPoint.empty = false;
+        connectPoint.connectedEntity = p_entity;
         setComponent(connectEntity, connectComponent);
         
-        assert(getComponent(connectEntity).connectPoints[connectPointName].empty == false);
+        assert(getComponent(connectEntity).connectPoints[connectPointName].connectedEntity == p_entity);
         
         relativePosition = getComponent(connectEntity).relativePosition + connectPoint.position;
       }
