@@ -415,9 +415,7 @@ private:
         
           // create copy of drag entity if it's a blueprint
           if (m_dragEntity.getValue("isBlueprint") == "true")
-          {
-            writeln("creating copy of blueprint");
-            
+          {            
             m_dragEntity = new Entity(m_dragEntity.getValue("source"), m_dragEntity.values);
             m_dragEntity.setValue("isBlueprint", "false");
             m_dragEntity.setValue("name", m_dragEntity.getValue("source") ~ ":" ~ to!string(m_dragEntity.id));
@@ -439,8 +437,6 @@ private:
               {
                 auto stuff = extractEntityAndConnectPointName(m_dragEntity.getValue("connection"));
                 
-                writeln("checking connection " ~ m_dragEntity.getValue("connection"));
-                
                 Entity connectEntity;
                 foreach (entity; m_entities)
                 {
@@ -454,8 +450,6 @@ private:
                 assert(connectEntity !is null);
                 assert(m_connector.hasComponent(connectEntity), "expected connection comp of entity with values " ~ to!string(connectEntity.values));
                 auto comp = m_connector.getComponent(connectEntity);
-                
-                writeln(to!string(comp.connectPoints[stuff[1]]));
                 
                 assert(comp.connectPoints[stuff[1]].connectedEntity is null, "Disconnected connectpoint still not empty: " ~ to!string(comp.connectPoints[stuff[1]]));
               }
@@ -536,6 +530,10 @@ private:
             
             assert(m_connector.hasComponent(connectEntity));
             assert(m_connector.getComponent(connectEntity).connectPoints[closestConnectPoint.name].connectedEntity !is null, "Connectpoint " ~ closestConnectPoint.name ~ " on " ~ connectEntity.getValue("name") ~ " with id " ~ to!string(connectEntity.id) ~ " still empty after connecting entity " ~ m_dragEntity.getValue("name") ~ " with values " ~ to!string(m_dragEntity.values));
+            
+            // update mass on owner entity, figure out center of mass etc
+            auto physicsOwnerComp = m_physics.getComponent(ownerEntity);
+            physicsOwnerComp.mass += to!float(m_dragEntity.getValue("mass"));
           }
         }
         

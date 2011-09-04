@@ -135,8 +135,6 @@ public:
   Vector relativePosition;
   float relativeAngle;
   
-  ConnectionComponent connectedTo = null;
-  
   ConnectPoint[string] connectPoints;
 }
 
