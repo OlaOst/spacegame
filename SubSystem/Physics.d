@@ -74,6 +74,9 @@ invariant()
   
   assert(force.isValid());
   assert(torque == torque);
+  
+  assert(mass == mass);
+  assert(mass > 0.0);
 }
 
 
@@ -106,6 +109,8 @@ private:
   }
   body
   {
+    assert(mass > 0.0);
+    
     velocity += (force / mass) * p_time;
     position += velocity * p_time;
     

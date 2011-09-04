@@ -425,8 +425,12 @@ private:
           
           if (m_connector.hasComponent(m_dragEntity))
           {
+            auto ownerEntity = m_connector.getComponent(m_dragEntity).owner;
+                        
             // TODO: disconnectEntity sets the component owner to itself - might cause trouble if we assume it has a separate owner entity when floating around on its own
             m_connector.disconnectEntity(m_dragEntity);
+            
+            updateOwnerEntity(ownerEntity);
             
             // double check connect point for disconnection
             debug
@@ -454,6 +458,7 @@ private:
                 assert(comp.connectPoints[stuff[1]].connectedEntity is null, "Disconnected connectpoint still not empty: " ~ to!string(comp.connectPoints[stuff[1]]));
               }
             }
+            
             m_dragEntity.values.remove("connection");  
           }
           
@@ -531,9 +536,7 @@ private:
             assert(m_connector.hasComponent(connectEntity));
             assert(m_connector.getComponent(connectEntity).connectPoints[closestConnectPoint.name].connectedEntity !is null, "Connectpoint " ~ closestConnectPoint.name ~ " on " ~ connectEntity.getValue("name") ~ " with id " ~ to!string(connectEntity.id) ~ " still empty after connecting entity " ~ m_dragEntity.getValue("name") ~ " with values " ~ to!string(m_dragEntity.values));
             
-            // update mass on owner entity, figure out center of mass etc
-            auto physicsOwnerComp = m_physics.getComponent(ownerEntity);
-            physicsOwnerComp.mass += to!float(m_dragEntity.getValue("mass"));
+            updateOwnerEntity(ownerEntity);
           }
         }
         
@@ -740,6 +743,30 @@ private:
     }
     
     m_entities.remove(p_entity.id);
+  }
+  
+  
+  // update mass, center of mass etc
+  // called when entities are added or removed to a owner entity, which means the owner entity must update its accumulated stuff
+  void updateOwnerEntity(Entity p_ownerEntity)
+  {
+    float accumulatedMass = 0.0;
+    foreach (ownedEntity; m_connector.getOwnedEntities(p_ownerEntity))
+    {
+      if (m_physics.hasComponent(ownedEntity))
+      {
+        auto physComp = m_physics.getComponent(ownedEntity);
+        accumulatedMass += physComp.mass;
+      }
+    }
+    if (accumulatedMass <= 0.0)
+      return;
+      
+    auto physComp = m_physics.getComponent(p_ownerEntity);
+    physComp.mass = accumulatedMass;
+    writeln("setting accumulated mass to " ~ to!string(accumulatedMass));
+    assert(physComp.mass == physComp.mass);
+    m_physics.setComponent(p_ownerEntity, physComp);
   }
   
   
