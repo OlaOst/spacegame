@@ -28,7 +28,6 @@ import std.conv;
 
 import derelict.sdl.sdl;
 
-import EnumGen;
 import common.Vector;
 
 //pragma(lib, "DerelictSDL.lib");
@@ -241,23 +240,23 @@ unittest
 }
 
 
-mixin(genEnum("Event",
-[
-  "Escape",
-  "UpKey", 
-  "DownKey", 
-  "LeftKey", 
-  "RightKey",
-  "PageUp", 
-  "PageDown",
-  "Space",
-  "LeftButton",
-  "RightButton",
-  "MiddleButton",
-  "WheelUp",
-  "WheelDown",
-  "Pause"
-]));
+enum Event
+{
+  Escape,
+  UpKey, 
+  DownKey, 
+  LeftKey, 
+  RightKey,
+  PageUp, 
+  PageDown,
+  Space,
+  LeftButton,
+  RightButton,
+  MiddleButton,
+  WheelUp,
+  WheelDown,
+  Pause
+}
 
 
 enum EventState

@@ -27,7 +27,6 @@ import std.conv;
 import std.exception;
 import std.stdio;
 
-import EnumGen;
 import Entity;
 import SubSystem.Base;
 import common.Vector;
@@ -90,14 +89,14 @@ unittest
 }
 
 
-mixin(genEnum("CollisionType",
-[
-  "Unknown",
-  "Ship",
-  "NpcShip",
-  "Asteroid",
-  "Bullet"
-]));
+enum CollisionType
+{
+  Unknown,
+  Ship,
+  NpcShip,
+  Asteroid,
+  Bullet
+}
 
 
 class ColliderComponent
@@ -167,7 +166,7 @@ protected:
     
     enforce(radius >= 0.0);
     
-    auto collisionType = CollisionTypeFromString(p_entity.getValue("collisionType"));
+    auto collisionType = to!CollisionType(p_entity.getValue("collisionType"));
     enforce(collisionType != CollisionType.Unknown, "Tried to create collision component from entity with unknown collision type " ~ p_entity.getValue("collisionType"));
     
     auto colliderComponent = new ColliderComponent(radius, collisionType);

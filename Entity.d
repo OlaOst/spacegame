@@ -178,6 +178,7 @@ public:
   float health;
   
   string[string] values;
+  //alias values this;
   
 private:
   static int m_idCounter;

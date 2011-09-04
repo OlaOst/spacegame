@@ -25,6 +25,7 @@ module SubSystem.ConnectionHandler;
 import std.algorithm;
 import std.array;
 import std.conv;
+import std.exception;
 import std.range;
 import std.stdio;
 import std.string;
@@ -98,6 +99,7 @@ struct ConnectPoint
   string name;
   Vector position = Vector.origo;
   Entity connectedEntity = null;
+  Entity owner;
 }
 
 
@@ -116,6 +118,9 @@ public:
   {
     owner = p_owner;
     
+    position = Vector.origo;
+    angle = 0.0;
+    
     relativePosition = Vector.origo;
     relativeAngle = 0.0;
   } 
@@ -123,6 +128,9 @@ public:
   
 public:
   Entity owner;
+  
+  Vector position;
+  float angle;
   
   Vector relativePosition;
   float relativeAngle;
@@ -136,7 +144,9 @@ public:
 class ConnectionHandler : public Base!(ConnectionComponent)
 {
 public:
-  void update() {}
+  void update() 
+  {
+  }
   
   
   override void removeEntity(Entity p_entity)
@@ -161,14 +171,19 @@ public:
         foreach (siblingEntity; entities)
         {
           // only look at entites whose owner is the same as p_entity
-          if (siblingEntity == p_entity || getComponent(siblingEntity).owner != componentToDisconnect.owner || entityName != siblingEntity.getValue("name"))
+          if (siblingEntity == p_entity || 
+              getComponent(siblingEntity).owner != componentToDisconnect.owner || 
+              entityName != siblingEntity.getValue("name"))
             continue;
-            
+
           auto siblingComp = getComponent(siblingEntity);
-          
+
           if (connectPointName in siblingComp.connectPoints)
           {
             siblingComp.connectPoints[connectPointName].connectedEntity = null;
+            
+            assert(getComponent(siblingEntity).connectPoints[connectPointName].connectedEntity is null);
+            
             break;
           }
         }
@@ -216,7 +231,56 @@ public:
     
     return connectedEntities;
   }
+    
   
+  Vector[ConnectPoint] findOverlappingEmptyConnectPointsWithPosition(Entity p_entity, Vector p_position)
+  in
+  {
+    assert(p_entity !is null);
+  }
+  body
+  {
+    Vector[ConnectPoint] overlappingConnectPoints;
+    
+    auto radius = to!float(p_entity.getValue("radius"));
+    
+    foreach (component; components)
+    {
+      // ignore your own connectpoints
+      if (hasComponent(p_entity) && getComponent(p_entity) == component)
+        continue;
+
+      foreach (connectPoint; component.connectPoints)
+      {
+        // ignore nonempty connectpoints
+        if (connectPoint.connectedEntity !is null)
+          continue;
+          
+        // assume component positions are up to date
+        auto connectPointPosition = component.position + connectPoint.position;
+        
+        auto distanceToConnectPoint = (p_position - connectPointPosition).length2d;
+        
+        if (distanceToConnectPoint < radius)
+          overlappingConnectPoints[connectPoint] = component.position;
+      }
+    }
+    
+    return overlappingConnectPoints;
+  }
+  
+  /*void connectEntityToConnectPoint(Entity p_entity, ConnectPoint p_connectPoint)
+  {
+    p_connectPoint.connectedEntity = p_entity;
+    
+    assert(hasComponent(p_entity));
+    
+    // TODO: update owner entity with mass, center of mass etc
+    auto component = getComponent(p_entity);
+    
+    component.owner = p_connectPoint.owner.owner;
+  }*/
+
   
 protected:
 
@@ -226,6 +290,8 @@ protected:
       if (value.startsWith("connectpoint"))
         return true;
 
+    // we might want to check for owner OR connection value
+    // but with only connection value we need to figure out owner in createComponent
     return p_entity.getValue("owner").length > 0;
   }
 
@@ -250,6 +316,7 @@ protected:
         ConnectPoint connectPoint;
         connectPoint.name = connectPointName;
         connectPoint.connectedEntity = null;
+        connectPoint.owner = p_entity;
         if (connectPointAttribute == "position")
           connectPoint.position = Vector.fromString(p_entity.getValue(value));
           
@@ -260,45 +327,40 @@ protected:
       }
     }
     
-    Vector relativePosition = Vector.origo;    
+    Vector relativePosition = Vector.origo;
     if (p_entity.getValue("connection").length > 0)
     {
-      // connectionData looks like 'entityname.connectpointname'
-      // entityname may contain '.' characters, so everything until the last '.' is entityname, rest is connectpointname
-      // so we split into entity and connectpoint name by reversing and splitting by first '.' (which will be the last) and reversing again to get out names
-      //auto connectionData = findSplit(retro(p_entity.getValue("connection")), ".");
-      
       auto entityAndConnectPointName = extractEntityAndConnectPointName(p_entity.getValue("connection"));
       
       auto connectEntityName = entityAndConnectPointName[0];
       auto connectPointName = entityAndConnectPointName[1];
       
-      Entity connectEntity;
+      Entity connectToEntity;
       
       foreach (cand; entities)
       {
         if (cand.getValue("name") == connectEntityName)
         {
-          connectEntity = cand;
+          connectToEntity = cand;
           break;
         }
       }
       
-      assert(connectEntity !is null, "Could not find entity named " ~ connectEntityName);
-      assert(hasComponent(connectEntity), "Could not find connectcomponent for connection entity named " ~ connectEntityName);
+      enforce(connectToEntity !is null, "Could not find connect-to entity named " ~ connectEntityName);
+      enforce(hasComponent(connectToEntity), "Could not find connectcomponent for connect-to entity named " ~ connectEntityName);
       
-      auto connectComponent = getComponent(connectEntity);
+      auto connectComponent = getComponent(connectToEntity);
       
       auto connectPoint = connectPointName in connectComponent.connectPoints;
       
       if (connectPoint && connectPoint.connectedEntity is null)
       {
         connectPoint.connectedEntity = p_entity;
-        setComponent(connectEntity, connectComponent);
+        setComponent(connectToEntity, connectComponent);
         
-        assert(getComponent(connectEntity).connectPoints[connectPointName].connectedEntity == p_entity);
+        assert(getComponent(connectToEntity).connectPoints[connectPointName].connectedEntity == p_entity);
         
-        relativePosition = getComponent(connectEntity).relativePosition + connectPoint.position;
+        relativePosition = getComponent(connectToEntity).relativePosition + connectPoint.position;
       }
     }
     

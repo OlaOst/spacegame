@@ -35,7 +35,6 @@ import derelict.freetype.ft;
 
 import Display;
 import Entity;
-import EnumGen;
 import SubSystem.Base;
 import TextRender;
 import common.Vector;
@@ -113,16 +112,16 @@ unittest
 }
 
 
-mixin(genEnum("DrawSource",
-[
-  "Unknown",
-  "Invisible",
-  "Triangle",
-  "Star",
-  "Bullet",
-  "Vertices",
-  "Text"
-]));
+enum DrawSource
+{
+  Unknown,
+  Invisible,
+  Triangle,
+  Star,
+  Bullet,
+  Vertices,
+  Text
+}
 
 
 struct Vertex
@@ -483,7 +482,7 @@ protected:
     }
     else
     {
-      component.drawSource = DrawSourceFromString(p_entity.getValue("drawsource"));
+      component.drawSource = to!DrawSource(p_entity.getValue("drawsource"));
     }
     
     foreach (value; p_entity.values.keys)

@@ -111,7 +111,7 @@ public:
   final ComponentType getComponent(Entity p_entity) 
   in
   {
-    assert(hasComponent(p_entity), "couldn't find component for entity " ~ to!string(p_entity.id) ~ " in " ~ to!string(this));
+    assert(p_entity in m_entityToComponent, "couldn't find component for entity " ~ to!string(p_entity.id) ~ " in " ~ to!string(this));
   }
   body
   {

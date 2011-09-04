@@ -118,7 +118,7 @@ void setPlacerFromConnector(ConnectionHandler connection, Placer placer)
     
     //placerComponent.position = Vector.fromAngle(ownerComponent.angle + connectionComponent.relativePosition.) * connectionComponent.relativePosition.length2d();
     placerComponent.position = ownerComponent.position + connectionComponent.relativePosition.rotate(ownerComponent.angle);
-    placerComponent.position.z += connectionComponent.relativePosition.z; // z component not transferred in rotate operation
+    placerComponent.position.z += connectionComponent.relativePosition.z; // set z component here since it is not transferred in rotate operation
     placerComponent.angle = ownerComponent.angle + connectionComponent.relativeAngle;
     
     placerComponent.velocity = ownerComponent.velocity;
@@ -126,6 +126,17 @@ void setPlacerFromConnector(ConnectionHandler connection, Placer placer)
     //writeln("placer from connector, pos is " ~ placerComponent.position.toString());
     
     return placerComponent;
+  });
+}
+
+void setConnectorFromPlacer(Placer placer, ConnectionHandler connection)
+{
+  subSystemCommunication!(PlacerComponent, ConnectionComponent)(placer, connection, (PlacerComponent placerComponent, ConnectionComponent connectionComponent)
+  {
+    connectionComponent.position = placerComponent.position;
+    connectionComponent.angle = placerComponent.angle;
+    
+    return connectionComponent;
   });
 }
 

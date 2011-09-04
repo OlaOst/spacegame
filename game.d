@@ -92,7 +92,7 @@ unittest
   
   Entity testGraphics = new Entity();
   testGraphics.setValue("position", "0 1 0");
-  testGraphics.setValue("drawsource", "star");
+  testGraphics.setValue("drawsource", "Star");
   
   game.registerEntity(testGraphics);
   assert(game.m_graphics.hasComponent(testGraphics));
@@ -163,7 +163,7 @@ public:
     m_trashBin = new Entity();
     m_trashBin.setValue("name", "trashbin");
     m_trashBin.setValue("position", "-5 0 0");
-    m_trashBin.setValue("drawsource", "unknown");
+    m_trashBin.setValue("drawsource", "Unknown");
     m_trashBin.setValue("radius", "1");
     registerEntity(m_trashBin);
     
@@ -343,6 +343,7 @@ private:
       CommsCentral.setControllerFromPlacer(m_placer, m_controller);
       CommsCentral.setCollidersFromPlacer(m_placer, m_collider);
       CommsCentral.setSpawnerFromPlacer(m_placer, m_spawner);
+      CommsCentral.setConnectorFromPlacer(m_placer, m_connector);
       
       CommsCentral.calculateCollisionResponse(m_collider, m_physics);
     }
@@ -398,141 +399,143 @@ private:
           
           if ((dragGfxComp.position - m_graphics.mouseWorldPos).length2d < dragGfxComp.radius)
           {
-            Entity entityToDrag = draggable;
-            
             // we don't want to drag something if it has stuff connected to it. 
             // if you want to drag a skeleton module, you should drag off all connected modules first
             // TODO: should be possible to drag stuff with connected stuff, but drag'n'drop needs to be more robust first
-            if (m_connector.getConnectedEntities(entityToDrag).length > 0)
+            if (m_connector.getConnectedEntities(draggable).length > 0)
               continue;
-            
-            // create copy of entity if it's a blueprint
-            if (draggable.getValue("isBlueprint") == "true")
-            {
-              entityToDrag = new Entity(draggable.getValue("source"), draggable.values);
-              entityToDrag.setValue("isBlueprint", "false");
-              entityToDrag.setValue("name", draggable.getValue("source") ~ ":" ~ to!string(entityToDrag.id));
-              
-              registerEntity(entityToDrag);
-            }
-            
-            m_dragEntity = entityToDrag;
-            
-            if (m_connector.hasComponent(m_dragEntity))
-            {
-              m_connector.disconnectEntity(m_dragEntity);
-            }
-            
-            // we don't want dragged entities to be controlled
-            if (m_controller.hasComponent(m_dragEntity) && m_dragEntity.getValue("control").length > 0)
-            {
-              m_dragEntity.setValue("control", "nothing");
-              
-              m_controller.removeEntity(m_dragEntity);
-              
-              assert(m_controller.hasComponent(m_dragEntity) == false);
-            }
-            
-            // TODO: reset physics forces, velocity and other stuff?
-            
+
+            m_dragEntity = draggable;
             break;
           }
+        }
+
+        if (m_dragEntity !is null)
+        {
+        
+          // create copy of drag entity if it's a blueprint
+          if (m_dragEntity.getValue("isBlueprint") == "true")
+          {
+            writeln("creating copy of blueprint");
+            
+            m_dragEntity = new Entity(m_dragEntity.getValue("source"), m_dragEntity.values);
+            m_dragEntity.setValue("isBlueprint", "false");
+            m_dragEntity.setValue("name", m_dragEntity.getValue("source") ~ ":" ~ to!string(m_dragEntity.id));
+            
+            registerEntity(m_dragEntity);
+          }
+          
+          if (m_connector.hasComponent(m_dragEntity))
+          {
+            // TODO: disconnectEntity sets the component owner to itself - might cause trouble if we assume it has a separate owner entity when floating around on its own
+            m_connector.disconnectEntity(m_dragEntity);
+            
+            // double check connect point for disconnection
+            debug
+            {
+              assert(m_connector.hasComponent(m_dragEntity));
+              
+              if (m_dragEntity.getValue("connection").length > 0)
+              {
+                auto stuff = extractEntityAndConnectPointName(m_dragEntity.getValue("connection"));
+                
+                writeln("checking connection " ~ m_dragEntity.getValue("connection"));
+                
+                Entity connectEntity;
+                foreach (entity; m_entities)
+                {
+                  if (entity.getValue("name") == stuff[0])
+                  {
+                    connectEntity = entity;
+                    break;
+                  }
+                }
+                
+                assert(connectEntity !is null);
+                assert(m_connector.hasComponent(connectEntity), "expected connection comp of entity with values " ~ to!string(connectEntity.values));
+                auto comp = m_connector.getComponent(connectEntity);
+                
+                writeln(to!string(comp.connectPoints[stuff[1]]));
+                
+                assert(comp.connectPoints[stuff[1]].connectedEntity is null, "Disconnected connectpoint still not empty: " ~ to!string(comp.connectPoints[stuff[1]]));
+              }
+            }
+            m_dragEntity.values.remove("connection");  
+          }
+          
+          // we don't want dragged entities to be controlled
+          if (m_controller.hasComponent(m_dragEntity) && m_dragEntity.getValue("control").length > 0)
+          {
+            m_dragEntity.setValue("control", "nothing");
+            
+            m_controller.removeEntity(m_dragEntity);
+            
+            assert(m_controller.hasComponent(m_dragEntity) == false);
+          }
+              
+          // TODO: reset physics forces, velocity and other stuff?
         }
       }
     }
     
     if (m_inputHandler.eventState(Event.LeftButton) == EventState.Released)
     {
-      // if drag entity is close to an empty skeleton contact point then connect to it
       if (m_dragEntity !is null)
       {
         assert(m_placer.hasComponent(m_dragEntity));
-        
         auto dragPos = m_placer.getComponent(m_dragEntity).position;
-        bool dragEntityConnected = false;
         
+        assert(m_placer.hasComponent(m_trashBin));
         auto trashBinPos = m_placer.getComponent(m_trashBin).position;
-        
-        // don't trash the trashbin...
         
         assert(m_dragEntity.getValue("radius").length > 0, "Couldn't find radius for drag entity " ~ m_dragEntity.getValue("name"));
         
+        // trash entities dropped in the trashbin, but don't trash the trashbin...
         if (m_dragEntity != m_trashBin && (dragPos - trashBinPos).length2d < to!float(m_dragEntity.getValue("radius")))
         {
           removeEntity(m_dragEntity);
         }
         else
         {
-          foreach (connectEntity; m_entities)
+          // if drag entity is close to an empty skeleton contact point then connect to it
+          auto overlappingEmptyConnectPointsWithPosition = m_connector.findOverlappingEmptyConnectPointsWithPosition(m_dragEntity, dragPos);
+        
+          ConnectPoint closestConnectPoint;
+          auto closestPosition = Vector(float.infinity, float.infinity);
+        
+          // connect to the closest one
+          foreach (ConnectPoint connectPoint, Vector position; overlappingEmptyConnectPointsWithPosition)
           {
-            if (connectEntity.id == m_dragEntity.id)
-              continue;
-
-            if (m_connector.hasComponent(connectEntity))
+            if (position.length2d < closestPosition.length2d)
             {
-              auto ownerEntity = m_connector.getComponent(connectEntity).owner;
-              
-              auto entityPosition = m_placer.getComponent(connectEntity).position;
-              auto connectPoints = m_connector.getComponent(connectEntity).connectPoints;
-              
-              foreach (connectPoint; connectPoints)
-              {
-                auto connectPointPos = entityPosition + connectPoint.position;
-                
-                assert(connectEntity.getValue("radius").length > 0);
-                
-                // snap to (empty) connectpoint
-                if (connectPoint.connectedEntity is null && (dragPos - connectPointPos).length2d < to!float(connectEntity.getValue("radius")))
-                {
-                  auto ownerEntity = m_connector.getComponent(connectEntity).owner;
-                  
-                  m_dragEntity.setValue("position", connectPointPos.toString());
-                  m_dragEntity.setValue("owner", to!string(ownerEntity.id));
-                  m_dragEntity.setValue("connection", connectEntity.getValue("name") ~ "." ~ connectPoint.name);
-                  
-                  if (ownerEntity == m_playerShip)
-                  {
-                    if (m_dragEntity.getValue("source") == "data/engine.txt")
-                      m_dragEntity.setValue("control", "playerEngine");
-                    
-                    if (m_dragEntity.getValue("source") == "data/cannon.txt")
-                      m_dragEntity.setValue("control", "playerLauncher");
-                  }
-                  
-                  registerEntity(m_dragEntity);
-                  
-                  assert(m_connector.hasComponent(connectEntity));
-                  assert(m_connector.getComponent(connectEntity).connectPoints[connectPoint.name].connectedEntity !is null, "Connectpoint " ~ connectPoint.name ~ " on " ~ connectEntity.getValue("name") ~ " with id " ~ to!string(connectEntity.id) ~ " still empty after connecting entity " ~ m_dragEntity.getValue("name"));
-                  
-                  // update position, mass etc of owner entity
-                  Vector centerOfMass = m_placer.getComponent(ownerEntity).position;
-                  float totalMass = 0.0;
-                  foreach (ownedEntity; m_connector.getOwnedEntities(ownerEntity))
-                  {
-                    if (m_physics.hasComponent(ownedEntity))
-                    {
-                      auto ownedPhysComp = m_physics.getComponent(ownedEntity);
-                      auto ownedConnectComp = m_connector.getComponent(ownedEntity);
-                      
-                      totalMass += ownedPhysComp.mass;
-                      //centerOfMass += ownedPhysComp.position * ownedPhysComp.mass;
-                      centerOfMass += ownedConnectComp.relativePosition * ownedPhysComp.mass;
-                    }
-                  }
-                  writeln("connected entity, center of mass: " ~ centerOfMass.toString() ~ ", total mass: " ~ to!string(totalMass));
-                  
-                  ownerEntity.setValue("mass", to!string(totalMass));
-                  //ownerEntity.setValue("position", centerOfMass.toString());
-                  
-                  registerEntity(ownerEntity);
-                  
-                  dragEntityConnected = true;
-                  break;
-                }
-              }
+              closestConnectPoint = connectPoint;
+              closestPosition = position;
             }
-            if (dragEntityConnected)
-              break;
+          }
+          
+          if (closestPosition.length2d < float.infinity)
+          {
+            assert(closestConnectPoint.owner !is null);
+            assert(m_connector.hasComponent(closestConnectPoint.owner));
+            
+            auto connectEntity = closestConnectPoint.owner;
+            auto ownerEntity = m_connector.getComponent(connectEntity).owner;
+            
+            m_dragEntity.setValue("owner", to!string(ownerEntity.id));
+            m_dragEntity.setValue("connection", connectEntity.getValue("name") ~ "." ~ closestConnectPoint.name);
+            
+            if (ownerEntity == m_playerShip)
+            {
+              if (m_dragEntity.getValue("source") == "data/engine.txt")
+                m_dragEntity.setValue("control", "playerEngine");
+              
+              if (m_dragEntity.getValue("source") == "data/cannon.txt")
+                m_dragEntity.setValue("control", "playerLauncher");
+            }
+            registerEntity(m_dragEntity);
+            
+            assert(m_connector.hasComponent(connectEntity));
+            assert(m_connector.getComponent(connectEntity).connectPoints[closestConnectPoint.name].connectedEntity !is null, "Connectpoint " ~ closestConnectPoint.name ~ " on " ~ connectEntity.getValue("name") ~ " with id " ~ to!string(connectEntity.id) ~ " still empty after connecting entity " ~ m_dragEntity.getValue("name") ~ " with values " ~ to!string(m_dragEntity.values));
           }
         }
         
