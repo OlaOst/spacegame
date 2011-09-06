@@ -1,6 +1,7 @@
 module SubSystem.Controller;
 
 import std.conv;
+import std.exception;
 import std.stdio;
 
 import FlockControl;
@@ -39,6 +40,8 @@ class ControlComponent
   Vector force = Vector.origo;
   float torque = 0.0;
   
+  float thrustForce = 0.0;
+  float torqueForce = 0.0;
   float reload = 0.0;
   
   bool isFiring = false;
@@ -72,7 +75,7 @@ public:
       if (component.reload > 0.0)
         component.reload = component.reload - m_timeStep;
       
-      assert(component.control !is null);
+      assert(component.control !is null, "Could not find control when updating controller component");
       
       component.control.update(component, components);
     }
@@ -100,23 +103,37 @@ protected:
   {
     auto component = new ControlComponent();
     
-    if (p_entity.getValue("control") == "playerEngine")
-    {
-      component.control = new PlayerEngineControl(m_inputHandler);
-    }
-    if (p_entity.getValue("control") == "playerLauncher")
-    {
-      component.control = new PlayerLauncherControl(m_inputHandler);
-    }
+    if (p_entity.getValue("thrustForce").length > 0)
+      component.thrustForce = to!float(p_entity.getValue("thrustForce"));
     
-    if (p_entity.getValue("control") == "flocker")
-    {
-      component.control = new FlockControl(10.0, 1.5,     // distance & weight for avoid rule
-                                           50.0, 0.2);    // distance & weight for flock rule
-    }
+    if (p_entity.getValue("torqueForce").length > 0)
+      component.torqueForce = to!float(p_entity.getValue("torqueForce"));
     
-    if (p_entity.getValue("control") == "nothing")
-      component.control = new class () Control { override void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents) {} };
+    if (p_entity.getValue("control").length > 0)
+    {
+      switch (p_entity.getValue("control"))
+      {
+        case "playerEngine":
+          component.control = new PlayerEngineControl(m_inputHandler);
+          break;      
+        
+        case "playerLauncher":      
+          component.control = new PlayerLauncherControl(m_inputHandler);
+          break;
+        
+        case "flocker":
+          component.control = new FlockControl(10.0, 1.5,     // distance & weight for avoid rule
+                                              50.0, 0.2);    // distance & weight for flock rule
+          break;
+        
+        case "nothing":
+          component.control = new class () Control { override void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents) {} };
+          break;
+          
+        default:
+          enforce(false, "Error registering control component, " ~ p_entity.getValue("control") ~ " is an unknown control.");
+      }
+    }
     
     assert(component.position.isValid());
     

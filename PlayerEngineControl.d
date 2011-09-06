@@ -67,17 +67,18 @@ public:
     auto force = p_sourceComponent.force;
     auto torque = p_sourceComponent.torque;
     
-    float enginePower = 5.0;
+    float thrustForce = p_sourceComponent.thrustForce;
+    float torqueForce = p_sourceComponent.torqueForce;
     
     if (m_inputHandler.isPressed(Event.UpKey))
-      force += dir * enginePower;
+      force += dir * thrustForce;
     if (m_inputHandler.isPressed(Event.DownKey))
-      force -= dir * enginePower;
+      force -= dir * thrustForce;
     
     if (m_inputHandler.isPressed(Event.LeftKey))
-      torque += enginePower;
+      torque += torqueForce;
     if (m_inputHandler.isPressed(Event.RightKey))
-      torque -= enginePower;
+      torque -= torqueForce;
     
     p_sourceComponent.force = force;
     p_sourceComponent.torque = torque;

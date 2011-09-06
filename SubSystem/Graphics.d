@@ -482,7 +482,17 @@ protected:
     }
     else
     {
-      component.drawSource = to!DrawSource(p_entity.getValue("drawsource"));
+      if (p_entity.getValue("drawsource").length > 0)
+      {
+        component.drawSource = to!DrawSource(p_entity.getValue("drawsource"));
+      }
+      else
+      {
+        // we might have a keepInCenter entity that's not supposed to be drawn (for example the owner entity for the player ship)
+        assert(m_centerEntity == p_entity, "Tried to register graphics component without drawsource and also not with keepInCenter attribute");
+        
+        component.drawSource = DrawSource.Invisible;
+      }
     }
     
     foreach (value; p_entity.values.keys)

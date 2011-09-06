@@ -278,3 +278,28 @@ void setSpawnerFromPlacer(Placer placer, Spawner spawner)
     return spawnerComponent;
   });
 }
+
+
+void setSpawnerFromPhysics(Physics physics, Spawner spawner)
+{
+  subSystemCommunication!(PhysicsComponent, SpawnerComponent)(physics, spawner, (PhysicsComponent physicsComponent, SpawnerComponent spawnerComponent)
+  {
+    spawnerComponent.force = physicsComponent.force;
+    //spawnerComponent.velocity = physicsComponent.velocity;
+    spawnerComponent.torque = physicsComponent.torque;
+    
+    return spawnerComponent;
+  });
+}
+
+void setPhysicsFromSpawner(Spawner spawner, Physics physics)
+{
+  subSystemCommunication!(SpawnerComponent, PhysicsComponent)(spawner, physics, (SpawnerComponent spawnerComponent, PhysicsComponent physicsComponent)
+  {
+    physicsComponent.force = spawnerComponent.force;
+    //spawnerComponent.velocity = placerComponent.velocity;
+    physicsComponent.torque = spawnerComponent.torque;
+    
+    return physicsComponent;
+  });
+}

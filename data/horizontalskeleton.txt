@@ -1,5 +1,5 @@
 radius = 1.0
-mass = 3.0
+mass = 1.0
 
 drawsource = horizontalskeletonshape.txt
 

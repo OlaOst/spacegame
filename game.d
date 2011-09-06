@@ -26,6 +26,7 @@ import std.algorithm;
 import std.array;
 import std.conv;
 import std.datetime;
+import std.exception;
 import std.math;
 import std.parallelism;
 import std.random;
@@ -169,33 +170,49 @@ public:
     
     
     Entity engineBlueprint = new Entity("data/engine.txt");
-    engineBlueprint.setValue("source", "data/engine.txt");
     engineBlueprint.setValue("isBlueprint", "true");
     engineBlueprint.setValue("position", "5 0 0");
     engineBlueprint.setValue("name", "engineBlueprint");
+    engineBlueprint.setValue("collisionType", "PlayerModule");
     registerEntity(engineBlueprint);
     
     Entity cannonBlueprint = new Entity("data/cannon.txt");
-    cannonBlueprint.setValue("source", "data/cannon.txt");
     cannonBlueprint.setValue("isBlueprint", "true");
     cannonBlueprint.setValue("position", "7 0 0");
     cannonBlueprint.setValue("name", "cannonBlueprint");
+    cannonBlueprint.setValue("collisionType", "PlayerModule");
     registerEntity(cannonBlueprint);
     
     Entity horizontalSkeletonBlueprint = new Entity("data/horizontalskeleton.txt");
-    horizontalSkeletonBlueprint.setValue("source", "data/horizontalskeleton.txt");
     horizontalSkeletonBlueprint.setValue("isBlueprint", "true");
     horizontalSkeletonBlueprint.setValue("position", "9 0 0");
     horizontalSkeletonBlueprint.setValue("name", "horizontalSkeletonBlueprint");
+    horizontalSkeletonBlueprint.setValue("collisionType", "PlayerModule");
     registerEntity(horizontalSkeletonBlueprint);
     
     Entity verticalSkeletonBlueprint = new Entity("data/verticalskeleton.txt");
-    verticalSkeletonBlueprint.setValue("source", "data/verticalskeleton.txt");
     verticalSkeletonBlueprint.setValue("isBlueprint", "true");
     verticalSkeletonBlueprint.setValue("position", "11 0 0");
     verticalSkeletonBlueprint.setValue("name", "verticalSkeletonBlueprint");
+    verticalSkeletonBlueprint.setValue("collisionType", "PlayerModule");
     registerEntity(verticalSkeletonBlueprint);
 
+    string[] modules = ["data/horizontalskeleton.txt",
+                        "data/verticalskeleton.txt",
+                        "data/cannon.txt",
+                        "data/engine.txt"];
+    
+    // put some random modules in random positions
+    for (int i = 0; i < 0; i++)
+    {
+      auto randomModule = new Entity(modules[uniform(0, modules.length)]);
+      
+      randomModule.setValue("position", Vector(uniform(-50.0, -10.0), uniform(-20.0, 20.0)).toString());
+      //randomModule.setValue("angle", to!string(uniform(0, PI*2)));
+      
+      registerEntity(randomModule);
+    }
+    
     
     Entity startupDing = new Entity();
     startupDing.setValue("soundFile", "test.wav");
@@ -215,11 +232,12 @@ public:
     
     m_playerShip = loadShip("playership.txt", ["position" : "0 0 0"]);
     
-    for (int n = 0; n < 0; n++)
+    for (int n = 0; n < 3; n++)
     {
       Entity npcShip = loadShip("npcship.txt", ["position" : Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0)).toString(), 
                                                 "angle" : to!string(uniform(0.0, PI*2))]);
     }
+    
     
     //m_starfield = new Starfield(m_graphics, 10.0);
 
@@ -308,7 +326,7 @@ private:
       if (m_dragEntity !is null)
       {
         assert(m_placer.hasComponent(m_dragEntity));
-        
+               
         if (m_placer.hasComponent(m_dragEntity))
         {
           auto dragPosComp = m_placer.getComponent(m_dragEntity);
@@ -339,6 +357,7 @@ private:
       CommsCentral.setSpawnerFromController(m_controller, m_spawner);
       
       CommsCentral.setPhysicsFromConnector(m_connector, m_physics);
+      CommsCentral.setPhysicsFromSpawner(m_spawner, m_physics);
       
       CommsCentral.setControllerFromPlacer(m_placer, m_controller);
       CommsCentral.setCollidersFromPlacer(m_placer, m_collider);
@@ -415,7 +434,7 @@ private:
         
           // create copy of drag entity if it's a blueprint
           if (m_dragEntity.getValue("isBlueprint") == "true")
-          {            
+          {
             m_dragEntity = new Entity(m_dragEntity.getValue("source"), m_dragEntity.values);
             m_dragEntity.setValue("isBlueprint", "false");
             m_dragEntity.setValue("name", m_dragEntity.getValue("source") ~ ":" ~ to!string(m_dragEntity.id));
@@ -455,6 +474,7 @@ private:
                 assert(m_connector.hasComponent(connectEntity), "expected connection comp of entity with values " ~ to!string(connectEntity.values));
                 auto comp = m_connector.getComponent(connectEntity);
                 
+                assert(stuff[1] in comp.connectPoints, "Couldn't find connectpoint " ~ stuff[1] ~ " in component whose entity has values " ~ to!string(connectEntity.values));
                 assert(comp.connectPoints[stuff[1]].connectedEntity is null, "Disconnected connectpoint still not empty: " ~ to!string(comp.connectPoints[stuff[1]]));
               }
             }
@@ -587,6 +607,10 @@ private:
             {
               auto entityOwner = m_connector.getComponent(entity).owner;
               
+              // we don't want to control modules floating by themself not connected to anything... or do we?
+              //if (entityOwner.id == entity.id)
+                //continue;
+              
               // remove control from eventual old playership so we don't end up controlling multiple ships at once
               if (m_playerShip !is null && m_playerShip != entityOwner)
               {
@@ -639,7 +663,7 @@ private:
     {
       m_graphics.zoomIn(p_elapsedTime * 15.0);
     }
-    if (m_inputHandler.isPressed(Event.PageDown)) 
+    if (m_inputHandler.isPressed(Event.PageDown))
     {
       m_graphics.zoomOut(p_elapsedTime * 2.0);
     }
@@ -671,6 +695,8 @@ private:
     Entity[] subEntitiesToAdd;
     float accumulatedMass = 0.0;
     
+    string[string] uniqueNameMapping;
+    
     // load in submodules, signified by <modulename>.source = <module source filename>
     foreach (subSource; filter!("a.endsWith(\".source\")")(ship.values.keys))
     {
@@ -678,7 +704,10 @@ private:
       
       auto subName = subSource[0..std.string.indexOf(subSource, ".source")];
       
-      subEntity.setValue("name", subName);
+      //subEntity.setValue("name", subName);
+      // all references to subName should be replaced with the name value, since the name value is unique
+      //subName -> subEntity.getValue("name")
+      uniqueNameMapping[subName] = subEntity.getValue("name");
       
       subEntity.setValue("owner", to!string(ship.id));
       
@@ -688,7 +717,28 @@ private:
       // set extra values on submodule from the module that loads them in
       foreach (subSourceValue; filter!(delegate(x) { return x.startsWith(subName ~ "."); })(ship.values.keys))
       {
-        subEntity.setValue(subSourceValue[std.string.indexOf(subSourceValue, '.')+1..$], ship.getValue(subSourceValue));
+        auto key = subSourceValue[std.string.indexOf(subSourceValue, '.')+1..$];
+        
+        // if key is something that refers to another module, we want to use the unique name instead of the one in the file
+        
+        if (key == "connection")
+        {
+          auto value = ship.getValue(subSourceValue);
+          
+          auto connectionValues = split!(string, string)(ship.getValue(subSourceValue), ".");
+          
+          // TODO: unittest that these enforces kick in when they should
+          enforce(connectionValues.length == 2);
+          enforce(connectionValues[0] in uniqueNameMapping, "Could not find " ~ ship.getValue(subSourceValue) ~ " when loading " ~ subName ~ ". Make sure " ~ connectionValues[0] ~ " is defined before " ~ subName ~ " in " ~ p_file);
+          
+          auto connectionName = uniqueNameMapping[connectionValues[0]] ~ "." ~ connectionValues[1];
+          
+          subEntity.setValue(key, connectionName);
+        }
+        else
+        {
+          subEntity.setValue(key, ship.getValue(subSourceValue));
+        }
       }
       
       if (subEntity.getValue("mass").length > 0)

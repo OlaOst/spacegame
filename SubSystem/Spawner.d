@@ -47,7 +47,10 @@ struct SpawnerComponent
   
   Vector position = Vector.origo;
   Vector velocity = Vector.origo;
+  Vector force = Vector.origo;
+  
   float angle = 0.0;
+  float torque = 0.0;
   
   // these are relative
   Vector spawnPoint = Vector.origo;
@@ -57,6 +60,9 @@ struct SpawnerComponent
   
   float spawnAngle = 0.0;
   float spawnRotation = 0.0;
+  
+  int entityId;
+  int ownerId;
   
   bool isSpawning = false;
 }
@@ -87,6 +93,15 @@ public:
         // should be impulse not force
         auto spawnForce = Vector.fromAngle(spawnAngle) * component.spawnForce;
         auto spawnVelocity = component.velocity + spawnForce;
+        
+        // spawning component gets some recoil force
+        auto recoilDamping = 0.0;
+        auto force = component.force;
+        force -= spawnForce * (1.0 - recoilDamping);
+        component.force = force;
+        
+        bullet.setValue("spawnedFrom", to!string(component.entityId));
+        bullet.setValue("spawnedFromOwner", to!string(component.ownerId));
         
         bullet.setValue("position", to!string(component.position + component.spawnPoint));
         bullet.setValue("angle", to!string(spawnAngle));
@@ -137,6 +152,11 @@ protected:
     auto component = SpawnerComponent();
     
     enforce(p_entity.getValue("spawns") == "bullets", "Spawner subsystem only knows how to spawn bullets, not " ~ p_entity.getValue("spawns"));
+    
+    component.entityId = p_entity.id;
+    
+    if (p_entity.getValue("owner").length > 0)
+      component.ownerId = to!int(p_entity.getValue("owner"));
     
     if (p_entity.getValue("spawnPoint").length > 0)
       component.spawnPoint = Vector.fromString(p_entity.getValue("spawnPoint"));

@@ -75,6 +75,7 @@ public:
     this();
     
     values["name"] = p_file ~ ":" ~ to!string(id);
+    values["source"] = p_file;
     
     loadValues(values, p_file);
   }
@@ -82,6 +83,8 @@ public:
   this(string p_file, string[string] p_extraParams)
   {
     this(p_file);
+    
+    values["source"] = p_file;
     
     foreach (extraParam; p_extraParams.keys)
     {

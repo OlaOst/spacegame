@@ -68,6 +68,18 @@ public:
       {
         p_sourceComponent.isFiring = true;
         p_sourceComponent.reload = 0.2;
+        
+        // TODO: recoil should be calculated from spawnforce or something
+        auto recoil = 1.0;
+        
+        // TODO: dir should be from module angle 
+        auto dir = Vector(1.0, 0.0);
+        
+        auto force = p_sourceComponent.force;
+        
+        force -= dir * recoil;
+        
+        p_sourceComponent.force = force;
       }
     }
   }

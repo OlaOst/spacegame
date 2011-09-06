@@ -1,18 +1,14 @@
-radius = 1.0
-mass = 1.0
-
 health = 25.0
 
-canCollide = true
 collisionType = NpcShip
 
 skeleton.source = simpleskeleton.txt
 
 mainEngine.source = engine.txt
-
-mainEngine.mass = 0.33
-mainEngine.radius = 0.5
-
 mainEngine.connection = skeleton.lower
-
 mainEngine.control = flocker
+mainEngine.collisionType = NpcModule
+
+gun.source = cannon.txt
+gun.connection = skeleton.upper
+gun.collisionType = NpcModule

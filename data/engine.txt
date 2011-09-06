@@ -1,3 +1,5 @@
 drawsource = engineshape.txt
 radius = 0.85
 mass = 1.0
+thrustForce = 5.0
+torqueForce = 10.0

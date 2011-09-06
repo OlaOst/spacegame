@@ -43,7 +43,7 @@ unittest
   
   Entity entity = new Entity();
   entity.setValue("radius", "2.0");
-  entity.setValue("collisionType", "Ship");
+  entity.setValue("collisionType", "NpcShip");
   
   sys.registerEntity(entity);
   
@@ -92,8 +92,10 @@ unittest
 enum CollisionType
 {
   Unknown,
-  Ship,
   NpcShip,
+  NpcModule,
+  PlayerShip,
+  PlayerModule,
   Asteroid,
   Bullet
 }
@@ -120,6 +122,14 @@ class ColliderComponent
   CollisionType collisionType;
   
   float lifetime;
+  
+  // we might not want stuff to collide from the entity it spawned from
+  int spawnedFrom;
+  int entityId;
+  
+  // we also might not want stuff to collide with any entities sharing owner with the entity it spawned from
+  int spawnedFromOwner;
+  int ownerId;
   
   static int idCounter = 0;
   int id;
@@ -156,7 +166,9 @@ public:
 protected:
   bool canCreateComponent(Entity p_entity)
   {
-    return p_entity.getValue("collisionType").length > 0;
+    return (p_entity.getValue("collisionType").length > 0) && 
+           (p_entity.getValue("radius").length > 0) &&
+           (p_entity.getValue("isBlueprint") != "true");
   }
   
   
@@ -170,6 +182,14 @@ protected:
     enforce(collisionType != CollisionType.Unknown, "Tried to create collision component from entity with unknown collision type " ~ p_entity.getValue("collisionType"));
     
     auto colliderComponent = new ColliderComponent(radius, collisionType);
+    
+    if (p_entity.getValue("owner").length > 0)
+      colliderComponent.ownerId = to!int(p_entity.getValue("owner"));
+    
+    if (p_entity.getValue("spawnedFrom").length > 0)
+      colliderComponent.spawnedFrom = to!int(p_entity.getValue("spawnedFrom"));
+    if (p_entity.getValue("spawnedFromOwner").length > 0)
+      colliderComponent.spawnedFromOwner = to!int(p_entity.getValue("spawnedFromOwner"));
     
     if (p_entity.getValue("position").length > 0)
       colliderComponent.position = Vector.fromString(p_entity.getValue("position"));
@@ -199,6 +219,14 @@ private:
         
         assert(first != second, "collider component with index " ~ to!string(firstIndex) ~ " is equal to component with index " ~ to!string(secondIndex));
 
+        //writeln("1 collision component spawned from " ~ to!string(first.spawnedFromOwner) ~ " and has owner id " ~ to!string(first.ownerId));
+        //writeln("2 collision component spawned from " ~ to!string(second.spawnedFromOwner) ~ " and has owner id " ~ to!string(second.ownerId));
+        
+        // bullets should not collide with the entity that spawned them, or any entities that has the same owner... or should they?
+        if ((first.spawnedFromOwner > 0 && second.ownerId > 0 && first.spawnedFromOwner == second.ownerId) || 
+            (first.ownerId > 0 && second.spawnedFromOwner > 0 && first.ownerId == second.spawnedFromOwner))
+          continue;
+        
         if ((first.position - second.position).length2d < (first.radius + second.radius))
         {
           // determine contact point
