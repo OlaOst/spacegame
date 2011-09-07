@@ -217,11 +217,12 @@ private:
       {
         ColliderComponent second = components[secondIndex];
         
+        // bullets should not collide with each other
+        if (first.collisionType == CollisionType.Bullet && second.collisionType == CollisionType.Bullet)
+          continue;
+        
         assert(first != second, "collider component with index " ~ to!string(firstIndex) ~ " is equal to component with index " ~ to!string(secondIndex));
 
-        //writeln("1 collision component spawned from " ~ to!string(first.spawnedFromOwner) ~ " and has owner id " ~ to!string(first.ownerId));
-        //writeln("2 collision component spawned from " ~ to!string(second.spawnedFromOwner) ~ " and has owner id " ~ to!string(second.ownerId));
-        
         // bullets should not collide with the entity that spawned them, or any entities that has the same owner... or should they?
         if ((first.spawnedFromOwner > 0 && second.ownerId > 0 && first.spawnedFromOwner == second.ownerId) || 
             (first.ownerId > 0 && second.spawnedFromOwner > 0 && first.ownerId == second.spawnedFromOwner))
