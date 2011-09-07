@@ -99,7 +99,7 @@ private:
   {
     assert(p_time == p_time);
     assert(p_time > 0.0);
-    assert(force.isValid());
+    assert(force.isValid(), "Physics component update detected invalid force vector: " ~ force.toString());
     assert(torque == torque);
   }
   out

@@ -23,6 +23,7 @@
 module PlayerEngineControl;
 
 import std.conv;
+import std.math;
 import std.stdio;
 
 import InputHandler;
@@ -69,6 +70,7 @@ public:
     
     float thrustForce = p_sourceComponent.thrustForce;
     float torqueForce = p_sourceComponent.torqueForce;
+    float slideForce = p_sourceComponent.slideForce;
     
     if (m_inputHandler.isPressed(Event.UpKey))
       force += dir * thrustForce;
@@ -79,7 +81,24 @@ public:
       torque += torqueForce;
     if (m_inputHandler.isPressed(Event.RightKey))
       torque -= torqueForce;
-    
+      
+    // dampen rotation if no rotation input from player
+    /*if (m_inputHandler.isPressed(Event.LeftKey) == false && m_inputHandler.isPressed(Event.RightKey) == false)
+    {
+      if (p_sourceComponent.rotation > 0.0)
+        torque -= torqueForce; //fmin(torqueForce, p_sourceComponent.rotation);
+      else
+        torque += torqueForce;
+    }*/
+      
+    if (m_inputHandler.isPressed(Event.StrafeLeft))
+      force += dir.rotate(PI/2) * slideForce;
+    if (m_inputHandler.isPressed(Event.StrafeRight))
+      force -= dir.rotate(PI/2) * slideForce;
+      
+    if (m_inputHandler.isPressed(Event.Brake))
+      force -= p_sourceComponent.velocity.normalized.rotate(-p_sourceComponent.angle) * slideForce;
+      
     p_sourceComponent.force = force;
     p_sourceComponent.torque = torque;
   }

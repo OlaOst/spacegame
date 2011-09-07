@@ -187,7 +187,9 @@ void setControllerFromPlacer(Placer placer, Controller controller)
   subSystemCommunication!(PlacerComponent, ControlComponent)(placer, controller, (PlacerComponent placerComponent, ControlComponent controllerComponent)
   {
     controllerComponent.position = placerComponent.position;
+    controllerComponent.velocity = placerComponent.velocity;
     controllerComponent.angle = placerComponent.angle;
+    controllerComponent.rotation = placerComponent.rotation;
     
     return controllerComponent;
   });

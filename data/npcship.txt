@@ -3,6 +3,7 @@ health = 25.0
 collisionType = NpcShip
 
 skeleton.source = simpleskeleton.txt
+skeleton.collisionType = NpcModule
 
 mainEngine.source = engine.txt
 mainEngine.connection = skeleton.lower

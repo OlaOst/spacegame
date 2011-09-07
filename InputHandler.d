@@ -255,7 +255,11 @@ enum Event
   MiddleButton,
   WheelUp,
   WheelDown,
-  Pause
+  Pause,
+  
+  StrafeLeft,
+  StrafeRight,
+  Brake,
 }
 
 
@@ -293,6 +297,10 @@ public:
     m_keyEventMapping[SDLK_RIGHT] = Event.RightKey;
     m_keyEventMapping[SDLK_UP] = Event.UpKey;
     m_keyEventMapping[SDLK_DOWN] = Event.DownKey;
+    
+    m_keyEventMapping[SDLK_z] = Event.StrafeLeft;
+    m_keyEventMapping[SDLK_x] = Event.Brake;
+    m_keyEventMapping[SDLK_c] = Event.StrafeRight;
     
     m_keyEventMapping[SDLK_PAGEUP] = Event.PageUp;
     m_keyEventMapping[SDLK_PAGEDOWN] = Event.PageDown;

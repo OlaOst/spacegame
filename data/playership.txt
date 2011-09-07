@@ -1,9 +1,9 @@
 keepInCenter = true
-#drawsource = Invisible
 
 collisionType = PlayerShip
 
 skeleton.source = skeleton.txt
+skeleton.collisionType = PlayerModule
 
 leftEngine.source = engine.txt
 rightEngine.source = engine.txt

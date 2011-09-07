@@ -37,11 +37,15 @@ class ControlComponent
   Vector position = Vector.origo;
   float angle = 0.0;
   
+  Vector velocity = Vector.origo;
+  float rotation = 0.0;
+  
   Vector force = Vector.origo;
   float torque = 0.0;
   
   float thrustForce = 0.0;
   float torqueForce = 0.0;
+  float slideForce = 0.0;
   float reload = 0.0;
   
   bool isFiring = false;
@@ -109,6 +113,9 @@ protected:
     if (p_entity.getValue("torqueForce").length > 0)
       component.torqueForce = to!float(p_entity.getValue("torqueForce"));
     
+    if (p_entity.getValue("slideForce").length > 0)
+      component.slideForce = to!float(p_entity.getValue("slideForce"));
+
     if (p_entity.getValue("control").length > 0)
     {
       switch (p_entity.getValue("control"))
