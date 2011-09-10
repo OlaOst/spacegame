@@ -122,6 +122,7 @@ class ColliderComponent
   CollisionType collisionType;
   
   float lifetime;
+  float health = float.infinity;
   
   // we might not want stuff to collide from the entity it spawned from
   int spawnedFrom;
@@ -194,6 +195,12 @@ protected:
     if (p_entity.getValue("position").length > 0)
       colliderComponent.position = Vector.fromString(p_entity.getValue("position"));
     
+    if (p_entity.getValue("lifetime").length > 0)
+      colliderComponent.lifetime = to!float(p_entity.getValue("lifetime"));
+      
+    if (p_entity.getValue("health").length > 0)
+      colliderComponent.health = to!float(p_entity.getValue("health"));
+    
     return colliderComponent;
   }
   
@@ -255,14 +262,11 @@ private:
         collision.second.lifetime = 0.0;
       }
       
+      collision.first.health -= 1.0;
+      collision.second.health -= 1.0;
+      
       Entity collisionSound = new Entity();
       collisionSound.setValue("soundFile", "mgshot3.wav");
-      collisionSound.setValue("onlySound", "true");
-      //collision.first.addSpawn(collisionSound);
-      //collision.second.addSpawn(collisionSound);
-
-      //collision.first.addCollision(collision);
-      //collision.second.addCollision(Collision(collision.second, collision.first, collision.contactPoint * -1));
     }
   }
   

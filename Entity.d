@@ -54,8 +54,6 @@ class Entity
 {
 invariant()
 {
-  assert(lifetime == lifetime);
-  assert(health == health);
 }
 
 
@@ -65,9 +63,6 @@ public:
     id = m_idCounter++;
     
     values["name"] = to!string(id);
-    
-    lifetime = float.infinity;
-    health = float.infinity;
   }
   
   this(string p_file)
@@ -176,9 +171,6 @@ public:
   
 public:
   immutable int id;
-  
-  float lifetime;
-  float health;
   
   string[string] values;
   //alias values this;

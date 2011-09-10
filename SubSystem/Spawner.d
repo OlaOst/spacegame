@@ -109,7 +109,7 @@ public:
         bullet.setValue("velocity", spawnVelocity.toString());
         bullet.setValue("force", spawnForce.toString());
         
-        bullet.lifetime = 5.0;
+        bullet.setValue("lifetime", "5.0");
         
         immutable string[4] sounds = ["mgshot1.wav", "mgshot2.wav", "mgshot3.wav", "mgshot4.wav"];
         

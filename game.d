@@ -232,7 +232,7 @@ public:
     
     m_playerShip = loadShip("playership.txt", ["position" : "0 0 0"]);
     
-    for (int n = 0; n < 3; n++)
+    for (int n = 0; n < 0; n++)
     {
       Entity npcShip = loadShip("npcship.txt", ["position" : Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0)).toString(), 
                                                 "angle" : to!string(uniform(0.0, PI*2))]);
@@ -280,19 +280,16 @@ private:
     
     foreach (entity; m_entities)
     {
-      entity.lifetime = entity.lifetime - elapsedTime;
-
-      bool removeEntity = false;
-      
+      // TODO: make subsystem dedicated to removing entities. it's responsible for values like lifetime and health 
       if (m_collider.hasComponent(entity))
       {
-        if (m_collider.getComponent(entity).lifetime <= 0.0)
-          removeEntity = true;
+        auto colliderComponent = m_collider.getComponent(entity);
+        
+        colliderComponent.lifetime -= elapsedTime;
+        
+        if (colliderComponent.lifetime <= 0.0 || colliderComponent.health <= 0.0)
+          entitiesToRemove ~= entity;
       }
-      
-      // can't directly call removeEntity here since it touches m_entities and we're looping inside it
-      if (entity.lifetime <= 0.0 || entity.health <= 0.0 || removeEntity)
-        entitiesToRemove ~= entity;
     }
     
     foreach (entityToRemove; entitiesToRemove)
@@ -686,8 +683,8 @@ private:
   {
     Entity ship = new Entity("data/" ~ p_file, p_extraParams);
     
-    if (ship.getValue("health"))
-      ship.health = to!float(ship.getValue("health"));
+    //if (ship.getValue("health"))
+      //ship.health = to!float(ship.getValue("health"));
     
     // need to add sub entities after they're loaded
     // since the ship entity needs accumulated values from sub entities
