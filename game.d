@@ -232,7 +232,7 @@ public:
     
     m_playerShip = loadShip("playership.txt", ["position" : "0 0 0"]);
     
-    for (int n = 0; n < 0; n++)
+    for (int n = 0; n < 5; n++)
     {
       Entity npcShip = loadShip("npcship.txt", ["position" : Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0)).toString(), 
                                                 "angle" : to!string(uniform(0.0, PI*2))]);
@@ -287,8 +287,33 @@ private:
         
         colliderComponent.lifetime -= elapsedTime;
         
-        if (colliderComponent.lifetime <= 0.0 || colliderComponent.health <= 0.0)
+        if (colliderComponent.lifetime <= 0.0)
           entitiesToRemove ~= entity;
+          
+        // disconnect if no health left
+        if (colliderComponent.health <= 0.0)
+        {
+          m_connector.removeEntity(entity);
+          
+          writeln("disconnecting entity " ~ to!string(entity.id) ~ " with position " ~ colliderComponent.position.toString());
+          colliderComponent.health = to!float(entity.getValue("health"));
+          
+          // de-control entity
+          entity.setValue("control", "nothing");
+          m_controller.removeEntity(entity);
+          //m_controller.registerEntity(entity);
+          
+          assert(m_connector.hasComponent(entity) == false);
+          
+          if (m_physics.hasComponent(entity))
+          {
+            auto physComp = m_physics.getComponent(entity);
+            physComp.position = colliderComponent.position;
+            physComp.force = Vector.origo;
+            
+            m_physics.setComponent(entity, physComp);
+          }
+        }
       }
     }
     
@@ -361,7 +386,7 @@ private:
       CommsCentral.setSpawnerFromPlacer(m_placer, m_spawner);
       CommsCentral.setConnectorFromPlacer(m_placer, m_connector);
       
-      CommsCentral.calculateCollisionResponse(m_collider, m_physics);
+      //CommsCentral.calculateCollisionResponse(m_collider, m_physics);
     }
     CommsCentral.setGraphicsFromPlacer(m_placer, m_graphics);
     
@@ -428,7 +453,6 @@ private:
 
         if (m_dragEntity !is null)
         {
-        
           // create copy of drag entity if it's a blueprint
           if (m_dragEntity.getValue("isBlueprint") == "true")
           {
@@ -442,7 +466,7 @@ private:
           if (m_connector.hasComponent(m_dragEntity))
           {
             auto ownerEntity = m_connector.getComponent(m_dragEntity).owner;
-                        
+
             // TODO: disconnectEntity sets the component owner to itself - might cause trouble if we assume it has a separate owner entity when floating around on its own
             m_connector.disconnectEntity(m_dragEntity);
             

@@ -168,7 +168,7 @@ public:
       
         foreach (siblingEntity; entities)
         {
-          // only look at entites whose owner is the same as p_entity
+          // only look at entities whose owner is the same as p_entity
           if (siblingEntity == p_entity || 
               getComponent(siblingEntity).owner != componentToDisconnect.owner || 
               entityName != siblingEntity.getValue("name"))
@@ -187,8 +187,15 @@ public:
         }
       }
       
-      componentToDisconnect.relativePosition = Vector.origo;
+      //componentToDisconnect.position += componentToDisconnect.relativePosition;
+      auto ownerComponent = getComponent(componentToDisconnect.owner);
       
+      //componentToDisconnect.position = ownerComponent.position + componentToDisconnect.relativePosition.rotate(ownerComponent.angle);
+      //componentToDisconnect.position.z += componentToDisconnect.relativePosition.z; // set z component here since it is not transferred in rotate operation
+      //componentToDisconnect.angle = ownerComponent.angle + componentToDisconnect.relativeAngle;
+
+      componentToDisconnect.relativePosition = Vector.origo;
+
       // a disconnected entity owns itself
       componentToDisconnect.owner = p_entity;
       

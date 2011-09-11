@@ -256,14 +256,15 @@ private:
       if (collision.first.collisionType == CollisionType.Bullet)
       {
         collision.first.lifetime = 0.0;
+        
+        collision.second.health -= 1.0;
       }
       if (collision.second.collisionType == CollisionType.Bullet)
       {
         collision.second.lifetime = 0.0;
+        
+        collision.first.health -= 1.0;
       }
-      
-      collision.first.health -= 1.0;
-      collision.second.health -= 1.0;
       
       Entity collisionSound = new Entity();
       collisionSound.setValue("soundFile", "mgshot3.wav");
