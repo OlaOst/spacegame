@@ -163,7 +163,7 @@ public:
       // set connectpoint.connectedEntity = null so it's free for other entities
       if (componentToDisconnect.owner !is p_entity)
       {
-        auto entityName = extractEntityAndConnectPointName(p_entity.getValue("connection"))[0];
+        auto entityId = to!int(extractEntityAndConnectPointName(p_entity.getValue("connection"))[0]);
         auto connectPointName = extractEntityAndConnectPointName(p_entity.getValue("connection"))[1];
       
         foreach (siblingEntity; entities)
@@ -171,7 +171,7 @@ public:
           // only look at entities whose owner is the same as p_entity
           if (siblingEntity == p_entity || 
               getComponent(siblingEntity).owner != componentToDisconnect.owner || 
-              entityName != siblingEntity.getValue("name"))
+              entityId != siblingEntity.id)
             continue;
 
           auto siblingComp = getComponent(siblingEntity);
@@ -337,9 +337,8 @@ protected:
     {
       auto entityAndConnectPointName = extractEntityAndConnectPointName(p_entity.getValue("connection"));
       
-      auto connectEntityName = entityAndConnectPointName[0];
       auto connectEntityId = -1;
-      try { connectEntityId = to!int(connectEntityName); } catch (ConvException) {}
+      try { connectEntityId = to!int(entityAndConnectPointName[0]); } catch (ConvException) {}
       
       auto connectPointName = entityAndConnectPointName[1];
       
@@ -347,16 +346,15 @@ protected:
       
       foreach (cand; entities)
       {
-        debug writeln("checking cand " ~ cand.getValue("name") ~ " with id " ~ to!string(cand.id) ~ " against " ~ to!string(connectEntityId) ~ " / " ~ connectEntityName);
-        if (cand.id == connectEntityId || cand.getValue("name") == connectEntityName)
+        if (cand.id == connectEntityId)
         {
           connectToEntity = cand;
           break;
         }
       }
       
-      enforce(connectToEntity !is null, "Could not find connect-to entity named " ~ connectEntityName);
-      enforce(hasComponent(connectToEntity), "Could not find connectcomponent for connect-to entity named " ~ connectEntityName);
+      enforce(connectToEntity !is null, "Could not find connect-to entity with id " ~ to!string(connectEntityId));
+      enforce(hasComponent(connectToEntity), "Could not find connectcomponent for connect-to entity with id " ~ to!string(connectEntityId));
       
       auto connectComponent = getComponent(connectToEntity);
       

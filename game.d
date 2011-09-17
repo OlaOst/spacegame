@@ -487,12 +487,12 @@ private:
               
               if (m_dragEntity.getValue("connection").length > 0)
               {
-                auto stuff = extractEntityAndConnectPointName(m_dragEntity.getValue("connection"));
+                auto dragEntityConnection = extractEntityAndConnectPointName(m_dragEntity.getValue("connection"));
                 
                 Entity connectEntity;
                 foreach (entity; m_entities)
                 {
-                  if (entity.getValue("name") == stuff[0])
+                  if (entity.id == to!int(dragEntityConnection[0]))
                   {
                     connectEntity = entity;
                     break;
@@ -503,8 +503,8 @@ private:
                 assert(m_connector.hasComponent(connectEntity), "expected connection comp of entity with values " ~ to!string(connectEntity.values));
                 auto comp = m_connector.getComponent(connectEntity);
                 
-                assert(stuff[1] in comp.connectPoints, "Couldn't find connectpoint " ~ stuff[1] ~ " in component whose entity has values " ~ to!string(connectEntity.values));
-                assert(comp.connectPoints[stuff[1]].connectedEntity is null, "Disconnected connectpoint still not empty: " ~ to!string(comp.connectPoints[stuff[1]]));
+                assert(dragEntityConnection[1] in comp.connectPoints, "Couldn't find connectpoint " ~ dragEntityConnection[1] ~ " in component whose entity has values " ~ to!string(connectEntity.values));
+                assert(comp.connectPoints[dragEntityConnection[1]].connectedEntity is null, "Disconnected connectpoint still not empty: " ~ to!string(comp.connectPoints[dragEntityConnection[1]]));
               }
             }
             
@@ -570,7 +570,7 @@ private:
             auto ownerEntity = m_connector.getComponent(connectEntity).owner;
             
             m_dragEntity.setValue("owner", to!string(ownerEntity.id));
-            m_dragEntity.setValue("connection", connectEntity.getValue("name") ~ "." ~ closestConnectPoint.name);
+            m_dragEntity.setValue("connection", to!string(connectEntity.id) ~ "." ~ closestConnectPoint.name);
             
             if (ownerEntity == m_playerShip)
             {
