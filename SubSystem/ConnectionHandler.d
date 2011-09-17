@@ -338,13 +338,17 @@ protected:
       auto entityAndConnectPointName = extractEntityAndConnectPointName(p_entity.getValue("connection"));
       
       auto connectEntityName = entityAndConnectPointName[0];
+      auto connectEntityId = -1;
+      try { connectEntityId = to!int(connectEntityName); } catch (ConvException) {}
+      
       auto connectPointName = entityAndConnectPointName[1];
       
       Entity connectToEntity;
       
       foreach (cand; entities)
       {
-        if (cand.getValue("name") == connectEntityName)
+        debug writeln("checking cand " ~ cand.getValue("name") ~ " with id " ~ to!string(cand.id) ~ " against " ~ to!string(connectEntityId) ~ " / " ~ connectEntityName);
+        if (cand.id == connectEntityId || cand.getValue("name") == connectEntityName)
         {
           connectToEntity = cand;
           break;
@@ -421,7 +425,7 @@ private:
 }
 
 
-// returns [0] == entity name, [1] == connect point name
+// returns [0] == entity name or id, [1] == connect point name
 string[2] extractEntityAndConnectPointName(string p_data)
 {
   // p_data looks like 'entityname.connectpointname'

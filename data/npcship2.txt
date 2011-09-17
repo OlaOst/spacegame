@@ -1,0 +1,38 @@
+health = 25.0
+
+collisionType = NpcShip
+
+mainSkeleton.source = verticalskeleton.txt
+mainSkeleton.collisionType = NpcModule
+
+engineSkeleton.source = horizontalskeleton.txt
+engineSkeleton.collisionType = NpcModule
+engineSkeleton.connection = mainSkeleton.lower
+
+gunSkeleton.source = horizontalskeleton.txt
+gunSkeleton.collisionType = NpcModule
+gunSkeleton.connection = mainSkeleton.upper
+
+leftEngine.source = engine.txt
+leftEngine.connection = engineSkeleton.left
+leftEngine.control = flocker
+leftEngine.collisionType = NpcModule
+leftEngine.health = 5.0
+
+rightEngine.source = engine.txt
+rightEngine.connection = engineSkeleton.right
+rightEngine.control = flocker
+rightEngine.collisionType = NpcModule
+rightEngine.health = 5.0
+
+leftGun.source = cannon.txt
+leftGun.connection = gunSkeleton.left
+leftGun.control = aigunner
+leftGun.collisionType = NpcModule
+leftGun.health = 5.0
+
+rightGun.source = cannon.txt
+rightGun.connection = gunSkeleton.right
+rightGun.control = aigunner
+rightGun.collisionType = NpcModule
+rightGun.health = 5.0

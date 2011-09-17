@@ -43,6 +43,7 @@ import SubSystem.Placer;
 import SubSystem.Sound;
 import SubSystem.Spawner;
 
+import AiGunner;
 import CommsCentral;
 import DragDropHandler;
 import InputHandler;
@@ -151,11 +152,13 @@ public:
     int xres = 800;
     int yres = 600;
     
+    Control[string] aiControls;
+    aiControls["aigunner"] = m_aiGunner = new AiGunner();
     
     m_subSystems["placer"] = m_placer = new Placer();
     m_subSystems["graphics"] = m_graphics = new Graphics(xres, yres);
     m_subSystems["physics"] = m_physics = new Physics();
-    m_subSystems["controller"] = m_controller = new Controller(m_inputHandler);
+    m_subSystems["controller"] = m_controller = new Controller(m_inputHandler, aiControls);
     m_subSystems["collider"] = m_collider = new CollisionHandler();
     m_subSystems["connector"] = m_connector = new ConnectionHandler();
     m_subSystems["sound"] = new SoundSubSystem(16);    
@@ -163,7 +166,7 @@ public:
     
     m_trashBin = new Entity();
     m_trashBin.setValue("name", "trashbin");
-    m_trashBin.setValue("position", "-5 0 0");
+    m_trashBin.setValue("position", "-5 100 0");
     m_trashBin.setValue("drawsource", "Unknown");
     m_trashBin.setValue("radius", "1");
     registerEntity(m_trashBin);
@@ -171,28 +174,28 @@ public:
     
     Entity engineBlueprint = new Entity("data/engine.txt");
     engineBlueprint.setValue("isBlueprint", "true");
-    engineBlueprint.setValue("position", "5 0 0");
+    engineBlueprint.setValue("position", "5 100 0");
     engineBlueprint.setValue("name", "engineBlueprint");
     engineBlueprint.setValue("collisionType", "PlayerModule");
     registerEntity(engineBlueprint);
     
     Entity cannonBlueprint = new Entity("data/cannon.txt");
     cannonBlueprint.setValue("isBlueprint", "true");
-    cannonBlueprint.setValue("position", "7 0 0");
+    cannonBlueprint.setValue("position", "7 100 0");
     cannonBlueprint.setValue("name", "cannonBlueprint");
     cannonBlueprint.setValue("collisionType", "PlayerModule");
     registerEntity(cannonBlueprint);
     
     Entity horizontalSkeletonBlueprint = new Entity("data/horizontalskeleton.txt");
     horizontalSkeletonBlueprint.setValue("isBlueprint", "true");
-    horizontalSkeletonBlueprint.setValue("position", "9 0 0");
+    horizontalSkeletonBlueprint.setValue("position", "9 100 0");
     horizontalSkeletonBlueprint.setValue("name", "horizontalSkeletonBlueprint");
     horizontalSkeletonBlueprint.setValue("collisionType", "PlayerModule");
     registerEntity(horizontalSkeletonBlueprint);
     
     Entity verticalSkeletonBlueprint = new Entity("data/verticalskeleton.txt");
     verticalSkeletonBlueprint.setValue("isBlueprint", "true");
-    verticalSkeletonBlueprint.setValue("position", "11 0 0");
+    verticalSkeletonBlueprint.setValue("position", "11 100 0");
     verticalSkeletonBlueprint.setValue("name", "verticalSkeletonBlueprint");
     verticalSkeletonBlueprint.setValue("collisionType", "PlayerModule");
     registerEntity(verticalSkeletonBlueprint);
@@ -203,11 +206,11 @@ public:
                         "data/engine.txt"];
     
     // put some random modules in random positions
-    for (int i = 0; i < 0; i++)
+    for (int i = 0; i < 30; i++)
     {
       auto randomModule = new Entity(modules[uniform(0, modules.length)]);
       
-      randomModule.setValue("position", Vector(uniform(-50.0, -10.0), uniform(-20.0, 20.0)).toString());
+      randomModule.setValue("position", Vector(uniform(-20.0, 20.0), uniform(-120.0, -100.0)).toString());
       //randomModule.setValue("angle", to!string(uniform(0, PI*2)));
       
       registerEntity(randomModule);
@@ -234,7 +237,7 @@ public:
     
     for (int n = 0; n < 5; n++)
     {
-      Entity npcShip = loadShip("npcship.txt", ["position" : Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0)).toString(), 
+      Entity npcShip = loadShip("npcship2.txt", ["position" : Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0)).toString(), 
                                                 "angle" : to!string(uniform(0.0, PI*2))]);
     }
     
@@ -278,6 +281,9 @@ private:
     
     Entity[] entitiesToRemove;
     
+    m_aiGunner.targetPositions.length = 0;
+    m_aiGunner.targetPositions ~= m_placer.getComponent(m_playerShip).position;
+    
     foreach (entity; m_entities)
     {
       // TODO: make subsystem dedicated to removing entities. it's responsible for values like lifetime and health 
@@ -293,6 +299,8 @@ private:
         // disconnect if no health left
         if (colliderComponent.health <= 0.0)
         {
+          // TODO: figure out why entity is getting reconnected later on
+          entity.setValue("owner", to!string(entity.id));
           m_connector.removeEntity(entity);
           
           writeln("disconnecting entity " ~ to!string(entity.id) ~ " with position " ~ colliderComponent.position.toString());
@@ -713,10 +721,10 @@ private:
     // need to add sub entities after they're loaded
     // since the ship entity needs accumulated values from sub entities
     // and sub entities must have the ship registered before they can be registered themselves
-    Entity[] subEntitiesToAdd;
+    Entity[int] subEntitiesToAdd;
     float accumulatedMass = 0.0;
-    
-    string[string] uniqueNameMapping;
+
+    int[string] nameToId;
     
     // load in submodules, signified by <modulename>.source = <module source filename>
     foreach (subSource; filter!("a.endsWith(\".source\")")(ship.values.keys))
@@ -725,41 +733,20 @@ private:
       
       auto subName = subSource[0..std.string.indexOf(subSource, ".source")];
       
-      //subEntity.setValue("name", subName);
-      // all references to subName should be replaced with the name value, since the name value is unique
-      //subName -> subEntity.getValue("name")
-      uniqueNameMapping[subName] = subEntity.getValue("name");
+      // all references to subName should be replaced with the entity id, since the id is guaranteed unique
+      nameToId[subName] = subEntity.id;
       
       subEntity.setValue("owner", to!string(ship.id));
       
       // inital position of submodules are equal to owner module position
-      subEntity.setValue("position", ship.getValue("position"));
-
+      subEntity.setValue("position", ship.getValue("position"));      
+      
       // set extra values on submodule from the module that loads them in
       foreach (subSourceValue; filter!(delegate(x) { return x.startsWith(subName ~ "."); })(ship.values.keys))
       {
         auto key = subSourceValue[std.string.indexOf(subSourceValue, '.')+1..$];
         
-        // if key is something that refers to another module, we want to use the unique name instead of the one in the file
-        
-        if (key == "connection")
-        {
-          auto value = ship.getValue(subSourceValue);
-          
-          auto connectionValues = split!(string, string)(ship.getValue(subSourceValue), ".");
-          
-          // TODO: unittest that these enforces kick in when they should
-          enforce(connectionValues.length == 2);
-          enforce(connectionValues[0] in uniqueNameMapping, "Could not find " ~ ship.getValue(subSourceValue) ~ " when loading " ~ subName ~ ". Make sure " ~ connectionValues[0] ~ " is defined before " ~ subName ~ " in " ~ p_file);
-          
-          auto connectionName = uniqueNameMapping[connectionValues[0]] ~ "." ~ connectionValues[1];
-          
-          subEntity.setValue(key, connectionName);
-        }
-        else
-        {
-          subEntity.setValue(key, ship.getValue(subSourceValue));
-        }
+        subEntity.setValue(key, ship.getValue(subSourceValue));
       }
       
       if (subEntity.getValue("mass").length > 0)
@@ -767,7 +754,7 @@ private:
         accumulatedMass += to!float(subEntity.getValue("mass"));
       }
       
-      subEntitiesToAdd ~= subEntity;
+      subEntitiesToAdd[subEntity.id] = subEntity;
     }
     
     if (accumulatedMass > 0.0)
@@ -778,8 +765,52 @@ private:
     
     registerEntity(ship);
     
+    Entity[Entity] entityDependicy;
+    
     foreach (subEntity; subEntitiesToAdd)
-      registerEntity(subEntity);
+    {
+      // rename connection value to ensure it points to the unique entity created for the ship
+      if (subEntity.getValue("connection").length > 0)
+      {
+        auto connectionValues = split!(string, string)(subEntity.getValue("connection"), ".");
+        
+        // TODO: unittest that these enforces kick in when they should
+        enforce(connectionValues.length == 2);
+        enforce(connectionValues[0] in nameToId, "Could not find " ~ subEntity.getValue("connection") ~ " when loading " ~ subEntity.getValue("name") ~ ". Make sure " ~ connectionValues[0] ~ " is defined before " ~ subEntity.getValue("name") ~ " in " ~ p_file ~ ". nameToId mappings: " ~ to!string(nameToId));
+        
+        auto connectionName = to!string(nameToId[connectionValues[0]]) ~ "." ~ connectionValues[1];
+        
+        // delay registering this subentity if the entity it's connected to hasn't been registered yet
+        if (m_connector.hasComponent(subEntitiesToAdd[nameToId[connectionValues[0]]]) == false)
+          entityDependicy[subEntity] = subEntitiesToAdd[nameToId[connectionValues[0]]];
+        
+        subEntity.setValue("connection", connectionName);
+      }
+      
+      if (subEntity !in entityDependicy)
+        registerEntity(subEntity);
+      else if (m_connector.hasComponent(entityDependicy[subEntity]))
+        registerEntity(subEntity);
+    }
+    
+    // loop over dependent entities until all are registered
+    while (entityDependicy.length > 0)
+    {
+      Entity[Entity] newEntityDependicy;
+      
+      foreach (entity; entityDependicy.keys)
+      {
+        if (m_connector.hasComponent(entityDependicy[entity]))
+          registerEntity(entity);
+        else
+          newEntityDependicy[entity] = entityDependicy[entity];
+      }
+      
+      // if no entities were registered and all were put in newEntityDependicy, we have a cycle or something
+      enforce(newEntityDependicy.length < entityDependicy.length, "Could not resolve entity dependicies when loading " ~ p_file);
+      
+      entityDependicy = newEntityDependicy;
+    }
 
     return ship;
   }
@@ -787,7 +818,6 @@ private:
 
   void registerEntity(Entity p_entity)
   {
-    //debug writeln("Registering entity " ~ to!string(p_entity.id) ~ " with values " ~ to!string(p_entity.values));
     m_entities[p_entity.id] = p_entity;
     
     foreach (subSystem; m_subSystems)
@@ -871,4 +901,6 @@ private:
   
   Entity m_fpsDisplay;
   float[20] m_fpsBuffer;
+  
+  AiGunner m_aiGunner;
 }

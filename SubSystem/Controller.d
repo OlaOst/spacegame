@@ -55,9 +55,10 @@ class ControlComponent
 class Controller : public Base!(ControlComponent)
 {
 public:
-  this(InputHandler p_inputHandler)
+  this(InputHandler p_inputHandler, Control[string] p_aiControls)
   {
     m_inputHandler = p_inputHandler;
+    m_aiControls = p_aiControls;
   }
   
   void update()
@@ -130,7 +131,11 @@ protected:
         
         case "flocker":
           component.control = new FlockControl(10.0, 1.5,     // distance & weight for avoid rule
-                                              50.0, 0.2);    // distance & weight for flock rule
+                                               50.0, 0.2);    // distance & weight for flock rule
+          break;
+        
+        case "aigunner":        
+          component.control = m_aiControls["aigunner"];
           break;
         
         case "nothing":
@@ -149,6 +154,8 @@ protected:
     
 private:
   InputHandler m_inputHandler;
+  
+  Control[string] m_aiControls;
   
   float m_timeStep;
 }
