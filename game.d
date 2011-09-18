@@ -299,17 +299,39 @@ private:
         // disconnect if no health left
         if (colliderComponent.health <= 0.0)
         {
+          // de-control entity and all connected entities
+          entity.setValue("control", "nothing");
+          m_controller.removeEntity(entity);
+          
+          foreach (connectedEntity; m_connector.getConnectedEntities(entity))
+          {
+            connectedEntity.setValue("control", "nothing");
+            connectedEntity.setValue("owner", to!string(connectedEntity.id));
+            m_controller.removeEntity(connectedEntity);
+            m_connector.removeEntity(connectedEntity);
+            
+            if (m_collider.hasComponent(connectedEntity))
+            {
+              auto connectedColliderComponent = m_collider.getComponent(connectedEntity);
+              connectedColliderComponent.health = to!float(connectedEntity.getValue("health"));
+              
+              if (m_physics.hasComponent(connectedEntity))
+              {
+                auto connectedPhysComp = m_physics.getComponent(connectedEntity);
+                connectedPhysComp.position = connectedColliderComponent.position;
+                connectedPhysComp.force = Vector.origo;
+                
+                m_physics.setComponent(connectedEntity, connectedPhysComp);
+              }
+            }
+          }
+        
           // TODO: figure out why entity is getting reconnected later on
           entity.setValue("owner", to!string(entity.id));
           m_connector.removeEntity(entity);
           
           writeln("disconnecting entity " ~ to!string(entity.id) ~ " with position " ~ colliderComponent.position.toString());
           colliderComponent.health = to!float(entity.getValue("health"));
-          
-          // de-control entity
-          entity.setValue("control", "nothing");
-          m_controller.removeEntity(entity);
-          //m_controller.registerEntity(entity);
           
           assert(m_connector.hasComponent(entity) == false);
           
@@ -574,10 +596,10 @@ private:
             
             if (ownerEntity == m_playerShip)
             {
-              if (m_dragEntity.getValue("source") == "data/engine.txt")
+              if (m_dragEntity.getValue("source") == "data/engine.txt" || m_dragEntity.getValue("source") == "engine.txt")
                 m_dragEntity.setValue("control", "playerEngine");
               
-              if (m_dragEntity.getValue("source") == "data/cannon.txt")
+              if (m_dragEntity.getValue("source") == "data/cannon.txt" || m_dragEntity.getValue("source") == "cannon.txt")
                 m_dragEntity.setValue("control", "playerLauncher");
             }
             registerEntity(m_dragEntity);

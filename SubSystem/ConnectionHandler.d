@@ -161,7 +161,7 @@ public:
       auto componentToDisconnect = getComponent(p_entity);
 
       // set connectpoint.connectedEntity = null so it's free for other entities
-      if (componentToDisconnect.owner !is p_entity)
+      if (componentToDisconnect.owner !is p_entity && p_entity.getValue("connection").length > 0)
       {
         auto entityId = to!int(extractEntityAndConnectPointName(p_entity.getValue("connection"))[0]);
         auto connectPointName = extractEntityAndConnectPointName(p_entity.getValue("connection"))[1];
@@ -185,15 +185,14 @@ public:
             break;
           }
         }
+        
+        // entities connected to the disconnected entity should also be disconnected
+        foreach (connectedEntity; getConnectedEntities(p_entity))
+          disconnectEntity(connectedEntity);
       }
       
-      //componentToDisconnect.position += componentToDisconnect.relativePosition;
       auto ownerComponent = getComponent(componentToDisconnect.owner);
       
-      //componentToDisconnect.position = ownerComponent.position + componentToDisconnect.relativePosition.rotate(ownerComponent.angle);
-      //componentToDisconnect.position.z += componentToDisconnect.relativePosition.z; // set z component here since it is not transferred in rotate operation
-      //componentToDisconnect.angle = ownerComponent.angle + componentToDisconnect.relativeAngle;
-
       componentToDisconnect.relativePosition = Vector.origo;
 
       // a disconnected entity owns itself
