@@ -91,14 +91,21 @@ public:
   }
   body
   {
-    Vector[] otherPositions = [];
+    Vector[] relativePositions = [];
     
-    foreach (otherComponent; p_otherComponents) //nearbyEntities(p_sourceComponent, p_otherComponents, 50.0))
+    // TODO: we don't want ai control to see the modules of its ship (the entities sharing owner) as stuff to follow
+    foreach (flockMember; flockMembers) //nearbyEntities(p_sourceComponent, p_otherComponents, 50.0))
     {
-      otherPositions ~= p_sourceComponent.position - otherComponent.position;
+      if (controller.hasComponent(flockMember))
+      {
+        auto controlComponent = controller.getComponent(flockMember);
+        
+        //if (controlComponent != p_sourceComponent)
+          relativePositions ~= p_sourceComponent.position - controlComponent.position;
+      }
     }
-
-    auto desiredVel = desiredVelocity(otherPositions);
+    
+    auto desiredVel = desiredVelocity(relativePositions);
     
     assert(desiredVel.isValid());
     
@@ -109,8 +116,14 @@ public:
     
     float desiredTorque = dir.angle(desiredVel);
     
-    if (desiredTorque < 0.1)
-      p_sourceComponent.force = p_sourceComponent.force + Vector(0.5, 0.0);
+    if (desiredTorque > p_sourceComponent.torqueForce)
+      desiredTorque = p_sourceComponent.torqueForce;
+    if (desiredTorque < -p_sourceComponent.torqueForce)
+      desiredTorque = -p_sourceComponent.torqueForce;
+    
+    if (desiredTorque < 0.1 && p_sourceComponent.velocity.length2d < 10.0)
+      //p_sourceComponent.force += dir.normalized * p_sourceComponent.thrustForce;
+      p_sourceComponent.force += Vector(1.0 * p_sourceComponent.thrustForce, 0.0);
 
     p_sourceComponent.torque = desiredTorque;
   }
@@ -143,8 +156,12 @@ private:
     return desiredVelocity;
   }
   
-
-private:
+  
+public:  
+  Entity[] flockMembers;
+  Controller controller;
+  
+private: 
   float m_avoidDistance;
   float m_avoidWeight;
   

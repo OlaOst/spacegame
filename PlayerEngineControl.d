@@ -85,10 +85,8 @@ public:
     // dampen rotation if no rotation input from player
     /*if (m_inputHandler.isPressed(Event.LeftKey) == false && m_inputHandler.isPressed(Event.RightKey) == false)
     {
-      if (p_sourceComponent.rotation > 0.0)
-        torque -= torqueForce; //fmin(torqueForce, p_sourceComponent.rotation);
-      else
-        torque += torqueForce;
+      if (abs(p_sourceComponent.rotation) > 0.0001)
+        torque -= (p_sourceComponent.rotation / abs(p_sourceComponent.rotation)) * torqueForce * 1 * abs(p_sourceComponent.rotation);
     }*/
       
     if (m_inputHandler.isPressed(Event.StrafeLeft))
@@ -97,7 +95,12 @@ public:
       force -= dir.rotate(PI/2) * slideForce;
       
     if (m_inputHandler.isPressed(Event.Brake))
+    {
       force -= p_sourceComponent.velocity.normalized.rotate(-p_sourceComponent.angle) * slideForce;
+      
+      if (abs(p_sourceComponent.rotation) > 0.001)
+        torque -= (p_sourceComponent.rotation / abs(p_sourceComponent.rotation)) * torqueForce;
+    }
       
     p_sourceComponent.force = force;
     p_sourceComponent.torque = torque;

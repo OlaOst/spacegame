@@ -5,5 +5,5 @@ mass = 1.0
 health = 25.0
 
 thrustForce = 30.0
-torqueForce = 7.0
+torqueForce = 25.0
 slideForce = 15.0

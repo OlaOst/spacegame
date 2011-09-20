@@ -123,15 +123,20 @@ protected:
       {
         case "playerEngine":
           component.control = new PlayerEngineControl(m_inputHandler);
-          break;      
+          break;
         
-        case "playerLauncher":      
+        case "playerLauncher":
           component.control = new PlayerLauncherControl(m_inputHandler);
           break;
         
         case "flocker":
-          component.control = new FlockControl(10.0, 1.5,     // distance & weight for avoid rule
-                                               50.0, 0.2);    // distance & weight for flock rule
+          //component.control = new FlockControl(10.0, 1.5,     // distance & weight for avoid rule
+          //                                     50.0, 0.2);    // distance & weight for flock rule
+          component.control = m_aiControls["flocker"];
+          break;
+        
+        case "chaser":
+          component.control = m_aiControls["chaser"];
           break;
         
         case "aigunner":        
@@ -141,7 +146,7 @@ protected:
         case "nothing":
           component.control = new class () Control { override void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents) {} };
           break;
-          
+        
         default:
           enforce(false, "Error registering control component, " ~ p_entity.getValue("control") ~ " is an unknown control.");
       }

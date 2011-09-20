@@ -43,9 +43,11 @@ import SubSystem.Placer;
 import SubSystem.Sound;
 import SubSystem.Spawner;
 
+import AiChaser;
 import AiGunner;
 import CommsCentral;
 import DragDropHandler;
+import FlockControl;
 import InputHandler;
 import Starfield;
 import common.Vector;
@@ -154,6 +156,8 @@ public:
     
     Control[string] aiControls;
     aiControls["aigunner"] = m_aiGunner = new AiGunner();
+    aiControls["flocker"] = m_aiFlocker = new FlockControl(10.0, 1.5, 50.0, 0.2); // avoid distance & weight, flock distance & weight
+    aiControls["chaser"] = m_aiChaser = new AiChaser();
     
     m_subSystems["placer"] = m_placer = new Placer();
     m_subSystems["graphics"] = m_graphics = new Graphics(xres, yres);
@@ -163,6 +167,8 @@ public:
     m_subSystems["connector"] = m_connector = new ConnectionHandler();
     m_subSystems["sound"] = new SoundSubSystem(16);    
     m_subSystems["spawner"] = m_spawner = new Spawner();
+    
+    m_aiFlocker.controller = m_controller;
     
     m_trashBin = new Entity();
     m_trashBin.setValue("name", "trashbin");
@@ -235,10 +241,10 @@ public:
     
     m_playerShip = loadShip("playership.txt", ["position" : "0 0 0"]);
     
-    for (int n = 0; n < 5; n++)
+    for (int n = 0; n < 12; n++)
     {
       Entity npcShip = loadShip("npcship2.txt", ["position" : Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0)).toString(), 
-                                                "angle" : to!string(uniform(0.0, PI*2))]);
+                                                 "angle" : to!string(uniform(0.0, PI*2))]);
     }
     
     
@@ -284,9 +290,18 @@ private:
     m_aiGunner.targetPositions.length = 0;
     m_aiGunner.targetPositions ~= m_placer.getComponent(m_playerShip).position;
     
+    m_aiChaser.targetPosition = m_placer.getComponent(m_playerShip).position;
+    m_aiChaser.targetVelocity = m_placer.getComponent(m_playerShip).velocity;
+    
+    //m_aiFlocker.flockMembers.length = 0;
+    
     foreach (entity; m_entities)
     {
-      // TODO: make subsystem dedicated to removing entities. it's responsible for values like lifetime and health 
+      //if (entity.getValue("collisionType") == "NpcShip")
+        //m_aiFlocker.flockMembers ~= entity;
+      
+      // TODO: make subsystem dedicated to removing entities. it should be responsible for values like lifetime and health 
+      // TODO: ideally all this code should be handled by just setting values on the entity and then re-register it
       if (m_collider.hasComponent(entity))
       {
         auto colliderComponent = m_collider.getComponent(entity);
@@ -301,14 +316,23 @@ private:
         {
           // de-control entity and all connected entities
           entity.setValue("control", "nothing");
+          entity.setValue("collisionType", "FreeFloatingModule");
+          entity.setValue("position", m_placer.getComponent(entity).position.toString());
+          entity.setValue("angle", to!string(m_placer.getComponent(entity).angle));
+          entity.setValue("velocity", Vector.origo.toString());
+          entity.setValue("force", Vector.origo.toString());
+          
           m_controller.removeEntity(entity);
+          m_collider.registerEntity(entity);
           
           foreach (connectedEntity; m_connector.getConnectedEntities(entity))
           {
             connectedEntity.setValue("control", "nothing");
+            connectedEntity.setValue("collisionType", "FreeFloatingModule");
             connectedEntity.setValue("owner", to!string(connectedEntity.id));
             m_controller.removeEntity(connectedEntity);
             m_connector.removeEntity(connectedEntity);
+            m_collider.registerEntity(connectedEntity);
             
             if (m_collider.hasComponent(connectedEntity))
             {
@@ -358,18 +382,7 @@ private:
       m_physics.setTimeStep(elapsedTime);
       m_controller.setTimeStep(elapsedTime);
       
-      // the sdl/gl stuff in the graphics subsystem needs to run in the main thread for stuff to be shown on the screen
-      // so we filter the graphics subsystem out of the subsystem list 
-      // and explicitly update it outside the parallel foreach to ensure it runs in the main thread
-      //m_graphics.update();
-      //foreach (subSystem; taskPool.parallel(filter!(delegate (SubSystem.Base.SubSystem sys) { return sys !is m_graphics; })(m_subSystems.values)))
-      //{
-      //  subSystem.update();
-      //}
-      foreach (subSystem; m_subSystems.values)
-      {
-        subSystem.update();
-      }
+      updateSubSystems();
       
       CommsCentral.setPlacerFromPhysics(m_physics, m_placer);
       CommsCentral.setPlacerFromConnector(m_connector, m_placer);
@@ -894,6 +907,39 @@ private:
   
   
 private:
+  void updateSubSystems()
+  {
+    // the sdl/gl stuff in the graphics subsystem needs to run in the main thread for stuff to be shown on the screen
+    // so we filter the graphics subsystem out of the subsystem list 
+    // and explicitly update it outside the parallel foreach to ensure it runs in the main thread
+    debug
+    {
+      StopWatch subSystemTimer;
+      subSystemTimer.reset();
+      subSystemTimer.start();
+    }
+    
+    debug m_graphics.updateWithTiming();
+    else  m_graphics.update();
+    foreach (subSystem; taskPool.parallel(filter!(delegate (SubSystem.Base.SubSystem sys) { return sys !is m_graphics; })(m_subSystems.values), 1))
+    //foreach (subSystem; m_subSystems.values)
+    {
+      debug subSystem.updateWithTiming();
+      else  subSystem.update();
+    }
+    debug
+    {
+      subSystemTimer.stop();
+      float timeSpent = subSystemTimer.peek.usecs / 1_000_000.0;
+    
+      auto timeSpents = map!((SubSystem.Base.SubSystem sys) { return sys.timeSpent;} )(m_subSystems.values);
+      float subSystemTime = reduce!"a+b"(0.0, timeSpents);
+    
+      writeln("Subsystem update spent " ~ to!string(timeSpent) ~ ", time saved parallellizing: " ~ to!string(subSystemTime - timeSpent));
+    }
+  }
+  
+private:
   int m_updateCount;
   bool m_running;
   
@@ -925,4 +971,6 @@ private:
   float[20] m_fpsBuffer;
   
   AiGunner m_aiGunner;
+  FlockControl m_aiFlocker;
+  AiChaser m_aiChaser;
 }

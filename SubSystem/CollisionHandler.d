@@ -96,6 +96,7 @@ enum CollisionType
   NpcModule,
   PlayerShip,
   PlayerModule,
+  FreeFloatingModule,
   Asteroid,
   Bullet
 }

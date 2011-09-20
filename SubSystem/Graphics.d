@@ -133,7 +133,7 @@ struct Vertex
   {
     auto comps = std.string.split(p_data, " ");
     
-    assert(comps.length == 5, "should have 5 things in comps, got " ~ p_data ~ " instead");
+    assert(comps.length == 5, "should have 5 values in vertex data, got " ~ p_data ~ " instead");
     
     return Vertex(to!float(comps[0]), to!float(comps[1]), to!float(comps[2]), to!float(comps[3]), to!float(comps[4]));
   }
@@ -185,6 +185,8 @@ public:
   
   @property string text() { return m_text; }
   @property string text(string p_text) { return m_text = p_text; }
+  
+  int displayListId = -1;
   
 private:
   Vector m_position = Vector.origo;
@@ -264,17 +266,19 @@ public:
       glTranslatef(component.position.x, component.position.y, component.position.z);
       
       // show some data for entities, unrotated
-      glPushMatrix();
-        glTranslatef(0.0, component.radius*2, 0.0);
-        //m_textRender.renderString(to!string(component.velocity.length2d()));
-        m_textRender.renderString(to!string(component.text));
-      glPopMatrix();
+      if (component.text.length > 0)
+      {
+        glPushMatrix();
+          glTranslatef(0.0, component.radius*2, 0.0);
+          //m_textRender.renderString(to!string(component.velocity.length2d()));
+          m_textRender.renderString(to!string(component.text));
+        glPopMatrix();
+      }
       glDisable(GL_TEXTURE_2D);
       
       glRotatef(component.angle * (180.0 / PI), 0.0, 0.0, 1.0);
       
-      // draw connectpoinst
-      //glDisable(GL_DEPTH_TEST);
+      // draw connectpoints
       foreach (connectPoint; component.connectPoints)
       {
         glPointSize(4.0);
@@ -283,97 +287,11 @@ public:
           glVertex3f(connectPoint.x, connectPoint.y, 1.0);
         glEnd();
       }
-      //glEnable(GL_DEPTH_TEST);
       
-      
-      if (component.drawSource == DrawSource.Invisible)
-      {
-      }
-      if (component.drawSource == DrawSource.Triangle)
-      {
-        glBegin(GL_TRIANGLES);
-          for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 3)
-          {
-            glColor3f(cos(angle*2), sin(angle/2), 0.0);
-            glVertex3f(cos(angle) * component.radius, sin(angle) * component.radius, 0.0);
-          }
-        glEnd();
-      }
-      else if (component.drawSource == DrawSource.Star)
-      {
-        glBegin(GL_TRIANGLE_FAN);
-          glColor3f(1.0, 1.0, 1.0);
-          glVertex3f(0.0, 0.0, 0.0);
-          glColor3f(0.0, 0.5, 1.0);
-          for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 5)
-          {
-            glVertex3f(cos(angle) * component.radius, sin(angle) * component.radius, 0.0);
-          }
-          glVertex3f(cos(0.0) * component.radius, sin(0.0) * component.radius, 0.0);
-        glEnd();
-      }
-      else if (component.drawSource == DrawSource.Bullet)
-      {
-        glBegin(GL_TRIANGLE_FAN);
-          glColor3f(1.0, 1.0, 0.0);
-          glVertex3f(0.0, 0.0, 0.0);
-          glColor3f(1.0, 0.5, 0.0);
-          for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 4)
-          {
-            glVertex3f(cos(angle) * component.radius, sin(angle) * component.radius, 0.0);
-          }
-          glVertex3f(cos(0.0) * component.radius, sin(0.0) * component.radius, 0.0);
-        glEnd();
-      }
-      else if (component.drawSource == DrawSource.Vertices)
-      {
-        glBegin(GL_POLYGON);
-        foreach (vertex; component.vertices)
-        {
-          glColor3f(vertex.r, vertex.g, vertex.b);
-          glVertex3f(vertex.x, vertex.y, 0.0);
-        }
-        glEnd();
-      }
-      else if (component.drawSource == DrawSource.Text)
-      {
-        glScalef(0.05, 0.05, 1.0);
-        
-        glColor3f(component.color.r, component.color.g, component.color.b);
-        m_textRender.renderString(component.text);
-      }
-      else if (component.drawSource == DrawSource.Unknown)
-      {
-        // TODO: should just draw a big fat question mark here
-        // or a cow
-        
-        glBegin(GL_TRIANGLE_FAN);
-          glColor3f(0.0, 0.0, 0.0);
-          glVertex3f(0.0, 0.0, 0.0);
-          glColor3f(1.0, 0.0, 0.0);
-          for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 4)
-          {
-            glVertex3f(cos(angle) * component.radius, sin(angle) * component.radius, 0.0);
-          }
-          glVertex3f(cos(0.0) * component.radius, sin(0.0) * component.radius, 0.0);
-        glEnd();
-      }
-      
-      // draw circle indicating radius in debug mode
-      debug
-      {
-        if (component.isPointedAt(m_mouseWorldPos))
-          glColor3f(1.0, 1.0, 0.0);
-        else
-          glColor3f(1.0, 1.0, 1.0);
-        
-        glBegin(GL_LINE_LOOP);
-        for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 16)
-        {
-          glVertex3f(cos(angle) * component.radius, sin(angle) * component.radius, 0.0);
-        }
-        glEnd();
-      }
+      if (component.displayListId > 0)
+        glCallList(component.displayListId);
+      else
+        drawComponent(component);
       
       glPopMatrix();
     }
@@ -523,6 +441,9 @@ protected:
       component.color = Vertex.fromString("0 0 " ~ p_entity.getValue("color"));
     }
     
+    if (component.drawSource != DrawSource.Text)
+      createDisplayList(component);
+    
     return component;
   }
 
@@ -530,6 +451,113 @@ private:
   bool looksLikeAFile(string p_txt)
   {
     return endsWith(p_txt, ".txt") > 0;
+  }
+  
+  
+  void createDisplayList(ref GraphicsComponent p_component)
+  {
+    // TODO: make sure we don't create completely similar display lists
+    
+    p_component.displayListId = glGenLists(1);
+    
+    enforce(p_component.displayListId > 0, "Could not create display list id");
+    
+    glNewList(p_component.displayListId, GL_COMPILE);
+      drawComponent(p_component);
+    glEndList();
+  }
+
+
+  void drawComponent(GraphicsComponent p_component)
+  {
+    if (p_component.drawSource == DrawSource.Invisible)
+    {
+    }
+    if (p_component.drawSource == DrawSource.Triangle)
+    {
+      glBegin(GL_TRIANGLES);
+        for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 3)
+        {
+          glColor3f(cos(angle*2), sin(angle/2), 0.0);
+          glVertex3f(cos(angle) * p_component.radius, sin(angle) * p_component.radius, 0.0);
+        }
+      glEnd();
+    }
+    else if (p_component.drawSource == DrawSource.Star)
+    {
+      glBegin(GL_TRIANGLE_FAN);
+        glColor3f(1.0, 1.0, 1.0);
+        glVertex3f(0.0, 0.0, 0.0);
+        glColor3f(0.0, 0.5, 1.0);
+        for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 5)
+        {
+          glVertex3f(cos(angle) * p_component.radius, sin(angle) * p_component.radius, 0.0);
+        }
+        glVertex3f(cos(0.0) * p_component.radius, sin(0.0) * p_component.radius, 0.0);
+      glEnd();
+    }
+    else if (p_component.drawSource == DrawSource.Bullet)
+    {
+      glBegin(GL_TRIANGLE_FAN);
+        glColor3f(1.0, 1.0, 0.0);
+        glVertex3f(0.0, 0.0, 0.0);
+        glColor3f(1.0, 0.5, 0.0);
+        for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 4)
+        {
+          glVertex3f(cos(angle) * p_component.radius, sin(angle) * p_component.radius, 0.0);
+        }
+        glVertex3f(cos(0.0) * p_component.radius, sin(0.0) * p_component.radius, 0.0);
+      glEnd();
+    }
+    else if (p_component.drawSource == DrawSource.Vertices)
+    {
+      glBegin(GL_POLYGON);
+      foreach (vertex; p_component.vertices)
+      {
+        glColor3f(vertex.r, vertex.g, vertex.b);
+        glVertex3f(vertex.x, vertex.y, 0.0);
+      }
+      glEnd();
+    }
+    else if (p_component.drawSource == DrawSource.Text)
+    {
+      glScalef(0.05, 0.05, 1.0);
+      
+      glColor3f(p_component.color.r, p_component.color.g, p_component.color.b);
+      m_textRender.renderString(p_component.text);
+    }
+    else if (p_component.drawSource == DrawSource.Unknown)
+    {
+      // TODO: should just draw a big fat question mark here
+      // or a cow
+      
+      glBegin(GL_TRIANGLE_FAN);
+        glColor3f(0.0, 0.0, 0.0);
+        glVertex3f(0.0, 0.0, 0.0);
+        glColor3f(1.0, 0.0, 0.0);
+        for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 4)
+        {
+          glVertex3f(cos(angle) * p_component.radius, sin(angle) * p_component.radius, 0.0);
+        }
+        glVertex3f(cos(0.0) * p_component.radius, sin(0.0) * p_component.radius, 0.0);
+      glEnd();
+    }
+    
+    // draw circle indicating radius in debug mode
+    debug
+    {
+      if (p_component.isPointedAt(m_mouseWorldPos))
+        glColor3f(1.0, 1.0, 0.0);
+      else
+        glColor3f(1.0, 1.0, 1.0);
+      
+      glBegin(GL_LINE_LOOP);
+      for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 16)
+      {
+        glVertex3f(cos(angle) * p_component.radius, sin(angle) * p_component.radius, 0.0);
+      }
+      glEnd();
+    }
   }
   
 private:

@@ -23,6 +23,7 @@
 module SubSystem.Base;
 
 import std.conv;
+import std.datetime;
 import std.stdio;
 
 import Entity;
@@ -139,7 +140,30 @@ public:
     return this.classinfo.name;
   }
   
+  void updateWithTiming()
+  {
+    m_timer.reset();
+    m_timer.start();
+    
+    update();
+    
+    m_timer.stop();
+    m_timeSpent = m_timer.peek.usecs / 1_000_000.0;
+    
+    assert(m_timeSpent == m_timeSpent);
+  }
+  float timeSpent()
+  {
+    assert(m_timeSpent == m_timeSpent);
+    return m_timeSpent;
+  }
+  
+public:
+  float m_timeSpent;
+  
 private:
+  StopWatch m_timer;
+  
   ComponentType[Entity] m_entityToComponent;
 }
 
@@ -167,6 +191,8 @@ interface SubSystem
   bool hasComponent(Entity p_entity);
   
   void update();
+  void updateWithTiming();
+  float timeSpent();
   
   string name();
 }

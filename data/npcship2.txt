@@ -18,13 +18,13 @@ gunSkeleton.health = 10.0
 
 leftEngine.source = engine.txt
 leftEngine.connection = engineSkeleton.upper
-leftEngine.control = flocker
+leftEngine.control = chaser
 leftEngine.collisionType = NpcModule
 leftEngine.health = 5.0
 
 rightEngine.source = engine.txt
 rightEngine.connection = engineSkeleton.lower
-rightEngine.control = flocker
+rightEngine.control = chaser
 rightEngine.collisionType = NpcModule
 rightEngine.health = 5.0
 

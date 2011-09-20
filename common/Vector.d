@@ -137,10 +137,10 @@ struct Vector
   Vector opOpAssign(string op)(float p_right) if (op == "*")
   { return Vector(x *= p_right, y *= p_right, z *= p_right); }
   
-  Vector normalized()
+  Vector normalized() const
   out (result)
   {
-    assert(result.isValid(), toString());
+    assert(result.isValid(), "Error calculating normalized vector from " ~ this.toString());
   }
   body
   {
@@ -152,17 +152,17 @@ struct Vector
       return Vector.origo;
   }  
   
-  float length2d()
+  float length2d() const 
   {
     return sqrt(x*x + y*y);
   }
   
-  float length3d()
+  float length3d() const
   {
     return sqrt(x*x + y*y + z*z);
   }
   
-  string toString()
+  string toString() const
   {
     return to!string(x) ~ " " ~ to!string(y) ~ " " ~ to!string(z);
   }

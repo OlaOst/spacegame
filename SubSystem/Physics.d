@@ -25,7 +25,6 @@ module SubSystem.Physics;
 import std.conv;
 import std.exception;
 import std.math;
-import std.random;
 import std.stdio;
 
 import SubSystem.Base;
@@ -169,38 +168,9 @@ private:
       // add spring force to center
       //component.force = component.force + (component.position * -0.05);
       
-      // and some damping
+      // add some damping
       component.force = component.force + (component.velocity * -0.15);
-      component.torque = component.torque + (component.rotation * -2.5);
-      
-      // handle collisions TODO: but not in physics
-      /*foreach (collision; component.entity.getAndClearCollisions)
-      {
-        ColliderComponent self = (collision.first.entity == component.entity) ? collision.first : collision.second;
-        ColliderComponent other = (collision.first.entity == component.entity) ? collision.second : collision.first;
-        
-        // this physics component might have collided with a non-physics component, i.e. ship moving over and lighting up something in the background or the hud, like a targeting reticle 
-        // if we have physics component on the other collision component, we can do something physical
-        if (hasComponent(other.entity))
-        {
-          auto otherPhysicsComponent = getComponent(other.entity);
-          
-          // determine collision force
-          float collisionForce = (component.velocity * component.mass + otherPhysicsComponent.velocity * otherPhysicsComponent.mass).length2d;
-
-          // give a kick from the contactpoint
-          component.force = component.force + (collision.contactPoint.normalized() * -collisionForce);
-          
-          // reduce health for certain collisiontypes
-          if (self.collisionType == CollisionType.NpcShip && other.collisionType == CollisionType.Bullet)
-          {
-            debug write("reducing npc ship health from " ~ to!string(self.entity.health) ~ " to ");
-            self.entity.health -= otherPhysicsComponent.mass * (other.entity.velocity.length2d() - self.entity.velocity.length2d());
-            debug writeln(to!string(self.entity.health));
-          }
-        }
-      }
-      */
+      component.torque = component.torque + (component.rotation * -20.5);
       
       component.move(p_time);
       
@@ -225,20 +195,15 @@ protected:
     if (p_entity.getValue("position").length > 0)
       newComponent.position = Vector.fromString(p_entity.getValue("position"));
     
-    if (p_entity.getValue("velocity") == "randomize")
-    {
-      newComponent.velocity = Vector(uniform(-1.5, 1.5), uniform(-1.5, 1.5));
-    }
-    else if (p_entity.getValue("velocity").length > 0)
-    {
+    if (p_entity.getValue("angle").length > 0)
+      newComponent.angle = to!float(p_entity.getValue("angle"));
+    
+    if (p_entity.getValue("velocity").length > 0)
       newComponent.velocity = Vector.fromString(p_entity.getValue("velocity"));
-    }
     
     if (p_entity.getValue("force").length > 0)
       newComponent.force = Vector.fromString(p_entity.getValue("force"));
       
-    
-    //enforce(p_entity.getValue("mass").length > 0, "couldn't find mass for physics component");
     if (p_entity.getValue("mass").length > 0)
       newComponent.mass = to!float(p_entity.getValue("mass"));
     
