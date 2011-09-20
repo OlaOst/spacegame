@@ -259,14 +259,15 @@ public:
         // ignore nonempty connectpoints
         if (connectPoint.connectedEntity !is null)
           continue;
-          
-        // assume component positions are up to date
-        auto connectPointPosition = component.position + connectPoint.position;
+
+        auto connectPointPosition = component.position + connectPoint.position.rotate(component.angle);
         
         auto distanceToConnectPoint = (p_position - connectPointPosition).length2d;
         
         if (distanceToConnectPoint < radius)
+        {
           overlappingConnectPoints[connectPoint] = component.position;
+        }
       }
     }
     

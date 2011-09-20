@@ -178,7 +178,7 @@ struct Vector
     auto c = cos(p_angle);
     auto s = sin(p_angle);
     
-    return Vector(x*c - y*s, x*s + y*c);
+    return Vector(x*c - y*s, x*s + y*c, z);
   }
   
   float angle() const

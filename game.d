@@ -212,7 +212,7 @@ public:
                         "data/engine.txt"];
     
     // put some random modules in random positions
-    for (int i = 0; i < 30; i++)
+    for (int i = 0; i < 0; i++)
     {
       auto randomModule = new Entity(modules[uniform(0, modules.length)]);
       
@@ -241,7 +241,7 @@ public:
     
     m_playerShip = loadShip("playership.txt", ["position" : "0 0 0"]);
     
-    for (int n = 0; n < 12; n++)
+    for (int n = 0; n < 0; n++)
     {
       Entity npcShip = loadShip("npcship2.txt", ["position" : Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0)).toString(), 
                                                  "angle" : to!string(uniform(0.0, PI*2))]);
@@ -935,7 +935,7 @@ private:
       auto timeSpents = map!((SubSystem.Base.SubSystem sys) { return sys.timeSpent;} )(m_subSystems.values);
       float subSystemTime = reduce!"a+b"(0.0, timeSpents);
     
-      writeln("Subsystem update spent " ~ to!string(timeSpent) ~ ", time saved parallellizing: " ~ to!string(subSystemTime - timeSpent));
+      //writeln("Subsystem update spent " ~ to!string(timeSpent) ~ ", time saved parallellizing: " ~ to!string(subSystemTime - timeSpent));
     }
   }
   
