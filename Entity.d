@@ -67,7 +67,7 @@ public:
   
   this(string p_file)
   {
-    this();
+    id = m_idCounter++;
     
     values["name"] = p_file ~ ":" ~ to!string(id);
     values["source"] = p_file;
@@ -75,17 +75,26 @@ public:
     loadValues(values, p_file);
   }
   
-  this(string p_file, string[string] p_extraParams)
+  this(string[string] p_extraParams)
   {
-    this(p_file);
-    
-    values["source"] = p_file;
+    id = m_idCounter++;
     
     foreach (extraParam; p_extraParams.keys)
     {
       setValue(extraParam, p_extraParams[extraParam]);
     }
   }
+  
+  this(string p_file, string[string] p_extraParams)
+  {
+    this(p_file);
+    
+    foreach (extraParam; p_extraParams.keys)
+    {
+      setValue(extraParam, p_extraParams[extraParam]);
+    }
+  }
+  
   
   static void loadValues(ref string[string] p_values, string p_file)
   {

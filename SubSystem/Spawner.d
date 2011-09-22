@@ -1,5 +1,6 @@
 module SubSystem.Spawner;
 
+import std.algorithm;
 import std.conv;
 import std.exception;
 import std.math;
@@ -43,7 +44,7 @@ unittest
 
 struct SpawnerComponent
 {
-  Entity spawn;
+  Entity spawnBlueprint;
   
   Vector position = Vector.origo;
   Vector velocity = Vector.origo;
@@ -79,18 +80,27 @@ public:
     {
       if (component.isSpawning)
       {
-        Entity bullet = new Entity();
+        Entity spawn;
+        if (component.spawnBlueprint !is null)
+        {
+          spawn = new Entity(component.spawnBlueprint.values);
+        }
+        else
+        {
+          spawn = new Entity();
 
-        bullet.setValue("drawsource", "Bullet");
-        bullet.setValue("collisionType", "Bullet");
-        bullet.setValue("radius", "0.1");
-        bullet.setValue("mass", "0.2");
+          spawn.setValue("drawsource", "Bullet");
+          spawn.setValue("collisionType", "Bullet");
+          spawn.setValue("radius", "0.1");
+          spawn.setValue("mass", "0.2");
+          spawn.setValue("lifetime", "5.0");
+        }
         
         auto spawnAngle = component.angle + component.spawnAngle;
         
         assert(component.velocity.isValid());
         
-        // should be impulse not force
+        // should be impulse not force... or should it?
         auto spawnForce = Vector.fromAngle(spawnAngle) * component.spawnForce;
         auto spawnVelocity = component.velocity + spawnForce;
         
@@ -100,26 +110,23 @@ public:
         force -= spawnForce * (1.0 - recoilDamping);
         component.force = force;
         
-        bullet.setValue("spawnedFrom", to!string(component.entityId));
-        bullet.setValue("spawnedFromOwner", to!string(component.ownerId));
+        spawn.setValue("spawnedFrom", to!string(component.entityId));
+        spawn.setValue("spawnedFromOwner", to!string(component.ownerId));
         
-        bullet.setValue("position", to!string(component.position + component.spawnPoint));
-        bullet.setValue("angle", to!string(spawnAngle));
+        spawn.setValue("position", to!string(component.position + component.spawnPoint));
+        spawn.setValue("angle", to!string(spawnAngle));
         
-        bullet.setValue("velocity", spawnVelocity.toString());
-        bullet.setValue("force", spawnForce.toString());
-        
-        bullet.setValue("lifetime", "5.0");
+        spawn.setValue("velocity", spawnVelocity.toString());
+        spawn.setValue("force", spawnForce.toString());
         
         immutable string[4] sounds = ["mgshot1.wav", "mgshot2.wav", "mgshot3.wav", "mgshot4.wav"];
         
         // we should have two entity spawns here, one for the muzzle flash effect (which also will handle the sound)
-        // and another for the actual bullet entity
+        // and another for the actual spawn entity
+        spawn.setValue("soundFile", sounds[uniform(0, sounds.length)]);
+        //spawn.setValue("soundFile", sounds[0]);
         
-        bullet.setValue("soundFile", sounds[uniform(0, sounds.length)]);
-        //bullet.setValue("soundFile", sounds[0]);
-        
-        m_spawns ~= bullet;
+        m_spawns ~= spawn;
       }
     }
   }
@@ -151,6 +158,11 @@ protected:
   {
     auto component = SpawnerComponent();
     
+    if (looksLikeAFile(p_entity.getValue("spawns")))
+    {
+      component.spawnBlueprint = new Entity(p_entity.getValue("spawns"));
+    }
+    
     enforce(p_entity.getValue("spawns") == "bullets", "Spawner subsystem only knows how to spawn bullets, not " ~ p_entity.getValue("spawns"));
     
     component.entityId = p_entity.id;
@@ -174,6 +186,14 @@ protected:
     return component;
   }
 
+
+private:
+  bool looksLikeAFile(string p_txt)
+  {
+    return endsWith(p_txt, ".txt") > 0;
+  }
+  
+  
 private:
   Entity[] m_spawns;
 }
