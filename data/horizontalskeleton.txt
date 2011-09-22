@@ -1,7 +1,8 @@
 radius = 1.0
 mass = 1.0
 
-drawsource = horizontalskeletonshape.txt
+#drawsource = horizontalskeletonshape.txt
+drawsource = images/horizontalskeleton.png
 
 connectpoint.left.position = -0.8 0.0 -1
 connectpoint.right.position = 0.8 0.0 1

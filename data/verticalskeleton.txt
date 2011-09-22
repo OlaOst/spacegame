@@ -1,7 +1,8 @@
 radius = 1.0
 mass = 1.0
 
-drawsource = verticalskeletonshape.txt
+#drawsource = verticalskeletonshape.txt
+drawsource = images/verticalskeleton.png
 
 connectpoint.lower.position = 0.0 -0.8
 connectpoint.upper.position = 0.0 0.8

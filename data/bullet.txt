@@ -1,6 +1,6 @@
 #drawsource = Bullet
 drawsource = images/bullet.png
 collisionType = Bullet
-radius = 1.0
+radius = 0.4
 mass = 0.2
 lifetime = 5.0

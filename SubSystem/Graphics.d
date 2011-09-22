@@ -256,7 +256,7 @@ public:
     
     glDisable(GL_TEXTURE_2D);
 
-    foreach (component; components)
+    foreach (component; sort!((left, right) { return left.position.z < right.position.z; })(components))
     {
       glPushMatrix();
       
@@ -572,7 +572,7 @@ private:
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       
-      auto size = 0.5 * p_component.radius;
+      auto size = 1.0 * p_component.radius;
       
       glBindTexture(GL_TEXTURE_2D, p_component.textureId);
       glBegin(GL_QUADS);
