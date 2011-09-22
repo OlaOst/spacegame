@@ -29,9 +29,13 @@ import std.exception;
 import std.format;
 import std.math;
 import std.stdio;
+import std.string;
 
-import derelict.opengl.gl;
 import derelict.freetype.ft;
+import derelict.opengl.gl;
+import derelict.opengl.glu;
+import derelict.sdl.image;
+import derelict.sdl.sdl;
 
 import Display;
 import Entity;
@@ -120,7 +124,8 @@ enum DrawSource
   Star,
   Bullet,
   Vertices,
-  Text
+  Text,
+  Texture
 }
 
 
@@ -187,6 +192,7 @@ public:
   @property string text(string p_text) { return m_text = p_text; }
   
   int displayListId = -1;
+  uint textureId = -1;
   
 private:
   Vector m_position = Vector.origo;
@@ -385,7 +391,7 @@ protected:
       m_centerEntity = p_entity;
     }
     
-    if (looksLikeAFile(p_entity.getValue("drawsource")))
+    if (looksLikeATextFile(p_entity.getValue("drawsource")))
     {
       component.drawSource = DrawSource.Vertices;
       
@@ -397,6 +403,30 @@ protected:
         if (vertexName.startsWith("vertex"))
           component.vertices ~= Vertex.fromString(vertexData);
       }
+    }
+    else if (p_entity.getValue("drawsource").endsWith(".png"))
+    {
+      component.drawSource = DrawSource.Texture;
+      
+      auto imageFile = p_entity.getValue("drawsource");
+      
+      SDL_Surface* image = IMG_Load(("data/" ~ imageFile).toStringz);
+      
+      enforce(image !is null, "Error loading image " ~ imageFile ~ ": " ~ to!string(IMG_GetError()));
+      enforce(image.pixels !is null);
+      
+      auto format = (image.format.BytesPerPixel == 4 ? GL_RGBA : GL_RGB);
+      
+      glGenTextures(1, &component.textureId);
+      enforce(component.textureId > 0, "Failed to generate texture id: " ~ to!string(glGetError()));
+      
+      glBindTexture(GL_TEXTURE_2D, component.textureId);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexImage2D(GL_TEXTURE_2D, 0, image.format.BytesPerPixel, image.w, image.h, 0, format, GL_UNSIGNED_BYTE, image.pixels);
+      
+      auto error = glGetError();
+      enforce(error == GL_NO_ERROR, "Error texturizing image " ~ imageFile ~ ": " ~ to!string(gluErrorString(error)));
     }
     else
     {
@@ -448,7 +478,7 @@ protected:
   }
 
 private:
-  bool looksLikeAFile(string p_txt)
+  bool looksLikeATextFile(string p_txt)
   {
     return endsWith(p_txt, ".txt") > 0;
   }
@@ -525,6 +555,22 @@ private:
       
       glColor3f(p_component.color.r, p_component.color.g, p_component.color.b);
       m_textRender.renderString(p_component.text);
+    }
+    else if (p_component.drawSource == DrawSource.Texture)
+    {
+      glEnable(GL_TEXTURE_2D);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glEnable(GL_BLEND);
+      
+      auto size = 0.5 * p_component.radius;
+      
+      glBindTexture(GL_TEXTURE_2D, p_component.textureId);
+      glBegin(GL_QUADS);
+        glTexCoord2f(0.0, 0.0); glVertex3f(-size, -size, 0.0);
+        glTexCoord2f(0.0, 1.0); glVertex3f(size, -size, 0.0);
+        glTexCoord2f(1.0, 1.0); glVertex3f(size, size, 0.0);
+        glTexCoord2f(1.0, 0.0); glVertex3f(-size, size, 0.0);
+      glEnd();
     }
     else if (p_component.drawSource == DrawSource.Unknown)
     {

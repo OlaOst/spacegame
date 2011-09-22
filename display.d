@@ -27,6 +27,7 @@ import std.exception;
 import std.stdio;
 import std.string;
 
+import derelict.sdl.image;
 import derelict.sdl.sdl;
 import derelict.opengl.gl;
 import derelict.opengl.glu;
@@ -55,12 +56,14 @@ void initDisplay(int p_screenWidth, int p_screenHeight)
   //version(DerelictGL_EXT) debug writeln("DerelictGL_EXT defined");
   
   DerelictSDL.load();
+  DerelictSDLImage.load();
   DerelictGL.load();
   DerelictGLU.load();
   
   enforce(SDL_Init(SDL_INIT_VIDEO) == 0, "Failed to initialize SDL: " ~ to!string(SDL_GetError()));
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  enforce(IMG_Init(IMG_INIT_PNG) == IMG_INIT_PNG, "Error initializing png loader: " ~ to!string(IMG_GetError()));
   
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   SDL_SetVideoMode(p_screenWidth, p_screenHeight, 24, SDL_OPENGL);
   //SDL_WM_SetCaption(toStringz("hello world"), null);
   
