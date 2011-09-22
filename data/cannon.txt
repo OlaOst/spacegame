@@ -6,4 +6,5 @@ health = 25.0
 
 #spawnSource = bullet.txt and muzzleflash.txt
 spawnSource = bullet.txt
+spawnPoint = 0.0 0.0 -100.0
 spawnForce = 25.0

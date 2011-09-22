@@ -408,25 +408,33 @@ protected:
     {
       component.drawSource = DrawSource.Texture;
       
-      auto imageFile = p_entity.getValue("drawsource");
+      auto imageFile = "data/" ~ p_entity.getValue("drawsource");
       
-      SDL_Surface* image = IMG_Load(("data/" ~ imageFile).toStringz);
-      
-      enforce(image !is null, "Error loading image " ~ imageFile ~ ": " ~ to!string(IMG_GetError()));
-      enforce(image.pixels !is null);
-      
-      auto format = (image.format.BytesPerPixel == 4 ? GL_RGBA : GL_RGB);
-      
-      glGenTextures(1, &component.textureId);
-      enforce(component.textureId > 0, "Failed to generate texture id: " ~ to!string(glGetError()));
-      
-      glBindTexture(GL_TEXTURE_2D, component.textureId);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexImage2D(GL_TEXTURE_2D, 0, image.format.BytesPerPixel, image.w, image.h, 0, format, GL_UNSIGNED_BYTE, image.pixels);
-      
-      auto error = glGetError();
-      enforce(error == GL_NO_ERROR, "Error texturizing image " ~ imageFile ~ ": " ~ to!string(gluErrorString(error)));
+      if (imageFile !in m_textureMapping)
+      {
+        SDL_Surface* image = IMG_Load(imageFile.toStringz);
+        
+        enforce(image !is null, "Error loading image " ~ imageFile ~ ": " ~ to!string(IMG_GetError()));
+        enforce(image.pixels !is null);
+        
+        auto format = (image.format.BytesPerPixel == 4 ? GL_RGBA : GL_RGB);
+        
+        uint textureId;
+        
+        glGenTextures(1, &textureId);
+        enforce(textureId > 0, "Failed to generate texture id: " ~ to!string(glGetError()));
+        
+        m_textureMapping[imageFile] = textureId;
+        
+        glBindTexture(GL_TEXTURE_2D, textureId);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexImage2D(GL_TEXTURE_2D, 0, image.format.BytesPerPixel, image.w, image.h, 0, format, GL_UNSIGNED_BYTE, image.pixels);
+        
+        auto error = glGetError();
+        enforce(error == GL_NO_ERROR, "Error texturizing image " ~ imageFile ~ ": " ~ to!string(gluErrorString(error)));
+      }
+      component.textureId = m_textureMapping[imageFile];
     }
     else
     {
@@ -558,14 +566,17 @@ private:
     }
     else if (p_component.drawSource == DrawSource.Texture)
     {
+      assert(p_component.textureId > 0);
+      
       glEnable(GL_TEXTURE_2D);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       
       auto size = 0.5 * p_component.radius;
       
       glBindTexture(GL_TEXTURE_2D, p_component.textureId);
       glBegin(GL_QUADS);
+        glNormal3f(0.0, 0.0, 1.0);
         glTexCoord2f(0.0, 0.0); glVertex3f(-size, -size, 0.0);
         glTexCoord2f(0.0, 1.0); glVertex3f(size, -size, 0.0);
         glTexCoord2f(1.0, 1.0); glVertex3f(size, size, 0.0);
@@ -608,6 +619,8 @@ private:
   
 private:
   TextRender m_textRender;
+  
+  uint[string] m_textureMapping;
   
   float m_zoom;
   
