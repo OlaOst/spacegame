@@ -148,25 +148,6 @@ public:
     else
       return null;
   }
-
-  void addCollision(Collision p_collision)
-  {
-    m_collisionList ~= p_collision;
-  }
-  
-  Collision[] getAndClearCollisions()
-  out
-  {
-    assert(m_collisionList.length == 0);
-  }
-  body
-  {
-    Collision[] tmp = m_collisionList;
-    
-    m_collisionList.length = 0;
-    
-    return tmp;
-  }
   
   
 public:
@@ -178,6 +159,4 @@ public:
 private:
   static int m_idCounter;
   private static string[][string] m_fileCache;
-  
-  Collision[] m_collisionList;
 }
