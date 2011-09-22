@@ -85,16 +85,6 @@ public:
         {
           spawn = new Entity(component.spawnBlueprint.values);
         }
-        else
-        {
-          spawn = new Entity();
-
-          spawn.setValue("drawsource", "Bullet");
-          spawn.setValue("collisionType", "Bullet");
-          spawn.setValue("radius", "0.1");
-          spawn.setValue("mass", "0.2");
-          spawn.setValue("lifetime", "5.0");
-        }
         
         auto spawnAngle = component.angle + component.spawnAngle;
         
@@ -150,7 +140,8 @@ public:
 protected:
   bool canCreateComponent(Entity p_entity)
   {
-    return p_entity.getValue("spawns").length > 0;
+    return (p_entity.getValue("spawnSource").length > 0 ||
+            looksLikeAFile(p_entity.getValue("spawnSource")));
   }
   
   
@@ -158,12 +149,10 @@ protected:
   {
     auto component = SpawnerComponent();
     
-    if (looksLikeAFile(p_entity.getValue("spawns")))
+    if (looksLikeAFile(p_entity.getValue("spawnSource")))
     {
-      component.spawnBlueprint = new Entity(p_entity.getValue("spawns"));
+      component.spawnBlueprint = new Entity(p_entity.getValue("spawnSource"));
     }
-    
-    enforce(p_entity.getValue("spawns") == "bullets", "Spawner subsystem only knows how to spawn bullets, not " ~ p_entity.getValue("spawns"));
     
     component.entityId = p_entity.id;
     

@@ -69,7 +69,9 @@ public:
   {
     id = m_idCounter++;
     
-    values["name"] = p_file ~ ":" ~ to!string(id);
+    if (p_file.startsWith("data/") == false)
+      p_file = "data/" ~ p_file;
+    
     values["source"] = p_file;
     
     loadValues(values, p_file);

@@ -241,7 +241,7 @@ public:
     
     m_playerShip = loadShip("playership.txt", ["position" : "0 0 0"]);
     
-    for (int n = 0; n < 0; n++)
+    for (int n = 0; n < 10; n++)
     {
       Entity npcShip = loadShip("npcship2.txt", ["position" : Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0)).toString(), 
                                                  "angle" : to!string(uniform(0.0, PI*2))]);
