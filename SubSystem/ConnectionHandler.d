@@ -163,8 +163,8 @@ public:
       // set connectpoint.connectedEntity = null so it's free for other entities
       if (componentToDisconnect.owner !is p_entity && p_entity.getValue("connection").length > 0)
       {
-        auto entityId = to!int(extractEntityAndConnectPointName(p_entity.getValue("connection"))[0]);
-        auto connectPointName = extractEntityAndConnectPointName(p_entity.getValue("connection"))[1];
+        auto entityId = to!int(extractEntityIdAndConnectPointName(p_entity.getValue("connection"))[0]);
+        auto connectPointName = extractEntityIdAndConnectPointName(p_entity.getValue("connection"))[1];
       
         foreach (siblingEntity; entities)
         {
@@ -335,12 +335,12 @@ protected:
     Vector relativePosition = Vector.origo;
     if (p_entity.getValue("connection").length > 0)
     {
-      auto entityAndConnectPointName = extractEntityAndConnectPointName(p_entity.getValue("connection"));
+      auto entityIdAndConnectPointName = extractEntityIdAndConnectPointName(p_entity.getValue("connection"));
       
       auto connectEntityId = -1;
-      try { connectEntityId = to!int(entityAndConnectPointName[0]); } catch (ConvException) {}
+      try { connectEntityId = to!int(entityIdAndConnectPointName[0]); } catch (ConvException) {}
       
-      auto connectPointName = entityAndConnectPointName[1];
+      auto connectPointName = entityIdAndConnectPointName[1];
       
       Entity connectToEntity;
       
@@ -424,7 +424,7 @@ private:
 
 
 // returns [0] == entity name or id, [1] == connect point name
-string[2] extractEntityAndConnectPointName(string p_data)
+string[2] extractEntityIdAndConnectPointName(string p_data)
 {
   // p_data looks like 'entityname.connectpointname'
   // entityname may contain '.' characters, so everything until the last '.' is entityname, rest is connectpointname

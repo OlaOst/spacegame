@@ -299,14 +299,29 @@ public:
       else
         drawComponent(component);
       
+
+      // draw circle indicating radius in debug mode
+      debug
+      {
+        if (component.m_screenAbsolutePosition == false)
+        {
+          if (component.isPointedAt(m_mouseWorldPos))
+            glColor3f(1.0, 0.0, 0.0);
+          else
+            glColor3f(1.0, 1.0, 1.0);
+          
+          glBegin(GL_LINE_LOOP);
+          for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 16)
+          {
+            glVertex3f(cos(angle) * component.radius, sin(angle) * component.radius, 0.0);
+          }
+          glEnd();
+        }
+      }
+      
+      
       glPopMatrix();
     }
-    
-    /*glColor3f(1.0, 0.0, 0.0);
-    glBegin(GL_LINE);
-      glVertex2f(0.0, 0.0);
-      glVertex2f(m_mouseWorldPos.x, m_mouseWorldPos.y);
-    glEnd();*/
     
     glTranslatef(0.0, 5.0, 0.0);
     m_textRender.renderString("hello world");
@@ -597,22 +612,6 @@ private:
           glVertex3f(cos(angle) * p_component.radius, sin(angle) * p_component.radius, 0.0);
         }
         glVertex3f(cos(0.0) * p_component.radius, sin(0.0) * p_component.radius, 0.0);
-      glEnd();
-    }
-    
-    // draw circle indicating radius in debug mode
-    debug
-    {
-      if (p_component.isPointedAt(m_mouseWorldPos))
-        glColor3f(1.0, 1.0, 0.0);
-      else
-        glColor3f(1.0, 1.0, 1.0);
-      
-      glBegin(GL_LINE_LOOP);
-      for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 16)
-      {
-        glVertex3f(cos(angle) * p_component.radius, sin(angle) * p_component.radius, 0.0);
-      }
       glEnd();
     }
   }

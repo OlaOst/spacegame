@@ -180,28 +180,28 @@ public:
     
     Entity engineBlueprint = new Entity("data/engine.txt");
     engineBlueprint.setValue("isBlueprint", "true");
-    engineBlueprint.setValue("position", "5 100 0");
+    engineBlueprint.setValue("position", "5 10 0");
     engineBlueprint.setValue("name", "engineBlueprint");
     engineBlueprint.setValue("collisionType", "PlayerModule");
     registerEntity(engineBlueprint);
     
     Entity cannonBlueprint = new Entity("data/cannon.txt");
     cannonBlueprint.setValue("isBlueprint", "true");
-    cannonBlueprint.setValue("position", "7 100 0");
+    cannonBlueprint.setValue("position", "7 10 0");
     cannonBlueprint.setValue("name", "cannonBlueprint");
     cannonBlueprint.setValue("collisionType", "PlayerModule");
     registerEntity(cannonBlueprint);
     
     Entity horizontalSkeletonBlueprint = new Entity("data/horizontalskeleton.txt");
     horizontalSkeletonBlueprint.setValue("isBlueprint", "true");
-    horizontalSkeletonBlueprint.setValue("position", "9 100 0");
+    horizontalSkeletonBlueprint.setValue("position", "9 10 0");
     horizontalSkeletonBlueprint.setValue("name", "horizontalSkeletonBlueprint");
     horizontalSkeletonBlueprint.setValue("collisionType", "PlayerModule");
     registerEntity(horizontalSkeletonBlueprint);
     
     Entity verticalSkeletonBlueprint = new Entity("data/verticalskeleton.txt");
     verticalSkeletonBlueprint.setValue("isBlueprint", "true");
-    verticalSkeletonBlueprint.setValue("position", "11 100 0");
+    verticalSkeletonBlueprint.setValue("position", "11 10 0");
     verticalSkeletonBlueprint.setValue("name", "verticalSkeletonBlueprint");
     verticalSkeletonBlueprint.setValue("collisionType", "PlayerModule");
     registerEntity(verticalSkeletonBlueprint);
@@ -241,7 +241,7 @@ public:
     
     m_playerShip = loadShip("playership.txt", ["position" : "0 0 0"]);
     
-    for (int n = 0; n < 1; n++)
+    for (int n = 0; n < 0; n++)
     {
       Entity npcShip = loadShip("npcship2.txt", ["position" : Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0)).toString(), 
                                                  "angle" : to!string(uniform(0.0, PI*2))]);
@@ -501,7 +501,7 @@ private:
           {
             m_dragEntity = new Entity(m_dragEntity.getValue("source"), m_dragEntity.values);
             m_dragEntity.setValue("isBlueprint", "false");
-            m_dragEntity.setValue("name", m_dragEntity.getValue("source") ~ ":" ~ to!string(m_dragEntity.id));
+            //m_dragEntity.setValue("name", m_dragEntity.getValue("source") ~ ":" ~ to!string(m_dragEntity.id));
             
             registerEntity(m_dragEntity);
           }
@@ -522,7 +522,7 @@ private:
               
               if (m_dragEntity.getValue("connection").length > 0)
               {
-                auto dragEntityConnection = extractEntityAndConnectPointName(m_dragEntity.getValue("connection"));
+                auto dragEntityConnection = extractEntityIdAndConnectPointName(m_dragEntity.getValue("connection"));
                 
                 Entity connectEntity;
                 foreach (entity; m_entities)
