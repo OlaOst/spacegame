@@ -46,7 +46,6 @@ import SubSystem.Spawner;
 import AiChaser;
 import AiGunner;
 import CommsCentral;
-import DragDropHandler;
 import FlockControl;
 import InputHandler;
 import Starfield;
@@ -174,7 +173,7 @@ public:
     m_trashBin.setValue("name", "trashbin");
     m_trashBin.setValue("position", "-5 100 0");
     m_trashBin.setValue("drawsource", "Unknown");
-    m_trashBin.setValue("radius", "1");
+    m_trashBin.setValue("radius", "1.0");
     registerEntity(m_trashBin);
     
     
@@ -225,6 +224,7 @@ public:
     
     Entity startupDing = new Entity();
     startupDing.setValue("soundFile", "test.wav");
+    startupDing.setValue("name", "startupDing");
     
     registerEntity(startupDing);
     
@@ -235,13 +235,14 @@ public:
     m_fpsDisplay.setValue("screenAbsolutePosition", "true");
     m_fpsDisplay.setValue("position", "-1.0 0.7");
     m_fpsDisplay.setValue("color", "1.0 1.0 1.0");
+    m_fpsDisplay.setValue("name", "FPS display");
     
     registerEntity(m_fpsDisplay);
     
     
     m_playerShip = loadShip("playership.txt", ["position" : "0 0 0"]);
     
-    for (int n = 0; n < 0; n++)
+    for (int n = 0; n < 1; n++)
     {
       Entity npcShip = loadShip("npcship2.txt", ["position" : Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0)).toString(), 
                                                  "angle" : to!string(uniform(0.0, PI*2))]);
@@ -314,6 +315,8 @@ private:
         // disconnect if no health left
         if (colliderComponent.health <= 0.0)
         {
+          writeln("no health left, disconnecting entity " ~ to!string(entity.id) ~ " named " ~ entity.getValue("name"));
+          
           // de-control entity and all connected entities
           entity.setValue("control", "nothing");
           entity.setValue("collisionType", "FreeFloatingModule");
@@ -470,6 +473,7 @@ private:
       {
         foreach (draggable; m_entities)
         {
+          writeln("drag checking entity " ~ to!string(draggable.id) ~" named " ~ draggable.getValue("name"));
           if (m_graphics.hasComponent(draggable) == false)
             continue;
           
@@ -485,7 +489,7 @@ private:
           {
             // we don't want to drag something if it has stuff connected to it. 
             // if you want to drag a skeleton module, you should drag off all connected modules first
-            // TODO: should be possible to drag stuff with connected stuff, but drag'n'drop needs to be more robust first
+            // TODO: should be possible to drag stuff with connected stuff, but drag'n'drop needs to be more robust first            
             if (m_connector.getConnectedEntities(draggable).length > 0)
               continue;
 
@@ -496,6 +500,7 @@ private:
 
         if (m_dragEntity !is null)
         {
+          writeln("dragging entity " ~ to!string(m_dragEntity.id));
           // create copy of drag entity if it's a blueprint
           if (m_dragEntity.getValue("isBlueprint") == "true")
           {
@@ -750,8 +755,7 @@ private:
   {
     Entity ship = new Entity("data/" ~ p_file, p_extraParams);
     
-    //if (ship.getValue("health"))
-      //ship.health = to!float(ship.getValue("health"));
+    ship.setValue("name", p_file);
     
     // need to add sub entities after they're loaded
     // since the ship entity needs accumulated values from sub entities
@@ -765,6 +769,8 @@ private:
     foreach (subSource; filter!("a.endsWith(\".source\")")(ship.values.keys))
     {
       Entity subEntity = new Entity("data/" ~ ship.getValue(subSource));
+      
+      subEntity.setValue("name", subSource);
       
       auto subName = subSource[0..std.string.indexOf(subSource, ".source")];
       
@@ -853,7 +859,11 @@ private:
 
   void registerEntity(Entity p_entity)
   {
+    //assert(p_entity.id !in m_entities, "Tried registering entity " ~ to!string(p_entity.id) ~ " that was already registered");
+    
     m_entities[p_entity.id] = p_entity;
+    
+    debug writeln("registering entity " ~ to!string(p_entity.id) ~ " with name " ~ p_entity.getValue("name"));
     
     foreach (subSystem; m_subSystems)
       subSystem.registerEntity(p_entity);

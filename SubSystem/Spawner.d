@@ -152,6 +152,7 @@ protected:
     if (looksLikeAFile(p_entity.getValue("spawnSource")))
     {
       component.spawnBlueprint = new Entity(p_entity.getValue("spawnSource"));
+      component.spawnBlueprint.setValue("name", p_entity.getValue("spawnSource"));
     }
     
     component.entityId = p_entity.id;

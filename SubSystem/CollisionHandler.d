@@ -267,8 +267,8 @@ private:
         collision.first.health -= 1.0;
       }
       
-      Entity collisionSound = new Entity();
-      collisionSound.setValue("soundFile", "mgshot3.wav");
+      //Entity collisionSound = new Entity();
+      //collisionSound.setValue("soundFile", "mgshot3.wav");
     }
   }
   

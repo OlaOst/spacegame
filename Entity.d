@@ -62,7 +62,7 @@ public:
   {
     id = m_idCounter++;
     
-    values["name"] = to!string(id);
+    //values["name"] = to!string(id);
   }
   
   this(string p_file)
@@ -168,6 +168,6 @@ public:
   //alias values this;
   
 private:
-  static int m_idCounter;
+  shared synchronized static int m_idCounter;
   private static string[][string] m_fileCache;
 }
