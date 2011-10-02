@@ -1,4 +1,5 @@
-drawsource = cannonshape.txt
+#drawsource = cannonshape.txt
+drawsource = images/cannon.png
 
 radius = 0.75
 mass = 0.5

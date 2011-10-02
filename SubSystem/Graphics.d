@@ -303,6 +303,8 @@ public:
       // draw circle indicating radius in debug mode
       debug
       {
+        glDisable(GL_TEXTURE_2D);
+      
         if (component.m_screenAbsolutePosition == false)
         {
           if (component.isPointedAt(m_mouseWorldPos))
@@ -425,7 +427,7 @@ protected:
       
       auto imageFile = "data/" ~ p_entity.getValue("drawsource");
       
-      if (imageFile !in m_textureMapping)
+      if (imageFile !in m_imageToTextureId)
       {
         SDL_Surface* image = IMG_Load(imageFile.toStringz);
         
@@ -439,7 +441,7 @@ protected:
         glGenTextures(1, &textureId);
         enforce(textureId > 0, "Failed to generate texture id: " ~ to!string(glGetError()));
         
-        m_textureMapping[imageFile] = textureId;
+        m_imageToTextureId[imageFile] = textureId;
         
         glBindTexture(GL_TEXTURE_2D, textureId);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -449,7 +451,7 @@ protected:
         auto error = glGetError();
         enforce(error == GL_NO_ERROR, "Error texturizing image " ~ imageFile ~ ": " ~ to!string(gluErrorString(error)));
       }
-      component.textureId = m_textureMapping[imageFile];
+      component.textureId = m_imageToTextureId[imageFile];
     }
     else
     {
@@ -619,7 +621,7 @@ private:
 private:
   TextRender m_textRender;
   
-  uint[string] m_textureMapping;
+  uint[string] m_imageToTextureId;
   
   float m_zoom;
   

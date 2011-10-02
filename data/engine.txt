@@ -1,4 +1,5 @@
-drawsource = engineshape.txt
+#drawsource = engineshape.txt
+drawsource = images/engine.png
 
 radius = 0.85
 mass = 1.0
