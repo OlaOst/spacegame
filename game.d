@@ -31,6 +31,7 @@ import std.math;
 import std.parallelism;
 import std.random;
 import std.stdio;
+import std.string;
 
 import derelict.sdl.sdl;
 
@@ -239,19 +240,86 @@ public:
     
     registerEntity(m_fpsDisplay);
     
-    
-    m_playerShip = loadShip("playership.txt", ["position" : "0 0 0"]);
-    
-    for (int n = 0; n < 1; n++)
-    {
-      Entity npcShip = loadShip("npcship2.txt", ["position" : Vector(uniform(-12.0, 12.0), uniform(-12.0, 12.0)).toString(), 
-                                                 "angle" : to!string(uniform(0.0, PI*2))]);
-    }
-    
+    loadWorldFromFile("data/world.txt");
     
     //m_starfield = new Starfield(m_graphics, 10.0);
 
     m_inputHandler.setScreenResolution(xres, yres);
+  }
+ 
+ 
+  void loadWorldFromFile(string p_file)
+  {
+    Entity worldEntity = new Entity(p_file);
+        
+    string[string][string] extraValuesForSpawn;
+    
+    foreach (key; worldEntity.values.keys)
+    {
+      auto sourceAndKey = key.split(".");
+      
+      if (sourceAndKey.length == 2)
+      {
+        auto sourceName = sourceAndKey[0];
+        auto sourceKey = sourceAndKey[1];
+        
+        extraValuesForSpawn[sourceName][sourceKey] = worldEntity.getValue(key);
+      }
+    }
+    
+    foreach (spawnCountName; filter!("a.endsWith(\".spawnCount\")")(worldEntity.values.keys))
+    {
+      int spawnCount = to!int(worldEntity.getValue(spawnCountName));
+      
+      auto spawnName = to!string(spawnCountName.until("."));
+
+      for (int count = 0; count < spawnCount; count++)
+      {
+        Vector position = Vector.origo;
+        float angle = 0.0;
+        
+        auto extraValues = extraValuesForSpawn[to!string(spawnName.until("."))].dup;
+        
+        if (extraValues["position"].find("to").length > 0)
+        {
+          auto positionData = extraValues["position"].split(" ");
+          
+          assert(positionData.length == 5, "Problem parsing position data with from/to values: " ~ to!string(positionData));
+          
+          auto fromX = to!float(positionData[0]);
+          auto fromY = to!float(positionData[1]);
+          auto toX = to!float(positionData[3]);
+          auto toY = to!float(positionData[4]);
+          
+          position = Vector(uniform(fromX, toX), uniform(fromY, toY));
+          
+          extraValues["position"] = position.toString();
+        }
+        
+        if (extraValues["angle"].find("to").length > 0)
+        {
+          auto angleData = extraValues["angle"].split(" ");
+          
+          assert(angleData.length == 3, "Problem parsing angle data with from/to values: " ~ to!string(angleData));
+          
+          auto fromAngle = to!float(angleData[0]);
+          auto toAngle = to!float(angleData[2]);
+          
+          // assume we are working with degrees in data files here
+          fromAngle *= PI / 360.0;
+          toAngle *= PI / 360.0;
+          
+          angle = uniform(fromAngle, toAngle);
+          
+          extraValues["angle"] = to!string(angle);
+        }
+        
+        Entity spawn = loadShip(worldEntity.getValue(spawnName ~ ".source"), extraValues);
+        
+        if (spawn.getValue("keepInCenter") == "true")
+          m_playerShip = spawn;
+      }
+    }
   }
  
  
@@ -289,6 +357,7 @@ private:
     Entity[] entitiesToRemove;
     
     m_aiGunner.targetPositions.length = 0;
+    assert(m_playerShip !is null);
     m_aiGunner.targetPositions ~= m_placer.getComponent(m_playerShip).position;
     
     m_aiChaser.targetPosition = m_placer.getComponent(m_playerShip).position;
@@ -473,7 +542,6 @@ private:
       {
         foreach (draggable; m_entities)
         {
-          writeln("drag checking entity " ~ to!string(draggable.id) ~" named " ~ draggable.getValue("name"));
           if (m_graphics.hasComponent(draggable) == false)
             continue;
           
@@ -500,7 +568,6 @@ private:
 
         if (m_dragEntity !is null)
         {
-          writeln("dragging entity " ~ to!string(m_dragEntity.id));
           // create copy of drag entity if it's a blueprint
           if (m_dragEntity.getValue("isBlueprint") == "true")
           {
@@ -945,7 +1012,7 @@ private:
       auto timeSpents = map!((SubSystem.Base.SubSystem sys) { return sys.timeSpent;} )(m_subSystems.values);
       float subSystemTime = reduce!"a+b"(0.0, timeSpents);
     
-      //writeln("Subsystem update spent " ~ to!string(timeSpent) ~ ", time saved parallellizing: " ~ to!string(subSystemTime - timeSpent));
+      //writeln("Subsystem update spent " ~ to!string(timeSpent) ~ ", time saved parallelizing: " ~ to!string(subSystemTime - timeSpent));
     }
   }
   

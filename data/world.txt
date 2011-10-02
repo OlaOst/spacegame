@@ -1,0 +1,9 @@
+npcship.source = npcship2.txt
+npcship.position = 10 10 to 50 50
+npcship.angle = 0 to 360
+npcship.spawnCount = 10
+
+playership.source = playership.txt
+playership.position = 0 0
+playership.angle = 0
+playership.spawnCount = 1
