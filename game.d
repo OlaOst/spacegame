@@ -230,7 +230,7 @@ public:
     registerEntity(startupDing);
     
     
-    m_fpsDisplay = new Entity();
+    /*m_fpsDisplay = new Entity();
     m_fpsDisplay.setValue("drawsource", "Text");
     m_fpsDisplay.setValue("text", "here we should see fps");
     m_fpsDisplay.setValue("screenAbsolutePosition", "true");
@@ -238,7 +238,7 @@ public:
     m_fpsDisplay.setValue("color", "1.0 1.0 1.0");
     m_fpsDisplay.setValue("name", "FPS display");
     
-    registerEntity(m_fpsDisplay);
+    registerEntity(m_fpsDisplay);*/
     
     loadWorldFromFile("data/world.txt");
     
@@ -280,7 +280,7 @@ public:
         
         auto extraValues = extraValuesForSpawn[to!string(spawnName.until("."))].dup;
         
-        if (extraValues["position"].find("to").length > 0)
+        if ("position" in extraValues && extraValues["position"].find("to").length > 0)
         {
           auto positionData = extraValues["position"].split(" ");
           
@@ -296,7 +296,7 @@ public:
           extraValues["position"] = position.toString();
         }
         
-        if (extraValues["angle"].find("to").length > 0)
+        if ("angle" in extraValues && extraValues["angle"].find("to").length > 0)
         {
           auto angleData = extraValues["angle"].split(" ");
           
@@ -314,9 +314,21 @@ public:
           extraValues["angle"] = to!string(angle);
         }
         
-        Entity spawn = loadShip(worldEntity.getValue(spawnName ~ ".source"), extraValues);
+        Entity spawn;
+        if (worldEntity.getValue(spawnName ~ ".source").length > 0)
+        {
+          spawn = loadShip(worldEntity.getValue(spawnName ~ ".source"), extraValues);
+        }
+        else
+        {
+          spawn = new Entity(extraValues);
+          registerEntity(spawn);
+          
+          if (spawn.getValue("name") == "FPS display")
+            m_fpsDisplay = spawn;
+        }
         
-        if (spawn.getValue("keepInCenter") == "true")
+        if (spawn !is null && spawn.getValue("keepInCenter") == "true")
           m_playerShip = spawn;
       }
     }
@@ -930,7 +942,7 @@ private:
     
     m_entities[p_entity.id] = p_entity;
     
-    debug writeln("registering entity " ~ to!string(p_entity.id) ~ " with name " ~ p_entity.getValue("name"));
+    //debug writeln("registering entity " ~ to!string(p_entity.id) ~ " with name " ~ p_entity.getValue("name"));
     
     foreach (subSystem; m_subSystems)
       subSystem.registerEntity(p_entity);
@@ -996,10 +1008,10 @@ private:
       subSystemTimer.start();
     }
     
-    //debug m_graphics.updateWithTiming();
-    //else  m_graphics.update();
-    //foreach (subSystem; taskPool.parallel(filter!(delegate (SubSystem.Base.SubSystem sys) { return sys !is m_graphics; })(m_subSystems.values), 1))
-    foreach (subSystem; m_subSystems.values)
+    debug m_graphics.updateWithTiming();
+    else  m_graphics.update();
+    foreach (subSystem; taskPool.parallel(filter!(delegate (SubSystem.Base.SubSystem sys) { return sys !is m_graphics; })(m_subSystems.values), 1))
+    //foreach (subSystem; m_subSystems.values)
     {
       debug subSystem.updateWithTiming();
       else  subSystem.update();

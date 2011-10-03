@@ -7,3 +7,11 @@ playership.source = playership.txt
 playership.position = 0 0
 playership.angle = 0
 playership.spawnCount = 1
+
+fpsDisplay.drawsource = Text
+fpsDisplay.text = here we should see fps
+fpsDisplay.screenAbsolutePosition = true
+fpsDisplay.position = -1.0 0.7
+fpsDisplay.color = 1.0 1.0 1.0
+fpsDisplay.name = FPS display
+fpsDisplay.spawnCount = 1
