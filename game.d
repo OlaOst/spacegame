@@ -205,22 +205,6 @@ public:
     verticalSkeletonBlueprint.setValue("name", "verticalSkeletonBlueprint");
     verticalSkeletonBlueprint.setValue("collisionType", "PlayerModule");
     registerEntity(verticalSkeletonBlueprint);
-
-    string[] modules = ["data/horizontalskeleton.txt",
-                        "data/verticalskeleton.txt",
-                        "data/cannon.txt",
-                        "data/engine.txt"];
-    
-    // put some random modules in random positions
-    for (int i = 0; i < 0; i++)
-    {
-      auto randomModule = new Entity(modules[uniform(0, modules.length)]);
-      
-      randomModule.setValue("position", Vector(uniform(-20.0, 20.0), uniform(-120.0, -100.0)).toString());
-      //randomModule.setValue("angle", to!string(uniform(0, PI*2)));
-      
-      registerEntity(randomModule);
-    }
     
     loadWorldFromFile("data/world.txt");
     

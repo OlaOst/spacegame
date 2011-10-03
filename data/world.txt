@@ -19,3 +19,25 @@ playership.source = playership.txt
 playership.position = 0 0
 playership.angle = 0
 playership.spawnCount = 1
+
+
+# junkfield with modules ready for the pickings
+junkEngine.source = engine.txt
+junkEngine.position = -20 -120 to 20 -100
+junkEngine.angle = 0 to 360
+junkEngine.spawnCount = 10
+
+junkCannon.source = cannon.txt
+junkCannon.position = -20 -120 to 20 -100
+junkCannon.angle = 0 to 360
+junkCannon.spawnCount = 10
+
+junkHorizSkeleton.source = horizontalskeleton.txt
+junkHorizSkeleton.position = -20 -120 to 20 -100
+junkHorizSkeleton.angle = 0 to 360
+junkHorizSkeleton.spawnCount = 10
+
+junkVertSkeleton.source = verticalskeleton.txt
+junkVertSkeleton.position = -20 -120 to 20 -100
+junkVertSkeleton.angle = 0 to 360
+junkVertSkeleton.spawnCount = 10
