@@ -21,6 +21,36 @@ playership.angle = 0
 playership.spawnCount = 1
 
 
+# blueprint modules create copies when dragged and serve as an unlimited supply of modules
+engineBlueprint.source = engine.txt
+engineBlueprint.isBlueprint = true
+engineBlueprint.position = 5 10 0
+engineBlueprint.name = engineBlueprint
+engineBlueprint.collisionType = PlayerModule
+engineBlueprint.spawnCount = 1
+
+cannonBlueprint.source = cannon.txt
+cannonBlueprint.isBlueprint = true
+cannonBlueprint.position = 7 10 0
+cannonBlueprint.name = cannonBlueprint
+cannonBlueprint.collisionType = PlayerModule
+cannonBlueprint.spawnCount = 1
+
+horizontalSkeletonBlueprint.source = horizontalskeleton.txt
+horizontalSkeletonBlueprint.isBlueprint = true
+horizontalSkeletonBlueprint.position = 9 10 0
+horizontalSkeletonBlueprint.name = horizontalSkeletonBlueprint
+horizontalSkeletonBlueprint.collisionType = PlayerModule
+horizontalSkeletonBlueprint.spawnCount = 1
+
+verticalSkeletonBlueprint.source = verticalskeleton.txt
+verticalSkeletonBlueprint.isBlueprint = true
+verticalSkeletonBlueprint.position = 11 10 0
+verticalSkeletonBlueprint.name = verticalSkeletonBlueprint
+verticalSkeletonBlueprint.collisionType = PlayerModule
+verticalSkeletonBlueprint.spawnCount = 1
+
+
 # junkfield with modules ready for the pickings
 junkEngine.source = engine.txt
 junkEngine.position = -20 -120 to 20 -100

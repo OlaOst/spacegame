@@ -177,35 +177,6 @@ public:
     m_trashBin.setValue("radius", "1.0");
     registerEntity(m_trashBin);
     
-    
-    Entity engineBlueprint = new Entity("data/engine.txt");
-    engineBlueprint.setValue("isBlueprint", "true");
-    engineBlueprint.setValue("position", "5 10 0");
-    engineBlueprint.setValue("name", "engineBlueprint");
-    engineBlueprint.setValue("collisionType", "PlayerModule");
-    registerEntity(engineBlueprint);
-    
-    Entity cannonBlueprint = new Entity("data/cannon.txt");
-    cannonBlueprint.setValue("isBlueprint", "true");
-    cannonBlueprint.setValue("position", "7 10 0");
-    cannonBlueprint.setValue("name", "cannonBlueprint");
-    cannonBlueprint.setValue("collisionType", "PlayerModule");
-    registerEntity(cannonBlueprint);
-    
-    Entity horizontalSkeletonBlueprint = new Entity("data/horizontalskeleton.txt");
-    horizontalSkeletonBlueprint.setValue("isBlueprint", "true");
-    horizontalSkeletonBlueprint.setValue("position", "9 10 0");
-    horizontalSkeletonBlueprint.setValue("name", "horizontalSkeletonBlueprint");
-    horizontalSkeletonBlueprint.setValue("collisionType", "PlayerModule");
-    registerEntity(horizontalSkeletonBlueprint);
-    
-    Entity verticalSkeletonBlueprint = new Entity("data/verticalskeleton.txt");
-    verticalSkeletonBlueprint.setValue("isBlueprint", "true");
-    verticalSkeletonBlueprint.setValue("position", "11 10 0");
-    verticalSkeletonBlueprint.setValue("name", "verticalSkeletonBlueprint");
-    verticalSkeletonBlueprint.setValue("collisionType", "PlayerModule");
-    registerEntity(verticalSkeletonBlueprint);
-    
     loadWorldFromFile("data/world.txt");
     
     //m_starfield = new Starfield(m_graphics, 10.0);
