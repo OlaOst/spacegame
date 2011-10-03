@@ -996,10 +996,10 @@ private:
       subSystemTimer.start();
     }
     
-    debug m_graphics.updateWithTiming();
-    else  m_graphics.update();
-    foreach (subSystem; taskPool.parallel(filter!(delegate (SubSystem.Base.SubSystem sys) { return sys !is m_graphics; })(m_subSystems.values), 1))
-    //foreach (subSystem; m_subSystems.values)
+    //debug m_graphics.updateWithTiming();
+    //else  m_graphics.update();
+    //foreach (subSystem; taskPool.parallel(filter!(delegate (SubSystem.Base.SubSystem sys) { return sys !is m_graphics; })(m_subSystems.values), 1))
+    foreach (subSystem; m_subSystems.values)
     {
       debug subSystem.updateWithTiming();
       else  subSystem.update();

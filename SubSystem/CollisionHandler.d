@@ -209,27 +209,24 @@ protected:
 private:
   void determineCollisions()
   {
-    //writeln("determineCollisions, length " ~ to!string(m_collisions.length) ~ ", capacity " ~ to!string(m_collisions.capacity));
     m_collisions.length = 0;
-    //m_collisions.clear();
     
     if (components.length <= 1)
       return;
     
-    // TODO: de-O^2 this, spatial hash or something
-    for (uint firstIndex = 0; firstIndex < components.length-1; firstIndex++)
+    // for now, we only consider collisions between bullets and not-bullets. this makes it possible to have more than 10 guns shooting without FPS dropping below 5
+    // optimizing with spatial hash or similar could speed things up a bit further
+    auto bulletComponents = filter!((ColliderComponent component){return component.collisionType == CollisionType.Bullet;})(components);
+    auto notBulletComponents = filter!((ColliderComponent component){return component.collisionType != CollisionType.Bullet;})(components);
+    
+    foreach (bulletComponent; bulletComponents)
     {
-      ColliderComponent first = components[firstIndex];
-      
-      for (uint secondIndex = firstIndex + 1; secondIndex < components.length; secondIndex++)
+      ColliderComponent first = bulletComponent;
+      foreach (notBulletComponent; notBulletComponents)
       {
-        ColliderComponent second = components[secondIndex];
+        ColliderComponent second = notBulletComponent;
         
-        // bullets should not collide with each other
-        if (first.collisionType == CollisionType.Bullet && second.collisionType == CollisionType.Bullet)
-          continue;
-        
-        assert(first != second, "collider component with index " ~ to!string(firstIndex) ~ " is equal to component with index " ~ to!string(secondIndex));
+        assert(first != second, "collider component with id " ~ to!string(first.id) ~ " is equal to component with id " ~ to!string(second.id));
 
         // bullets should not collide with the entity that spawned them, or any entities that has the same owner... or should they?
         if ((first.spawnedFromOwner > 0 && second.ownerId > 0 && first.spawnedFromOwner == second.ownerId) || 
