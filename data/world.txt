@@ -1,12 +1,6 @@
-npcship.source = npcship2.txt
-npcship.position = 10 10 to 150 50
-npcship.angle = 0 to 360
-npcship.spawnCount = 15
-
-playership.source = playership.txt
-playership.position = 0 0
-playership.angle = 0
-playership.spawnCount = 1
+startupDing.soundFile = test.wav
+startupDing.name = startupDing
+startupDing.spawnCount = 1
 
 fpsDisplay.drawsource = Text
 fpsDisplay.text = here we should see fps
@@ -15,3 +9,13 @@ fpsDisplay.position = -1.0 0.7
 fpsDisplay.color = 1.0 1.0 1.0
 fpsDisplay.name = FPS display
 fpsDisplay.spawnCount = 1
+
+npcship.source = npcship2.txt
+npcship.position = 10 10 to 150 50
+npcship.angle = 0 to 360
+npcship.spawnCount = 0
+
+playership.source = playership.txt
+playership.position = 0 0
+playership.angle = 0
+playership.spawnCount = 1

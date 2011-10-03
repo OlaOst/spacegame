@@ -222,24 +222,6 @@ public:
       registerEntity(randomModule);
     }
     
-    
-    Entity startupDing = new Entity();
-    startupDing.setValue("soundFile", "test.wav");
-    startupDing.setValue("name", "startupDing");
-    
-    registerEntity(startupDing);
-    
-    
-    /*m_fpsDisplay = new Entity();
-    m_fpsDisplay.setValue("drawsource", "Text");
-    m_fpsDisplay.setValue("text", "here we should see fps");
-    m_fpsDisplay.setValue("screenAbsolutePosition", "true");
-    m_fpsDisplay.setValue("position", "-1.0 0.7");
-    m_fpsDisplay.setValue("color", "1.0 1.0 1.0");
-    m_fpsDisplay.setValue("name", "FPS display");
-    
-    registerEntity(m_fpsDisplay);*/
-    
     loadWorldFromFile("data/world.txt");
     
     //m_starfield = new Starfield(m_graphics, 10.0);
@@ -942,7 +924,7 @@ private:
     
     m_entities[p_entity.id] = p_entity;
     
-    //debug writeln("registering entity " ~ to!string(p_entity.id) ~ " with name " ~ p_entity.getValue("name"));
+    debug writeln("registering entity " ~ to!string(p_entity.id) ~ " with name " ~ p_entity.getValue("name"));
     
     foreach (subSystem; m_subSystems)
       subSystem.registerEntity(p_entity);

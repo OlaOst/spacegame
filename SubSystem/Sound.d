@@ -22,6 +22,7 @@
 
 module SubSystem.Sound;
 
+import std.algorithm;
 import std.conv;
 import std.stdio;
 
@@ -107,11 +108,20 @@ protected:
   
   SoundComponent createComponent(Entity p_entity)
   {
-    auto buffer = alutCreateBufferFromFile(cast(char*)p_entity.getValue("soundFile"));
+    auto soundFile = p_entity.getValue("soundFile");
     
-    auto newComponent = new SoundComponent(buffer);
+    if (soundFile.startsWith("data/sounds/") == false)
+      soundFile = "data/sounds/" ~ soundFile;
+      
+    if (soundFile !in m_fileToBuffer)
+    {
+      m_fileToBuffer[soundFile] = alutCreateBufferFromFile(cast(char*)soundFile);
+      assert(alGetError() == AL_NO_ERROR, "error code " ~ to!string(alGetError()));
+    }
+
+    auto newComponent = new SoundComponent(m_fileToBuffer[soundFile]);
     
-    newComponent.shouldPlay = true; // p_entity.getValue("shouldPlay") == "true";
+    newComponent.shouldPlay = true;
     
     return newComponent;
   }
@@ -119,6 +129,8 @@ protected:
   
 private:
   ALuint[] m_sources;
+  
+  ALuint[string] m_fileToBuffer;
   
   uint m_lastSourcePlayed;
 }
