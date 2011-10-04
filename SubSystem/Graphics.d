@@ -429,12 +429,29 @@ protected:
       
       if (imageFile !in m_imageToTextureId)
       {
-        SDL_Surface* image = IMG_Load(imageFile.toStringz);
+        SDL_Surface* imageSurface = IMG_Load(imageFile.toStringz);
         
-        enforce(image !is null, "Error loading image " ~ imageFile ~ ": " ~ to!string(IMG_GetError()));
-        enforce(image.pixels !is null);
+        enforce(imageSurface !is null, "Error loading image " ~ imageFile ~ ": " ~ to!string(IMG_GetError()));
+        enforce(imageSurface.pixels !is null);
         
-        auto format = (image.format.BytesPerPixel == 4 ? GL_RGBA : GL_RGB);
+        int textureWidth = to!int(pow(2, ceil(log(imageSurface.w) / log(2)))); // round up to nearest power of 2
+        int textureHeight = to!int(pow(2, ceil(log(imageSurface.h) / log(2)))); // round up to nearest power of 2
+        
+        // we don't support alpha channels yet, ensure the image is 100% opaque
+        SDL_SetAlpha(imageSurface, 0, 255);
+        
+        static if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+          SDL_Surface* textureSurface = SDL_CreateRGBSurface(0, textureWidth, textureHeight, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
+        else
+          SDL_Surface* textureSurface = SDL_CreateRGBSurface(0, textureWidth, textureHeight, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
+        
+        // copy the image surface into the middle of the texture surface
+        SDL_BlitSurface(imageSurface, null, textureSurface, &SDL_Rect(to!short((textureWidth-imageSurface.w)/2), to!short((textureHeight-imageSurface.h)/2), 0, 0));
+        
+        enforce(textureSurface !is null, "Error creating texture surface: " ~ to!string(IMG_GetError()));
+        enforce(textureSurface.pixels !is null);
+        
+        auto format = (textureSurface.format.BytesPerPixel == 4 ? GL_RGBA : GL_RGB);
         
         uint textureId;
         
@@ -446,7 +463,7 @@ protected:
         glBindTexture(GL_TEXTURE_2D, textureId);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexImage2D(GL_TEXTURE_2D, 0, image.format.BytesPerPixel, image.w, image.h, 0, format, GL_UNSIGNED_BYTE, image.pixels);
+        glTexImage2D(GL_TEXTURE_2D, 0, textureSurface.format.BytesPerPixel, textureSurface.w, textureSurface.h, 0, format, GL_UNSIGNED_BYTE, textureSurface.pixels);
         
         auto error = glGetError();
         enforce(error == GL_NO_ERROR, "Error texturizing image " ~ imageFile ~ ": " ~ to!string(gluErrorString(error)));
