@@ -170,13 +170,6 @@ public:
     
     m_aiFlocker.controller = m_controller;
     
-    m_trashBin = new Entity();
-    m_trashBin.setValue("name", "trashbin");
-    m_trashBin.setValue("position", "-5 100 0");
-    m_trashBin.setValue("drawsource", "Unknown");
-    m_trashBin.setValue("radius", "1.0");
-    registerEntity(m_trashBin);
-    
     loadWorldFromFile("data/world.txt");
     
     //m_starfield = new Starfield(m_graphics, 10.0);
@@ -263,6 +256,9 @@ public:
           
           if (spawn.getValue("name") == "FPS display")
             m_fpsDisplay = spawn;
+            
+          if (spawn.getValue("name") == "trashbin")
+            m_trashBin = spawn;
         }
         
         if (spawn !is null && spawn.getValue("keepInCenter") == "true")
@@ -595,7 +591,7 @@ private:
         assert(m_dragEntity.getValue("radius").length > 0, "Couldn't find radius for drag entity " ~ m_dragEntity.getValue("name"));
         
         // trash entities dropped in the trashbin, but don't trash the trashbin...
-        if (m_dragEntity != m_trashBin && (dragPos - trashBinPos).length2d < to!float(m_dragEntity.getValue("radius")))
+        if (m_dragEntity != m_trashBin && (dragPos - trashBinPos).length2d < to!float(m_trashBin.getValue("radius")))
         {
           removeEntity(m_dragEntity);
         }
@@ -879,7 +875,7 @@ private:
     
     m_entities[p_entity.id] = p_entity;
     
-    debug writeln("registering entity " ~ to!string(p_entity.id) ~ " with name " ~ p_entity.getValue("name"));
+    //debug writeln("registering entity " ~ to!string(p_entity.id) ~ " with name " ~ p_entity.getValue("name"));
     
     foreach (subSystem; m_subSystems)
       subSystem.registerEntity(p_entity);

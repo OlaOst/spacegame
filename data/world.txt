@@ -51,6 +51,14 @@ verticalSkeletonBlueprint.collisionType = PlayerModule
 verticalSkeletonBlueprint.spawnCount = 1
 
 
+# the trashbin deletes modules that are dragged onto it
+trashbin.name = trashbin
+trashbin.position = -5 10
+trashbin.drawsource = Unknown
+trashbin.radius = 2.0
+trashbin.spawnCount = 1
+
+
 # junkfield with modules ready for the pickings
 junkEngine.source = engine.txt
 junkEngine.position = -20 -120 to 20 -100
