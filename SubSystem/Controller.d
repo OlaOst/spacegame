@@ -40,6 +40,8 @@ class ControlComponent
   Vector velocity = Vector.origo;
   float rotation = 0.0;
   
+  Vector impulse = Vector.origo;
+  
   Vector force = Vector.origo;
   float torque = 0.0;
   
@@ -73,6 +75,7 @@ public:
     {
       // reset component force and torque before update
       component.force = Vector.origo;
+      component.impulse = Vector.origo;
       component.torque = 0.0;
       
       component.isFiring = false;

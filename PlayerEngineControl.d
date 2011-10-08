@@ -96,10 +96,12 @@ public:
       
     if (m_inputHandler.isPressed(Event.Brake))
     {
-      force -= p_sourceComponent.velocity.normalized.rotate(-p_sourceComponent.angle) * slideForce;
+      /*force -= p_sourceComponent.velocity.normalized.rotate(-p_sourceComponent.angle) * slideForce;
       
       if (abs(p_sourceComponent.rotation) > 0.001)
-        torque -= (p_sourceComponent.rotation / abs(p_sourceComponent.rotation)) * torqueForce;
+        torque -= (p_sourceComponent.rotation / abs(p_sourceComponent.rotation)) * torqueForce;*/
+
+      p_sourceComponent.impulse = p_sourceComponent.velocity * -1.0;
     }
       
     p_sourceComponent.force = force;

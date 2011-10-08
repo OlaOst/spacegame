@@ -84,7 +84,7 @@ public:
   {  
     entity = p_entity;
     
-    force = velocity = position = Vector.origo;
+    force = impulse = velocity = position = Vector.origo;
     
     torque = rotation = angle = 0.0;
     
@@ -111,14 +111,17 @@ private:
     assert(mass > 0.0);
     
     velocity += (force / mass) * p_time;
+    velocity += impulse * p_time;
+    
     position += velocity * p_time;
     
     rotation += (torque / mass) * p_time;
     angle += rotation * p_time;
-      
+
     // reset force and torque after applying them
     force = Vector.origo;
     torque = 0.0;
+    impulse = Vector.origo;
   }
   
 
@@ -127,6 +130,7 @@ public:
   
   Vector position;
   Vector velocity;
+  Vector impulse;
   Vector force;
   
   float angle;

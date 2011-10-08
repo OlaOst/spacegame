@@ -162,6 +162,7 @@ void setPhysicsFromConnector(ConnectionHandler connection, Physics physics)
       auto ownerComponent = physics.getComponent(connectionComponent.owner);
       
       ownerComponent.force += physicsComponent.force.rotate(ownerComponent.angle);
+      ownerComponent.impulse += physicsComponent.impulse;
       ownerComponent.torque += physicsComponent.torque;
       
       physics.setComponent(connectionComponent.owner, ownerComponent);
@@ -176,6 +177,7 @@ void setPhysicsFromController(Controller controller, Physics physics)
   {
     physicsComponent.force += controllerComponent.force;
     physicsComponent.torque += controllerComponent.torque;
+    physicsComponent.impulse += controllerComponent.impulse;
     
     return physicsComponent;
   });
