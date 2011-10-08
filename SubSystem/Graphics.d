@@ -325,9 +325,6 @@ public:
       glPopMatrix();
     }
     
-    glTranslatef(0.0, 5.0, 0.0);
-    m_textRender.renderString("hello world");
-    
     glPopMatrix();
   }
   
@@ -391,7 +388,8 @@ protected:
   bool canCreateComponent(Entity p_entity)
   {
     return (p_entity.getValue("drawsource").length > 0 ||
-            p_entity.getValue("keepInCenter").length > 0);
+            p_entity.getValue("keepInCenter").length > 0 ||
+            p_entity.getValue("text").length > 0);
   }
   
   GraphicsComponent createComponent(Entity p_entity)
@@ -421,7 +419,8 @@ protected:
           component.vertices ~= Vertex.fromString(vertexData);
       }
     }
-    else if (p_entity.getValue("drawsource").endsWith(".png"))
+    else if (p_entity.getValue("drawsource").endsWith(".png") || 
+             p_entity.getValue("drawsource").endsWith(".jpg"))
     {
       component.drawSource = DrawSource.Texture;
       
@@ -461,8 +460,10 @@ protected:
         m_imageToTextureId[imageFile] = textureId;
         
         glBindTexture(GL_TEXTURE_2D, textureId);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexImage2D(GL_TEXTURE_2D, 0, textureSurface.format.BytesPerPixel, textureSurface.w, textureSurface.h, 0, format, GL_UNSIGNED_BYTE, textureSurface.pixels);
         
         auto error = glGetError();
@@ -475,6 +476,10 @@ protected:
       if (p_entity.getValue("drawsource").length > 0)
       {
         component.drawSource = to!DrawSource(p_entity.getValue("drawsource"));
+      }
+      else if (p_entity.getValue("text").length > 0)
+      {
+        component.drawSource = DrawSource.Text;
       }
       else
       {

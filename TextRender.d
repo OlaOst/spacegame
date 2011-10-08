@@ -127,8 +127,31 @@ public:
   {
     glPushMatrix();
     
+    bool nextLetterIsControlCharacter = false;
+    
     foreach (letter; p_string)
-      renderChar(letter, true);
+    {
+      if (letter == '\\')
+        nextLetterIsControlCharacter = true;
+      else
+      {
+        if (nextLetterIsControlCharacter)
+        {
+          if (letter == 'n')
+          {
+            glPopMatrix();
+            glTranslatef(0.0, -1.0, 0.0);
+            glPushMatrix();
+          }
+          if (letter == '\\')
+            renderChar(letter, true);
+            
+          nextLetterIsControlCharacter = false;
+        }
+        else
+          renderChar(letter, true);
+      }
+    }
       
     glPopMatrix();
     

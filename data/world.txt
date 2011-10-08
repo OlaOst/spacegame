@@ -1,63 +1,76 @@
+# just a sound played at startup letting us know the game has started
 startupDing.soundFile = test.wav
 startupDing.name = startupDing
-startupDing.spawnCount = 1
 
-fpsDisplay.drawsource = Text
+# backdrop picture
+#backdrop.drawsource = images/galaxiesbackdrop.jpg
+#backdrop.position = 0 0 -100
+#backdrop.radius = 100.0
+
+# greeting text
+greeting.text = Welcome!\nPage Up/Down zooms in/out
+greeting.position = -5 0
+
+# drag drop instruction text
+dragdrophelp.text = blabla
+dragdrophelp.position = 15 -7
+
+# fps display is shown in a fixed position on the screen
 fpsDisplay.text = here we should see fps
 fpsDisplay.screenAbsolutePosition = true
 fpsDisplay.position = -1.0 0.7
 fpsDisplay.color = 1.0 1.0 1.0
 fpsDisplay.name = FPS display
-fpsDisplay.spawnCount = 1
 
+# the trashbin deletes modules that are dragged onto it
+trashbin.name = trashbin
+trashbin.position = -5 5
+trashbin.drawsource = Unknown
+trashbin.radius = 2.0
+
+
+# playership controllable by player
+playership.source = playership.txt
+#playership.source = simpleship.txt
+playership.position = 0 0
+playership.angle = 0
+playership.name = playership
+
+# npc ships shoot at the player
 npcship.source = npcship2.txt
 npcship.position = 10 10 to 150 50
 npcship.angle = 0 to 360
 npcship.spawnCount = 0
 
-playership.source = playership.txt
-playership.position = 0 0
-playership.angle = 0
-playership.spawnCount = 1
-
 
 # blueprint modules create copies when dragged and serve as an unlimited supply of modules
 engineBlueprint.source = engine.txt
 engineBlueprint.isBlueprint = true
-engineBlueprint.position = 5 10 0
+engineBlueprint.position = 5 5 0
 engineBlueprint.name = engineBlueprint
 engineBlueprint.collisionType = PlayerModule
-engineBlueprint.spawnCount = 1
 
 cannonBlueprint.source = cannon.txt
 cannonBlueprint.isBlueprint = true
-cannonBlueprint.position = 7 10 0
+cannonBlueprint.position = 7 5 0
 cannonBlueprint.name = cannonBlueprint
 cannonBlueprint.collisionType = PlayerModule
-cannonBlueprint.spawnCount = 1
 
 horizontalSkeletonBlueprint.source = horizontalskeleton.txt
 horizontalSkeletonBlueprint.isBlueprint = true
-horizontalSkeletonBlueprint.position = 9 10 0
+horizontalSkeletonBlueprint.position = 9 5 0
 horizontalSkeletonBlueprint.name = horizontalSkeletonBlueprint
 horizontalSkeletonBlueprint.collisionType = PlayerModule
-horizontalSkeletonBlueprint.spawnCount = 1
 
 verticalSkeletonBlueprint.source = verticalskeleton.txt
 verticalSkeletonBlueprint.isBlueprint = true
-verticalSkeletonBlueprint.position = 11 10 0
+verticalSkeletonBlueprint.position = 11 5 0
 verticalSkeletonBlueprint.name = verticalSkeletonBlueprint
 verticalSkeletonBlueprint.collisionType = PlayerModule
-verticalSkeletonBlueprint.spawnCount = 1
 
-
-# the trashbin deletes modules that are dragged onto it
-trashbin.name = trashbin
-trashbin.position = -5 10
-trashbin.drawsource = Unknown
-trashbin.radius = 2.0
-trashbin.spawnCount = 1
-
+# description text for blueprints
+blueprinttext.text = These are blueprint modules\nCopies are created when you drag them
+blueprinttext.position = 3 6
 
 # junkfield with modules ready for the pickings
 junkEngine.source = engine.txt

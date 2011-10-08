@@ -182,7 +182,7 @@ public:
   {
     Entity worldEntity = new Entity(p_file);
         
-    string[string][string] extraValuesForSpawn;
+    string[string][string] spawnNameWithValues;
     
     foreach (key; worldEntity.values.keys)
     {
@@ -193,22 +193,26 @@ public:
         auto sourceName = sourceAndKey[0];
         auto sourceKey = sourceAndKey[1];
         
-        extraValuesForSpawn[sourceName][sourceKey] = worldEntity.getValue(key);
+        spawnNameWithValues[sourceName][sourceKey] = worldEntity.getValue(key);
       }
     }
     
-    foreach (spawnCountName; filter!("a.endsWith(\".spawnCount\")")(worldEntity.values.keys))
+    //foreach (spawnCountName; filter!("a.endsWith(\".spawnCount\")")(worldEntity.values.keys))
+    foreach (spawnName; spawnNameWithValues.keys)
     {
-      int spawnCount = to!int(worldEntity.getValue(spawnCountName));
+      int spawnCount = 1;
+      if ("spawnCount" in spawnNameWithValues[spawnName])
+        spawnCount = to!int(spawnNameWithValues[spawnName]["spawnCount"]);
+      //int spawnCount = to!int(worldEntity.getValue(spawnCountName));
       
-      auto spawnName = to!string(spawnCountName.until("."));
+      //auto spawnName = to!string(spawnCountName.until("."));
 
       for (int count = 0; count < spawnCount; count++)
       {
         Vector position = Vector.origo;
         float angle = 0.0;
         
-        auto extraValues = extraValuesForSpawn[to!string(spawnName.until("."))].dup;
+        auto extraValues = spawnNameWithValues[spawnName].dup;
         
         if ("position" in extraValues && extraValues["position"].find("to").length > 0)
         {
@@ -253,15 +257,17 @@ public:
         {
           spawn = new Entity(extraValues);
           registerEntity(spawn);
-          
-          if (spawn.getValue("name") == "FPS display")
-            m_fpsDisplay = spawn;
-            
-          if (spawn.getValue("name") == "trashbin")
-            m_trashBin = spawn;
         }
         
-        if (spawn !is null && spawn.getValue("keepInCenter") == "true")
+        writeln("spawn name " ~ spawn.getValue("name"));
+        
+        if (spawn.getValue("name") == "FPS display")
+          m_fpsDisplay = spawn;
+          
+        if (spawn.getValue("name") == "trashbin")
+          m_trashBin = spawn;
+        
+        if (spawn.getValue("name") == "playership")
           m_playerShip = spawn;
       }
     }
@@ -302,11 +308,14 @@ private:
     Entity[] entitiesToRemove;
     
     m_aiGunner.targetPositions.length = 0;
-    assert(m_playerShip !is null);
-    m_aiGunner.targetPositions ~= m_placer.getComponent(m_playerShip).position;
+    //assert(m_playerShip !is null);
+    if (m_playerShip !is null)
+    {
+      m_aiGunner.targetPositions ~= m_placer.getComponent(m_playerShip).position;
     
-    m_aiChaser.targetPosition = m_placer.getComponent(m_playerShip).position;
-    m_aiChaser.targetVelocity = m_placer.getComponent(m_playerShip).velocity;
+      m_aiChaser.targetPosition = m_placer.getComponent(m_playerShip).position;
+      m_aiChaser.targetVelocity = m_placer.getComponent(m_playerShip).velocity;
+    }
     
     //m_aiFlocker.flockMembers.length = 0;
     
@@ -483,6 +492,7 @@ private:
   {
     if (m_inputHandler.isPressed(Event.LeftButton))
     {
+      // TODO: if we have a dragentity we must ensure it stops getting dragged before it's destroyed or removed by something - lifetime expiration for bullets for example
       if (m_dragEntity is null)
       {
         foreach (draggable; m_entities)
@@ -500,10 +510,10 @@ private:
           
           if ((dragGfxComp.position - m_graphics.mouseWorldPos).length2d < dragGfxComp.radius)
           {
-            // we don't want to drag something if it has stuff connected to it. 
+            // we don't want to drag something if it has stuff connected to it, or owns something. 
             // if you want to drag a skeleton module, you should drag off all connected modules first
             // TODO: should be possible to drag stuff with connected stuff, but drag'n'drop needs to be more robust first            
-            if (m_connector.getConnectedEntities(draggable).length > 0)
+            if (m_connector.getConnectedEntities(draggable).length > 0 || m_connector.getOwnedEntities(draggable).length > 0)
               continue;
 
             m_dragEntity = draggable;
@@ -767,7 +777,8 @@ private:
   {
     Entity ship = new Entity("data/" ~ p_file, p_extraParams);
     
-    ship.setValue("name", p_file);
+    if (ship.getValue("name").length == 0)
+      ship.setValue("name", p_file);
     
     // need to add sub entities after they're loaded
     // since the ship entity needs accumulated values from sub entities
