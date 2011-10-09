@@ -1,5 +1,5 @@
-#drawsource = cannonshape.txt
 drawsource = images/cannon.png
+draggable = true
 
 radius = 0.75
 mass = 0.5

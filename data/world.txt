@@ -3,9 +3,10 @@ startupDing.soundFile = test.wav
 startupDing.name = startupDing
 
 # backdrop picture
-#backdrop.drawsource = images/galaxiesbackdrop.jpg
-#backdrop.position = 0 0 -100
-#backdrop.radius = 100.0
+backdrop.drawsource = images/galaxiesbackdrop.jpg
+backdrop.position = 0 0 -100
+backdrop.radius = 100.0
+
 
 # greeting text
 greeting.text = Welcome!\nPage Up/Down zooms in/out
@@ -14,6 +15,7 @@ greeting.position = -5 0
 # drag drop instruction text
 dragdrophelp.text = blabla
 dragdrophelp.position = 15 -7
+
 
 # fps display is shown in a fixed position on the screen
 fpsDisplay.text = here we should see fps
@@ -30,17 +32,22 @@ trashbin.radius = 2.0
 
 
 # playership controllable by player
-playership.source = playership.txt
-#playership.source = simpleship.txt
+#playership.source = playership.txt
+playership.source = simpleship.txt
+playership.leftEngine.control = playerEngine
+playership.rightEngine.control = playerEngine
+playership.leftGun.control = playerLauncher
+playership.rightGun.control = playerLauncher
 playership.position = 0 0
 playership.angle = 0
 playership.name = playership
+playership.keepInCenter = true
 
 # npc ships shoot at the player
 npcship.source = npcship2.txt
-npcship.position = 10 10 to 150 50
+npcship.position = 100 10 to 150 50
 npcship.angle = 0 to 360
-npcship.spawnCount = 0
+npcship.spawnCount = 100
 
 
 # blueprint modules create copies when dragged and serve as an unlimited supply of modules
@@ -76,19 +83,19 @@ blueprinttext.position = 3 6
 junkEngine.source = engine.txt
 junkEngine.position = -20 -120 to 20 -100
 junkEngine.angle = 0 to 360
-junkEngine.spawnCount = 10
+junkEngine.spawnCount = 0
 
 junkCannon.source = cannon.txt
 junkCannon.position = -20 -120 to 20 -100
 junkCannon.angle = 0 to 360
-junkCannon.spawnCount = 10
+junkCannon.spawnCount = 0
 
 junkHorizSkeleton.source = horizontalskeleton.txt
 junkHorizSkeleton.position = -20 -120 to 20 -100
 junkHorizSkeleton.angle = 0 to 360
-junkHorizSkeleton.spawnCount = 10
+junkHorizSkeleton.spawnCount = 0
 
 junkVertSkeleton.source = verticalskeleton.txt
 junkVertSkeleton.position = -20 -120 to 20 -100
 junkVertSkeleton.angle = 0 to 360
-junkVertSkeleton.spawnCount = 10
+junkVertSkeleton.spawnCount = 0

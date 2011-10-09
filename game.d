@@ -188,24 +188,21 @@ public:
     {
       auto sourceAndKey = key.split(".");
       
-      if (sourceAndKey.length == 2)
+      if (sourceAndKey.length >= 2)
       {
         auto sourceName = sourceAndKey[0];
-        auto sourceKey = sourceAndKey[1];
+        //auto sourceKey = reduce!"a~b"(sourceAndKey[1..$]);
+        auto sourceKey = join(sourceAndKey[1..$], ".");
         
         spawnNameWithValues[sourceName][sourceKey] = worldEntity.getValue(key);
       }
     }
     
-    //foreach (spawnCountName; filter!("a.endsWith(\".spawnCount\")")(worldEntity.values.keys))
     foreach (spawnName; spawnNameWithValues.keys)
     {
       int spawnCount = 1;
       if ("spawnCount" in spawnNameWithValues[spawnName])
         spawnCount = to!int(spawnNameWithValues[spawnName]["spawnCount"]);
-      //int spawnCount = to!int(worldEntity.getValue(spawnCountName));
-      
-      //auto spawnName = to!string(spawnCountName.until("."));
 
       for (int count = 0; count < spawnCount; count++)
       {
@@ -495,7 +492,7 @@ private:
       // TODO: if we have a dragentity we must ensure it stops getting dragged before it's destroyed or removed by something - lifetime expiration for bullets for example
       if (m_dragEntity is null)
       {
-        foreach (draggable; m_entities)
+        foreach (draggable; filter!((Entity entity) { return entity.getValue("draggable") == "true"; })(m_entities.values))
         {
           if (m_graphics.hasComponent(draggable) == false)
             continue;

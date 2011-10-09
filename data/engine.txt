@@ -1,5 +1,5 @@
-#drawsource = engineshape.txt
 drawsource = images/engine.png
+draggable = true
 
 radius = 0.85
 mass = 1.0
