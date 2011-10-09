@@ -256,7 +256,8 @@ public:
     
     glDisable(GL_TEXTURE_2D);
 
-    foreach (component; sort!((left, right) { return left.position.z < right.position.z; })(components))
+    //foreach (component; sort!((left, right) { return left.position.z < right.position.z; })(components))
+    foreach (component; components)
     {
       glPushMatrix();
       
