@@ -481,9 +481,10 @@ private:
       {
         auto playerPos = m_placer.getComponent(m_playerShip).position;
         
-        auto connectEntities = filter!((entity) { return m_connector.hasComponent(entity); })(m_entities.values);
-        auto ownerEntitiesUnfiltered = map!((entity) { return m_connector.getComponent(entity).owner; })(connectEntities);
-        auto ownerEntities = filter!((entity) { return entity.id != m_playerShip.id; })(ownerEntitiesUnfiltered);
+        //auto connectEntities = filter!((entity) { return m_connector.hasComponent(entity); })(m_entities.values);
+        //auto ownerEntitiesUnfiltered = map!((entity) { return m_connector.getComponent(entity).owner; })(connectEntities);
+        //auto ownerEntities = filter!((entity) { return entity.id != m_playerShip.id; })(ownerEntitiesUnfiltered);
+        auto enemyShips = filter!((entity) { return entity.getValue("type") == "enemy ship"; })(m_entities.values);
         
         Entity closestEntity = reduce!((closestSoFar, entity)
         { 
@@ -491,7 +492,8 @@ private:
           
           return ((m_connector.getComponent(closestSoFar).position-playerPos).length2d < 
                   (m_connector.getComponent(entity).position-playerPos).length2d) ? closestSoFar : entity;
-        })(ownerEntities);
+        //})(ownerEntities);
+        })(enemyShips);
         
         auto closestEntityPosition = m_placer.getComponent(closestEntity).position - playerPos;
         auto closestEntityDistance = closestEntityPosition.length2d;
@@ -500,6 +502,7 @@ private:
         
         m_closestShipDisplay.setValue("position", (closestEntityPosition.normalized() * 0.9).toString());
         m_closestShipDisplay.setValue("text", to!string(floor(closestEntityDistance)));
+        m_closestShipDisplay.setValue("color", "1 0 0");
         
         registerEntity(m_closestShipDisplay);
       }
