@@ -266,6 +266,9 @@ public:
         
         if (spawn.getValue("name") == "playership")
           m_playerShip = spawn;
+          
+        if (spawn.getValue("name") == "Closest ship display")
+          m_closestShipDisplay = spawn;
       }
     }
   }
@@ -470,6 +473,36 @@ private:
         fpsDisplayComponent.text = "FPS: " ~ to!string(fpsValue);
         
       m_graphics.setComponent(m_fpsDisplay, fpsDisplayComponent);
+    }
+    
+    if (m_graphics.hasComponent(m_closestShipDisplay))
+    {
+      if (m_playerShip !is null)
+      {
+        auto playerPos = m_placer.getComponent(m_playerShip).position;
+        
+        auto connectEntities = filter!((entity) { return m_connector.hasComponent(entity); })(m_entities.values);
+        auto ownerEntitiesUnfiltered = map!((entity) { return m_connector.getComponent(entity).owner; })(connectEntities);
+        auto ownerEntities = filter!((entity) { return entity.id != m_playerShip.id; })(ownerEntitiesUnfiltered);
+        
+        Entity closestEntity = reduce!((closestSoFar, entity)
+        { 
+          assert(entity.id != m_playerShip.id);
+          
+          return ((m_connector.getComponent(closestSoFar).position-playerPos).length2d < 
+                  (m_connector.getComponent(entity).position-playerPos).length2d) ? closestSoFar : entity;
+        })(ownerEntities);
+        
+        auto closestEntityPosition = m_placer.getComponent(closestEntity).position - playerPos;
+        auto closestEntityDistance = closestEntityPosition.length2d;
+        
+        auto closestShipDisplayComponent = m_graphics.getComponent(m_closestShipDisplay);
+        
+        m_closestShipDisplay.setValue("position", (closestEntityPosition.normalized() * 0.9).toString());
+        m_closestShipDisplay.setValue("text", to!string(floor(closestEntityDistance)));
+        
+        registerEntity(m_closestShipDisplay);
+      }
     }
     
     m_graphics.calculateMouseWorldPos(m_inputHandler.mousePos);
@@ -992,12 +1025,13 @@ private:
   
   Entity[int] m_entities;
 
+  // special entities.. do they really need to be hardcoded?
   Entity m_playerShip;
-  
   Entity m_trashBin;
   Entity m_dragEntity;
-  
   Entity m_fpsDisplay;
+  Entity m_closestShipDisplay;
+  
   float[20] m_fpsBuffer;
   
   AiGunner m_aiGunner;

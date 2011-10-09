@@ -24,6 +24,14 @@ fpsDisplay.position = -1.0 0.7
 fpsDisplay.color = 1.0 1.0 1.0
 fpsDisplay.name = FPS display
 
+# special closest ship indicator points to closest ship entity
+closestShip.screenAbsolutePosition = true
+closestShip.position = 0.0 0.9
+closestShip.name = Closest ship display
+closestShip.color = 0.0 1.0 0.2
+closestShip.text = ??
+
+
 # the trashbin deletes modules that are dragged onto it
 trashbin.name = trashbin
 trashbin.position = -5 5
@@ -45,35 +53,35 @@ playership.keepInCenter = true
 
 # npc ships shoot at the player
 npcship.source = npcship2.txt
-npcship.position = 100 10 to 150 50
+npcship.position = 50 10 to 150 50
 npcship.angle = 0 to 360
-npcship.spawnCount = 100
+npcship.spawnCount = 4
 
 
 # blueprint modules create copies when dragged and serve as an unlimited supply of modules
-engineBlueprint.source = engine.txt
-engineBlueprint.isBlueprint = true
-engineBlueprint.position = 5 5 0
-engineBlueprint.name = engineBlueprint
-engineBlueprint.collisionType = PlayerModule
+#engineBlueprint.source = engine.txt
+#engineBlueprint.isBlueprint = true
+#engineBlueprint.position = 5 5 0
+#engineBlueprint.name = engineBlueprint
+#engineBlueprint.collisionType = PlayerModule
 
-cannonBlueprint.source = cannon.txt
-cannonBlueprint.isBlueprint = true
-cannonBlueprint.position = 7 5 0
-cannonBlueprint.name = cannonBlueprint
-cannonBlueprint.collisionType = PlayerModule
+#cannonBlueprint.source = cannon.txt
+#cannonBlueprint.isBlueprint = true
+#cannonBlueprint.position = 7 5 0
+#cannonBlueprint.name = cannonBlueprint
+#cannonBlueprint.collisionType = PlayerModule
 
-horizontalSkeletonBlueprint.source = horizontalskeleton.txt
-horizontalSkeletonBlueprint.isBlueprint = true
-horizontalSkeletonBlueprint.position = 9 5 0
-horizontalSkeletonBlueprint.name = horizontalSkeletonBlueprint
-horizontalSkeletonBlueprint.collisionType = PlayerModule
+#horizontalSkeletonBlueprint.source = horizontalskeleton.txt
+#horizontalSkeletonBlueprint.isBlueprint = true
+#horizontalSkeletonBlueprint.position = 9 5 0
+#horizontalSkeletonBlueprint.name = horizontalSkeletonBlueprint
+#horizontalSkeletonBlueprint.collisionType = PlayerModule
 
-verticalSkeletonBlueprint.source = verticalskeleton.txt
-verticalSkeletonBlueprint.isBlueprint = true
-verticalSkeletonBlueprint.position = 11 5 0
-verticalSkeletonBlueprint.name = verticalSkeletonBlueprint
-verticalSkeletonBlueprint.collisionType = PlayerModule
+#verticalSkeletonBlueprint.source = verticalskeleton.txt
+#verticalSkeletonBlueprint.isBlueprint = true
+#verticalSkeletonBlueprint.position = 11 5 0
+#verticalSkeletonBlueprint.name = verticalSkeletonBlueprint
+#verticalSkeletonBlueprint.collisionType = PlayerModule
 
 # description text for blueprints
 blueprinttext.text = These are blueprint modules\nCopies are created when you drag them
@@ -83,19 +91,19 @@ blueprinttext.position = 3 6
 junkEngine.source = engine.txt
 junkEngine.position = -20 -120 to 20 -100
 junkEngine.angle = 0 to 360
-junkEngine.spawnCount = 0
+junkEngine.spawnCount = 20
 
 junkCannon.source = cannon.txt
 junkCannon.position = -20 -120 to 20 -100
 junkCannon.angle = 0 to 360
-junkCannon.spawnCount = 0
+junkCannon.spawnCount = 20
 
 junkHorizSkeleton.source = horizontalskeleton.txt
 junkHorizSkeleton.position = -20 -120 to 20 -100
 junkHorizSkeleton.angle = 0 to 360
-junkHorizSkeleton.spawnCount = 0
+junkHorizSkeleton.spawnCount = 20
 
 junkVertSkeleton.source = verticalskeleton.txt
 junkVertSkeleton.position = -20 -120 to 20 -100
 junkVertSkeleton.angle = 0 to 360
-junkVertSkeleton.spawnCount = 0
+junkVertSkeleton.spawnCount = 20
