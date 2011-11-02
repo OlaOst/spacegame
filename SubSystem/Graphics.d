@@ -432,7 +432,7 @@ protected:
         SDL_BlitSurface(imageSurface, null, textureSurface, &SDL_Rect(to!short((textureWidth-imageSurface.w)/2), to!short((textureHeight-imageSurface.h)/2), 0, 0));
         
         enforce(textureSurface !is null, "Error creating texture surface: " ~ to!string(IMG_GetError()));
-        enforce(textureSurface.pixels !is null);
+        enforce(textureSurface.pixels !is null, "Texture surface pixels are NULL!");
         
         auto format = (textureSurface.format.BytesPerPixel == 4 ? GL_RGBA : GL_RGB);
         
@@ -589,6 +589,12 @@ private:
     }
     else if (p_component.drawSource == DrawSource.Texture)
     {
+      // make the texture point in the right way and not mirrored
+      // (doing this in the texture matrixmode in display.d will mysteriously fuck up font textures)
+      glPushMatrix();
+      glRotatef(90.0, 0.0, 0.0, 1.0);
+      glScalef(-1.0, 1.0, 1.0);
+  
       assert(p_component.textureId > 0);
       
       glEnable(GL_TEXTURE_2D);
@@ -607,6 +613,8 @@ private:
         glTexCoord2f(1.0, 1.0); glVertex3f(size, size, 0.0);
         glTexCoord2f(1.0, 0.0); glVertex3f(-size, size, 0.0);
       glEnd();
+      
+      glPopMatrix();
     }
     else if (p_component.drawSource == DrawSource.Unknown)
     {

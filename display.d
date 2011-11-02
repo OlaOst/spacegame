@@ -95,10 +95,16 @@ void setupGL(int p_screenWidth, int p_screenHeight)
   //gluOrtho2D(-widthHeightRatio, widthHeightRatio, -1.0, 1.0);
   glOrtho(-widthHeightRatio, widthHeightRatio, -1.0, 1.0, 0.0, 1000.0);
   
+  // make textures show up in the expected direction (stuff pointing up in image edit program should be pointing up in the game)
+  //glMatrixMode(GL_TEXTURE);
+  //glRotatef(180.0, 0.0, 0.0, 1.0);
+  //glScalef(-1.0, 1.0, 1.0);
+  
   glMatrixMode(GL_MODELVIEW);
   
   glLoadIdentity();
   
+  //glEnable(GL_DEPTH_TEST);
   glDisable(GL_DEPTH_TEST);
   
   //glEnable(GL_BLEND);
