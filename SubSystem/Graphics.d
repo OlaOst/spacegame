@@ -131,8 +131,8 @@ enum DrawSource
 
 struct Vertex
 {
-  float x,y;
-  float r,g,b;
+  float x = 0.0, y = 0.0;
+  float r = 0.0, g = 0.0, b = 0.0;
   
   static Vertex fromString(string p_data)
   {
@@ -173,37 +173,18 @@ public:
   Vector[] connectPoints;
   Vertex color;
   
-  @property Vector position() { return m_position; }
-  @property Vector position(Vector p_position) in { assert(p_position.isValid()); } body { return m_position = p_position; }
-  
-  @property Vector velocity() { return m_velocity; }
-  @property Vector velocity(Vector p_velocity) in { assert(p_velocity.isValid()); } body { return m_velocity = p_velocity; }
-  
-  @property float angle() { return m_angle; }
-  @property float angle(float p_angle) in { assert(p_angle == p_angle); } body { return m_angle = p_angle; }
-  
-  @property float rotation() { return m_rotation; }
-  @property float rotation(float p_rotation) in { assert(p_rotation == p_rotation); } body { return m_rotation = p_rotation; }
-  
-  @property bool screenAbsolutePosition() { return m_screenAbsolutePosition; }
-  @property bool screenAbsolutePosition(bool p_screenAbsolutePosition) { return m_screenAbsolutePosition = p_screenAbsolutePosition; }
-  
-  @property string text() { return m_text; }
-  @property string text(string p_text) { return m_text = p_text; }
-  
   int displayListId = -1;
   uint textureId = -1;
   
-private:
-  Vector m_position = Vector.origo;
-  Vector m_velocity = Vector.origo;
+  Vector position = Vector.origo;
+  Vector velocity = Vector.origo;
   
-  float m_angle = 0.0;
-  float m_rotation = 0.0;
+  float angle = 0.0;
+  float rotation = 0.0;
   
-  bool m_screenAbsolutePosition = false;
+  bool screenAbsolutePosition = false;
   
-  string m_text;
+  string text;
 }
 
 
@@ -256,8 +237,10 @@ public:
     
     glDisable(GL_TEXTURE_2D);
 
-    //foreach (component; sort!((left, right) { return left.position.z < right.position.z; })(components))
-    foreach (component; components)
+    // stable sort randomly crashes, phobos bug or float fuckery?
+    //foreach (component; sort!((left, right) { return left.position.z < right.position.z; }, SwapStrategy.stable)(components))
+    foreach (component; sort!((left, right) { return left.position.z < right.position.z; })(components))
+    //foreach (component; components)
     {
       glPushMatrix();
       
@@ -306,7 +289,7 @@ public:
       {
         glDisable(GL_TEXTURE_2D);
       
-        if (component.m_screenAbsolutePosition == false)
+        if (component.screenAbsolutePosition == false)
         {
           if (component.isPointedAt(m_mouseWorldPos))
             glColor3f(1.0, 0.0, 0.0);
@@ -613,6 +596,8 @@ private:
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       
       auto size = 1.0 * p_component.radius;
+      
+      glColor4f(1.0, 1.0, 1.0, 1.0);
       
       glBindTexture(GL_TEXTURE_2D, p_component.textureId);
       glBegin(GL_QUADS);
