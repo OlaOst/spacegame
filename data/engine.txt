@@ -1,4 +1,4 @@
-drawsource = images/engine.png
+drawsource = images/engine2.png
 draggable = true
 
 radius = 0.85
