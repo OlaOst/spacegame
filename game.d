@@ -151,8 +151,8 @@ public:
     
     m_inputHandler = new InputHandler();
     
-    int xres = 800;
-    int yres = 600;
+    int xres = 1024;
+    int yres = 768;
     
     Control[string] aiControls;
     aiControls["aigunner"] = m_aiGunner = new AiGunner();
@@ -191,7 +191,6 @@ public:
       if (sourceAndKey.length >= 2)
       {
         auto sourceName = sourceAndKey[0];
-        //auto sourceKey = reduce!"a~b"(sourceAndKey[1..$]);
         auto sourceKey = join(sourceAndKey[1..$], ".");
         
         spawnNameWithValues[sourceName][sourceKey] = worldEntity.getValue(key);
@@ -247,7 +246,7 @@ public:
         
         Entity spawn;
         if (worldEntity.getValue(spawnName ~ ".source").length > 0)
-        {
+        {          
           spawn = loadShip(worldEntity.getValue(spawnName ~ ".source"), extraValues);
         }
         else
@@ -408,8 +407,6 @@ private:
       m_physics.setTimeStep(elapsedTime);
       m_controller.setTimeStep(elapsedTime);
       
-      updateSubSystems();
-      
       CommsCentral.setPlacerFromPhysics(m_physics, m_placer);
       CommsCentral.setPlacerFromConnector(m_connector, m_placer);
       
@@ -417,7 +414,7 @@ private:
       if (m_dragEntity !is null)
       {
         assert(m_placer.hasComponent(m_dragEntity));
-               
+        
         if (m_placer.hasComponent(m_dragEntity))
         {
           auto dragPosComp = m_placer.getComponent(m_dragEntity);
@@ -425,30 +422,15 @@ private:
           
           m_placer.setComponent(m_dragEntity, dragPosComp);
         }
-        
-        if (m_graphics.hasComponent(m_dragEntity))
-        {
-          auto dragGfxComp = m_graphics.getComponent(m_dragEntity);
-          dragGfxComp.position = m_graphics.mouseWorldPos;
-          
-          m_graphics.setComponent(m_dragEntity, dragGfxComp);
-        }
-        
-        if (m_physics.hasComponent(m_dragEntity))
-        {
-          auto dragPhysComp = m_physics.getComponent(m_dragEntity);
-          dragPhysComp.position = m_graphics.mouseWorldPos;
-          
-          m_physics.setComponent(m_dragEntity, dragPhysComp);
-        }
       }
-      
       
       CommsCentral.setPhysicsFromController(m_controller, m_physics);
       CommsCentral.setSpawnerFromController(m_controller, m_spawner);
       
       CommsCentral.setPhysicsFromConnector(m_connector, m_physics);
       CommsCentral.setPhysicsFromSpawner(m_spawner, m_physics);
+      
+      updateSubSystems();
       
       CommsCentral.setControllerFromPlacer(m_placer, m_controller);
       CommsCentral.setCollidersFromPlacer(m_placer, m_collider);
@@ -486,25 +468,27 @@ private:
         //auto ownerEntities = filter!((entity) { return entity.id != m_playerShip.id; })(ownerEntitiesUnfiltered);
         auto enemyShips = filter!((entity) { return entity.getValue("type") == "enemy ship"; })(m_entities.values);
         
-        Entity closestEntity = reduce!((closestSoFar, entity)
-        { 
-          assert(entity.id != m_playerShip.id);
+        if (enemyShips.empty == false)
+        {
+          Entity closestEntity = reduce!((closestSoFar, entity)
+          { 
+            assert(entity.id != m_playerShip.id);
+            
+            return ((m_connector.getComponent(closestSoFar).position-playerPos).length2d < 
+                    (m_connector.getComponent(entity).position-playerPos).length2d) ? closestSoFar : entity;
+          })(enemyShips);
           
-          return ((m_connector.getComponent(closestSoFar).position-playerPos).length2d < 
-                  (m_connector.getComponent(entity).position-playerPos).length2d) ? closestSoFar : entity;
-        //})(ownerEntities);
-        })(enemyShips);
-        
-        auto closestEntityPosition = m_placer.getComponent(closestEntity).position - playerPos;
-        auto closestEntityDistance = closestEntityPosition.length2d;
-        
-        auto closestShipDisplayComponent = m_graphics.getComponent(m_closestShipDisplay);
-        
-        m_closestShipDisplay.setValue("position", (closestEntityPosition.normalized() * 0.9).toString());
-        m_closestShipDisplay.setValue("text", to!string(floor(closestEntityDistance)));
-        m_closestShipDisplay.setValue("color", "1 0 0");
-        
-        registerEntity(m_closestShipDisplay);
+          auto closestEntityPosition = m_placer.getComponent(closestEntity).position - playerPos;
+          auto closestEntityDistance = closestEntityPosition.length2d;
+          
+          auto closestShipDisplayComponent = m_graphics.getComponent(m_closestShipDisplay);
+          
+          m_closestShipDisplay.setValue("position", (closestEntityPosition.normalized() * 0.9).toString());
+          m_closestShipDisplay.setValue("text", to!string(floor(closestEntityDistance)));
+          m_closestShipDisplay.setValue("color", "1 0 0");
+          
+          registerEntity(m_closestShipDisplay);
+        }
       }
     }
     
@@ -517,7 +501,7 @@ private:
     
     handleInput(elapsedTime);
     
-    SDL_Delay(20);
+    SDL_Delay(10);
   }
   
   
@@ -550,6 +534,7 @@ private:
               continue;
 
             m_dragEntity = draggable;
+            
             break;
           }
         }
@@ -702,6 +687,9 @@ private:
             if (m_placer.hasComponent(m_dragEntity))
               ownerEntity.setValue("position", m_placer.getComponent(m_dragEntity).position.toString());
               
+            if (m_placer.hasComponent(m_dragEntity))
+              ownerEntity.setValue("angle", to!string(m_placer.getComponent(m_dragEntity).angle * (180.0/PI)));
+              
             if (m_physics.hasComponent(m_dragEntity))
               ownerEntity.setValue("mass", to!string(m_physics.getComponent(m_dragEntity).mass));
             
@@ -808,6 +796,7 @@ private:
   
   Entity loadShip(string p_file, string[string] p_extraParams = null)
   {
+    writeln("loading ship from file " ~ p_file ~ ", with extraparams " ~ to!string(p_extraParams));
     Entity ship = new Entity("data/" ~ p_file, p_extraParams);
     
     if (ship.getValue("name").length == 0)
@@ -852,6 +841,17 @@ private:
       }
       
       subEntitiesToAdd[subEntity.id] = subEntity;
+    }
+    
+    // keys on the form *.somekey = somevalue are for all subentities
+    foreach (wildCard; filter!("a.startsWith(\"*.\")")(ship.values.keys))
+    {
+      //writeln("found wildcard " ~ wildCard[2..$] ~ " with value " ~ ship.getValue(wildCard));
+      
+      foreach (subEntity; subEntitiesToAdd.values)
+      {
+        subEntity.setValue(wildCard[2..$], ship.getValue(wildCard));
+      }
     }
     
     if (accumulatedMass > 0.0)
