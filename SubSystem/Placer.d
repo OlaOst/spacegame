@@ -74,7 +74,7 @@ protected:
       component.velocity = Vector.fromString(p_entity.getValue("velocity"));
       
     if (p_entity.getValue("angle").length > 0)
-      component.angle = to!float(p_entity.getValue("angle"));
+      component.angle = to!float(p_entity.getValue("angle")) * (PI / 180.0);
     if (p_entity.getValue("rotation").length > 0)
       component.rotation = to!float(p_entity.getValue("rotation"));
       

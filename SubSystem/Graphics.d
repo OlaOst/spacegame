@@ -487,6 +487,9 @@ protected:
       component.position = Vector.fromString(p_entity.getValue("position"));
     }
     
+    if (p_entity.getValue("angle").length > 0)
+      component.angle = to!float(p_entity.getValue("angle")) * (PI / 180.0);
+    
     if (p_entity.getValue("screenAbsolutePosition").length > 0)
     {
       component.screenAbsolutePosition = true;

@@ -2,6 +2,7 @@ module SubSystem.Controller;
 
 import std.conv;
 import std.exception;
+import std.math;
 import std.stdio;
 
 import FlockControl;
@@ -120,6 +121,9 @@ protected:
     if (p_entity.getValue("slideForce").length > 0)
       component.slideForce = to!float(p_entity.getValue("slideForce"));
 
+    if (p_entity.getValue("angle").length > 0)
+      component.angle = to!float(p_entity.getValue("angle")) * (PI / 180.0);
+      
     if (p_entity.getValue("control").length > 0)
     {
       switch (p_entity.getValue("control"))

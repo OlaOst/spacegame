@@ -200,7 +200,7 @@ protected:
       newComponent.position = Vector.fromString(p_entity.getValue("position"));
     
     if (p_entity.getValue("angle").length > 0)
-      newComponent.angle = to!float(p_entity.getValue("angle"));
+      newComponent.angle = to!float(p_entity.getValue("angle")) * (PI / 180.0);
     
     if (p_entity.getValue("velocity").length > 0)
       newComponent.velocity = Vector.fromString(p_entity.getValue("velocity"));

@@ -169,7 +169,7 @@ protected:
       component.spawnForce = to!float(p_entity.getValue("spawnForce"));
     
     if (p_entity.getValue("spawnAngle").length > 0)
-      component.spawnAngle = to!float(p_entity.getValue("spawnAngle"));
+      component.spawnAngle = to!float(p_entity.getValue("spawnAngle")) * (PI / 180.0);
     if (p_entity.getValue("spawnRotation").length > 0)
       component.spawnRotation = to!float(p_entity.getValue("spawnRotation"));
       

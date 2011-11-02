@@ -26,6 +26,7 @@ import std.algorithm;
 import std.array;
 import std.conv;
 import std.exception;
+import std.math;
 import std.range;
 import std.stdio;
 import std.string;
@@ -413,7 +414,7 @@ protected:
     
     if (p_entity.getValue("relativeAngle").length > 0)
     {
-      newComponent.relativeAngle = to!float(p_entity.getValue("relativeAngle"));
+      newComponent.relativeAngle = to!float(p_entity.getValue("relativeAngle")) * (PI / 180.0);
     }
     
     return newComponent;
