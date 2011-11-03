@@ -72,7 +72,7 @@ public:
       
       // accelerate if we're on our desired heading, else rotate towards target
       if (desiredTorque < 0.1 && p_sourceComponent.velocity.length2d < 3.0)
-        p_sourceComponent.force += Vector(1.0 * p_sourceComponent.thrustForce, 0.0);
+        p_sourceComponent.force += Vector(0.0, 1.0 * p_sourceComponent.thrustForce);
       else
         p_sourceComponent.torque = desiredTorque;
         

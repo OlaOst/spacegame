@@ -73,7 +73,7 @@ public:
         auto recoil = 1.0;
         
         // TODO: dir should be from module angle 
-        auto dir = Vector(1.0, 0.0);
+        auto dir = Vector(0.0, 1.0); // default direction is up
         
         auto force = p_sourceComponent.force;
         
