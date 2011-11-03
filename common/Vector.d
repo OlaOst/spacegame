@@ -201,7 +201,7 @@ struct Vector
   
   static Vector fromAngle(float p_angle)
   {
-    return Vector(sin(p_angle), cos(p_angle));
+    return Vector(sin(-p_angle), cos(-p_angle));
   }
   
   static Vector fromString(string p_values)
