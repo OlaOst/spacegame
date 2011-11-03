@@ -104,7 +104,7 @@ public:
         spawn.setValue("spawnedFromOwner", to!string(component.ownerId));
         
         spawn.setValue("position", to!string(component.position + component.spawnPoint));
-        spawn.setValue("angle", to!string(spawnAngle));
+        spawn.setValue("angle", to!string(spawnAngle * (180.0 / PI)));
         
         spawn.setValue("velocity", spawnVelocity.toString());
         spawn.setValue("force", spawnForce.toString());
