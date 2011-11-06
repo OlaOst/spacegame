@@ -662,6 +662,20 @@ private:
             }
             registerEntity(m_dragEntity);
             
+            // recalculate relative position to center of mass for all owned entities
+            Vector centerOfMass = Vector.origo;
+            foreach (ownedEntity; m_connector.getOwnedEntities(ownerEntity))
+            {
+              auto ownedComponent = m_connector.getComponent(ownedEntity);
+              centerOfMass += ownedComponent.relativePosition.normalized() * ownedComponent.mass;
+            }
+            writeln("setting center of mass to " ~ centerOfMass.toString());
+            foreach (ownedEntity; m_connector.getOwnedEntities(ownerEntity))
+            {
+              auto ownedComponent = m_connector.getComponent(ownedEntity);
+              ownedComponent.relativePositionToCenterOfMass = ownedComponent.relativePosition - centerOfMass;
+            }
+            
             assert(m_connector.hasComponent(connectEntity));
             assert(m_connector.getComponent(connectEntity).connectPoints[closestConnectPoint.name].connectedEntity !is null, "Connectpoint " ~ closestConnectPoint.name ~ " on " ~ connectEntity.getValue("name") ~ " with id " ~ to!string(connectEntity.id) ~ " still empty after connecting entity " ~ m_dragEntity.getValue("name") ~ " with values " ~ to!string(m_dragEntity.values));
             

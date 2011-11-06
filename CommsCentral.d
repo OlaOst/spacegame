@@ -117,7 +117,9 @@ void setPlacerFromConnector(ConnectionHandler connection, Placer placer)
     auto ownerComponent = placer.getComponent(connectionComponent.owner);
     
     //placerComponent.position = Vector.fromAngle(ownerComponent.angle + connectionComponent.relativePosition.) * connectionComponent.relativePosition.length2d();
-    placerComponent.position = ownerComponent.position + connectionComponent.relativePosition.rotate(ownerComponent.angle);
+    
+    // need to rotate around middle of mass point
+    placerComponent.position = ownerComponent.position + connectionComponent.relativePositionToCenterOfMass.rotate(ownerComponent.angle);
     placerComponent.position.z += connectionComponent.relativePosition.z; // set z component here since it is not transferred in rotate operation
     placerComponent.angle = ownerComponent.angle + connectionComponent.relativeAngle;
     

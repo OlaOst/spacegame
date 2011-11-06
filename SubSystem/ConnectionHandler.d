@@ -110,7 +110,9 @@ invariant()
 {
   assert(owner !is null);
   assert(relativePosition.isValid());
+  assert(relativePositionToCenterOfMass.isValid());
   assert(relativeAngle == relativeAngle);
+  assert(mass == mass);
 }
 
 
@@ -122,7 +124,10 @@ public:
     position = Vector.origo;
     angle = 0.0;
     
+    mass = 0.0;
+    
     relativePosition = Vector.origo;
+    relativePositionToCenterOfMass = Vector.origo;
     relativeAngle = 0.0;
   } 
   
@@ -133,7 +138,10 @@ public:
   Vector position;
   float angle;
   
+  float mass;
+  
   Vector relativePosition;
+  Vector relativePositionToCenterOfMass;
   float relativeAngle;
   
   ConnectPoint[string] connectPoints;
@@ -195,6 +203,7 @@ public:
       auto ownerComponent = getComponent(componentToDisconnect.owner);
       
       componentToDisconnect.relativePosition = Vector.origo;
+      componentToDisconnect.relativePositionToCenterOfMass = Vector.origo;
 
       // a disconnected entity owns itself
       componentToDisconnect.owner = p_entity;
@@ -334,6 +343,7 @@ protected:
     }
     
     Vector relativePosition = Vector.origo;
+    Vector relativePositionToCenterOfMass = Vector.origo;
     if (p_entity.getValue("connection").length > 0)
     {
       auto entityIdAndConnectPointName = extractEntityIdAndConnectPointName(p_entity.getValue("connection"));
@@ -405,6 +415,7 @@ protected:
     auto newComponent = new ConnectionComponent(owner);
     
     newComponent.relativePosition = relativePosition;
+    newComponent.relativePositionToCenterOfMass = relativePosition; // calculate actual center of mass position later on
     newComponent.connectPoints = connectPoints;
     
     if (p_entity.getValue("relativePosition").length > 0)
@@ -416,6 +427,9 @@ protected:
     {
       newComponent.relativeAngle = to!float(p_entity.getValue("relativeAngle")) * (PI / 180.0);
     }
+    
+    if (p_entity.getValue("mass").length > 0)
+      newComponent.mass = to!float(p_entity.getValue("mass"));
     
     return newComponent;
   }  
