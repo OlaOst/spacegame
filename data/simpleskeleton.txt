@@ -3,5 +3,5 @@ mass = 1.0
 
 drawsource = skeletonshape.txt
 
-connectpoint.lower.position = -1.0 0.0 1.0
-connectpoint.upper.position = 1.0 0.0 1.0
+connectpoint.lower.position = 0.0 -1.0 1.0
+connectpoint.upper.position = 0.0 1.0 1.0

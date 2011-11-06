@@ -4,7 +4,7 @@ startupDing.name = startupDing
 
 # backdrop picture
 backdrop.drawsource = images/galaxiesbackdrop.jpg
-backdrop.position = 0 0 -100
+backdrop.position = 0 0 -200
 backdrop.radius = 100.0
 
 
@@ -53,11 +53,17 @@ playership.name = playership
 playership.keepInCenter = true
 
 # npc ships shoot at the player
-npcship.source = npcship2.txt
+#npcship.source = npcship2.txt
+npcship.source = simpleship.txt
+npcship.*.collisionType = NpcModule
+npcship.leftEngine.control = chaser
+npcship.rightEngine.control = chaser
+npcship.leftGun.control = aigunner
+npcship.rightGun.control = aigunner
 npcship.type = enemy ship
-npcship.position = 50 10 to 150 50
+npcship.position = 5 1 to 15 5
 npcship.angle = 0 to 360
-npcship.spawnCount = 0
+npcship.spawnCount = 1
 
 
 # blueprint modules create copies when dragged and serve as an unlimited supply of modules
