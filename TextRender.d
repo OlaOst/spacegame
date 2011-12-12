@@ -206,16 +206,19 @@ private:
     {
       for (int x = 0; x < m_face.glyph.bitmap.width; x++)
       {
-        int coord = 4 * (x + y*glyphHeight);
+        int coord = 4 * (x + y*glyphWidth);
         
-        glyph.data[coord] = unalignedGlyph[x + y*m_face.glyph.bitmap.width];
+        glyph.data[coord+0] = unalignedGlyph[x + y*m_face.glyph.bitmap.width];
+        glyph.data[coord+1] = unalignedGlyph[x + y*m_face.glyph.bitmap.width];
+        glyph.data[coord+2] = unalignedGlyph[x + y*m_face.glyph.bitmap.width];
+        glyph.data[coord+3] = unalignedGlyph[x + y*m_face.glyph.bitmap.width];
         
         //debug write(glyph.data[coord]>0?(to!string(glyph.data[coord]/26)):".");
       }
       //debug write("\n");
     }
     //debug writeln("");
-    
+
     glGenTextures(1, &glyph.textureId);
     assert(glyph.textureId > 0, "Failed to generate texture id: " ~ to!string(glGetError()));
     
@@ -223,8 +226,7 @@ private:
     
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	
-    glTexImage2D(GL_TEXTURE_2D, 0, 1, glyphWidth, glyphHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, glyph.data.ptr);
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, glyphWidth, glyphHeight, 0, GL_ALPHA, GL_UNSIGNED_BYTE, glyph.data.ptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, glyphWidth, glyphHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, glyph.data.ptr);
     
     assert(glyph.data.length > 0, "Failed to fill glyph texture");
     
