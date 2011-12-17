@@ -29,7 +29,7 @@ import std.stdio;
 import Entity;
 import InputHandler;
 import SubSystem.Controller;
-import common.Vector;
+import gl3n.linalg;
 
 
 unittest
@@ -55,12 +55,12 @@ public:
   
   
   void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents)
-  out
+  /*out
   {
-    assert(p_sourceComponent.force.isValid());
+    assert(p_sourceComponent.force.ok);
     assert(p_sourceComponent.torque == p_sourceComponent.torque);
   }
-  body
+  body*/
   {
     if (m_inputHandler.isPressed(Event.Space))
     {
@@ -73,7 +73,7 @@ public:
         auto recoil = 1.0;
         
         // TODO: dir should be from module angle 
-        auto dir = Vector(0.0, 1.0); // default direction is up
+        auto dir = vec2(0.0, 1.0); // default direction is up
         
         auto force = p_sourceComponent.force;
         

@@ -28,7 +28,7 @@ import std.conv;
 
 import derelict.sdl.sdl;
 
-import common.Vector;
+import gl3n.linalg;
 
 //pragma(lib, "DerelictSDL.lib");
 //pragma(lib, "DerelictUtil.lib");
@@ -220,20 +220,20 @@ unittest
   
   // test pixel coords to viewport coords
   inputHandler.setScreenResolution(100, 100);
-  assert(inputHandler.pixelToViewPort(50, 50) == Vector(0, -0.0), "50, 50 => " ~ inputHandler.pixelToViewPort(50, 50).toString());
-  assert(inputHandler.pixelToViewPort(0, 0) == Vector(-1, 1), "0, 0 => " ~ inputHandler.pixelToViewPort(0, 0).toString());
-  assert(inputHandler.pixelToViewPort(100, 100) == Vector(1, -1), "100, 100 => " ~ inputHandler.pixelToViewPort(100, 100).toString());
+  assert(inputHandler.pixelToViewPort(50, 50) == vec2(0, -0.0), "50, 50 => " ~ inputHandler.pixelToViewPort(50, 50).toString());
+  assert(inputHandler.pixelToViewPort(0, 0) == vec2(-1, 1), "0, 0 => " ~ inputHandler.pixelToViewPort(0, 0).toString());
+  assert(inputHandler.pixelToViewPort(100, 100) == vec2(1, -1), "100, 100 => " ~ inputHandler.pixelToViewPort(100, 100).toString());
   
   // test nonsquare resolutions, they will have the width or height beyond -1,1 if it's wider or taller than square
   inputHandler.setScreenResolution(200, 100); // -1,-1 to 1,1 defines a square area centered on the screen, with 50 px extra to the left and right
-  assert(inputHandler.pixelToViewPort(100, 50) == Vector(0, -0.0), "100, 50 => " ~ inputHandler.pixelToViewPort(100, 50).toString());
-  assert(inputHandler.pixelToViewPort(0, 0) == Vector(-2, 1), "0, 0 => " ~ inputHandler.pixelToViewPort(0, 0).toString());
-  assert(inputHandler.pixelToViewPort(200, 100) == Vector(2, -1), "200, 100 => " ~ inputHandler.pixelToViewPort(200, 100).toString());
+  assert(inputHandler.pixelToViewPort(100, 50) == vec2(0, -0.0), "100, 50 => " ~ inputHandler.pixelToViewPort(100, 50).toString());
+  assert(inputHandler.pixelToViewPort(0, 0) == vec2(-2, 1), "0, 0 => " ~ inputHandler.pixelToViewPort(0, 0).toString());
+  assert(inputHandler.pixelToViewPort(200, 100) == vec2(2, -1), "200, 100 => " ~ inputHandler.pixelToViewPort(200, 100).toString());
   
   inputHandler.setScreenResolution(100, 300); // -1,-1 to 1,1 defines a square area centered on the screen, with 50 px extra to the left and right
-  assert(inputHandler.pixelToViewPort(50, 150) == Vector(0, -0.0), "100, 50 => " ~ inputHandler.pixelToViewPort(100, 50).toString());
-  assert(inputHandler.pixelToViewPort(0, 0) == Vector(-1, 3), "0, 0 => " ~ inputHandler.pixelToViewPort(0, 0).toString());
-  assert(inputHandler.pixelToViewPort(100, 300) == Vector(1, -3), "200, 100 => " ~ inputHandler.pixelToViewPort(200, 100).toString());
+  assert(inputHandler.pixelToViewPort(50, 150) == vec2(0, -0.0), "100, 50 => " ~ inputHandler.pixelToViewPort(100, 50).toString());
+  assert(inputHandler.pixelToViewPort(0, 0) == vec2(-1, 3), "0, 0 => " ~ inputHandler.pixelToViewPort(0, 0).toString());
+  assert(inputHandler.pixelToViewPort(100, 300) == vec2(1, -3), "200, 100 => " ~ inputHandler.pixelToViewPort(200, 100).toString());
   
   
   SDL_Quit();
@@ -275,7 +275,7 @@ class InputHandler
 {
 invariant()
 {
-  assert(m_mousePos.isValid());
+  assert(m_mousePos.ok);
   
   //assert(m_screenWidth > 0);
   //assert(m_screenHeight > 0);
@@ -316,7 +316,7 @@ public:
     m_buttonEventMapping[SDL_BUTTON_WHEELUP] = Event.WheelUp;
     m_buttonEventMapping[SDL_BUTTON_WHEELDOWN] = Event.WheelDown;
     
-    m_mousePos = Vector.origo;
+    m_mousePos = vec2(0.0, 0.0);
   }
   
   void pollEvents()
@@ -359,7 +359,7 @@ public:
     m_screenHeight = p_screenHeight;
   }
   
-  Vector mousePos()
+  vec2 mousePos()
   {
     return m_mousePos;
   }
@@ -454,9 +454,9 @@ private:
     return eventCount;
   }
   
-  Vector pixelToViewPort(int p_x, int p_y)
+  vec2 pixelToViewPort(int p_x, int p_y)
   {
-    scope(failure) return Vector.origo;
+    scope(failure) return vec2(0.0, 0.0);
     
     int extraWidth = (m_screenWidth > m_screenHeight ? (m_screenWidth - m_screenHeight) : 0);
     int extraHeight = (m_screenHeight > m_screenWidth ? (m_screenHeight - m_screenWidth) : 0);
@@ -464,7 +464,7 @@ private:
     assert((cast(float)(m_screenWidth - extraWidth) - 0.5) > 0, "div by 0, m_screenWidth: " ~ to!string(m_screenWidth) ~ ", extraWidth: " ~ to!string(extraWidth));
     assert((cast(float)(m_screenHeight - extraHeight) - 0.5) > 0, "div by 0, m_screenHeight: " ~ to!string(m_screenHeight) ~ ", extraHeight: " ~ to!string(extraHeight));
     
-    return Vector((cast(float)(p_x - extraWidth/2) / cast(float)(m_screenWidth-extraWidth) - 0.5) * 2.0,
+    return vec2((cast(float)(p_x - extraWidth/2) / cast(float)(m_screenWidth-extraWidth) - 0.5) * 2.0,
                  -(cast(float)(p_y - extraHeight/2) / cast(float)(m_screenHeight-extraHeight) - 0.5) * 2.0);
   }
   
@@ -479,5 +479,5 @@ private:
   int m_screenWidth;
   int m_screenHeight;
   
-  Vector m_mousePos;
+  vec2 m_mousePos;
 }

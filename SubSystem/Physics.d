@@ -29,7 +29,7 @@ import std.stdio;
 
 import SubSystem.Base;
 import Entity;
-import common.Vector;
+import gl3n.linalg;
 
 
 unittest
@@ -45,9 +45,9 @@ unittest
   
   physics.registerEntity(entity);
   
-  assert(physics.getComponent(entity).position == Vector.origo);
+  assert(physics.getComponent(entity).position == vec2(0.0, 0.0));
   {
-    physics.getComponent(entity).velocity = Vector(1.0, 0.0);
+    physics.getComponent(entity).velocity = vec2(1.0, 0.0);
     physics.move(1.0);
   }
   assert(physics.getComponent(entity).position.x > 0.0);
@@ -71,7 +71,7 @@ invariant()
 {
   assert(entity !is null, "Physics component had null entity");
   
-  assert(force.isValid());
+  assert(force.ok);
   assert(torque == torque);
   
   assert(mass == mass);
@@ -84,7 +84,7 @@ public:
   {  
     entity = p_entity;
     
-    force = impulse = velocity = position = Vector.origo;
+    force = impulse = velocity = position = vec2(0.0, 0.0);
     
     torque = rotation = angle = 0.0;
     
@@ -98,19 +98,19 @@ private:
   {
     assert(p_time == p_time);
     assert(p_time > 0.0);
-    assert(force.isValid(), "Physics component update detected invalid force vector: " ~ force.toString());
-    assert(torque == torque);
+    assert(force.ok, "Physics component update detected invalid force vec2: " ~ force.toString());
+    assert(torque == torque, to!string(torque));
   }
   out
   {
-    assert(position.isValid());
-    assert(velocity.isValid());
+    assert(position.ok);
+    assert(velocity.ok);
   }
   body
   {
     assert(mass > 0.0);
     
-    velocity += (force / mass) * p_time;
+    velocity += (force * (1.0 / mass)) * p_time;
     velocity += impulse * p_time;
     
     position += velocity * p_time;
@@ -118,20 +118,25 @@ private:
     rotation += (torque / mass) * p_time;
     angle += rotation * p_time;
 
+    while (angle < -PI)
+      angle += PI*2;
+    while (angle > PI)
+      angle -= PI*2;
+    
     // reset force and torque after applying them
-    force = Vector.origo;
+    force = vec2(0.0, 0.0);
     torque = 0.0;
-    impulse = Vector.origo;
+    impulse = vec2(0.0, 0.0);
   }
   
 
 public:
   Entity entity;
   
-  Vector position;
-  Vector velocity;
-  Vector impulse;
-  Vector force;
+  vec2 position;
+  vec2 velocity;
+  vec2 impulse;
+  vec2 force;
   
   float angle;
   float rotation;
@@ -169,17 +174,24 @@ private:
   {
     foreach (component; components)
     {
+      assert(component.force.ok);
+      assert(component.torque == component.torque);
+      assert(component.velocity.ok);
+      assert(component.rotation == component.rotation);
+      
       // add spring force to center
       //component.force = component.force + (component.position * -0.05);
       
       // add some damping
-      component.force = component.force + (component.velocity * -0.15);
-      component.torque = component.torque + (component.rotation * -20.5);
+      component.force += (component.velocity * -0.15);
+      component.torque += (component.rotation * -20.5);
+      
+      assert(component.torque == component.torque);
       
       component.move(p_time);
       
       // reset force and torque so they're ready for next update
-      component.force = Vector.origo;
+      component.force = vec2(0.0, 0.0);
       component.torque = 0.0;
     }
   }
@@ -197,16 +209,16 @@ protected:
     auto newComponent = new PhysicsComponent(p_entity);
     
     if (p_entity.getValue("position").length > 0)
-      newComponent.position = Vector.fromString(p_entity.getValue("position"));
+      newComponent.position = vec2.fromString(p_entity.getValue("position"));
     
     if (p_entity.getValue("angle").length > 0)
       newComponent.angle = to!float(p_entity.getValue("angle")) * (PI / 180.0);
     
     if (p_entity.getValue("velocity").length > 0)
-      newComponent.velocity = Vector.fromString(p_entity.getValue("velocity"));
+      newComponent.velocity = vec2.fromString(p_entity.getValue("velocity"));
     
     if (p_entity.getValue("force").length > 0)
-      newComponent.force = Vector.fromString(p_entity.getValue("force"));
+      newComponent.force = vec2.fromString(p_entity.getValue("force"));
       
     if (p_entity.getValue("mass").length > 0)
       newComponent.mass = to!float(p_entity.getValue("mass"));

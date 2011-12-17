@@ -32,7 +32,7 @@ import derelict.opengl.gl;
 import derelict.opengl.glu;
 
 import Display;
-import common.Vector;
+import gl3n.linalg;
 
 
 unittest
@@ -56,17 +56,17 @@ unittest
   
   textRender.renderString("hello world");
   
-  /*FT_Vector kerningVector;
+  /*FT_vec2 kerningvec2;
   
   foreach (a; iota(cast(int)'a', cast(int)'z'))
   {
     foreach (b; iota(cast(int)'a', cast(int)'z'))
     {
-      auto kerningError = FT_Get_Kerning(textRender.m_face, a, b, 0, &kerningVector);
+      auto kerningError = FT_Get_Kerning(textRender.m_face, a, b, 0, &kerningvec2);
     
       assert(kerningError == 0, "Kerning error: " ~ to!string(kerningError));
     
-      writeln("testing kerning, vector between " ~ cast(char)a ~ " and " ~ cast(char)b ~ " is " ~ to!string(kerningVector.x) ~ "x" ~ to!string(kerningVector.y));
+      writeln("testing kerning, vec2 between " ~ cast(char)a ~ " and " ~ cast(char)b ~ " is " ~ to!string(kerningvec2.x) ~ "x" ~ to!string(kerningvec2.y));
     }
   }*/
 }
@@ -186,8 +186,8 @@ private:
     glyph.data = new GLubyte[4 * glyphWidth * glyphHeight];
     glyph.bitmap = m_face.glyph.bitmap;
     
-    glyph.advance = Vector(m_face.glyph.advance.x / (64.0 * 32.0), m_face.glyph.advance.y / (64.0 * 32.0));
-    glyph.offset = Vector(m_face.glyph.bitmap_left / 32.0, -(m_face.glyph.bitmap.rows - m_face.glyph.bitmap_top) / 32.0);
+    glyph.advance = vec2(m_face.glyph.advance.x / (64.0 * 32.0), m_face.glyph.advance.y / (64.0 * 32.0));
+    glyph.offset = vec2(m_face.glyph.bitmap_left / 32.0, -(m_face.glyph.bitmap.rows - m_face.glyph.bitmap_top) / 32.0);
     
     auto unalignedGlyph = m_face.glyph.bitmap.buffer;
     
@@ -240,8 +240,8 @@ private:
     uint textureId;
     FT_Bitmap bitmap;
     
-    Vector offset; // offset for this glyph, so for example lowercase 'g' will be drawn slightly lower
-    Vector advance; // how much should we move to the right and down when drawing this glyph before another one (when drawing strings)
+    vec2 offset; // offset for this glyph, so for example lowercase 'g' will be drawn slightly lower
+    vec2 advance; // how much should we move to the right and down when drawing this glyph before another one (when drawing strings)
     
     GLubyte[] data;
   };

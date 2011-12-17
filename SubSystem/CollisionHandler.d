@@ -29,7 +29,7 @@ import std.stdio;
 
 import Entity;
 import SubSystem.Base;
-import common.Vector;
+import gl3n.linalg;
 
 
 unittest
@@ -61,7 +61,7 @@ unittest
   
   assert(sys.entities.length == 2);
 
-  sys.getComponent(collide).position = Vector(1.0, 0.0);
+  sys.getComponent(collide).position = vec2(1.0, 0.0);
 
   assert(sys.collisions.length == 0);
   sys.determineCollisions();
@@ -106,7 +106,7 @@ class ColliderComponent
 {
   this(float p_radius, CollisionType p_collisionType)
   {
-    position = Vector.origo;
+    position = vec2(0.0, 0.0);
     radius = p_radius;
     collisionType = p_collisionType;
     lifetime = float.infinity;
@@ -114,11 +114,11 @@ class ColliderComponent
     id = idCounter++;
   }
   
-  Vector position;
+  vec2 position;
   float radius;
   
-  Vector force;
-  Vector torque;
+  vec2 force;
+  vec2 torque;
   
   CollisionType collisionType;
   
@@ -142,7 +142,7 @@ struct Collision
 {
   ColliderComponent first;
   ColliderComponent second;
-  Vector contactPoint;
+  vec2 contactPoint;
 }
 
 
@@ -194,7 +194,7 @@ protected:
       colliderComponent.spawnedFromOwner = to!int(p_entity.getValue("spawnedFromOwner"));
     
     if (p_entity.getValue("position").length > 0)
-      colliderComponent.position = Vector.fromString(p_entity.getValue("position"));
+      colliderComponent.position = vec2.fromString(p_entity.getValue("position"));
     
     if (p_entity.getValue("lifetime").length > 0)
       colliderComponent.lifetime = to!float(p_entity.getValue("lifetime"));
@@ -233,12 +233,12 @@ private:
             (first.ownerId > 0 && second.spawnedFromOwner > 0 && first.ownerId == second.spawnedFromOwner))
           continue;
         
-        if ((first.position - second.position).length2d < (first.radius + second.radius))
+        if ((first.position - second.position).length < (first.radius + second.radius))
         {
           // determine contact point
-          Vector normalizedContactVector = (second.position - first.position).normalized(); // / (first.radius + second.radius); // * first.radius;
+          vec2 normalizedContactvec2 = (second.position - first.position).normalized(); // / (first.radius + second.radius); // * first.radius;
 
-          Vector contactPoint = normalizedContactVector * (1.0/(first.radius + second.radius)) * first.radius;
+          vec2 contactPoint = normalizedContactvec2 * (1.0/(first.radius + second.radius)) * first.radius;
           
           m_collisions ~= Collision(first, second, contactPoint);
         }

@@ -30,7 +30,7 @@ import std.stdio;
 import std.string;
 
 import SubSystem.CollisionHandler;
-import common.Vector;
+import gl3n.linalg;
 
 
 unittest

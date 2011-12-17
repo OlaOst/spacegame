@@ -23,12 +23,13 @@
 
 module AiGunner;
 
+import std.conv;
 import std.math;
 import std.stdio;
 
 import SubSystem.Controller;
 
-import common.Vector;
+import gl3n.linalg;
 
 
 unittest
@@ -59,8 +60,12 @@ public:
     {
       foreach (targetPosition; targetPositions)
       {
-        auto targetDistance = (targetPosition - p_sourceComponent.position).length2d;
-        auto targetAngle = (targetPosition - p_sourceComponent.position).angle;
+        auto targetDistance = (targetPosition - p_sourceComponent.position).length;
+        auto targetAngle = 0.0; //(targetPosition - p_sourceComponent.position).angle;
+        
+        //writeln("sourcecomp pos is " ~ to!string(p_sourceComponent.position))
+        writeln("targetangle is " ~ to!string(targetAngle));
+        writeln("sourceangle is " ~ to!string(p_sourceComponent.angle));
         if (targetDistance < 100.0 && abs(p_sourceComponent.angle - targetAngle) < 0.1)
         {
           p_sourceComponent.isFiring = true;
@@ -70,7 +75,7 @@ public:
           auto recoil = 1.0;
           
           // TODO: dir should be from module angle 
-          auto dir = Vector(0.0, 1.0); // default direction is up
+          auto dir = vec2(0.0, 1.0); // default direction is up
           
           auto force = p_sourceComponent.force;
           
@@ -86,5 +91,5 @@ public:
 
   
 public:
-  Vector[] targetPositions;
+  vec2[] targetPositions;
 }

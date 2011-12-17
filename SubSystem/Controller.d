@@ -10,7 +10,7 @@ import InputHandler;
 import PlayerEngineControl;
 import PlayerLauncherControl;
 import SubSystem.Base;
-import common.Vector;
+import gl3n.linalg;
 
 
 interface Control
@@ -21,11 +21,11 @@ interface Control
     {
       writeln("control.update in contract");
       
-      assert(p_sourceComponent.position.isValid());
+      assert(p_sourceComponent.position.ok);
       
       foreach (otherComponent; p_otherComponents)
       {
-        assert(otherComponent.position.isValid());
+        assert(otherComponent.position.ok);
       }
     }*/
 }
@@ -35,15 +35,15 @@ class ControlComponent
 {
   Control control;
   
-  Vector position = Vector.origo;
+  vec2 position = vec2(0.0, 0.0);
   float angle = 0.0;
   
-  Vector velocity = Vector.origo;
+  vec2 velocity = vec2(0.0, 0.0);
   float rotation = 0.0;
   
-  Vector impulse = Vector.origo;
+  vec2 impulse = vec2(0.0, 0.0);
   
-  Vector force = Vector.origo;
+  vec2 force = vec2(0.0, 0.0);
   float torque = 0.0;
   
   float thrustForce = 0.0;
@@ -68,15 +68,15 @@ public:
   in
   {
     foreach (component; components)
-      assert(component.position.isValid());
+      assert(component.position.ok);
   }
   body
   {
     foreach (component; components)
     {
       // reset component force and torque before update
-      component.force = Vector.origo;
-      component.impulse = Vector.origo;
+      component.force = vec2(0.0, 0.0);
+      component.impulse = vec2(0.0, 0.0);
       component.torque = 0.0;
       
       component.isFiring = false;
@@ -159,7 +159,7 @@ protected:
       }
     }
     
-    assert(component.position.isValid());
+    assert(component.position.ok);
     
     return component;
   }

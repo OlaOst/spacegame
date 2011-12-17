@@ -39,11 +39,11 @@ unittest
   assert(left.x == 1.0 && left.y == 0.0);
   assert(right.x == 0.0 && right.y == 1.0);
   
-  assert(left.length2d == 1.0 && left.length3d == 1.0);
-  assert(right.length2d == 1.0 && right.length3d == 1.0);
+  assert(left.length == 1.0 && left.length3d == 1.0);
+  assert(right.length == 1.0 && right.length3d == 1.0);
   
-  assert(left.normalized.length2d == 1.0 && left.normalized.length3d == 1.0);
-  assert(right.normalized.length2d == 1.0 && right.normalized.length3d == 1.0);
+  assert(left.normalized.length == 1.0 && left.normalized.length3d == 1.0);
+  assert(right.normalized.length == 1.0 && right.normalized.length3d == 1.0);
   
   Vector result = left + right;
   
@@ -70,9 +70,14 @@ unittest
   
   assert((fromAngle - Vector.fromAngle(PI*2)).length3d < 0.0001);
   
+  Vector toFromAngle = Vector(4, 5).normalized();
+  auto angle = toFromAngle.angle();
+  assert(Vector.fromAngle(angle) == toFromAngle, to!string(Vector.fromAngle(angle)) ~ " not like " ~ to!string(toFromAngle));
+  
+  
   Vector wrong = Vector(NaN(0), NaN(0));
   
-  assert(wrong.isValid() == false);
+  assert(wrong.ok == false);
   
   auto vector3dFromString = Vector.fromString("1 2 3");
   assert(vector3dFromString.x == 1 && vector3dFromString.y == 2 && vector3dFromString.z == 3);
@@ -140,7 +145,7 @@ struct Vector
   Vector normalized() const
   out (result)
   {
-    assert(result.isValid(), "Error calculating normalized vector from " ~ this.toString());
+    assert(result.ok, "Error calculating normalized vector from " ~ this.toString());
   }
   body
   {
@@ -152,7 +157,7 @@ struct Vector
       return Vector.origo;
   }  
   
-  float length2d() const 
+  float length() const 
   {
     return sqrt(x*x + y*y);
   }

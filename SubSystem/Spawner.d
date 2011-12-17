@@ -7,7 +7,7 @@ import std.math;
 import std.random;
 import std.stdio;
 
-import common.Vector;
+import gl3n.linalg;
 import SubSystem.Base;
 
 
@@ -26,8 +26,8 @@ unittest
   auto spawnComp = sys.getComponent(spawner);
   
   // simulates CommsCentral setting stuff from Placer and Physics subsystems
-  spawnComp.position = Vector.origo;
-  spawnComp.velocity = Vector.origo;
+  spawnComp.position = vec2(0.0, 0.0);
+  spawnComp.velocity = vec2(0.0, 0.0);
   spawnComp.angle = 0.0;
   
   // simulates controller subsystem signalling the spawner entity to fire
@@ -46,16 +46,16 @@ struct SpawnerComponent
 {
   Entity spawnBlueprint;
   
-  Vector position = Vector.origo;
-  Vector velocity = Vector.origo;
-  Vector force = Vector.origo;
+  vec2 position = vec2(0.0, 0.0);
+  vec2 velocity = vec2(0.0, 0.0);
+  vec2 force = vec2(0.0, 0.0);
   
   float angle = 0.0;
   float torque = 0.0;
   
   // these are relative
-  Vector spawnPoint = Vector.origo;
-  Vector spawnVelocity = Vector.origo;
+  vec2 spawnPoint = vec2(0.0, 0.0);
+  vec2 spawnVelocity = vec2(0.0, 0.0);
   
   float spawnForce = 0.0; // goes in the direction of spawnAngle
   
@@ -88,10 +88,10 @@ public:
         
         auto spawnAngle = component.angle + component.spawnAngle;
         
-        assert(component.velocity.isValid());
+        assert(component.velocity.ok);
         
         // should be impulse not force... or should it?
-        auto spawnForce = Vector.fromAngle(spawnAngle) * component.spawnForce;
+        auto spawnForce = vec2.fromAngle(spawnAngle) * component.spawnForce;
         auto spawnVelocity = component.velocity + spawnForce;
         
         // spawning component gets some recoil force
@@ -161,9 +161,9 @@ protected:
       component.ownerId = to!int(p_entity.getValue("owner"));
     
     if (p_entity.getValue("spawnPoint").length > 0)
-      component.spawnPoint = Vector.fromString(p_entity.getValue("spawnPoint"));
+      component.spawnPoint = vec2.fromString(p_entity.getValue("spawnPoint"));
     if (p_entity.getValue("spawnVelocity").length > 0)
-      component.spawnVelocity = Vector.fromString(p_entity.getValue("spawnVelocity"));
+      component.spawnVelocity = vec2.fromString(p_entity.getValue("spawnVelocity"));
     
     if (p_entity.getValue("spawnForce").length > 0)
       component.spawnForce = to!float(p_entity.getValue("spawnForce"));

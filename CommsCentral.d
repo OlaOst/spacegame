@@ -26,7 +26,7 @@ import std.conv;
 import std.exception;
 import std.stdio;
 
-import common.Vector;
+import gl3n.linalg;
 import SubSystem.Base;
 import SubSystem.Physics;
 import SubSystem.Graphics;
@@ -53,15 +53,15 @@ unittest
   assert(physics.hasComponent(entity));
   
   auto placerComp = placer.getComponent(entity);
-  placerComp.position = Vector(5, 6);
+  placerComp.position = vec2(5, 6);
   
   placer.setComponent(entity, placerComp);
   
-  assert(physics.getComponent(entity).position == Vector(1, 2), physics.getComponent(entity).position.toString());
+  assert(physics.getComponent(entity).position == vec2(1, 2), physics.getComponent(entity).position.toString());
   
   subSystemCommunication!(PlacerComponent, PhysicsComponent)(placer, physics, (PlacerComponent placeComp, PhysicsComponent physComp){ physComp.position = placeComp.position; return physComp; });
   
-  assert(physics.getComponent(entity).position == Vector(5, 6), physics.getComponent(entity).position.toString());
+  assert(physics.getComponent(entity).position == vec2(5, 6), physics.getComponent(entity).position.toString());
 }
 
 
@@ -84,8 +84,8 @@ void setGraphicsFromPlacer(Placer placer, Graphics graphics)
 {
   subSystemCommunication!(PlacerComponent, GraphicsComponent)(placer, graphics, (PlacerComponent placerComponent, GraphicsComponent graphicsComponent)
   {
-    assert(placerComponent.position.isValid());
-    assert(placerComponent.velocity.isValid());
+    assert(placerComponent.position.ok);
+    assert(placerComponent.velocity.ok);
     
     graphicsComponent.position = placerComponent.position;
     graphicsComponent.velocity = placerComponent.velocity;
@@ -108,7 +108,7 @@ void setPlacerFromConnector(ConnectionHandler connection, Placer placer)
     //if (connectionComponent.owner == entity)
       //continue;
     
-    assert(connectionComponent.relativePosition.isValid());
+    assert(connectionComponent.relativePosition.ok);
     assert(connectionComponent.relativeAngle == connectionComponent.relativeAngle);
     
     //enforce(connectionComponent.owner !is null, "Owner entity was null for connection component with entity " ~ to!string(entity.id));
@@ -116,11 +116,12 @@ void setPlacerFromConnector(ConnectionHandler connection, Placer placer)
     enforce(placer.hasComponent(connectionComponent.owner), "owner entity " ~ to!string(connectionComponent.owner.id) ~ " did not have placer component");
     auto ownerComponent = placer.getComponent(connectionComponent.owner);
     
-    //placerComponent.position = Vector.fromAngle(ownerComponent.angle + connectionComponent.relativePosition.) * connectionComponent.relativePosition.length2d();
+    //placerComponent.position = vec2.fromAngle(ownerComponent.angle + connectionComponent.relativePosition.) * connectionComponent.relativePosition.length();
     
     // need to rotate around middle of mass point
-    placerComponent.position = ownerComponent.position + connectionComponent.relativePositionToCenterOfMass.rotate(ownerComponent.angle);
-    placerComponent.position.z += connectionComponent.relativePosition.z; // set z component here since it is not transferred in rotate operation
+    //placerComponent.position = ownerComponent.position + connectionComponent.relativePositionToCenterOfMass.rotate(ownerComponent.angle);    
+    placerComponent.position = ownerComponent.position + mat2.rotation(ownerComponent.angle) * connectionComponent.relativePositionToCenterOfMass;
+    //placerComponent.position.z += connectionComponent.relativePosition.z; // set z component here since it is not transferred in rotate operation
     placerComponent.angle = ownerComponent.angle + connectionComponent.relativeAngle;
     
     placerComponent.velocity = ownerComponent.velocity;
@@ -156,14 +157,15 @@ void setPhysicsFromConnector(ConnectionHandler connection, Physics physics)
       if (connectionComponent.owner == entity)
         continue;
       
-      assert(connectionComponent.relativePosition.isValid());
+      assert(connectionComponent.relativePosition.ok);
       assert(connectionComponent.relativeAngle == connectionComponent.relativeAngle);
       
       enforce(connectionComponent.owner !is null, "Owner entity was null for connection component with entity " ~ to!string(entity.id));      
       enforce(physics.hasComponent(connectionComponent.owner), "owner entity " ~ to!string(connectionComponent.owner.id) ~ " did not have physics component");
       auto ownerComponent = physics.getComponent(connectionComponent.owner);
       
-      ownerComponent.force += physicsComponent.force.rotate(ownerComponent.angle);
+      //ownerComponent.force += physicsComponent.force.rotate(ownerComponent.angle);
+      ownerComponent.force += mat2.rotation(ownerComponent.angle) * physicsComponent.force;
       ownerComponent.impulse += physicsComponent.impulse;
       ownerComponent.torque += physicsComponent.torque;
       
@@ -241,7 +243,7 @@ void calculateCollisionResponse(CollisionHandler collisionHandler, Physics physi
       auto secondPhysicsComponent = physics.getComponent(secondEntity);
       
       // determine collision force
-      float collisionForce = (firstPhysicsComponent.velocity * firstPhysicsComponent.mass + secondPhysicsComponent.velocity * secondPhysicsComponent.mass).length2d;
+      float collisionForce = (firstPhysicsComponent.velocity * firstPhysicsComponent.mass + secondPhysicsComponent.velocity * secondPhysicsComponent.mass).length;
 
       // give a kick from the contactpoint
       firstPhysicsComponent.force = firstPhysicsComponent.force + (collision.contactPoint.normalized() * -collisionForce);
@@ -256,7 +258,7 @@ void calculateCollisionResponse(CollisionHandler collisionHandler, Physics physi
     {
       debug write("reducing npc ship health from " ~ to!string(self.entity.health) ~ " to ");
       // TODO: don't substract health, instead add damage with decals and effects
-      self.entity.health -= otherPhysicsComponent.mass * (other.entity.velocity.length2d() - self.entity.velocity.length2d());
+      self.entity.health -= otherPhysicsComponent.mass * (other.entity.velocity.length() - self.entity.velocity.length());
       debug writeln(to!string(self.entity.health));
     }*/    
   }

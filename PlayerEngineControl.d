@@ -28,7 +28,7 @@ import std.stdio;
 
 import InputHandler;
 import SubSystem.Controller;
-import common.Vector;
+import gl3n.linalg;
 
 
 unittest
@@ -54,16 +54,19 @@ public:
   
   
   void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents)
-  out
+  /*out
   {
-    assert(p_sourceComponent.position.isValid());
-    assert(p_sourceComponent.force.isValid());
+    writeln(p_sourceComponent.position.toString());
+    writeln(p_sourceComponent.force.toString());
+    
+    assert(p_sourceComponent.position.ok);
+    assert(p_sourceComponent.force.ok);
     assert(p_sourceComponent.torque == p_sourceComponent.torque);
   }
-  body
+  body*/
   {
-    //auto dir = Vector.fromAngle(p_sourceComponent.angle);
-    auto dir = Vector(0.0, 1.0); // default direction is up
+    //auto dir = vec2.fromAngle(p_sourceComponent.angle);
+    auto dir = vec2(0.0, 1.0); // default direction is up
     
     auto force = p_sourceComponent.force;
     auto torque = p_sourceComponent.torque;
@@ -90,9 +93,9 @@ public:
     }*/
       
     if (m_inputHandler.isPressed(Event.StrafeLeft))
-      force += dir.rotate(PI/2) * slideForce;
+      force += mat2.rotation(PI/2) * dir * slideForce;
     if (m_inputHandler.isPressed(Event.StrafeRight))
-      force -= dir.rotate(PI/2) * slideForce;
+      force -= mat2.rotation(PI/2) * dir * slideForce;
       
     if (m_inputHandler.isPressed(Event.Brake))
     {

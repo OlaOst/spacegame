@@ -29,7 +29,7 @@ import std.stdio;
 
 import SubSystem.Controller;
 import Entity;
-import common.Vector;
+import gl3n.linalg;
 
 
 unittest
@@ -41,19 +41,19 @@ unittest
   FlockControl flock = new FlockControl(0.5, 0.5, 5.0, 0.3);
   
   // check that desired velocity is kept with no other boids in sight
-  assert(flock.desiredVelocity([]) == Vector.origo);
+  assert(flock.desiredVelocity([]) == vec2(0.0, 0.0));
   
   // check that desired velocity is kept with one boid outside both avoid and flock distances
-  assert(flock.desiredVelocity([Vector(0.0, 10.0)]) == Vector.origo);
+  assert(flock.desiredVelocity([vec2(0.0, 10.0)]) == vec2(0.0, 0.0));
   
   // check that desired velocity is changed away with one boid inside avoid distance
-  assert(flock.desiredVelocity([Vector(0.0, 0.2)]).y > 0.0, "got undesired velocity: " ~ flock.desiredVelocity([Vector(0.0, 0.3)]).toString());
+  assert(flock.desiredVelocity([vec2(0.0, 0.2)]).y > 0.0, "got undesired velocity: " ~ flock.desiredVelocity([vec2(0.0, 0.3)]).toString());
   
   // check that desired velocity is changed towards with one boid outside avoid distance but inside flock distance
-  assert(flock.desiredVelocity([Vector(0.0, 2.0)]).y < 0.0);
+  assert(flock.desiredVelocity([vec2(0.0, 2.0)]).y < 0.0);
   
   // check that desired velocity is kept with one boid in front and one in back (avoidance rules should nullify with those two)
-  //assert(flock.desiredVelocity(/*Vector(0.0, 1.0),*/ [Vector(0.0, 1.0), Vector(0.0, -1.0)]) == Vector(0.0, 1.0), flock.desiredVelocity(Vector(0.0, 1.0), [Vector(0.0, 1.0), Vector(0.0, -1.0)]).toString());
+  //assert(flock.desiredVelocity(/*vec2(0.0, 1.0),*/ [vec2(0.0, 1.0), vec2(0.0, -1.0)]) == vec2(0.0, 1.0), flock.desiredVelocity(vec2(0.0, 1.0), [vec2(0.0, 1.0), vec2(0.0, -1.0)]).toString());
   
   // need alignment rule to harmonize headings
 }
@@ -86,12 +86,12 @@ public:
   void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents)
   out
   {
-    assert(p_sourceComponent.force.isValid());
+    assert(p_sourceComponent.force.ok);
     assert(p_sourceComponent.torque == p_sourceComponent.torque);
   }
   body
   {
-    Vector[] relativePositions = [];
+    vec2[] relativePositions = [];
     
     // TODO: we don't want ai control to see the modules of its ship (the entities sharing owner) as stuff to follow
     foreach (flockMember; flockMembers) //nearbyEntities(p_sourceComponent, p_otherComponents, 50.0))
@@ -107,23 +107,25 @@ public:
     
     auto desiredVel = desiredVelocity(relativePositions);
     
-    assert(desiredVel.isValid());
+    assert(desiredVel.ok);
     
-    if (desiredVel.length2d() < 0.01)
+    if (desiredVel.length() < 0.01)
       return;
     
-    Vector dir = Vector.fromAngle(p_sourceComponent.angle);
+    //vec2 dir = vec2.fromAngle(p_sourceComponent.angle);
+    //float desiredTorque = dir.angle(desiredVel);
     
-    float desiredTorque = dir.angle(desiredVel);
+    //float desiredTorque = p_sourceComponent.angle - desiredVel;
+    float desiredTorque = 0.0;
     
     if (desiredTorque > p_sourceComponent.torqueForce)
       desiredTorque = p_sourceComponent.torqueForce;
     if (desiredTorque < -p_sourceComponent.torqueForce)
       desiredTorque = -p_sourceComponent.torqueForce;
     
-    if (desiredTorque < 0.1 && p_sourceComponent.velocity.length2d < 10.0)
+    if (desiredTorque < 0.1 && p_sourceComponent.velocity.length < 10.0)
       //p_sourceComponent.force += dir.normalized * p_sourceComponent.thrustForce;
-      p_sourceComponent.force += Vector(0.0, 1.0 * p_sourceComponent.thrustForce);
+      p_sourceComponent.force += vec2(0.0, 1.0 * p_sourceComponent.thrustForce);
 
     p_sourceComponent.torque = desiredTorque;
   }
@@ -131,27 +133,29 @@ public:
   
 private:
   // p_otherPositions are relative
-  Vector desiredVelocity(Vector[] p_otherPositions)
+  vec2 desiredVelocity(vec2[] p_otherPositions)
   in
   {    
     foreach (otherPos; p_otherPositions)
-      assert(otherPos.isValid());
+      assert(otherPos.ok);
   }
   out(result)
   {
-    assert(result.isValid());
+    //assert(result.ok);
   }
   body
   {
-    Vector desiredVelocity = Vector.origo;
+    vec2 desiredVelocity = vec2(0.0, 0.0);
     
     foreach (otherPosition; p_otherPositions)
     {      
-      if (otherPosition.length2d < m_avoidDistance)
+      if (otherPosition.length < m_avoidDistance)
         desiredVelocity += otherPosition.normalized() * m_avoidWeight;
-      else if (otherPosition.length2d < m_flockDistance)
+      else if (otherPosition.length < m_flockDistance)
         desiredVelocity -= otherPosition.normalized() * m_flockWeight;
     }
+    
+    assert(desiredVelocity.ok);
     
     return desiredVelocity;
   }

@@ -28,7 +28,7 @@ import std.stdio;
 
 import SubSystem.Controller;
 
-import common.Vector;
+import gl3n.linalg;
 
 
 unittest
@@ -58,21 +58,25 @@ public:
     // but not too close
     // and we want to look where the target will be so shots can hit
     
-    Vector relativePosition = targetPosition - p_sourceComponent.position;
+    vec2 relativePosition = targetPosition - p_sourceComponent.position;
     
-    if (relativePosition.length2d > 1.0)
+    if (relativePosition.length > 1.0)
     {
-      Vector desiredVelocity = relativePosition + targetVelocity * 2.0;
+      assert(p_sourceComponent.torqueForce == p_sourceComponent.torqueForce);
+      
+      vec2 desiredVelocity = relativePosition + targetVelocity * 2.0;
       
       // this needs damping or there will be funky oscillations
-      float desiredTorque = Vector.fromAngle(p_sourceComponent.angle).angle(desiredVelocity);
-      desiredTorque /= abs(desiredTorque);
+      float desiredTorque = 0.0; //vec2.fromAngle(p_sourceComponent.angle).angle(desiredVelocity);
+      //desiredTorque /= abs(desiredTorque);
       
       desiredTorque *= p_sourceComponent.torqueForce;
       
+      assert(desiredTorque == desiredTorque);
+      
       // accelerate if we're on our desired heading, else rotate towards target
-      if (desiredTorque < 0.1 && p_sourceComponent.velocity.length2d < 3.0)
-        p_sourceComponent.force += Vector(0.0, 1.0 * p_sourceComponent.thrustForce);
+      if (desiredTorque < 0.1 && p_sourceComponent.velocity.length < 3.0)
+        p_sourceComponent.force += vec2(0.0, 1.0 * p_sourceComponent.thrustForce);
       else
         p_sourceComponent.torque = desiredTorque;
         
@@ -82,6 +86,6 @@ public:
 
   
 public:
-  Vector targetPosition;
-  Vector targetVelocity;
+  vec2 targetPosition;
+  vec2 targetVelocity;
 }

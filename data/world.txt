@@ -3,9 +3,9 @@ startupDing.soundFile = test.wav
 startupDing.name = startupDing
 
 # backdrop picture
-backdrop.drawsource = images/galaxiesbackdrop.jpg
-backdrop.position = 0 0 -200
-backdrop.radius = 100.0
+#backdrop.drawsource = images/galaxiesbackdrop.jpg
+#backdrop.position = 0 0 -200
+#backdrop.radius = 100.0
 
 
 # greeting text
@@ -61,7 +61,7 @@ npcship.rightEngine.control = chaser
 npcship.leftGun.control = aigunner
 npcship.rightGun.control = aigunner
 npcship.type = enemy ship
-npcship.position = 5 1 to 15 5
+npcship.position = 5 1 to 5 2
 npcship.angle = 0 to 360
 npcship.spawnCount = 1
 

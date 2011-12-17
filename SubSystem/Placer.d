@@ -26,14 +26,14 @@ import std.conv;
 import std.math;
 import std.stdio;
 
-import common.Vector;
+import gl3n.linalg;
 import SubSystem.Base;
 
 
 struct PlacerComponent
 {
-  Vector position = Vector.origo;
-  Vector velocity = Vector.origo;
+  vec2 position = vec2(0.0, 0.0);
+  vec2 velocity = vec2(0.0, 0.0);
   
   float angle = 0.0;
   float rotation = 0.0;
@@ -48,12 +48,12 @@ public:
     foreach (component; components)
     {
       // do wraparound stuff
-      //if (component.position.length2d > 100.0)
+      //if (component.position.length > 100.0)
         //component.position = component.position * -1;
       if (abs(component.position.x) > 100.0)
-        component.position = Vector(component.position.x * -1, component.position.y);
+        component.position = vec2(component.position.x * -1, component.position.y);
       if (abs(component.position.y) > 100.0)
-        component.position = Vector(component.position.x, component.position.y * -1);
+        component.position = vec2(component.position.x, component.position.y * -1);
     }
   }
   
@@ -69,9 +69,9 @@ protected:
     auto component = PlacerComponent();
     
     if (p_entity.getValue("position").length > 0)
-      component.position = Vector.fromString(p_entity.getValue("position"));
+      component.position = vec2.fromString(p_entity.getValue("position"));
     if (p_entity.getValue("velocity").length > 0)
-      component.velocity = Vector.fromString(p_entity.getValue("velocity"));
+      component.velocity = vec2.fromString(p_entity.getValue("velocity"));
       
     if (p_entity.getValue("angle").length > 0)
       component.angle = to!float(p_entity.getValue("angle")) * (PI / 180.0);

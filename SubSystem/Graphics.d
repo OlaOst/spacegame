@@ -41,7 +41,7 @@ import Display;
 import Entity;
 import SubSystem.Base;
 import TextRender;
-import common.Vector;
+import gl3n.linalg;
 
 
 unittest
@@ -51,7 +51,7 @@ unittest
   
   Graphics graphics = new Graphics(256, 128);
     
-  GraphicsComponent[] componentsPointedAt = graphics.findComponentsPointedAt(Vector.origo);
+  GraphicsComponent[] componentsPointedAt = graphics.findComponentsPointedAt(vec2(0.0, 0.0));
   assert(componentsPointedAt.length == 0);
 
   Entity entity = new Entity();
@@ -63,10 +63,10 @@ unittest
   graphics.registerEntity(entity);
   assert(graphics.components.length == 1);
   
-  componentsPointedAt = graphics.findComponentsPointedAt(Vector.origo);
+  componentsPointedAt = graphics.findComponentsPointedAt(vec2(0.0, 0.0));
   assert(componentsPointedAt.length == 1);
   
-  componentsPointedAt = graphics.findComponentsPointedAt(Vector(100, 100));
+  componentsPointedAt = graphics.findComponentsPointedAt(vec2(100, 100));
   assert(componentsPointedAt.length == 0);
     
   Entity deleteTest = new Entity();
@@ -77,7 +77,7 @@ unittest
   graphics.registerEntity(deleteTest);
   assert(graphics.components.length == 2, "Expected 2 registered components, instead got " ~ to!string(graphics.components.length));
   
-  componentsPointedAt = graphics.findComponentsPointedAt(Vector.origo);
+  componentsPointedAt = graphics.findComponentsPointedAt(vec2(0.0, 0.0));
   assert(componentsPointedAt.length == 2, "Should have 2 components pointed at, instead got " ~ to!string(componentsPointedAt.length));
   
   graphics.update();
@@ -96,13 +96,13 @@ unittest
   
   graphics.registerEntity(another);
   
-  componentsPointedAt = graphics.findComponentsPointedAt(Vector(0.5, 0.0));
+  componentsPointedAt = graphics.findComponentsPointedAt(vec2(0.5, 0.0));
   assert(componentsPointedAt.length == 2, to!string(componentsPointedAt.length));
   
-  componentsPointedAt = graphics.findComponentsPointedAt(Vector(1.5, 0.0));
+  componentsPointedAt = graphics.findComponentsPointedAt(vec2(1.5, 0.0));
   assert(componentsPointedAt.length == 1);
   
-  componentsPointedAt = graphics.findComponentsPointedAt(Vector(3.5, 0.0));
+  componentsPointedAt = graphics.findComponentsPointedAt(vec2(3.5, 0.0));
   assert(componentsPointedAt.length == 0, to!string(componentsPointedAt.length));
   
   Entity text = new Entity();
@@ -149,35 +149,35 @@ struct GraphicsComponent
 public:
   this(float p_radius)
   {
-    position = velocity = Vector.origo;
+    position = velocity = vec2(0.0, 0.0);
     angle = rotation = 0.0;
     
     drawSource = DrawSource.Unknown;
     radius = p_radius;
   }
   
-  bool isPointedAt(Vector p_pos)
+  bool isPointedAt(vec2 p_pos)
   {
-    return ((position - p_pos).length2d < radius);
+    return ((position - p_pos).length < radius);
   }
   
   bool isOverlapping(GraphicsComponent p_other)
   {
-    return ((position - p_other.position).length2d < (radius + p_other.radius));
+    return ((position - p_other.position).length < (radius + p_other.radius));
   }
   
   DrawSource drawSource;
   float radius;
   
   Vertex[] vertices;
-  Vector[] connectPoints;
+  vec2[] connectPoints;
   Vertex color;
   
   int displayListId = -1;
   uint textureId = -1;
   
-  Vector position = Vector.origo;
-  Vector velocity = Vector.origo;
+  vec2 position = vec2(0.0, 0.0);
+  vec2 velocity = vec2(0.0, 0.0);
   
   float angle = 0.0;
   float rotation = 0.0;
@@ -194,7 +194,7 @@ invariant()
 {
   assert(m_textRender !is null);
   assert(m_zoom > 0.0);
-  assert(m_mouseWorldPos.isValid());
+  assert(m_mouseWorldPos.ok);
 }
 
 
@@ -205,7 +205,7 @@ public:
     
     m_zoom = 0.1;
     
-    m_mouseWorldPos = Vector.origo;
+    m_mouseWorldPos = vec2(0.0, 0.0);
     
     initDisplay(p_screenWidth, p_screenHeight);
   }
@@ -226,21 +226,21 @@ public:
     glTranslatef(0.0, 0.0, -512.0);
     
     auto centerComponent = GraphicsComponent();
-    assert(centerComponent.position.isValid());
+    assert(centerComponent.position.ok);
     if (hasComponent(m_centerEntity))
     {
       centerComponent = getComponent(m_centerEntity);
-      assert(centerComponent.position.isValid());
+      assert(centerComponent.position.ok);
     
       glTranslatef(-centerComponent.position.x, -centerComponent.position.y, 0.0);
     }
     
     glDisable(GL_TEXTURE_2D);
-
+    
     // stable sort randomly crashes, phobos bug or float fuckery?
     //foreach (component; sort!((left, right) { return left.position.z < right.position.z; }, SwapStrategy.stable)(components))
-    foreach (component; sort!((left, right) { return left.position.z < right.position.z; })(components))
-    //foreach (component; components)
+    //foreach (component; sort!((left, right) { return left.position.z < right.position.z; })(components))
+    foreach (component; components)
     {
       glPushMatrix();
       
@@ -251,16 +251,16 @@ public:
         glScalef(1.0/m_zoom, 1.0/m_zoom, 1.0);
       }
       
-      assert(component.position.isValid());
+      assert(component.position.ok);
       
-      glTranslatef(component.position.x, component.position.y, component.position.z);
+      //glTranslatef(component.position.x, component.position.y, component.position.z);
+      glTranslatef(component.position.x, component.position.y, 0.0);
       
-      // show some data for entities, unrotated
-      if (component.text.length > 0)
+      if (component.drawSource == DrawSource.Text && component.text.length > 0)
       {
         glPushMatrix();
           glTranslatef(0.0, component.radius*2, 0.0);
-          //m_textRender.renderString(to!string(component.velocity.length2d()));
+          //m_textRender.renderString(to!string(component.velocity.length()));
           m_textRender.renderString(to!string(component.text));
         glPopMatrix();
       }
@@ -283,6 +283,16 @@ public:
       else
         drawComponent(component);
       
+      
+      // draw text if component entity has text and has mouse pointer over it 
+      // should only be for blueprint modules but right now we have no way of figuring out if it's a blueprint or not
+      if (component.screenAbsolutePosition == false)
+      {
+        if (component.isPointedAt(m_mouseWorldPos) && component.text.length > 0)
+        {
+          m_textRender.renderString(component.text);
+        }
+      }
 
       // draw circle indicating radius in debug mode
       debug
@@ -312,12 +322,12 @@ public:
     glPopMatrix();
   }
   
-  GraphicsComponent[] findComponentsPointedAt(Vector p_pos)
+  GraphicsComponent[] findComponentsPointedAt(vec2 p_pos)
   {
     GraphicsComponent[] foundComponents;
     foreach (component; components)
     {
-      if ((component.position - p_pos).length2d < component.radius)
+      if ((component.position - p_pos).length < component.radius)
         foundComponents ~= component;
     }
     
@@ -340,19 +350,19 @@ public:
   }
   
   // figure out world coords of the mouse pointer, from viewport coords
-  void calculateMouseWorldPos(Vector p_mouseScreenPos)
+  void calculateMouseWorldPos(vec2 p_mouseScreenPos)
   {
-    assert(p_mouseScreenPos.isValid());
+    assert(p_mouseScreenPos.ok);
     
     auto centerComponent = GraphicsComponent();
     if (hasComponent(m_centerEntity))
       centerComponent = getComponent(m_centerEntity);
       
-    assert(centerComponent.position.isValid(), "Invalid center component position: " ~ centerComponent.position.toString());
-    m_mouseWorldPos = p_mouseScreenPos / m_zoom + centerComponent.position;
+    assert(centerComponent.position.ok, "Invalid center component position: " ~ centerComponent.position.toString());
+    m_mouseWorldPos = p_mouseScreenPos * (1.0 / m_zoom) + centerComponent.position;
   }
   
-  Vector mouseWorldPos()
+  vec2 mouseWorldPos()
   {
     return m_mouseWorldPos;
   }
@@ -478,13 +488,13 @@ protected:
     {
       if (std.algorithm.startsWith(value, "connectpoint") > 0)
       {
-        component.connectPoints ~= Vector.fromString(p_entity.getValue(value));
+        component.connectPoints ~= vec2.fromString(p_entity.getValue(value));
       }
     }
     
     if (p_entity.getValue("position").length > 0)
     {
-      component.position = Vector.fromString(p_entity.getValue("position"));
+      component.position = vec2.fromString(p_entity.getValue("position"));
     }
     
     if (p_entity.getValue("angle").length > 0)
@@ -644,7 +654,7 @@ private:
   
   float m_zoom;
   
-  Vector m_mouseWorldPos;
+  vec2 m_mouseWorldPos;
   
   Entity m_centerEntity;
 }

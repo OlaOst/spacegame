@@ -35,6 +35,8 @@ import std.string;
 
 import derelict.sdl.sdl;
 
+import gl3n.linalg;
+
 import SubSystem.CollisionHandler;
 import SubSystem.ConnectionHandler;
 import SubSystem.Controller;
@@ -50,7 +52,6 @@ import CommsCentral;
 import FlockControl;
 import InputHandler;
 import Starfield;
-import common.Vector;
 
 
 unittest
@@ -78,9 +79,9 @@ unittest
   assert(game.m_physics.hasComponent(testPhysics));
   assert(game.m_graphics.hasComponent(testPhysics) == false);
   
-  game.m_physics.getComponent(testPhysics).force = Vector(0.0, 1.0, 0.0);
+  game.m_physics.getComponent(testPhysics).force = vec2(0.0, 1.0, 0.0);
   
-  assert(game.m_physics.getComponent(testPhysics).force == Vector(0.0, 1.0, 0.0));
+  assert(game.m_physics.getComponent(testPhysics).force == vec2(0.0, 1.0, 0.0));
   
   game.m_physics.setTimeStep(0.1);
   game.m_controller.setTimeStep(0.1);
@@ -121,7 +122,7 @@ unittest
       {
         override void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents) 
         {
-          p_sourceComponent.force = Vector(1.0, 1.0, 0.0);
+          p_sourceComponent.force = vec2(1.0, 1.0, 0.0);
         }
       };
   
@@ -130,7 +131,7 @@ unittest
   foreach (subSystem; game.m_subSystems)
     subSystem.update();
     
-  assert(game.m_controller.getComponent(testController).force.length2d > 0.0);
+  assert(game.m_controller.getComponent(testController).force.length > 0.0);
 }
 
 
@@ -205,7 +206,7 @@ public:
 
       for (int count = 0; count < spawnCount; count++)
       {
-        Vector position = Vector.origo;
+        vec2 position = vec2(0.0, 0.0);
         float angle = 0.0;
         
         auto extraValues = spawnNameWithValues[spawnName].dup;
@@ -221,7 +222,10 @@ public:
           auto toX = to!float(positionData[3]);
           auto toY = to!float(positionData[4]);
           
-          position = Vector(uniform(fromX, toX), uniform(fromY, toY));
+          auto x = (fromX == toX) ? fromX : uniform(fromX, toX);
+          auto y = (fromY == toY) ? fromY : uniform(fromY, toY);
+          
+          position = vec2(x, y);
           
           extraValues["position"] = position.toString();
         }
@@ -344,8 +348,8 @@ private:
           entity.setValue("collisionType", "FreeFloatingModule");
           entity.setValue("position", m_placer.getComponent(entity).position.toString());
           entity.setValue("angle", to!string(m_placer.getComponent(entity).angle));
-          entity.setValue("velocity", Vector.origo.toString());
-          entity.setValue("force", Vector.origo.toString());
+          entity.setValue("velocity", vec2(0.0, 0.0).toString());
+          entity.setValue("force", vec2(0.0, 0.0).toString());
           
           m_controller.removeEntity(entity);
           m_collider.registerEntity(entity);
@@ -368,7 +372,7 @@ private:
               {
                 auto connectedPhysComp = m_physics.getComponent(connectedEntity);
                 connectedPhysComp.position = connectedColliderComponent.position;
-                connectedPhysComp.force = Vector.origo;
+                connectedPhysComp.force = vec2(0.0, 0.0);
                 
                 m_physics.setComponent(connectedEntity, connectedPhysComp);
               }
@@ -388,7 +392,7 @@ private:
           {
             auto physComp = m_physics.getComponent(entity);
             physComp.position = colliderComponent.position;
-            physComp.force = Vector.origo;
+            physComp.force = vec2(0.0, 0.0);
             
             m_physics.setComponent(entity, physComp);
           }
@@ -474,12 +478,12 @@ private:
           { 
             assert(entity.id != m_playerShip.id);
             
-            return ((m_connector.getComponent(closestSoFar).position-playerPos).length2d < 
-                    (m_connector.getComponent(entity).position-playerPos).length2d) ? closestSoFar : entity;
+            return ((m_connector.getComponent(closestSoFar).position-playerPos).length < 
+                    (m_connector.getComponent(entity).position-playerPos).length) ? closestSoFar : entity;
           })(enemyShips);
           
           auto closestEntityPosition = m_placer.getComponent(closestEntity).position - playerPos;
-          auto closestEntityDistance = closestEntityPosition.length2d;
+          auto closestEntityDistance = closestEntityPosition.length;
           
           auto closestShipDisplayComponent = m_graphics.getComponent(m_closestShipDisplay);
           
@@ -525,7 +529,7 @@ private:
           if (dragGfxComp.screenAbsolutePosition)
             continue;
           
-          if ((dragGfxComp.position - m_graphics.mouseWorldPos).length2d < dragGfxComp.radius)
+          if ((dragGfxComp.position - m_graphics.mouseWorldPos).length < dragGfxComp.radius)
           {
             // we don't want to drag something if it has stuff connected to it, or owns something. 
             // if you want to drag a skeleton module, you should drag off all connected modules first
@@ -619,7 +623,7 @@ private:
         assert(m_dragEntity.getValue("radius").length > 0, "Couldn't find radius for drag entity " ~ m_dragEntity.getValue("name"));
         
         // trash entities dropped in the trashbin, but don't trash the trashbin...
-        if (m_dragEntity != m_trashBin && (dragPos - trashBinPos).length2d < to!float(m_trashBin.getValue("radius")))
+        if (m_dragEntity != m_trashBin && (dragPos - trashBinPos).length < to!float(m_trashBin.getValue("radius")))
         {
           removeEntity(m_dragEntity);
         }
@@ -629,19 +633,19 @@ private:
           auto overlappingEmptyConnectPointsWithPosition = m_connector.findOverlappingEmptyConnectPointsWithPosition(m_dragEntity, dragPos);
         
           ConnectPoint closestConnectPoint;
-          auto closestPosition = Vector(float.infinity, float.infinity);
+          auto closestPosition = vec2(float.infinity, float.infinity);
         
           // connect to the closest one
-          foreach (ConnectPoint connectPoint, Vector position; overlappingEmptyConnectPointsWithPosition)
+          foreach (ConnectPoint connectPoint, vec2 position; overlappingEmptyConnectPointsWithPosition)
           {
-            if (position.length2d < closestPosition.length2d)
+            if (position.length < closestPosition.length)
             {
               closestConnectPoint = connectPoint;
               closestPosition = position;
             }
           }
           
-          if (closestPosition.length2d < float.infinity)
+          if (closestPosition.length < float.infinity)
           {
             assert(closestConnectPoint.owner !is null);
             assert(m_connector.hasComponent(closestConnectPoint.owner));
@@ -713,7 +717,7 @@ private:
         {
           auto position = m_placer.getComponent(entity).position;
           
-          if ((position - m_graphics.mouseWorldPos).length2d < to!float(entity.getValue("radius")))
+          if ((position - m_graphics.mouseWorldPos).length < to!float(entity.getValue("radius")))
           {
             if (m_connector.hasComponent(entity))
             {
@@ -971,7 +975,7 @@ private:
     m_physics.setComponent(p_ownerEntity, physComp);
     
     // recalculate relative position to center of mass for all owned entities
-    Vector centerOfMass = Vector.origo;
+    vec2 centerOfMass = vec2(0.0, 0.0);
     float totalMass = 0.0;
     foreach (ownedEntity; m_connector.getOwnedEntities(p_ownerEntity))
     {

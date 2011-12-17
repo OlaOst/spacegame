@@ -34,7 +34,7 @@ import std.typetuple;
 
 import Entity;
 import SubSystem.Base;
-import common.Vector;
+import gl3n.linalg;
 
 
 unittest
@@ -58,11 +58,11 @@ unittest
   
   auto engineComponent = sys.getComponent(engine);
   
-  assert(engineComponent.relativePosition == Vector(1.0, 0.0), "Engine didn't set relative position to 1 0 0, it's " ~ engineComponent.relativePosition.toString());
+  assert(engineComponent.relativePosition == vec2(1.0, 0.0), "Engine didn't set relative position to 1 0 0, it's " ~ engineComponent.relativePosition.toString());
   //assert(engineComponent.owner.entity == ship);
   
   // TODO: we need to take combined mass of ship and engine into account, this assumes just a mass of 1
-  //assert(ship.position == Vector(1, 0, 0));
+  //assert(ship.position == vec2(1, 0, 0));
   
   //assert(engine.position == engineComponent.relativePosition + ship.position);
   
@@ -87,7 +87,7 @@ unittest
   
   auto connectingComponent = sys.getComponent(connectingEntity);
   
-  assert(connectingComponent.relativePosition == Vector(0, -1));
+  assert(connectingComponent.relativePosition == vec2(0, -1));
   
   // reload connectPointsComponent, check if connectpoint has correct connectedEntity
   connectPointsComponent = sys.getComponent(connectPointsEntity);
@@ -98,7 +98,7 @@ unittest
 struct ConnectPoint
 {
   string name;
-  Vector position = Vector.origo;
+  vec2 position = vec2(0.0, 0.0);
   Entity connectedEntity = null;
   Entity owner;
 }
@@ -109,8 +109,8 @@ class ConnectionComponent
 invariant()
 {
   assert(owner !is null);
-  assert(relativePosition.isValid());
-  assert(relativePositionToCenterOfMass.isValid());
+  assert(relativePosition.ok);
+  assert(relativePositionToCenterOfMass.ok);
   assert(relativeAngle == relativeAngle);
   assert(mass == mass);
 }
@@ -121,13 +121,13 @@ public:
   {
     owner = p_owner;
     
-    position = Vector.origo;
+    position = vec2(0.0, 0.0);
     angle = 0.0;
     
     mass = 0.0;
     
-    relativePosition = Vector.origo;
-    relativePositionToCenterOfMass = Vector.origo;
+    relativePosition = vec2(0.0, 0.0);
+    relativePositionToCenterOfMass = vec2(0.0, 0.0);
     relativeAngle = 0.0;
   } 
   
@@ -135,13 +135,13 @@ public:
 public:
   Entity owner;
   
-  Vector position;
+  vec2 position;
   float angle;
   
   float mass;
   
-  Vector relativePosition;
-  Vector relativePositionToCenterOfMass;
+  vec2 relativePosition;
+  vec2 relativePositionToCenterOfMass;
   float relativeAngle;
   
   ConnectPoint[string] connectPoints;
@@ -202,8 +202,8 @@ public:
       
       auto ownerComponent = getComponent(componentToDisconnect.owner);
       
-      componentToDisconnect.relativePosition = Vector.origo;
-      componentToDisconnect.relativePositionToCenterOfMass = Vector.origo;
+      componentToDisconnect.relativePosition = vec2(0.0, 0.0);
+      componentToDisconnect.relativePositionToCenterOfMass = vec2(0.0, 0.0);
 
       // a disconnected entity owns itself
       componentToDisconnect.owner = p_entity;
@@ -247,14 +247,14 @@ public:
   }
     
   
-  Vector[ConnectPoint] findOverlappingEmptyConnectPointsWithPosition(Entity p_entity, Vector p_position)
+  vec2[ConnectPoint] findOverlappingEmptyConnectPointsWithPosition(Entity p_entity, vec2 p_position)
   in
   {
     assert(p_entity !is null);
   }
   body
   {
-    Vector[ConnectPoint] overlappingConnectPoints;
+    vec2[ConnectPoint] overlappingConnectPoints;
     
     auto radius = to!float(p_entity.getValue("radius"));
     
@@ -270,9 +270,9 @@ public:
         if (connectPoint.connectedEntity !is null)
           continue;
 
-        auto connectPointPosition = component.position + connectPoint.position.rotate(component.angle);
+        auto connectPointPosition = component.position + mat2.rotation(component.angle) * connectPoint.position;
         
-        auto distanceToConnectPoint = (p_position - connectPointPosition).length2d;
+        auto distanceToConnectPoint = (p_position - connectPointPosition).length;
         
         if (distanceToConnectPoint < radius)
         {
@@ -333,7 +333,7 @@ protected:
         connectPoint.connectedEntity = null;
         connectPoint.owner = p_entity;
         if (connectPointAttribute == "position")
-          connectPoint.position = Vector.fromString(p_entity.getValue(value));
+          connectPoint.position = vec2.fromString(p_entity.getValue(value));
           
         connectPoints[connectPointName] = connectPoint;
         
@@ -342,8 +342,8 @@ protected:
       }
     }
     
-    Vector relativePosition = Vector.origo;
-    Vector relativePositionToCenterOfMass = Vector.origo;
+    vec2 relativePosition = vec2(0.0, 0.0);
+    vec2 relativePositionToCenterOfMass = vec2(0.0, 0.0);
     if (p_entity.getValue("connection").length > 0)
     {
       auto entityIdAndConnectPointName = extractEntityIdAndConnectPointName(p_entity.getValue("connection"));
@@ -420,7 +420,7 @@ protected:
     
     if (p_entity.getValue("relativePosition").length > 0)
     {
-      newComponent.relativePosition = Vector.fromString(p_entity.getValue("relativePosition"));
+      newComponent.relativePosition = vec2.fromString(p_entity.getValue("relativePosition"));
     }
     
     if (p_entity.getValue("relativeAngle").length > 0)

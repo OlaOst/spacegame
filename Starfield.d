@@ -27,7 +27,7 @@ import std.random;
 
 import Entity;
 import SubSystem.Graphics;
-import common.Vector;
+import gl3n.linalg;
 
 
 unittest
@@ -79,9 +79,9 @@ public:
       
       star.setValue("angle", to!string(uniform(-3.14, 3.14)));
       
-      star.setValue("position", to!string(Vector(uniform(-3.0/m_graphics.zoom, 3.0/m_graphics.zoom), 
-                                                 uniform(-3.0/m_graphics.zoom, 3.0/m_graphics.zoom),
-                                                 uniform(-5.0, -3.0))));
+      star.setValue("position", to!string(vec3(uniform(-3.0/m_graphics.zoom, 3.0/m_graphics.zoom), 
+                                               uniform(-3.0/m_graphics.zoom, 3.0/m_graphics.zoom),
+                                               uniform(-5.0, -3.0))));
       
       m_stars[n] = star;
       
