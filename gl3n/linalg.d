@@ -155,7 +155,7 @@ struct Vector(type, int dimension_) if((dimension_ >= 2) && (dimension_ <= 4)) {
     }
     
     unittest {
-      assert(vec2d.fromString2d("1.0 2.0") == vec2d(1.0, 2.0));
+      assert(vec2d.fromString("1.0 2.0") == vec2d(1.0, 2.0));
     }
           
     /// Returns true if all values are not nan and finite, otherwise false.

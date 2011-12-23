@@ -55,13 +55,15 @@ public:
   
   
   void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents)
-  /*out
+  out
   {
     assert(p_sourceComponent.force.ok);
     assert(p_sourceComponent.torque == p_sourceComponent.torque);
   }
-  body*/
+  body
   {
+    p_sourceComponent.isFiring = false;
+    
     if (m_inputHandler.isPressed(Event.Space))
     {
       if (p_sourceComponent.reload <= 0.0)

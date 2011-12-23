@@ -29,7 +29,6 @@ import std.math;
 import std.stdio;
 import std.string;
 
-import SubSystem.CollisionHandler;
 import gl3n.linalg;
 
 
@@ -160,6 +159,10 @@ public:
       return null;
   }
   
+  override int opCmp(Object other)
+  {
+    return id - (cast(Entity)other).id;
+  }
   
 public:
   immutable int id;

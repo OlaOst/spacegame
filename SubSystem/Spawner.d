@@ -78,6 +78,8 @@ public:
     
     foreach (ref component; components)
     {
+      //writeln("spawner.update: " ~ to!string(component.entityId) ~ ": " ~ to!string(component.isSpawning));
+    
       if (component.isSpawning)
       {
         Entity spawn;

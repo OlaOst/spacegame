@@ -179,10 +179,20 @@ public:
   }
  
  
-  void loadWorldFromFile(string p_file)
+  void loadWorldFromFile(string p_fileName)
   {
-    Entity worldEntity = new Entity(p_file);
-        
+    Entity worldEntity = new Entity(p_fileName);
+
+    string[] orderedEntityNames;
+    
+    auto file = File(p_fileName);
+    foreach (string line; lines(file))
+    {
+      if (line.strip.length > 0 && line.strip.startsWith("#") == false)
+        if (orderedEntityNames.find(line.strip.split(".")[0]) == [])
+          orderedEntityNames ~= line.strip.split(".")[0];
+    }
+    
     string[string][string] spawnNameWithValues;
     
     foreach (key; worldEntity.values.keys)
@@ -198,8 +208,11 @@ public:
       }
     }
     
-    foreach (spawnName; spawnNameWithValues.keys)
+    //foreach (spawnName; spawnNameWithValues.keys)
+    foreach (orderedEntityName; orderedEntityNames)
     {
+      auto spawnName = orderedEntityName;
+      
       int spawnCount = 1;
       if ("spawnCount" in spawnNameWithValues[spawnName])
         spawnCount = to!int(spawnNameWithValues[spawnName]["spawnCount"]);
@@ -258,8 +271,6 @@ public:
           spawn = new Entity(extraValues);
           registerEntity(spawn);
         }
-        
-        writeln("spawn name " ~ spawn.getValue("name"));
         
         if (spawn.getValue("name") == "FPS display")
           m_fpsDisplay = spawn;
@@ -798,13 +809,13 @@ private:
   }
   
   
-  Entity loadShip(string p_file, string[string] p_extraParams = null)
+  Entity loadShip(string p_fileName, string[string] p_extraParams = null)
   {
-    writeln("loading ship from file " ~ p_file ~ ", with extraparams " ~ to!string(p_extraParams));
-    Entity ship = new Entity("data/" ~ p_file, p_extraParams);
+    writeln("loading ship from file " ~ p_fileName ~ ", with extraparams " ~ to!string(p_extraParams));
+    Entity ship = new Entity("data/" ~ p_fileName, p_extraParams);
     
     if (ship.getValue("name").length == 0)
-      ship.setValue("name", p_file);
+      ship.setValue("name", p_fileName);
     
     // need to add sub entities after they're loaded
     // since the ship entity needs accumulated values from sub entities
@@ -814,9 +825,35 @@ private:
 
     int[string] nameToId;
     
-    // load in submodules, signified by <modulename>.source = <module source filename>
-    foreach (subSource; filter!("a.endsWith(\".source\")")(ship.values.keys))
+    // figure out ordered list of submodules
+    string[] orderedSubModuleNames;
+    auto file = File("data/" ~ p_fileName);
+    foreach (string line; lines(file))
     {
+      if (line.strip.length > 0 && line.strip.startsWith("#") == false)
+      {
+        auto key = to!string(line.strip.until("=")).strip;
+        
+        if (key.find(".").length > 0)
+        {
+          writeln("parsing orderedsubmodule key " ~ key);
+          if (orderedSubModuleNames.find(to!string(key.until("."))) == [])
+            orderedSubModuleNames ~= to!string(key.until("."));
+        }
+      }
+    }
+    
+    // load in submodules, signified by <modulename>.source = <module source filename>
+    foreach (orderedSubModuleName; orderedSubModuleNames)
+    //foreach (subSource; filter!("a.endsWith(\".source\")")(ship.values.keys))
+    {
+      writeln("finding " ~ orderedSubModuleName ~ ".source");
+      
+      auto source = ship.values.keys.find(orderedSubModuleName ~ ".source");
+      if (source.length == 0)
+        continue;
+      auto subSource = source[0];
+    
       Entity subEntity = new Entity("data/" ~ ship.getValue(subSource));
       
       subEntity.setValue("name", subSource);
@@ -877,7 +914,7 @@ private:
         
         // TODO: unittest that these enforces kick in when they should
         enforce(connectionValues.length == 2);
-        enforce(connectionValues[0] in nameToId, "Could not find " ~ subEntity.getValue("connection") ~ " when loading " ~ subEntity.getValue("name") ~ ". Make sure " ~ connectionValues[0] ~ " is defined before " ~ subEntity.getValue("name") ~ " in " ~ p_file ~ ". nameToId mappings: " ~ to!string(nameToId));
+        enforce(connectionValues[0] in nameToId, "Could not find " ~ subEntity.getValue("connection") ~ " when loading " ~ subEntity.getValue("name") ~ ". Make sure " ~ connectionValues[0] ~ " is defined before " ~ subEntity.getValue("name") ~ " in " ~ p_fileName ~ ". nameToId mappings: " ~ to!string(nameToId));
         
         auto connectionName = to!string(nameToId[connectionValues[0]]) ~ "." ~ connectionValues[1];
         
@@ -908,7 +945,7 @@ private:
       }
       
       // if no entities were registered and all were put in newEntityDependicy, we have a cycle or something
-      enforce(newEntityDependicy.length < entityDependicy.length, "Could not resolve entity dependicies when loading " ~ p_file);
+      enforce(newEntityDependicy.length < entityDependicy.length, "Could not resolve entity dependicies when loading " ~ p_fileName);
       
       entityDependicy = newEntityDependicy;
     }

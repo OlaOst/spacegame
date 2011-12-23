@@ -22,6 +22,8 @@
 
 module SubSystem.Base;
 
+import std.algorithm;
+import std.array;
 import std.conv;
 import std.datetime;
 import std.stdio;
@@ -34,7 +36,7 @@ unittest
   scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
   
-  struct MockComponent { }
+  struct MockComponent { int uniqueId; }
   
   class MockSubSystem : public Base!(MockComponent)
   {
@@ -46,8 +48,11 @@ unittest
       
       MockComponent createComponent(Entity p_entity)
       {
-        return MockComponent();
+        return MockComponent(uniqueComponentId++);
       }
+      
+    private:
+      int uniqueComponentId;
   }
   MockSubSystem sys = new MockSubSystem();
   
@@ -65,8 +70,12 @@ unittest
   
   Entity anotherEntity = new Entity();
   sys.registerEntity(anotherEntity);
-  assert(sys.components.length == 2);
+  assert(sys.components.length == 2, "Expected 2 components after registering a second one, got " ~ to!string(sys.components.length) ~ " instead");
   
+  assert(sys.components[0] != sys.components[1]);
+  
+  assert(sys.components[0] == sys.getComponent(entity));
+  assert(sys.components[1] == sys.getComponent(anotherEntity));
   
   {
     sys.removeEntity(entity);
@@ -85,6 +94,23 @@ unittest
 
 abstract class Base(ComponentType) : public SubSystem, public ComponentFactory!(ComponentType)
 {
+invariant()
+{
+  //assert(m_componentArray.length == m_entityToComponent.length, "component array length is " ~ to!string(m_componentArray.length) ~ ", differs from entityToComponent length: " ~ to!string(m_entityToComponent.length));
+  
+  //auto sortedEntities = sort!((left, right) { return left.id < right.id; })(m_entityToComponent.keys);
+  
+  /*int index = 0;
+  foreach (Entity entity; sortedEntities)
+  {
+    assert(m_entityToComponent[entity] == m_componentArray[index]);
+    
+  }*/
+  
+  //assert(m_componentArray == sort!((left, right) { return left.id < right.id; })(m_entityToComponent.keys));
+}
+
+
 public:
   void registerEntity(Entity p_entity)
   {
@@ -94,13 +120,21 @@ public:
     if (canCreateComponent(p_entity))
     {
       auto component = createComponent(p_entity);
-    
+        
       m_entityToComponent[p_entity] = component;
     }
+    
+    //writeln("registering entity " ~ to!string(p_entity.id) ~ " on " ~ name());
+    //assert(m_componentArray == array(map!((entity) { return m_entityToComponent[entity]; })(sort!((left, right) { return left.id < right.id; })(m_entityToComponent.keys))));
   }
   
   void removeEntity(Entity p_entity)
   {
+    if (p_entity !in m_entityToComponent)
+      return;
+    
+    auto componentToRemove = m_entityToComponent[p_entity];
+    
     m_entityToComponent.remove(p_entity);
   }
   
@@ -112,11 +146,10 @@ public:
   final ComponentType getComponent(Entity p_entity) 
   in
   {
-    assert(p_entity in m_entityToComponent, "couldn't find component for entity " ~ to!string(p_entity.id) ~ " in " ~ to!string(this));
+    assert(p_entity in m_entityToComponent, "couldn't find component for entity " ~ p_entity.getValue("name") ~ " with id " ~ to!string(p_entity.id) ~ " in " ~ to!string(this));
   }
   body
   {
-    assert(p_entity in m_entityToComponent, "couldn't find component for entity " ~ p_entity.getValue("name") ~ " with id " ~ to!string(p_entity.id) ~ " in " ~ to!string(this));
     return m_entityToComponent[p_entity];
   }
   
@@ -127,7 +160,15 @@ public:
   
   final ComponentType[] components() 
   {
-    return m_entityToComponent.values;
+    ComponentType[] componentArray;
+    
+    //foreach (sortedEntity; sort!((left, right) { return left.id < right.id; })(m_entityToComponent.keys))
+    foreach (stupidCannotGetFramePointerBugMakesThisEntityNotSorted; m_entityToComponent.keys.sort)
+    {
+      componentArray ~= getComponent(stupidCannotGetFramePointerBugMakesThisEntityNotSorted);
+    }
+    
+    return componentArray;
   }
   
   final Entity[] entities()
@@ -202,7 +243,7 @@ interface SubSystem
 // for example when the physics system needs to tell the placer system the newly calculated positions
 void subSystemCommunication(ReadComponent, WriteComponent)(Base!(ReadComponent) read, Base!(WriteComponent) write, WriteComponent delegate(ReadComponent, WriteComponent) componentTransform)
 {
-  foreach (entity; read.entities)
+  foreach (ref entity; read.entities)
   {
     if (read.hasComponent(entity) && write.hasComponent(entity))
     {

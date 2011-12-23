@@ -67,12 +67,12 @@ public:
   void update()
   in
   {
-    foreach (component; components)
+    foreach (ref component; components)
       assert(component.position.ok);
   }
   body
   {
-    foreach (component; components)
+    foreach (ref component; components)
     {
       // reset component force and torque before update
       component.force = vec2(0.0, 0.0);

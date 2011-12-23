@@ -64,8 +64,8 @@ public:
         auto targetAngle = 0.0; //(targetPosition - p_sourceComponent.position).angle;
         
         //writeln("sourcecomp pos is " ~ to!string(p_sourceComponent.position))
-        writeln("targetangle is " ~ to!string(targetAngle));
-        writeln("sourceangle is " ~ to!string(p_sourceComponent.angle));
+        //writeln("targetangle is " ~ to!string(targetAngle));
+        //writeln("sourceangle is " ~ to!string(p_sourceComponent.angle));
         if (targetDistance < 100.0 && abs(p_sourceComponent.angle - targetAngle) < 0.1)
         {
           p_sourceComponent.isFiring = true;
