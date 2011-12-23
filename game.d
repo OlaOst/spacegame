@@ -208,7 +208,6 @@ public:
       }
     }
     
-    //foreach (spawnName; spawnNameWithValues.keys)
     foreach (orderedEntityName; orderedEntityNames)
     {
       auto spawnName = orderedEntityName;
@@ -322,7 +321,7 @@ private:
     Entity[] entitiesToRemove;
     
     m_aiGunner.targetPositions.length = 0;
-    //assert(m_playerShip !is null);
+    
     if (m_playerShip !is null)
     {
       m_aiGunner.targetPositions ~= m_placer.getComponent(m_playerShip).position;
@@ -845,7 +844,6 @@ private:
     
     // load in submodules, signified by <modulename>.source = <module source filename>
     foreach (orderedSubModuleName; orderedSubModuleNames)
-    //foreach (subSource; filter!("a.endsWith(\".source\")")(ship.values.keys))
     {
       writeln("finding " ~ orderedSubModuleName ~ ".source");
       
@@ -1046,7 +1044,6 @@ private:
     debug m_graphics.updateWithTiming();
     else  m_graphics.update();
     foreach (subSystem; taskPool.parallel(filter!(delegate (SubSystem.Base.SubSystem sys) { return sys !is m_graphics; })(m_subSystems.values), 1))
-    //foreach (subSystem; m_subSystems.values)
     {
       debug subSystem.updateWithTiming();
       else  subSystem.update();
