@@ -37,11 +37,13 @@ import derelict.opengl.glu;
 import derelict.sdl.image;
 import derelict.sdl.sdl;
 
+import gl3n.math;
+import gl3n.linalg;
+
 import Display;
 import Entity;
 import SubSystem.Base;
 import TextRender;
-import gl3n.linalg;
 
 
 unittest
@@ -266,7 +268,7 @@ public:
       }
       glDisable(GL_TEXTURE_2D);
       
-      glRotatef(component.angle * (180.0 / PI), 0.0, 0.0, 1.0);
+      glRotatef(component.angle * _180_PI, 0.0, 0.0, -1.0);
       
       // draw connectpoints
       foreach (connectPoint; component.connectPoints)
@@ -498,7 +500,9 @@ protected:
     }
     
     if (p_entity.getValue("angle").length > 0)
-      component.angle = to!float(p_entity.getValue("angle")) * (PI / 180.0);
+      component.angle = to!float(p_entity.getValue("angle")) * PI_180;
+      
+    //writeln(name ~ " setting angle to " ~ to!string(component.angle) ~ " from " ~ p_entity.getValue("angle"));
     
     if (p_entity.getValue("screenAbsolutePosition").length > 0)
     {

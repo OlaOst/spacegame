@@ -58,16 +58,19 @@ public:
     // but not too close
     // and we want to look where the target will be so shots can hit
     
-    vec2 relativePosition = targetPosition - p_sourceComponent.position;
+    vec2 relativeTargetPosition = targetPosition - p_sourceComponent.position;
     
-    if (relativePosition.length > 1.0)
+    if (relativeTargetPosition.length > 1.0)
     {
       assert(p_sourceComponent.torqueForce == p_sourceComponent.torqueForce);
       
-      vec2 desiredVelocity = relativePosition + targetVelocity * 2.0;
+      vec2 desiredVelocity = relativeTargetPosition + targetVelocity * 2.0;
       
       // this needs damping or there will be funky oscillations
-      float desiredTorque = 0.0; //vec2.fromAngle(p_sourceComponent.angle).angle(desiredVelocity);
+      float desiredTorque = 0.0; //(desiredVelocity - vec2.fromAngle(p_sourceComponent.angle)).angle;
+	  
+      //writeln("desired angle: " ~ to!string(desiredVelocity.angle) ~ ", sourcecomp angle: " ~ to!string(p_sourceComponent.angle) ~ ", desiredvel: " ~ to!string(desiredVelocity));
+	  
       //desiredTorque /= abs(desiredTorque);
       
       desiredTorque *= p_sourceComponent.torqueForce;
@@ -75,9 +78,9 @@ public:
       assert(desiredTorque == desiredTorque);
       
       // accelerate if we're on our desired heading, else rotate towards target
-      if (desiredTorque < 0.1 && p_sourceComponent.velocity.length < 3.0)
+      /*if (desiredTorque < 0.1 && p_sourceComponent.velocity.length < 3.0)
         p_sourceComponent.force += vec2(0.0, 1.0 * p_sourceComponent.thrustForce);
-      else
+      else*/
         p_sourceComponent.torque = desiredTorque;
         
       //p_sourceComponent.force += desiredVelocity.normalized * p_sourceComponent.slideForce;

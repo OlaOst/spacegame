@@ -5,12 +5,14 @@ import std.exception;
 import std.math;
 import std.stdio;
 
+import gl3n.math;
+import gl3n.linalg;
+
 import FlockControl;
 import InputHandler;
 import PlayerEngineControl;
 import PlayerLauncherControl;
 import SubSystem.Base;
-import gl3n.linalg;
 
 
 interface Control
@@ -122,7 +124,9 @@ protected:
       component.slideForce = to!float(p_entity.getValue("slideForce"));
 
     if (p_entity.getValue("angle").length > 0)
-      component.angle = to!float(p_entity.getValue("angle")) * (PI / 180.0);
+      component.angle = to!float(p_entity.getValue("angle")) * PI_180;
+      
+    //writeln(name ~ " setting angle to " ~ to!string(component.angle) ~ " from " ~ p_entity.getValue("angle"));
       
     if (p_entity.getValue("control").length > 0)
     {

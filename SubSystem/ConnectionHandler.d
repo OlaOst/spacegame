@@ -32,9 +32,11 @@ import std.stdio;
 import std.string;
 import std.typetuple;
 
+import gl3n.math;
+import gl3n.linalg;
+
 import Entity;
 import SubSystem.Base;
-import gl3n.linalg;
 
 
 unittest
@@ -270,7 +272,7 @@ public:
         if (connectPoint.connectedEntity !is null)
           continue;
 
-        auto connectPointPosition = component.position + mat2.rotation(component.angle) * connectPoint.position;
+        auto connectPointPosition = component.position + mat2.rotation(-component.angle) * connectPoint.position;
         
         auto distanceToConnectPoint = (p_position - connectPointPosition).length;
         
@@ -425,7 +427,7 @@ protected:
     
     if (p_entity.getValue("relativeAngle").length > 0)
     {
-      newComponent.relativeAngle = to!float(p_entity.getValue("relativeAngle")) * (PI / 180.0);
+      newComponent.relativeAngle = to!float(p_entity.getValue("relativeAngle")) * PI_180;
     }
     
     if (p_entity.getValue("mass").length > 0)

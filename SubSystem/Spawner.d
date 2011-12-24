@@ -7,7 +7,9 @@ import std.math;
 import std.random;
 import std.stdio;
 
+import gl3n.math;
 import gl3n.linalg;
+
 import SubSystem.Base;
 
 
@@ -92,6 +94,8 @@ public:
         
         assert(component.velocity.ok);
         
+        writeln("spawnAngle " ~ to!string(spawnAngle) ~ ", component angle " ~ to!string(component.angle) ~ ", component spawnangle " ~ to!string(component.spawnAngle));
+        
         // should be impulse not force... or should it?
         auto spawnForce = vec2.fromAngle(spawnAngle) * component.spawnForce;
         auto spawnVelocity = component.velocity + spawnForce;
@@ -106,7 +110,7 @@ public:
         spawn.setValue("spawnedFromOwner", to!string(component.ownerId));
         
         spawn.setValue("position", to!string(component.position + component.spawnPoint));
-        spawn.setValue("angle", to!string(spawnAngle * (180.0 / PI)));
+        spawn.setValue("angle", to!string(spawnAngle * _180_PI));
         
         spawn.setValue("velocity", spawnVelocity.toString());
         spawn.setValue("force", spawnForce.toString());
@@ -171,10 +175,12 @@ protected:
       component.spawnForce = to!float(p_entity.getValue("spawnForce"));
     
     if (p_entity.getValue("spawnAngle").length > 0)
-      component.spawnAngle = to!float(p_entity.getValue("spawnAngle")) * (PI / 180.0);
+      component.spawnAngle = to!float(p_entity.getValue("spawnAngle")) * PI_180;
     if (p_entity.getValue("spawnRotation").length > 0)
       component.spawnRotation = to!float(p_entity.getValue("spawnRotation"));
-      
+
+    writeln("creating spawncomponent, spawnangle is " ~ to!string(component.spawnAngle));
+
     return component;
   }
 

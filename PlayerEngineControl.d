@@ -81,9 +81,9 @@ public:
       force -= dir * thrustForce;
     
     if (m_inputHandler.isPressed(Event.LeftKey))
-      torque += torqueForce;
-    if (m_inputHandler.isPressed(Event.RightKey))
       torque -= torqueForce;
+    if (m_inputHandler.isPressed(Event.RightKey))
+      torque += torqueForce;
       
     // dampen rotation if no rotation input from player
     /*if (m_inputHandler.isPressed(Event.LeftKey) == false && m_inputHandler.isPressed(Event.RightKey) == false)
@@ -93,9 +93,9 @@ public:
     }*/
       
     if (m_inputHandler.isPressed(Event.StrafeLeft))
-      force += mat2.rotation(PI/2) * dir * slideForce;
+      force -= mat2.rotation(-PI/2) * dir * slideForce;
     if (m_inputHandler.isPressed(Event.StrafeRight))
-      force -= mat2.rotation(PI/2) * dir * slideForce;
+      force += mat2.rotation(-PI/2) * dir * slideForce;
       
     if (m_inputHandler.isPressed(Event.Brake))
     {
@@ -106,7 +106,7 @@ public:
 
       p_sourceComponent.impulse = p_sourceComponent.velocity * -1.0;
     }
-      
+    
     p_sourceComponent.force = force;
     p_sourceComponent.torque = torque;
   }

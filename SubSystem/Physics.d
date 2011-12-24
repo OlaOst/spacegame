@@ -27,9 +27,11 @@ import std.exception;
 import std.math;
 import std.stdio;
 
+import gl3n.math;
+import gl3n.linalg;
+
 import SubSystem.Base;
 import Entity;
-import gl3n.linalg;
 
 
 unittest
@@ -110,6 +112,9 @@ private:
   {
     assert(mass > 0.0);
     
+    //if (force.length > 0.0)
+      //writeln("physics update, force is " ~ to!string(force));
+    
     velocity += (force * (1.0 / mass)) * p_time;
     velocity += impulse * p_time;
     
@@ -117,7 +122,7 @@ private:
     
     rotation += (torque / mass) * p_time;
     angle += rotation * p_time;
-
+    
     while (angle < -PI)
       angle += PI*2;
     while (angle > PI)
@@ -212,7 +217,9 @@ protected:
       newComponent.position = vec2.fromString(p_entity.getValue("position"));
     
     if (p_entity.getValue("angle").length > 0)
-      newComponent.angle = to!float(p_entity.getValue("angle")) * (PI / 180.0);
+      newComponent.angle = to!float(p_entity.getValue("angle")) * PI_180;
+    
+    //writeln(name ~ " setting angle to " ~ to!string(newComponent.angle) ~ " from " ~ p_entity.getValue("angle"));
     
     if (p_entity.getValue("velocity").length > 0)
       newComponent.velocity = vec2.fromString(p_entity.getValue("velocity"));

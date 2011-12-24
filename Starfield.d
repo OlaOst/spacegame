@@ -77,7 +77,7 @@ public:
       star.setValue("drawsource", "Star");
       star.setValue("radius", "0.25");
       
-      star.setValue("angle", to!string(uniform(-3.14, 3.14)));
+      star.setValue("angle", to!string(uniform(0, 360)));
       
       star.setValue("position", to!string(vec3(uniform(-3.0/m_graphics.zoom, 3.0/m_graphics.zoom), 
                                                uniform(-3.0/m_graphics.zoom, 3.0/m_graphics.zoom),

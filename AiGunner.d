@@ -61,7 +61,7 @@ public:
       foreach (targetPosition; targetPositions)
       {
         auto targetDistance = (targetPosition - p_sourceComponent.position).length;
-        auto targetAngle = 0.0; //(targetPosition - p_sourceComponent.position).angle;
+        auto targetAngle = (targetPosition - p_sourceComponent.position).angle;
         
         //writeln("sourcecomp pos is " ~ to!string(p_sourceComponent.position))
         //writeln("targetangle is " ~ to!string(targetAngle));

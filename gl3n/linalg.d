@@ -17,7 +17,7 @@ License: MIT
 module gl3n.linalg;
 
 private {
-    import std.math : isNaN, isInfinity, PI, abs, sqrt, sin, cos, acos, tan, asin, atan2;
+    import std.math : isNaN, isInfinity, PI, abs, sqrt, sin, cos, acos, tan, asin, atan2, approxEqual;
     import std.conv : to;
     import std.traits : isFloatingPoint, isStaticArray, isDynamicArray;
     import std.string : format, rightJustify;
@@ -151,11 +151,32 @@ struct Vector(type, int dimension_) if((dimension_ >= 2) && (dimension_ <= 4)) {
     }
     
     static Vector!(float, 2) fromAngle(float angle) {
-      return vec2(sin(-angle), cos(-angle));
+      return vec2(sin(angle), cos(angle));
+    }
+	
+    @property float angle() {
+      return atan2(cast(float)x, cast(float)y);
     }
     
     unittest {
       assert(vec2d.fromString("1.0 2.0") == vec2d(1.0, 2.0));
+
+      for (float angle = -PI*2; angle < PI*2; angle += 0.1) {
+        float calculatedAngle = vec2d.fromAngle(angle).angle;
+        float expectedAngle = angle;
+        
+        while (expectedAngle > PI)
+          expectedAngle -= PI*2.0;
+        while (expectedAngle < -PI)
+          expectedAngle += PI*2.0;
+
+        if (approxEqual(calculatedAngle, PI))
+          calculatedAngle -= PI*2.0;
+        if (approxEqual(calculatedAngle, -PI))
+          calculatedAngle += PI*2.0;
+          
+        assert(approxEqual(calculatedAngle, expectedAngle), "Calculated angle " ~ to!string(calculatedAngle) ~ " did not match expected angle " ~ to!string(expectedAngle));
+      }
     }
           
     /// Returns true if all values are not nan and finite, otherwise false.

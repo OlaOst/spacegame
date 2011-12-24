@@ -27,6 +27,8 @@ import std.math;
 import std.stdio;
 
 import gl3n.linalg;
+import gl3n.math;
+
 import SubSystem.Base;
 
 
@@ -74,9 +76,11 @@ protected:
       component.velocity = vec2.fromString(p_entity.getValue("velocity"));
       
     if (p_entity.getValue("angle").length > 0)
-      component.angle = to!float(p_entity.getValue("angle")) * (PI / 180.0);
+      component.angle = to!float(p_entity.getValue("angle")) * PI_180;
     if (p_entity.getValue("rotation").length > 0)
       component.rotation = to!float(p_entity.getValue("rotation"));
+      
+    //writeln("creating placercomponent, angle is " ~ to!string(component.angle) ~ ", created from " ~ to!string(p_entity.values));
       
     return component;
   }

@@ -120,7 +120,7 @@ void setPlacerFromConnector(ConnectionHandler connection, Placer placer)
     
     // need to rotate around middle of mass point
     //placerComponent.position = ownerComponent.position + connectionComponent.relativePositionToCenterOfMass.rotate(ownerComponent.angle);    
-    placerComponent.position = ownerComponent.position + mat2.rotation(ownerComponent.angle) * connectionComponent.relativePositionToCenterOfMass;
+    placerComponent.position = ownerComponent.position + mat2.rotation(-ownerComponent.angle) * connectionComponent.relativePositionToCenterOfMass;
     //placerComponent.position.z += connectionComponent.relativePosition.z; // set z component here since it is not transferred in rotate operation
     placerComponent.angle = ownerComponent.angle + connectionComponent.relativeAngle;
     
@@ -165,7 +165,7 @@ void setPhysicsFromConnector(ConnectionHandler connection, Physics physics)
       auto ownerComponent = physics.getComponent(connectionComponent.owner);
       
       //ownerComponent.force += physicsComponent.force.rotate(ownerComponent.angle);
-      ownerComponent.force += mat2.rotation(ownerComponent.angle) * physicsComponent.force;
+      ownerComponent.force += mat2.rotation(-ownerComponent.angle) * physicsComponent.force;
       ownerComponent.impulse += physicsComponent.impulse;
       ownerComponent.torque += physicsComponent.torque;
       
@@ -282,6 +282,8 @@ void setSpawnerFromPlacer(Placer placer, Spawner spawner)
     spawnerComponent.position = placerComponent.position;
     spawnerComponent.velocity = placerComponent.velocity;
     spawnerComponent.angle = placerComponent.angle;
+    
+    //writeln("setspawnerfromplacer, angle is " ~ to!string(spawnerComponent.angle));
     
     return spawnerComponent;
   });

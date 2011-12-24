@@ -36,6 +36,7 @@ import std.string;
 import derelict.sdl.sdl;
 
 import gl3n.linalg;
+import gl3n.math;
 
 import SubSystem.CollisionHandler;
 import SubSystem.ConnectionHandler;
@@ -250,10 +251,8 @@ public:
           
           auto fromAngle = to!float(angleData[0]);
           auto toAngle = to!float(angleData[2]);
-          
-          // assume we are working with degrees in data files here
-          fromAngle *= PI / 360.0;
-          toAngle *= PI / 360.0;
+
+          //writeln("loading world data stuff, fromAngle is " ~ to!string(fromAngle) ~ ", toAngle is " ~ to!string(toAngle));
           
           angle = uniform(fromAngle, toAngle);
           
@@ -835,7 +834,6 @@ private:
         
         if (key.find(".").length > 0)
         {
-          writeln("parsing orderedsubmodule key " ~ key);
           if (orderedSubModuleNames.find(to!string(key.until("."))) == [])
             orderedSubModuleNames ~= to!string(key.until("."));
         }
@@ -845,8 +843,6 @@ private:
     // load in submodules, signified by <modulename>.source = <module source filename>
     foreach (orderedSubModuleName; orderedSubModuleNames)
     {
-      writeln("finding " ~ orderedSubModuleName ~ ".source");
-      
       auto source = ship.values.keys.find(orderedSubModuleName ~ ".source");
       if (source.length == 0)
         continue;
