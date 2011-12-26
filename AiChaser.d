@@ -66,24 +66,29 @@ public:
       
       vec2 desiredVelocity = relativeTargetPosition + targetVelocity * 2.0;
       
-      // this needs damping or there will be funky oscillations
-      float desiredTorque = 0.0; //(desiredVelocity - vec2.fromAngle(p_sourceComponent.angle)).angle;
-	  
-      //writeln("desired angle: " ~ to!string(desiredVelocity.angle) ~ ", sourcecomp angle: " ~ to!string(p_sourceComponent.angle) ~ ", desiredvel: " ~ to!string(desiredVelocity));
-	  
-      //desiredTorque /= abs(desiredTorque);
+      vec2 currentDirection = vec2.fromAngle(p_sourceComponent.angle);
+      vec2 desiredDirection = desiredVelocity.normalized;
       
+      auto angle = atan2(currentDirection.y, currentDirection.x) - atan2(desiredDirection.y, desiredDirection.x);
+      
+      while (angle > PI)
+        angle -= PI * 2.0;
+      while (angle < -PI)
+        angle += PI * 2.0;
+      
+      float desiredTorque = 0.0;
+      
+      if (angle > 0.0)
+        desiredTorque = 1.0;
+      else
+        desiredTorque = -1.0;
+
       desiredTorque *= p_sourceComponent.torqueForce;
+
+      p_sourceComponent.torque = desiredTorque;
       
-      assert(desiredTorque == desiredTorque);
-      
-      // accelerate if we're on our desired heading, else rotate towards target
-      /*if (desiredTorque < 0.1 && p_sourceComponent.velocity.length < 3.0)
+      if (abs(angle) < 0.1 && p_sourceComponent.velocity.length < 3.0)
         p_sourceComponent.force += vec2(0.0, 1.0 * p_sourceComponent.thrustForce);
-      else*/
-        p_sourceComponent.torque = desiredTorque;
-        
-      //p_sourceComponent.force += desiredVelocity.normalized * p_sourceComponent.slideForce;
     }
   }
 
