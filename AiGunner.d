@@ -56,7 +56,7 @@ public:
   {
     p_sourceComponent.isFiring = false;
     
-    if (p_sourceComponent.reload <= 0.0)
+    if (p_sourceComponent.reloadTimeLeft <= 0.0)
     {
       foreach (targetPosition; targetPositions)
       {
@@ -69,7 +69,7 @@ public:
         if (targetDistance < 100.0 && abs(p_sourceComponent.angle - targetAngle) < 0.1)
         {
           p_sourceComponent.isFiring = true;
-          p_sourceComponent.reload = 0.2;
+          p_sourceComponent.reloadTimeLeft = p_sourceComponent.reload;
           
           // TODO: recoil should be calculated from spawnforce or something
           auto recoil = 1.0;

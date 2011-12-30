@@ -484,11 +484,11 @@ private:
         if (enemyShips.empty == false)
         {
           Entity closestEntity = reduce!((closestSoFar, entity)
-          { 
+          {
             assert(entity.id != m_playerShip.id);
             
-            return ((m_connector.getComponent(closestSoFar).position-playerPos).length < 
-                    (m_connector.getComponent(entity).position-playerPos).length) ? closestSoFar : entity;
+            return ((m_connector.getComponent(closestSoFar).position - playerPos).length < 
+                    (m_connector.getComponent(entity).position - playerPos).length) ? closestSoFar : entity;
           })(enemyShips);
           
           auto closestEntityPosition = m_placer.getComponent(closestEntity).position - playerPos;
@@ -667,10 +667,12 @@ private:
             
             if (ownerEntity == m_playerShip)
             {
-              if (m_dragEntity.getValue("source") == "data/engine.txt" || m_dragEntity.getValue("source") == "engine.txt")
+              //if (m_dragEntity.getValue("source") == "data/engine.txt" || m_dragEntity.getValue("source") == "engine.txt")
+              if (m_dragEntity.getValue("thrustForce").length > 0)
                 m_dragEntity.setValue("control", "playerEngine");
               
-              if (m_dragEntity.getValue("source") == "data/cannon.txt" || m_dragEntity.getValue("source") == "cannon.txt")
+              //if (m_dragEntity.getValue("source") == "data/cannon.txt" || m_dragEntity.getValue("source") == "cannon.txt")
+              if (m_dragEntity.getValue("spawnSource").length > 0)
                 m_dragEntity.setValue("control", "playerLauncher");
             }
             registerEntity(m_dragEntity);

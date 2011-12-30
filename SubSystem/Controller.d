@@ -52,6 +52,7 @@ class ControlComponent
   float torqueForce = 0.0;
   float slideForce = 0.0;
   float reload = 0.0;
+  float reloadTimeLeft = 0.0;
   
   bool isFiring = false;
 }
@@ -83,8 +84,8 @@ public:
       
       component.isFiring = false;
       
-      if (component.reload > 0.0)
-        component.reload = component.reload - m_timeStep;
+      if (component.reloadTimeLeft > 0.0)
+        component.reloadTimeLeft -= m_timeStep;
       
       assert(component.control !is null, "Could not find control when updating controller component");
       
@@ -126,6 +127,10 @@ protected:
     if (p_entity.getValue("angle").length > 0)
       component.angle = to!float(p_entity.getValue("angle")) * PI_180;
       
+    if (p_entity.getValue("reloadTime").length > 0)
+    {
+      component.reloadTimeLeft = component.reload = to!float(p_entity.getValue("reloadTime"));
+    } 
     //writeln(name ~ " setting angle to " ~ to!string(component.angle) ~ " from " ~ p_entity.getValue("angle"));
       
     if (p_entity.getValue("control").length > 0)

@@ -66,10 +66,10 @@ public:
     
     if (m_inputHandler.isPressed(Event.Space))
     {
-      if (p_sourceComponent.reload <= 0.0)
+      if (p_sourceComponent.reloadTimeLeft <= 0.0)
       {
         p_sourceComponent.isFiring = true;
-        p_sourceComponent.reload = 0.2;
+        p_sourceComponent.reloadTimeLeft = p_sourceComponent.reload;
         
         // TODO: recoil should be calculated from spawnforce or something
         auto recoil = 1.0;

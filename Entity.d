@@ -133,9 +133,6 @@ public:
         assert(val.length > 0, "empty value");
       
         //writeln("setting key '" ~ key ~ "' to '" ~ val ~ "'");
-      
-        if (key == "root")
-          loadValues(p_values, "data/" ~ keyval[1].strip);
         
         p_values[key] = val;
       }

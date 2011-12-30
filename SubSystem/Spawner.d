@@ -94,8 +94,6 @@ public:
         
         assert(component.velocity.ok);
         
-        writeln("spawnAngle " ~ to!string(spawnAngle) ~ ", component angle " ~ to!string(component.angle) ~ ", component spawnangle " ~ to!string(component.spawnAngle));
-        
         // should be impulse not force... or should it?
         auto spawnForce = vec2.fromAngle(spawnAngle) * component.spawnForce;
         auto spawnVelocity = component.velocity + spawnForce;

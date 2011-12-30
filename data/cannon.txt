@@ -5,6 +5,8 @@ radius = 0.75
 mass = 0.5
 health = 25.0
 
+reloadTime = 0.2
+
 #spawnSource = bullet.txt and muzzleflash.txt
 spawnSource = bullet.txt
 spawnPoint = 0.0 0.0 -100.0

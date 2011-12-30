@@ -1,0 +1,12 @@
+drawsource = images/cannon.png
+draggable = true
+
+radius = 1.0
+mass = 0.5
+health = 25.0
+
+reloadTime = 1.0
+
+spawnSource = missile.txt
+spawnPoint = 0.0 0.0 -100.0
+spawnForce = 20.0

@@ -1,0 +1,10 @@
+name = missile
+
+collisionType = Bullet
+lifetime = 10.0
+
+body.source = verticalskeleton.txt
+body.radius = 0.3
+
+engine.source = engine.txt
+engine.radius = 0.3
