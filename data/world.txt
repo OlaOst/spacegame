@@ -46,6 +46,8 @@ playership.leftEngine.control = playerEngine
 playership.rightEngine.control = playerEngine
 playership.leftGun.control = playerLauncher
 playership.rightGun.control = playerLauncher
+playership.leftGun.source = launcher.txt
+playership.rightGun.source = launcher.txt
 playership.*.collisionType = PlayerModule
 playership.position = 0 0
 playership.angle = 0
@@ -64,7 +66,7 @@ npcship.type = enemy ship
 npcship.position = 25 25 to 50 50
 #npcship.position = 5 5
 npcship.angle = 0 to 360
-npcship.spawnCount = 0
+npcship.spawnCount = 5
 
 
 # blueprint modules create copies when dragged and serve as an unlimited supply of modules

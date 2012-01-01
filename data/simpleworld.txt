@@ -1,19 +1,12 @@
 # fps display is shown in a fixed position on the screen
-#fpsDisplay.text = here we should see fps
-#fpsDisplay.screenAbsolutePosition = true
-#fpsDisplay.position = -1.0 0.7
-#fpsDisplay.color = 1.0 1.0 1.0
-#fpsDisplay.name = FPS display
-
-
-#launcher.source = launcher.txt
-#launcher.control = playerLauncher
-#launcher.position = 0 0
-
+fpsDisplay.text = here we should see fps
+fpsDisplay.screenAbsolutePosition = true
+fpsDisplay.position = -1.0 0.7
+fpsDisplay.color = 1.0 1.0 1.0
+fpsDisplay.name = FPS display
 
 #dummy.source = missile.txt
 #dummy.position = 5 5
-
 
 # playership controllable by player
 playership.source = simpleship.txt
@@ -21,8 +14,12 @@ playership.leftEngine.control = playerEngine
 playership.rightEngine.control = playerEngine
 playership.leftGun.source = launcher.txt
 playership.leftGun.control = playerLauncher
-playership.rightGun.source = launcher.txt
-playership.rightGun.control = playerLauncher
+playership.leftGun.spawn.source = simpleship.txt
+playership.leftGun.spawn.*.control = playerLauncher
+
+#playership.rightGun.source = launcher.txt
+#playership.rightGun.control = playerLauncher
+#playership.rightGun.spawn.source = simpleship.txt
 playership.*.collisionType = PlayerModule
 playership.position = 0 0
 playership.angle = 0

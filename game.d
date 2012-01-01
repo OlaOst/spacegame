@@ -174,9 +174,9 @@ public:
     
     m_aiFlocker.controller = m_controller;
     
-    debug
+    /*debug
       loadWorldFromFile("data/simpleworld.txt");
-    else
+    else*/
       loadWorldFromFile("data/world.txt");
     
     //m_starfield = new Starfield(m_graphics, 10.0);
@@ -826,7 +826,7 @@ private:
   
   Entity loadShip(string p_fileName, string[string] p_extraParams = null)
   {
-    writeln("loading ship from file " ~ p_fileName ~ ", with extraparams " ~ to!string(p_extraParams));
+    //debug writeln("loading ship from file " ~ p_fileName ~ ", with extraparams " ~ to!string(p_extraParams));
     
     string[string] values;
 
@@ -923,7 +923,7 @@ private:
     m_entities[p_entity.id] = p_entity;
     
     //debug writeln("registering entity " ~ to!string(p_entity.id) ~ " with name " ~ p_entity.getValue("name"));
-    debug writeln("registering entity " ~ to!string(p_entity.id) ~ " with values " ~ to!string(p_entity.values));
+    //debug writeln("registering entity " ~ to!string(p_entity.id) ~ " with values " ~ to!string(p_entity.values));
     
     foreach (subSystem; m_subSystems)
       subSystem.registerEntity(p_entity);
