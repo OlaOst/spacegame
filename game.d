@@ -170,7 +170,7 @@ public:
     m_subSystems["collider"] = m_collider = new CollisionHandler();
     m_subSystems["connector"] = m_connector = new ConnectionHandler();
     m_subSystems["sound"] = new SoundSubSystem(16);    
-    m_subSystems["spawner"] = m_spawner = new Spawner(cache);
+    m_subSystems["spawner"] = m_spawner = new Spawner();
     
     m_aiFlocker.controller = m_controller;
     

@@ -78,10 +78,6 @@ struct SpawnerComponent
 class Spawner : public Base!(SpawnerComponent)
 {
 public:
-  this(ref string[][string] cache)
-  {
-    this.cache = cache;
-  }
 
   void update() 
   {
@@ -117,6 +113,9 @@ public:
         
         spawnValues["spawnedFrom"] = to!string(component.entityId);
         spawnValues["spawnedFromOwner"] = to!string(component.ownerId);
+        
+        spawnValues["*.spawnedFrom"] = to!string(component.entityId);
+        spawnValues["*.spawnedFromOwner"] = to!string(component.ownerId);
         
         spawnValues["position"] = to!string(component.position + component.spawnPoint);
         spawnValues["angle"] = to!string(spawnAngle * _180_PI);
@@ -193,7 +192,7 @@ protected:
     if (p_entity.getValue("spawnRotation").length > 0)
       component.spawnRotation = to!float(p_entity.getValue("spawnRotation"));
 
-    writeln("creating spawncomponent, spawnangle is " ~ to!string(component.spawnAngle));
+    //writeln("creating spawncomponent, spawnangle is " ~ to!string(component.spawnAngle));
 
     return component;
   }
@@ -208,6 +207,4 @@ private:
   
 private:
   string[string][] m_spawnValues;
-  
-  string[][string] cache;
 }

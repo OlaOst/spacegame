@@ -191,6 +191,9 @@ protected:
     if (p_entity.getValue("spawnedFromOwner").length > 0)
       colliderComponent.spawnedFromOwner = to!int(p_entity.getValue("spawnedFromOwner"));
     
+    writeln("collidercomp, spawnedfrom: " ~ p_entity.getValue("spawnedFrom"));
+    writeln("collidercomp, spawnedfromowner: " ~ p_entity.getValue("spawnedFromOwner"));
+    
     if (p_entity.getValue("position").length > 0)
       colliderComponent.position = vec2.fromString(p_entity.getValue("position"));
     
