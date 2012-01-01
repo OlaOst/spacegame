@@ -108,6 +108,8 @@ void setPlacerFromConnector(ConnectionHandler connection, Placer placer)
     //if (connectionComponent.owner == entity)
       //continue;
     
+    //writeln("setting placercomp from connectioncomp with relative position " ~ to!string(connectionComponent.relativePosition) ~ " and owner " ~ to!string(connectionComponent.owner.id));
+    
     assert(connectionComponent.relativePosition.ok);
     assert(connectionComponent.relativeAngle == connectionComponent.relativeAngle);
     

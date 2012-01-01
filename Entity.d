@@ -37,13 +37,15 @@ unittest
   scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
   
-  Entity entity = new Entity();
+  Entity entity = new Entity(["dummyValue":"123"]);
   
-  entity.setValue("dummyValue", "123");
+  assert(entity.getValue("dummyValue") == "123");
   
-  assert(entity.getValue("dummyValue"), "123");
+  entity.setValue("dummyValue", "abc");
   
-  Entity another = new Entity();
+  assert(entity.getValue("dummyValue") == "abc");
+  
+  Entity another = new Entity(["foo":"bar"]);
   
   assert(entity.id != another.id);
 }
@@ -57,25 +59,7 @@ invariant()
 
 
 public:
-  this()
-  {
-    id = m_idCounter++;
-    
-    //values["name"] = to!string(id);
-  }
-  
-  this(string p_file)
-  {
-    id = m_idCounter++;
-    
-    if (p_file.startsWith("data/") == false)
-      p_file = "data/" ~ p_file;
-    
-    values["source"] = p_file;
-    
-    loadValues(values, p_file);
-  }
-  
+
   this(string[string] p_extraParams)
   {
     id = m_idCounter++;
@@ -86,61 +70,9 @@ public:
     }
   }
   
-  this(string p_file, string[string] p_extraParams)
+  Entity dup()
   {
-    this(p_file);
-    
-    foreach (extraParam; p_extraParams.keys)
-    {
-      setValue(extraParam, p_extraParams[extraParam]);
-    }
-  }
-  
-  
-  static void loadValues(ref string[string] p_values, string p_file)
-  {
-    string[] content;
-    
-    if (p_file !in m_fileCache)
-    {
-      auto file = File(p_file, "r");
-      
-      foreach (string line; lines(file))
-      {
-        m_fileCache[p_file] ~= line;
-      }
-    }
-
-    content = m_fileCache[p_file];
-
-    foreach (string line; content)
-    {
-      // comment line signified by hashsign as first non-whitespace character
-      if (line.strip.length > 0 && line.strip[0] == '#')
-        continue;
-        
-      // parse key-value line
-      if (std.algorithm.find(line, '=').length > 0)
-      {
-        auto keyval = line.split("=");
-        
-        assert(keyval.length == 2, "unexpected value: " ~ to!string(keyval));
-        
-        auto key = keyval[0].strip;
-        auto val = keyval[1].strip;
-        
-        assert(key.length > 0, "empty key");
-        assert(val.length > 0, "empty value");
-      
-        //writeln("setting key '" ~ key ~ "' to '" ~ val ~ "'");
-        
-        p_values[key] = val;
-      }
-      else
-      {
-        //enforce(false, "Don't know how to parse this: " ~ line);
-      }
-    }
+    return new Entity(values.dup);
   }
   
   void setValue(string p_name, string p_value)
@@ -165,9 +97,7 @@ public:
   immutable int id;
   
   string[string] values;
-  //alias values this;
   
 private:
   shared synchronized static int m_idCounter;
-  private static string[][string] m_fileCache;
 }

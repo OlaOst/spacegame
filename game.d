@@ -50,6 +50,8 @@ import SubSystem.Spawner;
 import AiChaser;
 import AiGunner;
 import CommsCentral;
+import Entity;
+import EntityLoader;
 import FlockControl;
 import InputHandler;
 import Starfield;
@@ -162,17 +164,20 @@ public:
     aiControls["chaser"] = m_aiChaser = new AiChaser();
     
     m_subSystems["placer"] = m_placer = new Placer();
-    m_subSystems["graphics"] = m_graphics = new Graphics(xres, yres);
+    m_subSystems["graphics"] = m_graphics = new Graphics(cache, xres, yres);
     m_subSystems["physics"] = m_physics = new Physics();
     m_subSystems["controller"] = m_controller = new Controller(m_inputHandler, aiControls);
     m_subSystems["collider"] = m_collider = new CollisionHandler();
     m_subSystems["connector"] = m_connector = new ConnectionHandler();
     m_subSystems["sound"] = new SoundSubSystem(16);    
-    m_subSystems["spawner"] = m_spawner = new Spawner();
+    m_subSystems["spawner"] = m_spawner = new Spawner(cache);
     
     m_aiFlocker.controller = m_controller;
     
-    loadWorldFromFile("data/world.txt");
+    debug
+      loadWorldFromFile("data/simpleworld.txt");
+    else
+      loadWorldFromFile("data/world.txt");
     
     //m_starfield = new Starfield(m_graphics, 10.0);
 
@@ -182,7 +187,7 @@ public:
  
   void loadWorldFromFile(string p_fileName)
   {
-    Entity worldEntity = new Entity(p_fileName);
+    Entity worldEntity = new Entity(loadValues(cache, p_fileName));
 
     string[] orderedEntityNames;
     
@@ -260,15 +265,15 @@ public:
         }
         
         Entity spawn;
-        if (worldEntity.getValue(spawnName ~ ".source").length > 0)
-        {          
+        //if (worldEntity.getValue(spawnName ~ ".source").length > 0)
+        //{
           spawn = loadShip(worldEntity.getValue(spawnName ~ ".source"), extraValues);
-        }
+        /*}
         else
         {
           spawn = new Entity(extraValues);
           registerEntity(spawn);
-        }
+        }*/
         
         if (spawn.getValue("name") == "FPS display")
           m_fpsDisplay = spawn;
@@ -557,7 +562,7 @@ private:
           // create copy of drag entity if it's a blueprint
           if (m_dragEntity.getValue("isBlueprint") == "true")
           {
-            m_dragEntity = new Entity(m_dragEntity.getValue("source"), m_dragEntity.values);
+            m_dragEntity = m_dragEntity.dup; //new Entity(getValues(cache, m_dragEntity.values));
             m_dragEntity.setValue("isBlueprint", "false");
             //m_dragEntity.setValue("name", m_dragEntity.getValue("source") ~ ":" ~ to!string(m_dragEntity.id));
             
@@ -692,21 +697,24 @@ private:
           
           if (dragConnectComp.owner == m_dragEntity)
           {
-            auto ownerEntity = new Entity();
+            //auto ownerEntity = new Entity();
+            string[string] ownerEntityValues;
             
             // TODO: set up values in ownerEntity so that it can recreate the ship with modules if it's saved and loaded again
             // look in playership.txt for how values should be set up
-            
-            ownerEntity.setValue("owner", to!string(ownerEntity.id));
-            
+
             if (m_placer.hasComponent(m_dragEntity))
-              ownerEntity.setValue("position", m_placer.getComponent(m_dragEntity).position.toString());
+              ownerEntityValues["position"] = m_placer.getComponent(m_dragEntity).position.toString();
               
             if (m_placer.hasComponent(m_dragEntity))
-              ownerEntity.setValue("angle", to!string(m_placer.getComponent(m_dragEntity).angle * (180.0/PI)));
+              ownerEntityValues["angle"] = to!string(m_placer.getComponent(m_dragEntity).angle * (_180_PI));
               
             if (m_physics.hasComponent(m_dragEntity))
-              ownerEntity.setValue("mass", to!string(m_physics.getComponent(m_dragEntity).mass));
+              ownerEntityValues["mass"] = to!string(m_physics.getComponent(m_dragEntity).mass);
+            
+            Entity ownerEntity = new Entity(ownerEntityValues);
+            
+            ownerEntity.setValue("owner", to!string(ownerEntity.id));
             
             m_dragEntity.setValue("owner", to!string(ownerEntity.id));
             
@@ -812,141 +820,92 @@ private:
   Entity loadShip(string p_fileName, string[string] p_extraParams = null)
   {
     writeln("loading ship from file " ~ p_fileName ~ ", with extraparams " ~ to!string(p_extraParams));
-    Entity ship = new Entity("data/" ~ p_fileName, p_extraParams);
     
-    if (ship.getValue("name").length == 0)
-      ship.setValue("name", p_fileName);
-    
-    // need to add sub entities after they're loaded
-    // since the ship entity needs accumulated values from sub entities
-    // and sub entities must have the ship registered before they can be registered themselves
-    Entity[int] subEntitiesToAdd;
-    float accumulatedMass = 0.0;
+    string[string] values;
 
-    int[string] nameToId;
+    if (p_fileName.length > 0)
+      values = loadValues(cache, p_fileName);
     
-    // figure out ordered list of submodules
-    string[] orderedSubModuleNames;
-    auto file = File("data/" ~ p_fileName);
-    foreach (string line; lines(file))
+    foreach (extraKey, extraValue; p_extraParams)
+      values[extraKey] = extraValue;
+    
+    auto childrenValues = findChildrenValues(cache, values);
+    
+    auto mainEntity = new Entity(values);
+    
+    mainEntity.setValue("owner", to!string(mainEntity.id));
+    
+    float accumulatedMass = 0.0;
+    if ("mass" in mainEntity.values)
+      accumulatedMass += to!float(mainEntity.getValue("mass"));
+    
+    Entity[string] childEntities;
+    foreach (childName, childValues; childrenValues)
     {
-      if (line.strip.length > 0 && line.strip.startsWith("#") == false)
+      childEntities[childName] = new Entity(childValues);
+      
+      if ("mass" in childValues)
+        accumulatedMass += to!float(childValues["mass"]);
+      
+      childEntities[childName].setValue("owner", to!string(mainEntity.id));
+      
+      // position value is required for registering entities to connection subsystem
+      childEntities[childName].setValue("position", mainEntity.getValue("position"));
+    }
+    
+    string[string] childDependency;
+    // replace connect entity names with ids, because names are not unique but ids are
+    foreach (childName, childValues; childrenValues)
+    {
+      foreach (childKey, childValue; childValues)
       {
-        auto key = to!string(line.strip.until("=")).strip;
-        
-        if (key.find(".").length > 0)
+        if (childKey == "connection")
         {
-          if (orderedSubModuleNames.find(to!string(key.until("."))) == [])
-            orderedSubModuleNames ~= to!string(key.until("."));
+          auto connectEntityName = to!string(childValue.until("."));
+          auto connectPointName = childValue.find(".")[1..$];
+          
+          childDependency[childName] = connectEntityName;
+          
+          if (connectEntityName in childEntities)
+          {
+            childEntities[childName].setValue("connection", to!string(childEntities[connectEntityName].id) ~ "." ~ connectPointName);
+          }
         }
       }
     }
     
-    // load in submodules, signified by <modulename>.source = <module source filename>
-    foreach (orderedSubModuleName; orderedSubModuleNames)
-    {
-      auto source = ship.values.keys.find(orderedSubModuleName ~ ".source");
-      if (source.length == 0)
-        continue;
-      auto subSource = source[0];
-    
-      Entity subEntity = new Entity("data/" ~ ship.getValue(subSource));
-      
-      subEntity.setValue("name", subSource);
-      
-      auto subName = subSource[0..std.string.indexOf(subSource, ".source")];
-      
-      // all references to subName should be replaced with the entity id, since the id is guaranteed unique
-      nameToId[subName] = subEntity.id;
-      
-      subEntity.setValue("owner", to!string(ship.id));
-      
-      // inital position of submodules are equal to owner module position
-      subEntity.setValue("position", ship.getValue("position"));      
-      
-      // set extra values on submodule from the module that loads them in
-      foreach (subSourceValue; filter!(delegate(x) { return x.startsWith(subName ~ "."); })(ship.values.keys))
-      {
-        auto key = subSourceValue[std.string.indexOf(subSourceValue, '.')+1..$];
-        
-        subEntity.setValue(key, ship.getValue(subSourceValue));
-      }
-      
-      if (subEntity.getValue("mass").length > 0)
-      {
-        accumulatedMass += to!float(subEntity.getValue("mass"));
-      }
-      
-      subEntitiesToAdd[subEntity.id] = subEntity;
-    }
-    
-    // keys on the form *.somekey = somevalue are for all subentities
-    foreach (wildCard; filter!("a.startsWith(\"*.\")")(ship.values.keys))
-    {
-      //writeln("found wildcard " ~ wildCard[2..$] ~ " with value " ~ ship.getValue(wildCard));
-      
-      foreach (subEntity; subEntitiesToAdd.values)
-      {
-        subEntity.setValue(wildCard[2..$], ship.getValue(wildCard));
-      }
-    }
-    
     if (accumulatedMass > 0.0)
-      ship.setValue("mass", to!string(accumulatedMass));
+      mainEntity.setValue("mass", to!string(accumulatedMass));
     
-    // ship entity is its own owner, this is also needed to register it to connection system
-    ship.setValue("owner", to!string(ship.id));
+    registerEntity(mainEntity);
     
-    registerEntity(ship);
-    
-    Entity[Entity] entityDependicy;
-    
-    foreach (subEntity; subEntitiesToAdd)
-    {
-      // rename connection value to ensure it points to the unique entity created for the ship
-      if (subEntity.getValue("connection").length > 0)
-      {
-        auto connectionValues = split!(string, string)(subEntity.getValue("connection"), ".");
-        
-        // TODO: unittest that these enforces kick in when they should
-        enforce(connectionValues.length == 2);
-        enforce(connectionValues[0] in nameToId, "Could not find " ~ subEntity.getValue("connection") ~ " when loading " ~ subEntity.getValue("name") ~ ". Make sure " ~ connectionValues[0] ~ " is defined before " ~ subEntity.getValue("name") ~ " in " ~ p_fileName ~ ". nameToId mappings: " ~ to!string(nameToId));
-        
-        auto connectionName = to!string(nameToId[connectionValues[0]]) ~ "." ~ connectionValues[1];
-        
-        // delay registering this subentity if the entity it's connected to hasn't been registered yet
-        if (m_connector.hasComponent(subEntitiesToAdd[nameToId[connectionValues[0]]]) == false)
-          entityDependicy[subEntity] = subEntitiesToAdd[nameToId[connectionValues[0]]];
-        
-        subEntity.setValue("connection", connectionName);
-      }
-      
-      if (subEntity !in entityDependicy)
-        registerEntity(subEntity);
-      else if (m_connector.hasComponent(entityDependicy[subEntity]))
-        registerEntity(subEntity);
-    }
+    foreach (childEntityName, childEntity; childEntities)
+      if (childEntityName !in childDependency)
+        registerEntity(childEntity);
     
     // loop over dependent entities until all are registered
-    while (entityDependicy.length > 0)
+    while (childDependency.length > 0)
     {
-      Entity[Entity] newEntityDependicy;
+      string[string] newChildDependency;
       
-      foreach (entity; entityDependicy.keys)
+      foreach (childName; childDependency.keys)
       {
-        if (m_connector.hasComponent(entityDependicy[entity]))
-          registerEntity(entity);
+        assert(childName in childDependency);
+        assert(childDependency[childName] in childEntities, "Could not find entity " ~ to!string(childDependency[childName]) ~ " in " ~ to!string(childEntities));
+        
+        if (m_connector.hasComponent(childEntities[childDependency[childName]]))
+          registerEntity(childEntities[childName]);
         else
-          newEntityDependicy[entity] = entityDependicy[entity];
+          newChildDependency[childName] = childDependency[childName];
       }
       
-      // if no entities were registered and all were put in newEntityDependicy, we have a cycle or something
-      enforce(newEntityDependicy.length < entityDependicy.length, "Could not resolve entity dependicies when loading " ~ p_fileName);
+      // if no entities were registered and all were put in newChildDependency, we have a cycle or something
+      enforce(newChildDependency.length < childDependency.length, "Could not resolve entity dependencies when loading " ~ p_fileName);
       
-      entityDependicy = newEntityDependicy;
+      childDependency = newChildDependency;
     }
-
-    return ship;
+    
+    return mainEntity;    
   }
   
 
@@ -957,6 +916,7 @@ private:
     m_entities[p_entity.id] = p_entity;
     
     //debug writeln("registering entity " ~ to!string(p_entity.id) ~ " with name " ~ p_entity.getValue("name"));
+    debug writeln("registering entity " ~ to!string(p_entity.id) ~ " with values " ~ to!string(p_entity.values));
     
     foreach (subSystem; m_subSystems)
       subSystem.registerEntity(p_entity);
@@ -1093,4 +1053,6 @@ private:
   AiGunner m_aiGunner;
   FlockControl m_aiFlocker;
   AiChaser m_aiChaser;
+  
+  string[][string] cache;
 }

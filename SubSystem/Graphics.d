@@ -42,6 +42,7 @@ import gl3n.linalg;
 
 import Display;
 import Entity;
+import EntityLoader;
 import SubSystem.Base;
 import TextRender;
 
@@ -201,8 +202,10 @@ invariant()
 
 
 public:
-  this(int p_screenWidth, int p_screenHeight)
+  this(ref string[][string] cache, int p_screenWidth, int p_screenHeight)
   {
+    this.cache = cache;
+    
     m_textRender = new TextRender();
     
     m_zoom = 0.1;
@@ -407,7 +410,7 @@ protected:
       component.drawSource = DrawSource.Vertices;
       
       // (ab)use entity to just get out data here, since it has loading and caching capabilities
-      Entity drawfile = new Entity("data/" ~ p_entity.getValue("drawsource"));
+      Entity drawfile = new Entity(loadValues(cache, "data/" ~ p_entity.getValue("drawsource")));
       
       foreach (vertexName, vertexData; drawfile.values)
       {
@@ -661,4 +664,6 @@ private:
   vec2 m_mouseWorldPos;
   
   Entity m_centerEntity;
+  
+  string[][string] cache;
 }

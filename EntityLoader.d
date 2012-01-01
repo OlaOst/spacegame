@@ -67,8 +67,8 @@ unittest
   
   
   
-  // get values - DONE
-  // expand source values - DONE
+  // get values 
+  // expand source values 
   // (child entities not expanded yet)
   // figure out child entities
   // get values for child entities (recursive)
@@ -79,18 +79,24 @@ unittest
   
   values = getValues(cache, linesWithChildren);
   
-  string[string][string] childValues = findChildValues(cache, values);
+  string[string][string] childrenValues = findChildrenValues(cache, values);
   
-  assert(childValues.length == 2, to!string(childValues));
-  assert("child1" in childValues);
-  assert("child2" in childValues);
+  assert(childrenValues.length == 2, to!string(childrenValues));
+  assert("child1" in childrenValues);
+  assert("child2" in childrenValues);
   
-  assert("a" in childValues["child1"], to!string(childValues["child1"]));
+  assert("a" in childrenValues["child1"], to!string(childrenValues["child1"]));
   
-  assert(childValues["child1"]["a"] == "b");
-  assert(childValues["child1"]["one"] == "foo");
-  assert(childValues["child2"]["one"] == "foo");
-  assert(childValues["child1"]["three"] == "bar");
+  assert(childrenValues["child1"]["a"] == "b");
+  assert(childrenValues["child1"]["one"] == "foo");
+  assert(childrenValues["child2"]["one"] == "foo");
+  assert(childrenValues["child1"]["three"] == "bar");
+  
+  
+  auto actualValues = loadValues(cache, "data/simpleship.txt");
+  auto actualChildrenValues = findChildrenValues(cache, actualValues);
+  assert(actualChildrenValues["mainSkeleton"]["source"] == "verticalskeleton.txt");
+  assert(actualChildrenValues["mainSkeleton"]["connectpoint.lower.position"] == "0.0 -0.8");
 }
 
 
@@ -113,10 +119,22 @@ out
 }
 body
 {
-  auto file = File("data/" ~ filename);
+  auto fixedFilename = filename;
+  if (fixedFilename.startsWith("data/") == false)
+    fixedFilename = "data/" ~ filename;
+  
+  auto file = File(fixedFilename);
   
   foreach (string line; lines(file))
     cache[filename] ~= line;
+}
+
+string[string] loadValues(ref string[][string] cache, string filename)
+{
+  if (filename !in cache)
+    addToCache(cache, filename);
+    
+  return getValues(cache, cache[filename]);
 }
 
 string[string] getValues(ref string[][string] cache, string[] lines)
@@ -147,7 +165,7 @@ string[string] getValues(ref string[][string] cache, string[] lines)
 }
 
 
-string[string][string] findChildValues(ref string[][string] cache, string[string] values)
+string[string][string] findChildrenValues(ref string[][string] cache, string[string] values)
 {
   string[string][string] childValues;
   foreach (key, value; values)
@@ -206,209 +224,3 @@ string[string][string] findChildValues(ref string[][string] cache, string[string
   
   return childValues;
 }
-
-// a datasource may define multiple entities
-/+
-Entity[] loadData(string data)
-{
-  Entity[] entities;
-  
-  auto values = getValues(data);
-  
-  entities ~= new Entity(values);
-  
-  string[] orderedChildEntityNames;
-  
-  foreach (key, value; values)
-  {
-    if (key.find(".").length > 0)
-    {
-      if (orderedChildEntityNames.find(to!string(key.until("."))) == [])
-        orderedChildEntityNames ~= to!string(key.until("."));
-    }
-  }
-  
-  // load in child entities, signified by <childentity>.source = <source filename>
-  foreach (orderedChildEntityName; orderedChildEntityNames)
-  {
-    auto source = values.keys.find(orderedChildEntityName ~ ".source");
-    if (source.length == 0)
-      continue;
-    auto childSource = source[0];
-  
-    auto childValues = getValues("data/" ~ values[childSource]);
-
-    //Entity subEntity = new Entity("data/" ~ ship.getValue(subSource));
-
-    //subEntity.setValue("name", subSource);
-    
-    auto subName = subSource[0..std.string.indexOf(subSource, ".source")];
-    
-    // all references to subName should be replaced with the entity id, since the id is guaranteed unique
-    nameToId[subName] = subEntity.id;
-    
-    subEntity.setValue("owner", to!string(ship.id));
-    
-    // inital position of submodules are equal to owner module position
-    subEntity.setValue("position", ship.getValue("position"));      
-    
-    // set extra values on submodule from the module that loads them in
-    foreach (subSourceValue; filter!(delegate(x) { return x.startsWith(subName ~ "."); })(ship.values.keys))
-    {
-      auto key = subSourceValue[std.string.indexOf(subSourceValue, '.')+1..$];
-      
-      subEntity.setValue(key, ship.getValue(subSourceValue));
-    }
-    
-    if (subEntity.getValue("mass").length > 0)
-    {
-      accumulatedMass += to!float(subEntity.getValue("mass"));
-    }
-    
-    subEntitiesToAdd[subEntity.id] = subEntity;
-  }
-  
-  return entities;
-}
-
-
-Entity loadShip(string p_fileName, string[string] p_extraParams = null)
-{
-  writeln("loading ship from file " ~ p_fileName ~ ", with extraparams " ~ to!string(p_extraParams));
-  Entity ship = new Entity("data/" ~ p_fileName, p_extraParams);
-  
-  if (ship.getValue("name").length == 0)
-    ship.setValue("name", p_fileName);
-  
-  // need to add sub entities after they're loaded
-  // since the ship entity needs accumulated values from sub entities
-  // and sub entities must have the ship registered before they can be registered themselves
-  Entity[int] subEntitiesToAdd;
-  float accumulatedMass = 0.0;
-
-  int[string] nameToId;
-  
-  // figure out ordered list of submodules
-  string[] orderedSubModuleNames;
-  auto file = File("data/" ~ p_fileName);
-  foreach (string line; lines(file))
-  {
-    if (line.strip.length > 0 && line.strip.startsWith("#") == false)
-    {
-      auto key = to!string(line.strip.until("=")).strip;
-      
-      if (key.find(".").length > 0)
-      {
-        if (orderedSubModuleNames.find(to!string(key.until("."))) == [])
-          orderedSubModuleNames ~= to!string(key.until("."));
-      }
-    }
-  }
-  
-  // load in submodules, signified by <modulename>.source = <module source filename>
-  foreach (orderedSubModuleName; orderedSubModuleNames)
-  {
-    auto source = ship.values.keys.find(orderedSubModuleName ~ ".source");
-    if (source.length == 0)
-      continue;
-    auto subSource = source[0];
-  
-    Entity subEntity = new Entity("data/" ~ ship.getValue(subSource));
-    
-    subEntity.setValue("name", subSource);
-    
-    auto subName = subSource[0..std.string.indexOf(subSource, ".source")];
-    
-    // all references to subName should be replaced with the entity id, since the id is guaranteed unique
-    nameToId[subName] = subEntity.id;
-    
-    subEntity.setValue("owner", to!string(ship.id));
-    
-    // inital position of submodules are equal to owner module position
-    subEntity.setValue("position", ship.getValue("position"));      
-    
-    // set extra values on submodule from the module that loads them in
-    foreach (subSourceValue; filter!(delegate(x) { return x.startsWith(subName ~ "."); })(ship.values.keys))
-    {
-      auto key = subSourceValue[std.string.indexOf(subSourceValue, '.')+1..$];
-      
-      subEntity.setValue(key, ship.getValue(subSourceValue));
-    }
-    
-    if (subEntity.getValue("mass").length > 0)
-    {
-      accumulatedMass += to!float(subEntity.getValue("mass"));
-    }
-    
-    subEntitiesToAdd[subEntity.id] = subEntity;
-  }
-  
-  // keys on the form *.somekey = somevalue are for all subentities
-  foreach (wildCard; filter!("a.startsWith(\"*.\")")(ship.values.keys))
-  {
-    //writeln("found wildcard " ~ wildCard[2..$] ~ " with value " ~ ship.getValue(wildCard));
-    
-    foreach (subEntity; subEntitiesToAdd.values)
-    {
-      subEntity.setValue(wildCard[2..$], ship.getValue(wildCard));
-    }
-  }
-  
-  if (accumulatedMass > 0.0)
-    ship.setValue("mass", to!string(accumulatedMass));
-  
-  // ship entity is its own owner, this is also needed to register it to connection system
-  ship.setValue("owner", to!string(ship.id));
-  
-  registerEntity(ship);
-  
-  Entity[Entity] entityDependicy;
-  
-  foreach (subEntity; subEntitiesToAdd)
-  {
-    // rename connection value to ensure it points to the unique entity created for the ship
-    if (subEntity.getValue("connection").length > 0)
-    {
-      auto connectionValues = split!(string, string)(subEntity.getValue("connection"), ".");
-      
-      // TODO: unittest that these enforces kick in when they should
-      enforce(connectionValues.length == 2);
-      enforce(connectionValues[0] in nameToId, "Could not find " ~ subEntity.getValue("connection") ~ " when loading " ~ subEntity.getValue("name") ~ ". Make sure " ~ connectionValues[0] ~ " is defined before " ~ subEntity.getValue("name") ~ " in " ~ p_fileName ~ ". nameToId mappings: " ~ to!string(nameToId));
-      
-      auto connectionName = to!string(nameToId[connectionValues[0]]) ~ "." ~ connectionValues[1];
-      
-      // delay registering this subentity if the entity it's connected to hasn't been registered yet
-      if (m_connector.hasComponent(subEntitiesToAdd[nameToId[connectionValues[0]]]) == false)
-        entityDependicy[subEntity] = subEntitiesToAdd[nameToId[connectionValues[0]]];
-      
-      subEntity.setValue("connection", connectionName);
-    }
-    
-    if (subEntity !in entityDependicy)
-      registerEntity(subEntity);
-    else if (m_connector.hasComponent(entityDependicy[subEntity]))
-      registerEntity(subEntity);
-  }
-  
-  // loop over dependent entities until all are registered
-  while (entityDependicy.length > 0)
-  {
-    Entity[Entity] newEntityDependicy;
-    
-    foreach (entity; entityDependicy.keys)
-    {
-      if (m_connector.hasComponent(entityDependicy[entity]))
-        registerEntity(entity);
-      else
-        newEntityDependicy[entity] = entityDependicy[entity];
-    }
-    
-    // if no entities were registered and all were put in newEntityDependicy, we have a cycle or something
-    enforce(newEntityDependicy.length < entityDependicy.length, "Could not resolve entity dependicies when loading " ~ p_fileName);
-    
-    entityDependicy = newEntityDependicy;
-  }
-
-  return ship;
-}
-+/

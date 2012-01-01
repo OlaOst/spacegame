@@ -71,7 +71,7 @@ class PhysicsComponent
 {
 invariant()
 {
-  assert(entity !is null, "Physics component had null entity");
+  //assert(entity !is null, "Physics component had null entity");
   
   assert(force.ok);
   assert(torque == torque);
@@ -82,9 +82,9 @@ invariant()
 
 
 public:
-  this(Entity p_entity)
+  this(/*Entity p_entity*/)
   {  
-    entity = p_entity;
+    //entity = p_entity;
     
     force = impulse = velocity = position = vec2(0.0, 0.0);
     
@@ -110,7 +110,7 @@ private:
   }
   body
   {
-    assert(mass > 0.0);
+    assert(mass > 0.0, "Trying to move physics component with zero mass");
     
     //if (force.length > 0.0)
       //writeln("physics update, force is " ~ to!string(force));
@@ -136,7 +136,7 @@ private:
   
 
 public:
-  Entity entity;
+  //Entity entity;
   
   vec2 position;
   vec2 velocity;
@@ -205,13 +205,16 @@ private:
 protected:
   bool canCreateComponent(Entity p_entity)
   {
+    if ("mass" in p_entity.values)
+      assert(to!float(p_entity.getValue("mass")) > 0.0, "Zero mass entity " ~ to!string(p_entity.id) ~ ": " ~ to!string(p_entity.values));
+    
     return p_entity.getValue("mass").length > 0;
   }
   
   
   PhysicsComponent createComponent(Entity p_entity)
   {
-    auto newComponent = new PhysicsComponent(p_entity);
+    auto newComponent = new PhysicsComponent(/*p_entity*/);
     
     if (p_entity.getValue("position").length > 0)
       newComponent.position = vec2.fromString(p_entity.getValue("position"));

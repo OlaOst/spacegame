@@ -10,6 +10,9 @@ import std.stdio;
 import gl3n.math;
 import gl3n.linalg;
 
+import Entity;
+import EntityLoader;
+
 import SubSystem.Base;
 
 
@@ -74,6 +77,11 @@ struct SpawnerComponent
 class Spawner : public Base!(SpawnerComponent)
 {
 public:
+  this(ref string[][string] cache)
+  {
+    this.cache = cache;
+  }
+
   void update() 
   {
     m_spawns.length = 0;
@@ -155,7 +163,7 @@ protected:
     
     if (looksLikeAFile(p_entity.getValue("spawnSource")))
     {
-      component.spawnBlueprint = new Entity(p_entity.getValue("spawnSource"));
+      component.spawnBlueprint = new Entity(loadValues(cache, p_entity.getValue("spawnSource")));
       component.spawnBlueprint.setValue("name", p_entity.getValue("spawnSource"));
     }
     
@@ -192,4 +200,6 @@ private:
   
 private:
   Entity[] m_spawns;
+  
+  string[][string] cache;
 }

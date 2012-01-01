@@ -315,6 +315,8 @@ protected:
   
   ConnectionComponent createComponent(Entity p_entity)
   {
+    enforce("position" in p_entity.values, "Could not find position value when registering entity to connection subsystem");
+  
     Entity owner = null;
     
     ConnectPoint[string] connectPoints;
@@ -424,6 +426,8 @@ protected:
     {
       newComponent.relativePosition = vec2.fromString(p_entity.getValue("relativePosition"));
     }
+    
+    writeln("connecting entity " ~ to!string(p_entity.id) ~ " to " ~ to!string(newComponent.owner.id) ~ " with relative position " ~ to!string(newComponent.relativePosition));
     
     if (p_entity.getValue("relativeAngle").length > 0)
     {

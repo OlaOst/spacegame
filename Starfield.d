@@ -72,16 +72,19 @@ public:
     
     for (int n = 0; n < stars; n++)
     {
-      Entity star = new Entity();
+      //Entity star = new Entity();
+      string[string] starValues;
       
-      star.setValue("drawsource", "Star");
-      star.setValue("radius", "0.25");
+      starValues["drawsource"] = "Star";
+      starValues["radius"] = "0.25";
       
-      star.setValue("angle", to!string(uniform(0, 360)));
+      starValues["angle"] = to!string(uniform(0, 360));
       
-      star.setValue("position", to!string(vec3(uniform(-3.0/m_graphics.zoom, 3.0/m_graphics.zoom), 
-                                               uniform(-3.0/m_graphics.zoom, 3.0/m_graphics.zoom),
-                                               uniform(-5.0, -3.0))));
+      starValues["position"] = to!string(vec3(uniform(-3.0/m_graphics.zoom, 3.0/m_graphics.zoom), 
+                                              uniform(-3.0/m_graphics.zoom, 3.0/m_graphics.zoom),
+                                              uniform(-5.0, -3.0)));
+      
+      Entity star = new Entity(starValues);
       
       m_stars[n] = star;
       
