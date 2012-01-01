@@ -293,6 +293,10 @@ public:
  
   void run()
   {
+    m_timer.reset();
+    m_timer.start();
+    m_timer.stop();
+  
     while (m_running)
     {
       update();
@@ -512,9 +516,12 @@ private:
     
     m_graphics.calculateMouseWorldPos(m_inputHandler.mousePos);
     
-    foreach (spawn; m_spawner.getAndClearSpawns())
+    foreach (spawnValues; m_spawner.getAndClearSpawnValues())
     {
-      registerEntity(spawn);
+      //registerEntity(spawn);
+      assert("source" in spawnValues, to!string(spawnValues));
+      
+      loadShip(spawnValues["source"], spawnValues);
     }
     
     handleInput(elapsedTime);
@@ -677,7 +684,7 @@ private:
                 m_dragEntity.setValue("control", "playerEngine");
               
               //if (m_dragEntity.getValue("source") == "data/cannon.txt" || m_dragEntity.getValue("source") == "cannon.txt")
-              if (m_dragEntity.getValue("spawnSource").length > 0)
+              if (m_dragEntity.getValue("spawn.source").length > 0)
                 m_dragEntity.setValue("control", "playerLauncher");
             }
             registerEntity(m_dragEntity);

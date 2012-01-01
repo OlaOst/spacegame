@@ -49,7 +49,8 @@ unittest
 
 struct SpawnerComponent
 {
-  Entity spawnBlueprint;
+  //Entity spawnBlueprint;
+  string[string] spawnValues;
   
   vec2 position = vec2(0.0, 0.0);
   vec2 velocity = vec2(0.0, 0.0);
@@ -84,7 +85,7 @@ public:
 
   void update() 
   {
-    m_spawns.length = 0;
+    m_spawnValues.length = 0;
     
     foreach (ref component; components)
     {
@@ -92,10 +93,12 @@ public:
     
       if (component.isSpawning)
       {
-        Entity spawn;
-        if (component.spawnBlueprint !is null)
+        //Entity spawn;
+        string[string] spawnValues;
+        if (component.spawnValues.length > 0)
         {
-          spawn = new Entity(component.spawnBlueprint.values);
+          //spawn = new Entity(component.spawnBlueprint.values);
+          spawnValues = component.spawnValues.dup;
         }
         
         auto spawnAngle = component.angle + component.spawnAngle;
@@ -112,38 +115,38 @@ public:
         force -= spawnForce * (1.0 - recoilDamping);
         component.force = force;
         
-        spawn.setValue("spawnedFrom", to!string(component.entityId));
-        spawn.setValue("spawnedFromOwner", to!string(component.ownerId));
+        spawnValues["spawnedFrom"] = to!string(component.entityId);
+        spawnValues["spawnedFromOwner"] = to!string(component.ownerId);
         
-        spawn.setValue("position", to!string(component.position + component.spawnPoint));
-        spawn.setValue("angle", to!string(spawnAngle * _180_PI));
+        spawnValues["position"] = to!string(component.position + component.spawnPoint);
+        spawnValues["angle"] = to!string(spawnAngle * _180_PI);
         
-        spawn.setValue("velocity", spawnVelocity.toString());
-        spawn.setValue("force", spawnForce.toString());
+        spawnValues["velocity"] = spawnVelocity.toString();
+        spawnValues["force"] = spawnForce.toString();
         
         immutable string[4] sounds = ["mgshot1.wav", "mgshot2.wav", "mgshot3.wav", "mgshot4.wav"];
         
         // we should have two entity spawns here, one for the muzzle flash effect (which also will handle the sound)
         // and another for the actual spawn entity
-        spawn.setValue("soundFile", sounds[uniform(0, sounds.length)]);
+        spawnValues["soundFile"] = sounds[uniform(0, sounds.length)];
         //spawn.setValue("soundFile", sounds[0]);
         
-        m_spawns ~= spawn;
+        m_spawnValues ~= spawnValues;
       }
     }
   }
   
   
-  Entity[] getAndClearSpawns()
+  string[string][] getAndClearSpawnValues()
   out
   {
-    assert(m_spawns.length == 0);
+    assert(m_spawnValues.length == 0);
   }
   body
   {
-    Entity[] tmp = m_spawns;
+    string[string][] tmp = m_spawnValues;
     
-    m_spawns.length = 0;
+    m_spawnValues.length = 0;
     
     return tmp;
   }
@@ -152,8 +155,8 @@ public:
 protected:
   bool canCreateComponent(Entity p_entity)
   {
-    return (p_entity.getValue("spawnSource").length > 0 ||
-            looksLikeAFile(p_entity.getValue("spawnSource")));
+    return (p_entity.getValue("spawn.source").length > 0 ||
+            looksLikeAFile(p_entity.getValue("spawn.source")));
   }
   
   
@@ -161,10 +164,15 @@ protected:
   {
     auto component = SpawnerComponent();
     
-    if (looksLikeAFile(p_entity.getValue("spawnSource")))
+    if (looksLikeAFile(p_entity.getValue("spawn.source")))
     {
-      component.spawnBlueprint = new Entity(loadValues(cache, p_entity.getValue("spawnSource")));
-      component.spawnBlueprint.setValue("name", p_entity.getValue("spawnSource"));
+      foreach (key, value; p_entity.values)
+      {
+        if (key.startsWith("spawn."))
+        {
+          component.spawnValues[key.find(".")[1..$]] = value;
+        }
+      }
     }
     
     component.entityId = p_entity.id;
@@ -199,7 +207,7 @@ private:
   
   
 private:
-  Entity[] m_spawns;
+  string[string][] m_spawnValues;
   
   string[][string] cache;
 }

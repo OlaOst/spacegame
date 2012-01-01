@@ -493,7 +493,7 @@ protected:
     {
       if (std.algorithm.startsWith(value, "connectpoint") > 0)
       {
-        component.connectPoints ~= vec2.fromString(p_entity.getValue(value));
+        component.connectPoints ~= vec2.fromString(p_entity.getValue(value)) * radius;
       }
     }
     

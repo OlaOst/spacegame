@@ -338,7 +338,10 @@ protected:
         connectPoint.owner = p_entity;
         if (connectPointAttribute == "position")
           connectPoint.position = vec2.fromString(p_entity.getValue(value));
-          
+        
+        if ("radius" in p_entity.values)
+          connectPoint.position *= to!float(p_entity.getValue("radius"));
+
         connectPoints[connectPointName] = connectPoint;
         
         // entities with connectpoints are their own owners to begin with

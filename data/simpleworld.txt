@@ -1,0 +1,45 @@
+# fps display is shown in a fixed position on the screen
+#fpsDisplay.text = here we should see fps
+#fpsDisplay.screenAbsolutePosition = true
+#fpsDisplay.position = -1.0 0.7
+#fpsDisplay.color = 1.0 1.0 1.0
+#fpsDisplay.name = FPS display
+
+
+#launcher.source = launcher.txt
+#launcher.control = playerLauncher
+#launcher.position = 0 0
+
+
+#dummy.source = missile.txt
+#dummy.position = 5 5
+
+
+# playership controllable by player
+playership.source = simpleship.txt
+playership.leftEngine.control = playerEngine
+playership.rightEngine.control = playerEngine
+playership.leftGun.source = launcher.txt
+playership.leftGun.control = playerLauncher
+playership.rightGun.source = launcher.txt
+playership.rightGun.control = playerLauncher
+playership.*.collisionType = PlayerModule
+playership.position = 0 0
+playership.angle = 0
+playership.name = playership
+playership.keepInCenter = true
+
+#test.position = 0.0 0.0
+
+#test.skeleton.connectpoint.upper.position = 0.0 1.0
+#test.skeleton.connectpoint.lower.position = 0.0 -1.0
+#test.skeleton.mass = 1.0
+
+#test.submodule.mass = 1.0
+#test.submodule.connection = skeleton.upper
+#test.submodule.drawsource = Triangle
+#test.submodule.angle = 45
+
+#test.submodule2.mass = 1.0
+#test.submodule2.connection = skeleton.lower
+#test.submodule2.drawsource = Triangle

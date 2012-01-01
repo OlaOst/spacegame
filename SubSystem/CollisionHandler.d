@@ -106,15 +106,13 @@ class ColliderComponent
 {
   this(float p_radius, CollisionType p_collisionType)
   {
-    position = vec2(0.0, 0.0);
     radius = p_radius;
     collisionType = p_collisionType;
-    lifetime = float.infinity;
     
     id = idCounter++;
   }
   
-  vec2 position;
+  vec2 position = vec2(0.0, 0.0);
   float radius;
   
   vec2 force;
@@ -122,7 +120,7 @@ class ColliderComponent
   
   CollisionType collisionType;
   
-  float lifetime;
+  float lifetime = float.infinity;
   float health = float.infinity;
   
   // we might not want stuff to collide from the entity it spawned from
@@ -201,6 +199,8 @@ protected:
       
     if (p_entity.getValue("health").length > 0)
       colliderComponent.health = to!float(p_entity.getValue("health"));
+    
+    writeln("created collidercomponent for entity " ~ to!string(p_entity.id) ~ " with lifetime " ~ to!string(colliderComponent.lifetime));
     
     return colliderComponent;
   }
