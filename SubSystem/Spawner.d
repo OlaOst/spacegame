@@ -11,7 +11,6 @@ import gl3n.math;
 import gl3n.linalg;
 
 import Entity;
-import EntityLoader;
 
 import SubSystem.Base;
 
@@ -23,10 +22,11 @@ unittest
 
   auto sys = new Spawner();
   
-  Entity spawner = new Entity();
-  spawner.setValue("spawns", "bullets");
+  Entity spawner = new Entity(["spawn.source":"type=bullets"]);
   
   sys.registerEntity(spawner);
+  
+  assert(sys.hasComponent(spawner));
   
   auto spawnComp = sys.getComponent(spawner);
   
@@ -40,11 +40,11 @@ unittest
   
   sys.setComponent(spawner, spawnComp);
   
-  assert(sys.m_spawns.length == 0);
+  assert(sys.m_spawnValues.length == 0);
   
   sys.update();
 
-  assert(sys.m_spawns.length > 0);
+  assert(sys.m_spawnValues.length > 0);
 }
 
 struct SpawnerComponent
@@ -191,7 +191,7 @@ protected:
       component.spawnAngle = to!float(p_entity.getValue("spawnAngle")) * PI_180;
     if (p_entity.getValue("spawnRotation").length > 0)
       component.spawnRotation = to!float(p_entity.getValue("spawnRotation"));
-
+      
     //writeln("creating spawncomponent, spawnangle is " ~ to!string(component.spawnAngle));
 
     return component;

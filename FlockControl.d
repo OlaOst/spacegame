@@ -83,7 +83,7 @@ public:
   }
   
   
-  void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents)
+  void update(ref ControlComponent p_sourceComponent)
   out
   {
     assert(p_sourceComponent.force.ok);

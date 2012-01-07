@@ -44,27 +44,27 @@ unittest
 
 class AiChaser : public Control
 {
-invariant()
-{  
-}
-
-
 public:
   
-  void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents)
+  void update(ref ControlComponent p_sourceComponent)
   {
     // we want to match the targets velocity
     // we also want to get closer to the target
     // but not too close
     // and we want to look where the target will be so shots can hit
     
+    auto targetPosition = p_sourceComponent.targetPosition;
+    auto targetVelocity = p_sourceComponent.targetVelocity;
+    
     vec2 relativeTargetPosition = targetPosition - p_sourceComponent.position;
+    vec2 relativeVelocity = targetVelocity - p_sourceComponent.velocity;
     
     if (relativeTargetPosition.length > 1.0)
     {
       assert(p_sourceComponent.torqueForce == p_sourceComponent.torqueForce);
       
       vec2 desiredVelocity = relativeTargetPosition + targetVelocity * 2.0;
+      //vec2 desiredVelocity = relativeTargetPosition + relativeVelocity * 2.0;
       
       vec2 currentDirection = vec2.fromAngle(p_sourceComponent.angle);
       vec2 desiredDirection = desiredVelocity.normalized;
@@ -85,15 +85,17 @@ public:
 
       desiredTorque *= p_sourceComponent.torqueForce;
 
+      assert(isFinite(desiredTorque));
+      
       p_sourceComponent.torque = desiredTorque;
       
-      if (abs(angle) < 0.1 && p_sourceComponent.velocity.length < 3.0)
+      if (abs(angle) < 0.1) // && p_sourceComponent.velocity.length < 3.0)
         p_sourceComponent.force += vec2(0.0, 1.0 * p_sourceComponent.thrustForce);
     }
   }
 
   
 public:
-  vec2 targetPosition;
-  vec2 targetVelocity;
+  //vec2 targetPosition;
+  //vec2 targetVelocity;
 }

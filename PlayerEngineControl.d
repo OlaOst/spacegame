@@ -53,7 +53,7 @@ public:
   }
   
   
-  void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents)
+  void update(ref ControlComponent p_sourceComponent)
   /*out
   {
     writeln(p_sourceComponent.position.toString());

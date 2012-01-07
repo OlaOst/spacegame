@@ -56,7 +56,7 @@ unittest
   }
   MockSubSystem sys = new MockSubSystem();
   
-  Entity entity = new Entity();
+  Entity entity = new Entity(["":""]);
   
   assert(sys.components.length == 0);
   {
@@ -68,7 +68,7 @@ unittest
   sys.registerEntity(entity);
   assert(sys.components.length == 1);
   
-  Entity anotherEntity = new Entity();
+  Entity anotherEntity = new Entity(["":""]);
   sys.registerEntity(anotherEntity);
   assert(sys.components.length == 2, "Expected 2 components after registering a second one, got " ~ to!string(sys.components.length) ~ " instead");
   

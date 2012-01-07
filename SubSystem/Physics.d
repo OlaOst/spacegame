@@ -41,9 +41,7 @@ unittest
   
   Physics physics = new Physics();
   
-  Entity entity = new Entity();
-  
-  entity.setValue("mass", "1.0");
+  Entity entity = new Entity(["mass":"1.0"]);
   
   physics.registerEntity(entity);
   
@@ -55,8 +53,7 @@ unittest
   assert(physics.getComponent(entity).position.x > 0.0);
   
   {
-    Entity notAPhysicsEntity = new Entity();
-    notAPhysicsEntity.setValue("no mass value in this entity", "no mass at all");
+    Entity notAPhysicsEntity = new Entity(["no mass value in this entity":"no mass at all"]);
     
     auto componentsBefore = physics.components.length;
     
@@ -71,21 +68,17 @@ class PhysicsComponent
 {
 invariant()
 {
-  //assert(entity !is null, "Physics component had null entity");
-  
   assert(force.ok);
-  assert(torque == torque);
+  assert(isFinite(torque));
   
-  assert(mass == mass);
+  assert(isFinite(mass));
   assert(mass > 0.0);
 }
 
 
 public:
-  this(/*Entity p_entity*/)
-  {  
-    //entity = p_entity;
-    
+  this()
+  {
     force = impulse = velocity = position = vec2(0.0, 0.0);
     
     torque = rotation = angle = 0.0;
@@ -98,10 +91,10 @@ private:
   void move(float p_time)
   in
   {
-    assert(p_time == p_time);
+    assert(isFinite(p_time));
     assert(p_time > 0.0);
     assert(force.ok, "Physics component update detected invalid force vec2: " ~ force.toString());
-    assert(torque == torque, to!string(torque));
+    assert(isFinite(torque));
   }
   out
   {
@@ -111,6 +104,7 @@ private:
   body
   {
     assert(mass > 0.0, "Trying to move physics component with zero mass");
+    assert(isFinite(torque));
     
     //if (force.length > 0.0)
       //writeln("physics update, force is " ~ to!string(force));
@@ -123,21 +117,34 @@ private:
     rotation += (torque / mass) * p_time;
     angle += rotation * p_time;
     
-    while (angle < -PI)
+    assert(angle == angle);
+    
+    // clamp don't wrap angle
+    /*if (angle < -PI)
+      angle = -PI;
+    if (angle > PI)
+      angle = PI;*/
+    
+    /**while (angle < -PI)
+    {
+      writeln("normalizing angle up: " ~ to!string(angle));
+      assert(angle > -PI*10);
       angle += PI*2;
+    }
     while (angle > PI)
+    {
+      writeln("normalizing angle down: " ~ to!string(angle));
+      assert(angle < PI*10);
       angle -= PI*2;
+    }*/
     
     // reset force and torque after applying them
     force = vec2(0.0, 0.0);
     torque = 0.0;
     impulse = vec2(0.0, 0.0);
   }
-  
 
 public:
-  //Entity entity;
-  
   vec2 position;
   vec2 velocity;
   vec2 impulse;
@@ -188,10 +195,17 @@ private:
       //component.force = component.force + (component.position * -0.05);
       
       // add some damping
-      component.force += (component.velocity * -0.15);
-      component.torque += (component.rotation * -20.5);
       
-      assert(component.torque == component.torque);
+      assert(component.velocity.ok);
+      assert(isFinite(component.rotation));
+      
+      //writeln("comp rotation is " ~ to!string(component.rotation));
+      
+      component.force += (component.velocity * -0.15);
+      component.torque += min(100.0, (component.rotation * -20.5));
+      
+      assert(component.force.ok);
+      assert(isFinite(component.torque));
       
       component.move(p_time);
       

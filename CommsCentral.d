@@ -42,9 +42,7 @@ unittest
   auto placer = new Placer();
   auto physics = new Physics();
   
-  Entity entity = new Entity();
-  entity.setValue("position", "1 2");
-  entity.setValue("mass", "1");
+  Entity entity = new Entity(["position":"1 2", "mass":"1"]);
   
   placer.registerEntity(entity);
   physics.registerEntity(entity);
@@ -183,6 +181,7 @@ void setPhysicsFromController(Controller controller, Physics physics)
   {
     physicsComponent.force += controllerComponent.force;
     physicsComponent.torque += controllerComponent.torque;
+    
     physicsComponent.impulse += controllerComponent.impulse;
     
     return physicsComponent;
@@ -310,6 +309,7 @@ void setPhysicsFromSpawner(Spawner spawner, Physics physics)
   {
     physicsComponent.force = spawnerComponent.force;
     //spawnerComponent.velocity = placerComponent.velocity;
+    
     physicsComponent.torque = spawnerComponent.torque;
     
     return physicsComponent;

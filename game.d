@@ -72,19 +72,16 @@ unittest
   }  
   assert(game.updateCount == 1);
   
-  
-  Entity testPhysics = new Entity();
-  testPhysics.setValue("position", "1 0 0");
-  testPhysics.setValue("mass", "1.0");
+  Entity testPhysics = new Entity(["position":"1 0", "mass":"1.0"]);
   
   game.registerEntity(testPhysics);
   assert(game.m_placer.hasComponent(testPhysics));
   assert(game.m_physics.hasComponent(testPhysics));
   assert(game.m_graphics.hasComponent(testPhysics) == false);
   
-  game.m_physics.getComponent(testPhysics).force = vec2(0.0, 1.0, 0.0);
+  game.m_physics.getComponent(testPhysics).force = vec2(0.0, 1.0);
   
-  assert(game.m_physics.getComponent(testPhysics).force == vec2(0.0, 1.0, 0.0));
+  assert(game.m_physics.getComponent(testPhysics).force == vec2(0.0, 1.0));
   
   game.m_physics.setTimeStep(0.1);
   game.m_controller.setTimeStep(0.1);
@@ -98,9 +95,7 @@ unittest
   assert(game.m_placer.getComponent(testPhysics).position == game.m_physics.getComponent(testPhysics).position);
   
   
-  Entity testGraphics = new Entity();
-  testGraphics.setValue("position", "0 1 0");
-  testGraphics.setValue("drawsource", "Star");
+  Entity testGraphics = new Entity(["position":"0 1", "drawsource":"Star"]);
   
   game.registerEntity(testGraphics);
   assert(game.m_graphics.hasComponent(testGraphics));
@@ -112,9 +107,7 @@ unittest
   assert(game.m_graphics.getComponent(testGraphics).position == game.m_placer.getComponent(testGraphics).position);
   
   
-  Entity testController = new Entity();
-  testController.setValue("mass", "2.0");
-  testController.setValue("control", "flocker");
+  Entity testController = new Entity(["mass":"2.0","control":"chaser"]);
   
   game.registerEntity(testController);
   assert(game.m_physics.hasComponent(testController));
@@ -123,9 +116,9 @@ unittest
   game.m_controller.getComponent(testController).control = 
       new class () Control 
       {
-        override void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents) 
+        override void update(ref ControlComponent p_sourceComponent) 
         {
-          p_sourceComponent.force = vec2(1.0, 1.0, 0.0);
+          p_sourceComponent.force = vec2(1.0, 1.0);
         }
       };
   
@@ -158,26 +151,22 @@ public:
     int xres = 1024;
     int yres = 768;
     
-    Control[string] aiControls;
-    aiControls["aigunner"] = m_aiGunner = new AiGunner();
-    aiControls["flocker"] = m_aiFlocker = new FlockControl(10.0, 1.5, 50.0, 0.2); // avoid distance & weight, flock distance & weight
-    aiControls["chaser"] = m_aiChaser = new AiChaser();
-    
     m_subSystems["placer"] = m_placer = new Placer();
     m_subSystems["graphics"] = m_graphics = new Graphics(cache, xres, yres);
     m_subSystems["physics"] = m_physics = new Physics();
-    m_subSystems["controller"] = m_controller = new Controller(m_inputHandler, aiControls);
+    m_subSystems["controller"] = m_controller = new Controller(m_inputHandler);
     m_subSystems["collider"] = m_collider = new CollisionHandler();
     m_subSystems["connector"] = m_connector = new ConnectionHandler();
     m_subSystems["sound"] = new SoundSubSystem(16);    
     m_subSystems["spawner"] = m_spawner = new Spawner();
+
+    assert(m_controller !is null);
     
-    m_aiFlocker.controller = m_controller;
+    m_controller.aiControls["aigunner"] = m_aiGunner = new AiGunner();
+    m_controller.aiControls["chaser"] = m_aiChaser = new AiChaser();
     
-    /*debug
-      loadWorldFromFile("data/simpleworld.txt");
-    else*/
-      loadWorldFromFile("data/world.txt");
+    loadWorldFromFile("data/simpleworld.txt");
+    //loadWorldFromFile("data/world.txt");
     
     //m_starfield = new Starfield(m_graphics, 10.0);
 
@@ -224,56 +213,13 @@ public:
 
       for (int count = 0; count < spawnCount; count++)
       {
-        vec2 position = vec2(0.0, 0.0);
-        float angle = 0.0;
-        
         auto extraValues = spawnNameWithValues[spawnName].dup;
         
-        if ("position" in extraValues && extraValues["position"].find("to").length > 0)
-        {
-          auto positionData = extraValues["position"].split(" ");
-          
-          assert(positionData.length == 5, "Problem parsing position data with from/to values: " ~ to!string(positionData));
-          
-          auto fromX = to!float(positionData[0]);
-          auto fromY = to!float(positionData[1]);
-          auto toX = to!float(positionData[3]);
-          auto toY = to!float(positionData[4]);
-          
-          auto x = (fromX == toX) ? fromX : uniform(fromX, toX);
-          auto y = (fromY == toY) ? fromY : uniform(fromY, toY);
-          
-          position = vec2(x, y);
-          
-          extraValues["position"] = position.toString();
-        }
-        
-        if ("angle" in extraValues && extraValues["angle"].find("to").length > 0)
-        {
-          auto angleData = extraValues["angle"].split(" ");
-          
-          assert(angleData.length == 3, "Problem parsing angle data with from/to values: " ~ to!string(angleData));
-          
-          auto fromAngle = to!float(angleData[0]);
-          auto toAngle = to!float(angleData[2]);
-
-          //writeln("loading world data stuff, fromAngle is " ~ to!string(fromAngle) ~ ", toAngle is " ~ to!string(toAngle));
-          
-          angle = uniform(fromAngle, toAngle);
-          
-          extraValues["angle"] = to!string(angle);
-        }
+        extraValues = parseRandomizedValues(extraValues);      
         
         Entity spawn;
-        //if (worldEntity.getValue(spawnName ~ ".source").length > 0)
-        //{
-          spawn = loadShip(worldEntity.getValue(spawnName ~ ".source"), extraValues);
-        /*}
-        else
-        {
-          spawn = new Entity(extraValues);
-          registerEntity(spawn);
-        }*/
+
+        spawn = loadShip(worldEntity.getValue(spawnName ~ ".source"), extraValues);
         
         if (spawn.getValue("name") == "FPS display")
           m_fpsDisplay = spawn;
@@ -325,26 +271,10 @@ private:
     
     m_updateCount++;
     
-    
     Entity[] entitiesToRemove;
-    
-    m_aiGunner.targetPositions.length = 0;
-    
-    if (m_playerShip !is null)
-    {
-      m_aiGunner.targetPositions ~= m_placer.getComponent(m_playerShip).position;
-    
-      m_aiChaser.targetPosition = m_placer.getComponent(m_playerShip).position;
-      m_aiChaser.targetVelocity = m_placer.getComponent(m_playerShip).velocity;
-    }
-    
-    //m_aiFlocker.flockMembers.length = 0;
     
     foreach (entity; m_entities)
     {
-      //if (entity.getValue("collisionType") == "NpcShip")
-        //m_aiFlocker.flockMembers ~= entity;
-      
       // TODO: make subsystem dedicated to removing entities. it should be responsible for values like lifetime and health 
       // TODO: ideally all this code should be handled by just setting values on the entity and then re-register it
       if (m_collider.hasComponent(entity))
@@ -483,34 +413,20 @@ private:
     {
       if (m_playerShip !is null)
       {
-        auto playerPos = m_placer.getComponent(m_playerShip).position;
+        auto playerPos = m_placer.getComponent(m_playerShip).position;        
+
+        auto closestEntity = findClosestEnemyShip(m_playerShip);
         
-        //auto connectEntities = filter!((entity) { return m_connector.hasComponent(entity); })(m_entities.values);
-        //auto ownerEntitiesUnfiltered = map!((entity) { return m_connector.getComponent(entity).owner; })(connectEntities);
-        //auto ownerEntities = filter!((entity) { return entity.id != m_playerShip.id; })(ownerEntitiesUnfiltered);
-        auto enemyShips = filter!((entity) { return entity.getValue("type") == "enemy ship"; })(m_entities.values);
+        auto closestEntityPosition = m_placer.getComponent(closestEntity).position - playerPos;
+        auto closestEntityDistance = closestEntityPosition.length;
         
-        if (enemyShips.empty == false)
-        {
-          Entity closestEntity = reduce!((closestSoFar, entity)
-          {
-            assert(entity.id != m_playerShip.id);
-            
-            return ((m_connector.getComponent(closestSoFar).position - playerPos).length < 
-                    (m_connector.getComponent(entity).position - playerPos).length) ? closestSoFar : entity;
-          })(enemyShips);
-          
-          auto closestEntityPosition = m_placer.getComponent(closestEntity).position - playerPos;
-          auto closestEntityDistance = closestEntityPosition.length;
-          
-          auto closestShipDisplayComponent = m_graphics.getComponent(m_closestShipDisplay);
-          
-          m_closestShipDisplay.setValue("position", (closestEntityPosition.normalized() * 0.9).toString());
-          m_closestShipDisplay.setValue("text", to!string(floor(closestEntityDistance)));
-          m_closestShipDisplay.setValue("color", "1 0 0");
-          
-          registerEntity(m_closestShipDisplay);
-        }
+        auto closestShipDisplayComponent = m_graphics.getComponent(m_closestShipDisplay);
+        
+        m_closestShipDisplay.setValue("position", (closestEntityPosition.normalized() * 0.9).toString());
+        m_closestShipDisplay.setValue("text", to!string(floor(closestEntityDistance)));
+        m_closestShipDisplay.setValue("color", "1 0 0");
+        
+        registerEntity(m_closestShipDisplay);
       }
     }
     
@@ -518,10 +434,36 @@ private:
     
     foreach (spawnValues; m_spawner.getAndClearSpawnValues())
     {
-      //registerEntity(spawn);
       assert("source" in spawnValues, to!string(spawnValues));
       
       loadShip(spawnValues["source"], spawnValues);
+    }
+    
+    // update target values for control components
+    foreach (entity; m_entities)
+    {
+      if (m_controller.hasComponent(entity))
+      {
+        auto controlComponent = m_controller.getComponent(entity);
+        
+        if (controlComponent.target == "closestEnemy")
+        {
+          auto closestEnemy = findClosestEnemyShip(entity);
+          
+          auto closestEnemyComponent = m_placer.getComponent(closestEnemy);
+          
+          controlComponent.targetPosition = closestEnemyComponent.position;
+          controlComponent.targetVelocity = closestEnemyComponent.velocity;
+        }
+        else if (controlComponent.target == "player")
+        {
+          if (m_playerShip !is null)
+          {
+            controlComponent.targetPosition = m_placer.getComponent(m_playerShip).position;
+            controlComponent.targetVelocity = m_placer.getComponent(m_playerShip).velocity;
+          }
+        }
+      }
     }
     
     handleInput(elapsedTime);
@@ -690,7 +632,12 @@ private:
             registerEntity(m_dragEntity);
             
             assert(m_connector.hasComponent(connectEntity));
-            assert(m_connector.getComponent(connectEntity).connectPoints[closestConnectPoint.name].connectedEntity !is null, "Connectpoint " ~ closestConnectPoint.name ~ " on " ~ connectEntity.getValue("name") ~ " with id " ~ to!string(connectEntity.id) ~ " still empty after connecting entity " ~ m_dragEntity.getValue("name") ~ " with values " ~ to!string(m_dragEntity.values));
+            assert(m_connector.getComponent(connectEntity).connectPoints[closestConnectPoint.name].connectedEntity !is null, 
+                   "Connectpoint " ~ closestConnectPoint.name ~ 
+                   " on " ~ connectEntity.getValue("name") ~ 
+                   " with id " ~ to!string(connectEntity.id) ~ 
+                   " still empty after connecting entity " ~ m_dragEntity.getValue("name") ~ 
+                   " with values " ~ to!string(m_dragEntity.values));
             
             updateOwnerEntity(ownerEntity);
           }
@@ -795,7 +742,7 @@ private:
           }
         }
       }
-    }
+    }  
   
     if (m_inputHandler.isPressed(Event.PageUp))
     {
@@ -838,6 +785,8 @@ private:
     
     auto childrenValues = findChildrenValues(cache, values);
     
+    values = parseRandomizedValues(values);
+    
     auto mainEntity = new Entity(values);
     
     mainEntity.setValue("owner", to!string(mainEntity.id));
@@ -849,6 +798,8 @@ private:
     Entity[string] childEntities;
     foreach (childName, childValues; childrenValues)
     {
+      childValues = parseRandomizedValues(childValues);
+      
       childEntities[childName] = new Entity(childValues);
       
       if ("mass" in childValues)
@@ -1008,7 +959,8 @@ private:
     
     debug m_graphics.updateWithTiming();
     else  m_graphics.update();
-    foreach (subSystem; taskPool.parallel(filter!(delegate (SubSystem.Base.SubSystem sys) { return sys !is m_graphics; })(m_subSystems.values), 1))
+    //foreach (subSystem; taskPool.parallel(filter!(delegate (SubSystem.Base.SubSystem sys) { return sys !is m_graphics; })(m_subSystems.values), 1))
+    foreach (subSystem; filter!(delegate (SubSystem.Base.SubSystem sys) { return sys !is m_graphics; })(m_subSystems.values))
     {
       debug subSystem.updateWithTiming();
       else  subSystem.update();
@@ -1019,10 +971,67 @@ private:
       float timeSpent = subSystemTimer.peek.usecs / 1_000_000.0;
     
       auto timeSpents = map!((SubSystem.Base.SubSystem sys) { return sys.timeSpent;} )(m_subSystems.values);
-      float subSystemTime = reduce!"a+b"(0.0, timeSpents);
+      float subSystemTime = reduce!"a+b"(timeSpents);
     
-      //writeln("Subsystem update spent " ~ to!string(timeSpent) ~ ", time saved parallelizing: " ~ to!string(subSystemTime - timeSpent));
+      //debug writeln("Subsystem update spent " ~ to!string(timeSpent) ~ ", time saved parallelizing: " ~ to!string(subSystemTime - timeSpent));
     }
+  }
+  
+  string[string] parseRandomizedValues(string[string] inValues)
+  {
+    string[string] outValues = inValues.dup;
+    
+    if ("position" in inValues && inValues["position"].find("to").length > 0)
+    {
+      auto positionData = inValues["position"].split(" ");
+      
+      assert(positionData.length == 5, "Problem parsing position data with from/to values: " ~ to!string(positionData));
+      
+      auto fromX = to!float(positionData[0]);
+      auto fromY = to!float(positionData[1]);
+      auto toX = to!float(positionData[3]);
+      auto toY = to!float(positionData[4]);
+      
+      auto x = (fromX == toX) ? fromX : uniform(fromX, toX);
+      auto y = (fromY == toY) ? fromY : uniform(fromY, toY);
+      
+      auto position = vec2(x, y);
+      
+      outValues["position"] = position.toString();
+    }
+    
+    if ("angle" in inValues && inValues["angle"].find("to").length > 0)
+    {
+      auto angleData = inValues["angle"].split(" ");
+      
+      assert(angleData.length == 3, "Problem parsing angle data with from/to values: " ~ to!string(angleData));
+      
+      auto fromAngle = to!float(angleData[0]);
+      auto toAngle = to!float(angleData[2]);
+      
+      auto angle = uniform(fromAngle, toAngle);
+      
+      outValues["angle"] = to!string(angle);
+    }
+    
+    return outValues;
+  }
+  
+  Entity findClosestEnemyShip(Entity p_entity)
+  {
+    auto entityPosition = m_placer.getComponent(p_entity).position;
+    
+    auto candidates = filter!((entity) { return (entity.id != p_entity.id && entity.getValue("type") == "enemy ship"); } )(m_entities.values);
+    
+    //writeln("closestenemyship candidates: " ~ to!string(array(candidates).length));
+    
+    Entity closestEntity = reduce!((closestSoFar, entity)
+    {
+      return ((m_connector.getComponent(closestSoFar).position - entityPosition).length < 
+              (m_connector.getComponent(entity).position - entityPosition).length) ? closestSoFar : entity;
+    })(candidates);
+
+    return closestEntity;
   }
   
 private:
@@ -1058,7 +1067,6 @@ private:
   float[20] m_fpsBuffer;
   
   AiGunner m_aiGunner;
-  FlockControl m_aiFlocker;
   AiChaser m_aiChaser;
   
   string[][string] cache;

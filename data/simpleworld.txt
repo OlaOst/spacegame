@@ -1,42 +1,34 @@
-# fps display is shown in a fixed position on the screen
-fpsDisplay.text = here we should see fps
-fpsDisplay.screenAbsolutePosition = true
-fpsDisplay.position = -1.0 0.7
-fpsDisplay.color = 1.0 1.0 1.0
-fpsDisplay.name = FPS display
-
-#dummy.source = missile.txt
-#dummy.position = 5 5
-
 # playership controllable by player
 playership.source = simpleship.txt
 playership.leftEngine.control = playerEngine
 playership.rightEngine.control = playerEngine
+
 playership.leftGun.source = launcher.txt
 playership.leftGun.control = playerLauncher
-playership.leftGun.spawn.source = simpleship.txt
-playership.leftGun.spawn.*.control = playerLauncher
+#playership.leftGun.spawn.source = simpleship.txt
+playership.leftGun.spawn.*.target = closestEnemy
 
-#playership.rightGun.source = launcher.txt
-#playership.rightGun.control = playerLauncher
+playership.rightGun.source = launcher.txt
+playership.rightGun.control = playerLauncher
 #playership.rightGun.spawn.source = simpleship.txt
+playership.rightGun.spawn.*.target = closestEnemy
+playership.rightGun.reloadTime = 0.1
+
 playership.*.collisionType = PlayerModule
 playership.position = 0 0
 playership.angle = 0
 playership.name = playership
 playership.keepInCenter = true
 
-#test.position = 0.0 0.0
+npcSpawner.position = 20 20
+npcSpawner.reloadTime = 10
+npcSpawner.control = alwaysfire
 
-#test.skeleton.connectpoint.upper.position = 0.0 1.0
-#test.skeleton.connectpoint.lower.position = 0.0 -1.0
-#test.skeleton.mass = 1.0
-
-#test.submodule.mass = 1.0
-#test.submodule.connection = skeleton.upper
-#test.submodule.drawsource = Triangle
-#test.submodule.angle = 45
-
-#test.submodule2.mass = 1.0
-#test.submodule2.connection = skeleton.lower
-#test.submodule2.drawsource = Triangle
+npcSpawner.spawn.source = simpleship.txt
+npcSpawner.spawn.*.collisionType = NpcModule
+npcSpawner.spawn.leftEngine.control = chaser
+npcSpawner.spawn.rightEngine.control = chaser
+npcSpawner.spawn.leftGun.control = aigunner
+npcSpawner.spawn.rightGun.control = aigunner
+npcSpawner.spawn.type = enemy ship
+npcSpawner.spawn.angle = 0 to 360

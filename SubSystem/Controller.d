@@ -18,7 +18,7 @@ import SubSystem.Base;
 interface Control
 {
   public:
-    void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents);
+    void update(ref ControlComponent p_sourceComponent);
     /*out  // contract in interface seems to fuck up things. try again with a dmd later than 2.054, crashes in the parallell forloop in game.d
     {
       writeln("control.update in contract");
@@ -55,16 +55,19 @@ class ControlComponent
   float reloadTimeLeft = 0.0;
   
   bool isFiring = false;
+  
+  string target;
+  vec2 targetPosition;
+  vec2 targetVelocity;
 }
 
 
 class Controller : public Base!(ControlComponent)
 {
 public:
-  this(InputHandler p_inputHandler, Control[string] p_aiControls)
+  this(InputHandler p_inputHandler)
   {
     m_inputHandler = p_inputHandler;
-    m_aiControls = p_aiControls;
   }
   
   void update()
@@ -89,7 +92,7 @@ public:
       
       assert(component.control !is null, "Could not find control when updating controller component");
       
-      component.control.update(component, components);
+      component.control.update(component);
     }
   }
     
@@ -132,7 +135,13 @@ protected:
       component.reloadTimeLeft = component.reload = to!float(p_entity.getValue("reloadTime"));
     } 
     //writeln(name ~ " setting angle to " ~ to!string(component.angle) ~ " from " ~ p_entity.getValue("angle"));
-      
+    
+    if ("target" in p_entity.values)
+    {
+      component.target = p_entity.getValue("target");
+      writeln("creating controlcomp with target " ~ component.target);
+    }
+    
     if (p_entity.getValue("control").length > 0)
     {
       switch (p_entity.getValue("control"))
@@ -145,22 +154,42 @@ protected:
           component.control = new PlayerLauncherControl(m_inputHandler);
           break;
         
-        case "flocker":
-          //component.control = new FlockControl(10.0, 1.5,     // distance & weight for avoid rule
-          //                                     50.0, 0.2);    // distance & weight for flock rule
-          component.control = m_aiControls["flocker"];
-          break;
-        
         case "chaser":
-          component.control = m_aiControls["chaser"];
+          component.control = aiControls["chaser"];
           break;
         
         case "aigunner":        
-          component.control = m_aiControls["aigunner"];
+          component.control = aiControls["aigunner"];
           break;
         
+        case "alwaysfire":
+          component.control = new class() Control 
+          { 
+            override void update(ref ControlComponent p_sourceComponent) 
+            { 
+              p_sourceComponent.isFiring = false;
+    
+              if (p_sourceComponent.reloadTimeLeft <= 0.0)
+              {
+                p_sourceComponent.isFiring = true;
+                p_sourceComponent.reloadTimeLeft = p_sourceComponent.reload;
+              }
+            }
+          };
+          break;
+        
+        case "alwaysaccelerate":
+          component.control = new class() Control 
+          { 
+            override void update(ref ControlComponent p_sourceComponent) 
+            { 
+              p_sourceComponent.force += vec2(0.0, 1.0 * p_sourceComponent.thrustForce);
+            }
+          };
+          break;
+
         case "nothing":
-          component.control = new class () Control { override void update(ref ControlComponent p_sourceComponent, ControlComponent[] p_otherComponents) {} };
+          component.control = new class () Control { override void update(ref ControlComponent p_sourceComponent) {} };
           break;
         
         default:
@@ -173,10 +202,12 @@ protected:
     return component;
   }
     
+    
+public:
+  Control[string] aiControls;
+  
 private:
   InputHandler m_inputHandler;
-  
-  Control[string] m_aiControls;
   
   float m_timeStep;
 }

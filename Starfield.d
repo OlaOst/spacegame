@@ -32,7 +32,9 @@ import gl3n.linalg;
 
 unittest
 {
-  Starfield starfield = new Starfield(new Graphics(256, 128), 20);
+  string[][string] dummyCache;
+  
+  Starfield starfield = new Starfield(new Graphics(dummyCache, 256, 128), 20);
   
   assert(starfield.m_stars.length > 0);
 }

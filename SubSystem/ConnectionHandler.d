@@ -46,34 +46,19 @@ unittest
   
   auto sys = new ConnectionHandler();
   
-  Entity ship = new Entity();
-  ship.setValue("connectpoint.testpoint.position", "1 0");
+  Entity ship = new Entity(["connectpoint.testpoint.position":"1 0"]);
   
   sys.registerEntity(ship);
   
-  Entity engine = new Entity();
-  engine.setValue("owner", to!string(ship.id));
-  engine.setValue("relativePosition", "1 0");
-  //engine.setValue("mass", "1.0");
+  Entity engine = new Entity(["owner":to!string(ship.id),"relativePosition":"1 0"]);
   
   sys.registerEntity(engine);
   
   auto engineComponent = sys.getComponent(engine);
   
-  assert(engineComponent.relativePosition == vec2(1.0, 0.0), "Engine didn't set relative position to 1 0 0, it's " ~ engineComponent.relativePosition.toString());
-  //assert(engineComponent.owner.entity == ship);
+  assert(engineComponent.relativePosition == vec2(1.0, 0.0), "Engine didn't set relative position to 1 0, it's " ~ engineComponent.relativePosition.toString());
   
-  // TODO: we need to take combined mass of ship and engine into account, this assumes just a mass of 1
-  //assert(ship.position == vec2(1, 0, 0));
-  
-  //assert(engine.position == engineComponent.relativePosition + ship.position);
-  
-  
-  auto connectPointsEntity = new Entity();
-  connectPointsEntity.setValue("name", "connectPointsEntity");
-  //connectPointsEntity.setValue("connectTarget", "true");
-  connectPointsEntity.setValue("connectpoint.lower.position", "0 -1");
-  //connectPointsEntity.setValue("connectpoint.upper.position", "0 1");
+  auto connectPointsEntity = new Entity(["name":"connectPointsEntity","connectpoint.lower.position":"0 -1"]);
   
   sys.registerEntity(connectPointsEntity);
   
@@ -81,15 +66,13 @@ unittest
   
   assert(connectPointsComponent.connectPoints.length > 0);
   
-  auto connectingEntity = new Entity();
-  connectingEntity.setValue("owner", to!string(connectPointsEntity.id));
-  connectingEntity.setValue("connection", "connectPointsEntity.lower");
+  auto connectingEntity = new Entity(["owner": to!string(connectPointsEntity.id), "connection": to!string(connectPointsEntity.id) ~ ".lower"]);
   
   sys.registerEntity(connectingEntity);
   
   auto connectingComponent = sys.getComponent(connectingEntity);
   
-  assert(connectingComponent.relativePosition == vec2(0, -1));
+  assert(connectingComponent.relativePosition == vec2(0, -1), "Connecting component didn't get relative position 0 -1, it got " ~ to!string(connectingComponent.relativePosition));
   
   // reload connectPointsComponent, check if connectpoint has correct connectedEntity
   connectPointsComponent = sys.getComponent(connectPointsEntity);

@@ -52,16 +52,14 @@ unittest
   scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
   
-  Graphics graphics = new Graphics(256, 128);
+  string[][string] dummyCache;
+  
+  Graphics graphics = new Graphics(dummyCache, 256, 128);
     
   GraphicsComponent[] componentsPointedAt = graphics.findComponentsPointedAt(vec2(0.0, 0.0));
   assert(componentsPointedAt.length == 0);
 
-  Entity entity = new Entity();
-  
-  entity.setValue("drawsource", "Triangle");
-  entity.setValue("radius", "1.0");
-  entity.setValue("keepInCenter", "true");
+  Entity entity = new Entity(["drawsource":"Triangle","radius":"1.0","keepInCenter":"true"]);
     
   graphics.registerEntity(entity);
   assert(graphics.components.length == 1);
@@ -72,10 +70,7 @@ unittest
   componentsPointedAt = graphics.findComponentsPointedAt(vec2(100, 100));
   assert(componentsPointedAt.length == 0);
     
-  Entity deleteTest = new Entity();
-  
-  deleteTest.setValue("drawsource", "Triangle");
-  deleteTest.setValue("radius", "1.0");
+  Entity deleteTest = new Entity(["drawsource":"Triangle","radius":"1.0"]);
   
   graphics.registerEntity(deleteTest);
   assert(graphics.components.length == 2, "Expected 2 registered components, instead got " ~ to!string(graphics.components.length));
@@ -91,11 +86,7 @@ unittest
     graphics.update();
   }  
   
-  Entity another = new Entity();
-  
-  another.setValue("drawsource", "Triangle");
-  another.setValue("radius", "2.0");
-  another.setValue("position", "1.0 0.0");
+  Entity another = new Entity(["drawsource":"Triangle","radius":"2.0","position":"1.0 0.0"]);
   
   graphics.registerEntity(another);
   
@@ -108,10 +99,7 @@ unittest
   componentsPointedAt = graphics.findComponentsPointedAt(vec2(3.5, 0.0));
   assert(componentsPointedAt.length == 0, to!string(componentsPointedAt.length));
   
-  Entity text = new Entity();
-  text.setValue("drawsource", "Text");
-  text.setValue("radius", "3.0");
-  text.setValue("text", "hello spacegame");
+  Entity text = new Entity(["drawsource":"Text","radius":"3.0","text":"hello spacegame"]);
   
   graphics.registerEntity(text);
     
