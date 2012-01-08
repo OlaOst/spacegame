@@ -56,6 +56,8 @@ class ControlComponent
   
   bool isFiring = false;
   
+  float maxSpeed = float.infinity;
+  
   string target;
   vec2 targetPosition;
   vec2 targetVelocity;
@@ -137,10 +139,10 @@ protected:
     //writeln(name ~ " setting angle to " ~ to!string(component.angle) ~ " from " ~ p_entity.getValue("angle"));
     
     if ("target" in p_entity.values)
-    {
       component.target = p_entity.getValue("target");
-      writeln("creating controlcomp with target " ~ component.target);
-    }
+    
+    if ("maxSpeed" in p_entity.values)
+      component.maxSpeed = to!float(p_entity.getValue("maxSpeed"));
     
     if (p_entity.getValue("control").length > 0)
     {

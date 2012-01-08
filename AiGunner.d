@@ -58,38 +58,34 @@ public:
     
     if (p_sourceComponent.reloadTimeLeft <= 0.0)
     {
-      foreach (targetPosition; targetPositions)
+      auto targetPosition = p_sourceComponent.targetPosition;
+     
+      auto targetDistance = (targetPosition - p_sourceComponent.position).length;
+      auto targetAngle = (targetPosition - p_sourceComponent.position).angle;
+      
+      //writeln("sourcecomp pos is " ~ to!string(p_sourceComponent.position))
+      //writeln("targetangle is " ~ to!string(targetAngle));
+      //writeln("sourceangle is " ~ to!string(p_sourceComponent.angle));
+      if (targetDistance < 100.0 && abs(p_sourceComponent.angle - targetAngle) < 0.1)
       {
-        auto targetDistance = (targetPosition - p_sourceComponent.position).length;
-        auto targetAngle = (targetPosition - p_sourceComponent.position).angle;
+        p_sourceComponent.isFiring = true;
+        p_sourceComponent.reloadTimeLeft = p_sourceComponent.reload;
         
-        //writeln("sourcecomp pos is " ~ to!string(p_sourceComponent.position))
-        //writeln("targetangle is " ~ to!string(targetAngle));
-        //writeln("sourceangle is " ~ to!string(p_sourceComponent.angle));
-        if (targetDistance < 100.0 && abs(p_sourceComponent.angle - targetAngle) < 0.1)
-        {
-          p_sourceComponent.isFiring = true;
-          p_sourceComponent.reloadTimeLeft = p_sourceComponent.reload;
-          
-          // TODO: recoil should be calculated from spawnforce or something
-          auto recoil = 1.0;
-          
-          // TODO: dir should be from module angle 
-          auto dir = vec2(0.0, 1.0); // default direction is up
-          
-          auto force = p_sourceComponent.force;
-          
-          force -= dir * recoil;
-          
-          p_sourceComponent.force = force;
-          
-          break;
-        }
+        // TODO: recoil should be calculated from spawnforce or something
+        auto recoil = 1.0;
+        
+        // TODO: dir should be from module angle 
+        auto dir = vec2(0.0, 1.0); // default direction is up
+        
+        auto force = p_sourceComponent.force;
+        
+        force -= dir * recoil;
+        
+        p_sourceComponent.force = force;
       }
     }
   }
 
   
 public:
-  vec2[] targetPositions;
 }

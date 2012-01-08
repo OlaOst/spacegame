@@ -63,7 +63,8 @@ public:
     {
       assert(p_sourceComponent.torqueForce == p_sourceComponent.torqueForce);
       
-      vec2 desiredVelocity = relativeTargetPosition + targetVelocity * 2.0;
+      vec2 desiredVelocity = relativeTargetPosition;
+      //vec2 desiredVelocity = relativeTargetPosition + targetVelocity * 2.0;
       //vec2 desiredVelocity = relativeTargetPosition + relativeVelocity * 2.0;
       
       vec2 currentDirection = vec2.fromAngle(p_sourceComponent.angle);
@@ -89,7 +90,7 @@ public:
       
       p_sourceComponent.torque = desiredTorque;
       
-      if (abs(angle) < 0.1) // && p_sourceComponent.velocity.length < 3.0)
+      if (abs(angle) < 0.2 && p_sourceComponent.velocity.length < p_sourceComponent.maxSpeed)
         p_sourceComponent.force += vec2(0.0, 1.0 * p_sourceComponent.thrustForce);
     }
   }

@@ -7,12 +7,13 @@ playership.leftGun.source = launcher.txt
 playership.leftGun.control = playerLauncher
 #playership.leftGun.spawn.source = simpleship.txt
 playership.leftGun.spawn.*.target = closestEnemy
+playership.leftGun.reloadTime = 0.5
 
 playership.rightGun.source = launcher.txt
 playership.rightGun.control = playerLauncher
 #playership.rightGun.spawn.source = simpleship.txt
 playership.rightGun.spawn.*.target = closestEnemy
-playership.rightGun.reloadTime = 0.1
+playership.rightGun.reloadTime = 0.5
 
 playership.*.collisionType = PlayerModule
 playership.position = 0 0
@@ -26,6 +27,8 @@ npcSpawner.control = alwaysfire
 
 npcSpawner.spawn.source = simpleship.txt
 npcSpawner.spawn.*.collisionType = NpcModule
+npcSpawner.spawn.*.target = player
+npcSpawner.spawn.*.maxSpeed = 10.0
 npcSpawner.spawn.leftEngine.control = chaser
 npcSpawner.spawn.rightEngine.control = chaser
 npcSpawner.spawn.leftGun.control = aigunner

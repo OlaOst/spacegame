@@ -7,12 +7,12 @@ lifetime = 10.0
 *.lifetime = 10.0
 
 body.source = verticalskeleton.txt
-body.radius = 0.4
+body.radius = 0.6
 body.mass = 0.2
 
 engine.source = engine.txt
 engine.connection = body.lower
-engine.radius = 0.2
+engine.radius = 0.3
 engine.mass = 0.1
 engine.control = chaser
 engine.torqueForce = 75.0
