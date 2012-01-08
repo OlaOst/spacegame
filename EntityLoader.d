@@ -174,7 +174,7 @@ string[string][string] findChildrenValues(ref string[][string] cache, string[str
     {
       string childName = to!string(key.until("."));
       
-      if (childName.length == 0 || childName == "*")
+      if (childName.length == 0 || childName == "*" || childName == "spawn")
         continue;
       
       string childKey = key;
