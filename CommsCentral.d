@@ -253,15 +253,6 @@ void calculateCollisionResponse(CollisionHandler collisionHandler, Physics physi
       physics.setComponent(firstEntity, firstPhysicsComponent);
       physics.setComponent(secondEntity, secondPhysicsComponent);
     }
-    
-    // reduce health for certain collisiontypes (should only be done if entity has component in HealthHandler or something - HealthHandler is not implemented yet
-    /*if (self.collisionType == CollisionType.NpcShip && other.collisionType == CollisionType.Bullet)
-    {
-      debug write("reducing npc ship health from " ~ to!string(self.entity.health) ~ " to ");
-      // TODO: don't substract health, instead add damage with decals and effects
-      self.entity.health -= otherPhysicsComponent.mass * (other.entity.velocity.length() - self.entity.velocity.length());
-      debug writeln(to!string(self.entity.health));
-    }*/    
   }
 }
 

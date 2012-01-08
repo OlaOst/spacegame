@@ -479,11 +479,8 @@ private:
       // TODO: if we have a dragentity we must ensure it stops getting dragged before it's destroyed or removed by something - lifetime expiration for bullets for example
       if (m_dragEntity is null)
       {
-        foreach (draggable; filter!((Entity entity) { return entity.getValue("draggable") == "true"; })(m_entities.values))
+        foreach (draggable; filter!((Entity entity) { return entity.getValue("draggable") == "true" && m_graphics.hasComponent(entity); })(m_entities.values))
         {
-          if (m_graphics.hasComponent(draggable) == false)
-            continue;
-          
           assert(m_graphics.hasComponent(draggable), "Couldn't find graphics component for draggable entity " ~ to!string(draggable.values) ~ " with id " ~ to!string(draggable.id));
           
           auto dragGfxComp = m_graphics.getComponent(draggable);
@@ -895,6 +892,7 @@ private:
       // so if the entity we remove is the last owned entity, we also remove the owner entity
       if (ownedEntities.length == 1 && ownedEntities[0] == p_entity)
       {
+        writeln("removing owner entity " ~ to!string(owner.id));
         removeEntity(owner);
       }
     }
