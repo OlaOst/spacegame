@@ -165,8 +165,8 @@ public:
     m_controller.aiControls["aigunner"] = m_aiGunner = new AiGunner();
     m_controller.aiControls["chaser"] = m_aiChaser = new AiChaser();
     
-    loadWorldFromFile("data/simpleworld.txt");
-    //loadWorldFromFile("data/world.txt");
+    //loadWorldFromFile("data/simpleworld.txt");
+    loadWorldFromFile("data/world.txt");
     
     //m_starfield = new Starfield(m_graphics, 10.0);
 
