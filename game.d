@@ -417,16 +417,19 @@ private:
 
         auto closestEntity = findClosestEnemyShip(m_playerShip);
         
-        auto closestEntityPosition = m_placer.getComponent(closestEntity).position - playerPos;
-        auto closestEntityDistance = closestEntityPosition.length;
-        
-        auto closestShipDisplayComponent = m_graphics.getComponent(m_closestShipDisplay);
-        
-        m_closestShipDisplay.setValue("position", (closestEntityPosition.normalized() * 0.9).toString());
-        m_closestShipDisplay.setValue("text", to!string(floor(closestEntityDistance)));
-        m_closestShipDisplay.setValue("color", "1 0 0");
-        
-        registerEntity(m_closestShipDisplay);
+        if (closestEntity !is null)
+        {
+          auto closestEntityPosition = m_placer.getComponent(closestEntity).position - playerPos;
+          auto closestEntityDistance = closestEntityPosition.length;
+          
+          auto closestShipDisplayComponent = m_graphics.getComponent(m_closestShipDisplay);
+          
+          m_closestShipDisplay.setValue("position", (closestEntityPosition.normalized() * 0.9).toString());
+          m_closestShipDisplay.setValue("text", to!string(floor(closestEntityDistance)));
+          m_closestShipDisplay.setValue("color", "1 0 0");
+          
+          registerEntity(m_closestShipDisplay);
+        }
       }
     }
     
@@ -450,10 +453,13 @@ private:
         {
           auto closestEnemy = findClosestEnemyShip(entity);
           
-          auto closestEnemyComponent = m_placer.getComponent(closestEnemy);
-          
-          controlComponent.targetPosition = closestEnemyComponent.position;
-          controlComponent.targetVelocity = closestEnemyComponent.velocity;
+          if (closestEnemy !is null)
+          {
+            auto closestEnemyComponent = m_placer.getComponent(closestEnemy);
+            
+            controlComponent.targetPosition = closestEnemyComponent.position;
+            controlComponent.targetVelocity = closestEnemyComponent.velocity;
+          }
         }
         else if (controlComponent.target == "player")
         {
@@ -508,6 +514,8 @@ private:
           // create copy of drag entity if it's a blueprint
           if (m_dragEntity.getValue("isBlueprint") == "true")
           {
+            writeln("creating copy of blueprint entity " ~ m_dragEntity.getValue("name"));
+            
             m_dragEntity = m_dragEntity.dup; //new Entity(getValues(cache, m_dragEntity.values));
             m_dragEntity.setValue("isBlueprint", "false");
             //m_dragEntity.setValue("name", m_dragEntity.getValue("source") ~ ":" ~ to!string(m_dragEntity.id));
@@ -1023,6 +1031,9 @@ private:
     
     //writeln("closestenemyship candidates: " ~ to!string(array(candidates).length));
     
+    if (candidates.empty)
+      return null;
+      
     Entity closestEntity = reduce!((closestSoFar, entity)
     {
       return ((m_connector.getComponent(closestSoFar).position - entityPosition).length < 
