@@ -41,18 +41,25 @@ public:
   
   override void update(ref ControlComponent sourceComponent)
   {
+    sourceComponent.isFiring = false;
+    
     if (inputHandler.isPressed(Event.LeftButton))
     {
-      writeln("source - mouse pos length: " ~ to!string((sourceComponent.position - mouseWorldPos).length) ~ ", sourcecomp radius: " ~ to!string(sourceComponent.radius));
-      if ((sourceComponent.position - mouseWorldPos).length < sourceComponent.radius)
+      if (sourceComponent.id !in heldComponents || heldComponents[sourceComponent.id] == false)
       {
-        writeln("spawnOnClick controller detected mouse button press on component");
-      
-        sourceComponent.isFiring = true;
+        if ((sourceComponent.position - mouseWorldPos).length < sourceComponent.radius)
+        {
+          sourceComponent.isFiring = true;
+          heldComponents[sourceComponent.id] = true;
+        }
       }
-      else
+    }
+    
+    if (inputHandler.eventState(Event.LeftButton) == EventState.Released)
+    {
+      if (sourceComponent.id in heldComponents && heldComponents[sourceComponent.id] == true)
       {
-        sourceComponent.isFiring = false;
+        heldComponents[sourceComponent.id] = false;
       }
     }
   }
@@ -66,4 +73,6 @@ private:
   InputHandler inputHandler;
   
   vec2 mouseWorldPos;
+  
+  bool[int] heldComponents;
 }

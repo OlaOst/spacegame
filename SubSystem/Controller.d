@@ -37,6 +37,11 @@ import SubSystem.Base;
 
 class ControlComponent
 {
+  this()
+  {
+      id = idCounter++;
+  }
+    
   ControlBase control;
   
   vec2 position = vec2(0.0, 0.0);
@@ -65,6 +70,15 @@ class ControlComponent
   string target;
   vec2 targetPosition;
   vec2 targetVelocity;
+  
+  override int opCmp(Object other)
+  {
+    return id - (cast(ControlComponent)other).id;
+  }
+  
+  immutable int id;
+private:
+  shared synchronized static int idCounter;
 }
 
 
