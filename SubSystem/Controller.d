@@ -1,3 +1,25 @@
+/*
+ Copyright (c) 2011 Ola Østtveit
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+*/
+
 module SubSystem.Controller;
 
 import std.conv;
@@ -8,34 +30,14 @@ import std.stdio;
 import gl3n.math;
 import gl3n.linalg;
 
-import FlockControl;
+import Control.ControlBase;
 import InputHandler;
-import PlayerEngineControl;
-import PlayerLauncherControl;
 import SubSystem.Base;
-
-
-interface Control
-{
-  public:
-    void update(ref ControlComponent p_sourceComponent);
-    /*out  // contract in interface seems to fuck up things. try again with a dmd later than 2.054, crashes in the parallell forloop in game.d
-    {
-      writeln("control.update in contract");
-      
-      assert(p_sourceComponent.position.ok);
-      
-      foreach (otherComponent; p_otherComponents)
-      {
-        assert(otherComponent.position.ok);
-      }
-    }*/
-}
 
 
 class ControlComponent
 {
-  Control control;
+  ControlBase control;
   
   vec2 position = vec2(0.0, 0.0);
   float angle = 0.0;
@@ -113,7 +115,7 @@ public:
 protected:
   bool canCreateComponent(Entity p_entity)
   {
-    return (p_entity.getValue("control").length > 0);
+    return ("control" in p_entity.values) !is null;
   }
    
   ControlComponent createComponent(Entity p_entity)
@@ -135,8 +137,7 @@ protected:
     if (p_entity.getValue("reloadTime").length > 0)
     {
       component.reloadTimeLeft = component.reload = to!float(p_entity.getValue("reloadTime"));
-    } 
-    //writeln(name ~ " setting angle to " ~ to!string(component.angle) ~ " from " ~ p_entity.getValue("angle"));
+    }
     
     if ("target" in p_entity.values)
       component.target = p_entity.getValue("target");
@@ -144,28 +145,28 @@ protected:
     if ("maxSpeed" in p_entity.values)
       component.maxSpeed = to!float(p_entity.getValue("maxSpeed"));
     
-    if (p_entity.getValue("control").length > 0)
+    if ("control" in p_entity.values)
     {
       switch (p_entity.getValue("control"))
       {
         case "playerEngine":
-          component.control = new PlayerEngineControl(m_inputHandler);
+          component.control = controls["playerengine"]; //new PlayerEngineControl(m_inputHandler);
           break;
         
         case "playerLauncher":
-          component.control = new PlayerLauncherControl(m_inputHandler);
+          component.control = controls["playerlauncher"]; //new PlayerLauncherControl(m_inputHandler);
           break;
         
         case "chaser":
-          component.control = aiControls["chaser"];
+          component.control = controls["chaser"];
           break;
         
         case "aigunner":        
-          component.control = aiControls["aigunner"];
+          component.control = controls["aigunner"];
           break;
         
         case "alwaysfire":
-          component.control = new class() Control 
+          component.control = new class() ControlBase
           { 
             override void update(ref ControlComponent p_sourceComponent) 
             { 
@@ -181,7 +182,7 @@ protected:
           break;
         
         case "alwaysaccelerate":
-          component.control = new class() Control 
+          component.control = new class() ControlBase
           { 
             override void update(ref ControlComponent p_sourceComponent) 
             { 
@@ -190,8 +191,12 @@ protected:
           };
           break;
 
+        case "spawnOnClick":
+          component.control = controls["dispenser"];
+          break;
+          
         case "nothing":
-          component.control = new class () Control { override void update(ref ControlComponent p_sourceComponent) {} };
+          component.control = new class () ControlBase { override void update(ref ControlComponent p_sourceComponent) {} };
           break;
         
         default:
@@ -206,7 +211,7 @@ protected:
     
     
 public:
-  Control[string] aiControls;
+  ControlBase[string] controls;
   
 private:
   InputHandler m_inputHandler;

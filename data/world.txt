@@ -77,12 +77,20 @@ engineBlueprint.isBlueprint = true
 engineBlueprint.position = 5 5 0
 engineBlueprint.name = engineBlueprint
 #engineBlueprint.collisionType = PlayerModule
+engineBlueprint.spawnCount = 0
+
+engineDispenser.drawsource = Triangle
+engineDispenser.position = 5 5
+engineDispenser.spawn.source = engine.txt
+engineDispenser.spawn.draggable = true
+engineDispenser.control = spawnOnClick
 
 cannonBlueprint.source = cannon.txt
 cannonBlueprint.isBlueprint = true
 cannonBlueprint.position = 7 5 0
 cannonBlueprint.name = cannonBlueprint
 #cannonBlueprint.collisionType = PlayerModule
+#cannonBlueprint.spawnCount = 0
 
 horizontalSkeletonBlueprint.source = horizontalskeleton.txt
 horizontalSkeletonBlueprint.isBlueprint = true

@@ -20,25 +20,27 @@
  THE SOFTWARE.
 */
 
-module PlayerEngineControl;
+module Control.PlayerEngine;
 
 import std.conv;
 import std.math;
 import std.stdio;
 
+import gl3n.linalg;
+
+import Control.ControlBase;
 import InputHandler;
 import SubSystem.Controller;
-import gl3n.linalg;
 
 
 unittest
 {
-  auto control = new PlayerEngineControl(new InputHandler());
+  auto control = new PlayerEngine(new InputHandler());
   
 }
 
 
-class PlayerEngineControl : public Control
+class PlayerEngine : public ControlBase
 {
 invariant()
 {

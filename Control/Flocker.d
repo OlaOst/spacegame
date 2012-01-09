@@ -20,16 +20,18 @@
  THE SOFTWARE.
 */
 
-module FlockControl;
+module Control.Flocker;
 
 import std.algorithm;
 import std.conv;
 import std.math;
 import std.stdio;
 
-import SubSystem.Controller;
-import Entity;
 import gl3n.linalg;
+
+import Control.ControlBase;
+import Entity;
+import SubSystem.Controller;
 
 
 unittest
@@ -59,7 +61,7 @@ unittest
 }
 
 
-class FlockControl : public Control
+class FlockControl : public ControlBase
 {
 invariant()
 {

@@ -38,6 +38,19 @@ import derelict.sdl.sdl;
 import gl3n.linalg;
 import gl3n.math;
 
+import Control.AiChaser;
+import Control.AiGunner;
+import Control.Dispenser;
+import Control.PlayerEngine;
+import Control.PlayerLauncher;
+import Control.Flocker;
+
+import CommsCentral;
+import Entity;
+import EntityLoader;
+import InputHandler;
+import Starfield;
+
 import SubSystem.CollisionHandler;
 import SubSystem.ConnectionHandler;
 import SubSystem.Controller;
@@ -46,15 +59,6 @@ import SubSystem.Physics;
 import SubSystem.Placer;
 import SubSystem.Sound;
 import SubSystem.Spawner;
-
-import AiChaser;
-import AiGunner;
-import CommsCentral;
-import Entity;
-import EntityLoader;
-import FlockControl;
-import InputHandler;
-import Starfield;
 
 
 unittest
@@ -162,8 +166,11 @@ public:
 
     assert(m_controller !is null);
     
-    m_controller.aiControls["aigunner"] = m_aiGunner = new AiGunner();
-    m_controller.aiControls["chaser"] = m_aiChaser = new AiChaser();
+    m_controller.controls["aigunner"] = m_aiGunner = new AiGunner();
+    m_controller.controls["chaser"] = m_aiChaser = new AiChaser();
+    m_controller.controls["dispenser"] = new Dispenser(m_inputHandler);
+    m_controller.controls["playerlauncher"] = new PlayerLauncher(m_inputHandler);
+    m_controller.controls["playerengine"] = new PlayerEngine(m_inputHandler);
     
     //loadWorldFromFile("data/simpleworld.txt");
     loadWorldFromFile("data/world.txt");
@@ -219,6 +226,8 @@ public:
         
         Entity spawn;
 
+        writeln("loadworld, loading from source " ~ to!string(worldEntity.getValue(spawnName ~ ".source")) ~ " with extravalues " ~ to!string(extraValues));
+        
         spawn = loadShip(worldEntity.getValue(spawnName ~ ".source"), extraValues);
         
         if (spawn.getValue("name") == "FPS display")
@@ -489,8 +498,7 @@ private:
         {
           assert(m_graphics.hasComponent(draggable), "Couldn't find graphics component for draggable entity " ~ to!string(draggable.values) ~ " with id " ~ to!string(draggable.id));
           
-          auto dragGfxComp = m_graphics.getComponent(draggable);
-          
+          auto dragGfxComp = m_graphics.getComponent(draggable);          
           // screenAbsolutePosition is true for GUI and screen elements - we don't want to drag them
           if (dragGfxComp.screenAbsolutePosition)
             continue;
@@ -511,6 +519,8 @@ private:
 
         if (m_dragEntity !is null)
         {
+          writeln("found dragentity " ~ to!string(m_dragEntity.id));
+          
           // create copy of drag entity if it's a blueprint
           if (m_dragEntity.getValue("isBlueprint") == "true")
           {

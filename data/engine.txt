@@ -8,5 +8,3 @@ health = 25.0
 thrustForce = 30.0
 torqueForce = 25.0
 slideForce = 15.0
-
-text = A common engine, for pushing stuff around and making it spin

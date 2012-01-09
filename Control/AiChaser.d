@@ -20,15 +20,15 @@
  THE SOFTWARE.
 */
 
-
-module AiChaser;
+module Control.AiChaser;
 
 import std.math;
 import std.stdio;
 
-import SubSystem.Controller;
-
 import gl3n.linalg;
+
+import Control.ControlBase;
+import SubSystem.Controller;
 
 
 unittest
@@ -36,13 +36,11 @@ unittest
   scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
 
-  AiChaser aiChaser = new AiChaser();
-  
-  
+  AiChaser aiChaser = new AiChaser();  
 }
 
 
-class AiChaser : public Control
+class AiChaser : public ControlBase
 {
 public:
   
