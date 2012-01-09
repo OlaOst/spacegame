@@ -24,6 +24,8 @@ module Control.Dispenser;
 
 import std.stdio;
 
+import gl3n.linalg;
+
 import Control.ControlBase;
 import InputHandler;
 import SubSystem.Controller;
@@ -34,19 +36,34 @@ class Dispenser : public ControlBase
 public:
   this(InputHandler p_inputHandler)
   {
-    m_inputHandler = p_inputHandler;
+    inputHandler = p_inputHandler;
   }
   
-  override void update(ref ControlComponent p_sourceComponent)
+  override void update(ref ControlComponent sourceComponent)
   {
-    if (m_inputHandler.isPressed(Event.LeftButton))
+    if (inputHandler.isPressed(Event.LeftButton))
     {
-      writeln("spawnOnClick controller detected mouse button press");
+      writeln("source - mouse pos length: " ~ to!string((sourceComponent.position - mouseWorldPos).length) ~ ", sourcecomp radius: " ~ to!string(sourceComponent.radius));
+      if ((sourceComponent.position - mouseWorldPos).length < sourceComponent.radius)
+      {
+        writeln("spawnOnClick controller detected mouse button press on component");
       
-      
+        sourceComponent.isFiring = true;
+      }
+      else
+      {
+        sourceComponent.isFiring = false;
+      }
     }
   }
   
+  void setMouseWorldPos(vec2 p_mouseWorldPos)
+  {
+    mouseWorldPos = p_mouseWorldPos;
+  }
+  
 private:
-  InputHandler m_inputHandler;
+  InputHandler inputHandler;
+  
+  vec2 mouseWorldPos;
 }

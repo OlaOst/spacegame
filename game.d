@@ -168,7 +168,7 @@ public:
     
     m_controller.controls["aigunner"] = m_aiGunner = new AiGunner();
     m_controller.controls["chaser"] = m_aiChaser = new AiChaser();
-    m_controller.controls["dispenser"] = new Dispenser(m_inputHandler);
+    m_controller.controls["dispenser"] = m_dispenser = new Dispenser(m_inputHandler);
     m_controller.controls["playerlauncher"] = new PlayerLauncher(m_inputHandler);
     m_controller.controls["playerengine"] = new PlayerEngine(m_inputHandler);
     
@@ -443,6 +443,7 @@ private:
     }
     
     m_graphics.calculateMouseWorldPos(m_inputHandler.mousePos);
+    m_dispenser.setMouseWorldPos(m_graphics.mouseWorldPos);
     
     foreach (spawnValues; m_spawner.getAndClearSpawnValues())
     {
@@ -1087,6 +1088,7 @@ private:
   
   AiGunner m_aiGunner;
   AiChaser m_aiChaser;
+  Dispenser m_dispenser;
   
   string[][string] cache;
 }

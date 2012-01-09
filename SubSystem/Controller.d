@@ -56,6 +56,8 @@ class ControlComponent
   float reload = 0.0;
   float reloadTimeLeft = 0.0;
   
+  float radius = 1.0;
+  
   bool isFiring = false;
   
   float maxSpeed = float.infinity;
@@ -145,16 +147,19 @@ protected:
     if ("maxSpeed" in p_entity.values)
       component.maxSpeed = to!float(p_entity.getValue("maxSpeed"));
     
+    if ("radius" in p_entity.values)
+      component.radius = to!float(p_entity.getValue("radius"));
+    
     if ("control" in p_entity.values)
     {
       switch (p_entity.getValue("control"))
       {
         case "playerEngine":
-          component.control = controls["playerengine"]; //new PlayerEngineControl(m_inputHandler);
+          component.control = controls["playerengine"];
           break;
         
         case "playerLauncher":
-          component.control = controls["playerlauncher"]; //new PlayerLauncherControl(m_inputHandler);
+          component.control = controls["playerlauncher"];
           break;
         
         case "chaser":
@@ -191,7 +196,7 @@ protected:
           };
           break;
 
-        case "spawnOnClick":
+        case "dispenser":
           component.control = controls["dispenser"];
           break;
           

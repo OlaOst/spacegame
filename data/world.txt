@@ -83,7 +83,7 @@ engineDispenser.drawsource = Triangle
 engineDispenser.position = 5 5
 engineDispenser.spawn.source = engine.txt
 engineDispenser.spawn.draggable = true
-engineDispenser.control = spawnOnClick
+engineDispenser.control = dispenser
 
 cannonBlueprint.source = cannon.txt
 cannonBlueprint.isBlueprint = true
