@@ -71,46 +71,39 @@ npcship.angle = 0 to 360
 npcship.spawnCount = 0
 
 
-# blueprint modules create copies when dragged and serve as an unlimited supply of modules
-engineBlueprint.source = engine.txt
-engineBlueprint.isBlueprint = true
-engineBlueprint.position = 5 5 0
-engineBlueprint.name = engineBlueprint
-#engineBlueprint.collisionType = PlayerModule
-engineBlueprint.spawnCount = 0
-
-engineDispenser.drawsource = Triangle
+# dispensers create modules when clicked and serve as an unlimited supply of modules
+engineDispenser.drawsource = images/engine2.png
 engineDispenser.position = 5 5
 engineDispenser.spawn.source = engine.txt
 engineDispenser.spawn.draggable = true
 engineDispenser.control = dispenser
 
-cannonBlueprint.source = cannon.txt
-cannonBlueprint.isBlueprint = true
-cannonBlueprint.position = 7 5 0
-cannonBlueprint.name = cannonBlueprint
-#cannonBlueprint.collisionType = PlayerModule
-#cannonBlueprint.spawnCount = 0
+cannonDispenser.drawsource = images/cannon.png
+cannonDispenser.position = 7 5
+cannonDispenser.spawn.source = cannon.txt
+cannonDispenser.spawn.draggable = true
+cannonDispenser.control = dispenser
 
-horizontalSkeletonBlueprint.source = horizontalskeleton.txt
-horizontalSkeletonBlueprint.isBlueprint = true
-horizontalSkeletonBlueprint.position = 9 5 0
-horizontalSkeletonBlueprint.name = horizontalSkeletonBlueprint
-#horizontalSkeletonBlueprint.collisionType = PlayerModule
+launcherDispenser.drawsource = images/cannon.png
+launcherDispenser.position = 9 5
+launcherDispenser.spawn.source = launcher.txt
+launcherDispenser.spawn.draggable = true
+launcherDispenser.control = dispenser
 
-verticalSkeletonBlueprint.source = verticalskeleton.txt
-verticalSkeletonBlueprint.isBlueprint = true
-verticalSkeletonBlueprint.position = 11 5 0
-verticalSkeletonBlueprint.name = verticalSkeletonBlueprint
-#verticalSkeletonBlueprint.collisionType = PlayerModule
+horizontalSkeletonDispenser.drawsource = images/horizontalskeleton.png
+horizontalSkeletonDispenser.position = 11 5
+horizontalSkeletonDispenser.spawn.source = horizontalskeleton.txt
+horizontalSkeletonDispenser.spawn.draggable = true
+horizontalSkeletonDispenser.control = dispenser
 
-launcherBlueprint.source = launcher.txt
-launcherBlueprint.isBlueprint = true
-launcherBlueprint.position = 13 5 0
-launcherBlueprint.name = launcherBlueprint
+verticalSkeletonDispenser.drawsource = images/verticalskeleton.png
+verticalSkeletonDispenser.position = 13 5
+verticalSkeletonDispenser.spawn.source = verticalskeleton.txt
+verticalSkeletonDispenser.spawn.draggable = true
+verticalSkeletonDispenser.control = dispenser
 
-# description text for blueprints
-blueprinttext.text = These are blueprint modules\nCopies are created when you drag them
+# description text for dispensers
+blueprinttext.text = These are module dispensers\nClick and drag modules out of them!
 blueprinttext.position = 3 6
 
 # junkfield with modules ready for the pickings
