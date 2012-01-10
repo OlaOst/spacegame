@@ -506,6 +506,8 @@ private:
           
           if ((dragGfxComp.position - m_graphics.mouseWorldPos).length < dragGfxComp.radius)
           {
+            //writeln("mouseover on draggable entity " ~ to!string(draggable.id) ~ " with " ~ to!string(m_connector.getConnectedEntities(draggable).length) ~ " connected entities and " ~ to!string(m_connector.getOwnedEntities(draggable).length) ~ " owned entities");
+            
             // we don't want to drag something if it has stuff connected to it, or owns something. 
             // if you want to drag a skeleton module, you should drag off all connected modules first
             // TODO: should be possible to drag stuff with connected stuff, but drag'n'drop needs to be more robust first            
@@ -520,20 +522,6 @@ private:
 
         if (m_dragEntity !is null)
         {
-          writeln("found dragentity " ~ to!string(m_dragEntity.id));
-          
-          // create copy of drag entity if it's a blueprint
-          if (m_dragEntity.getValue("isBlueprint") == "true")
-          {
-            writeln("creating copy of blueprint entity " ~ m_dragEntity.getValue("name"));
-            
-            m_dragEntity = m_dragEntity.dup; //new Entity(getValues(cache, m_dragEntity.values));
-            m_dragEntity.setValue("isBlueprint", "false");
-            //m_dragEntity.setValue("name", m_dragEntity.getValue("source") ~ ":" ~ to!string(m_dragEntity.id));
-            
-            registerEntity(m_dragEntity);
-          }
-          
           if (m_connector.hasComponent(m_dragEntity))
           {
             auto ownerEntity = m_connector.getComponent(m_dragEntity).owner;
