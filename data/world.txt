@@ -70,6 +70,21 @@ npcship.position = 25 25 to 50 50
 npcship.angle = 0 to 360
 npcship.spawnCount = 0
 
+# npc dispenser
+npcDispenser.drawsource = Triangle
+npcDispenser.position = 25 25
+npcDispenser.spawn.source = simpleship.txt
+npcDispenser.spawn.*.collisionType = NpcModule
+npcDispenser.spawn.*.target = player
+npcDispenser.spawn.leftEngine.control = chaser
+npcDispenser.spawn.rightEngine.control = chaser
+npcDispenser.spawn.leftGun.control = aigunner
+npcDispenser.spawn.rightGun.control = aigunner
+npcDispenser.spawn.type = enemy ship
+npcDispenser.spawn.angle = 0 to 360
+npcDispenser.spawn.position = -35 -35 to 35 35
+npcDispenser.control = dispenser
+
 
 # dispensers create modules when clicked and serve as an unlimited supply of modules
 engineDispenser.drawsource = images/engine2.png

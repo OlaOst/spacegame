@@ -117,7 +117,9 @@ public:
         spawnValues["*.spawnedFrom"] = to!string(component.entityId);
         spawnValues["*.spawnedFromOwner"] = to!string(component.ownerId);
         
-        spawnValues["position"] = to!string(component.position + component.spawnPoint);
+        if ("position" !in spawnValues)
+          spawnValues["position"] = to!string(component.position + component.spawnPoint);
+          
         spawnValues["angle"] = to!string(spawnAngle * _180_PI);
         
         spawnValues["velocity"] = spawnVelocity.toString();
