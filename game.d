@@ -106,43 +106,40 @@ unittest
   assert(game.m_placer.hasComponent(testGraphics));
   assert(game.m_physics.hasComponent(testGraphics) == false);
 
-  setGraphicsFromPlacer(game.m_placer, game.m_graphics);
+  CommsCentral.setGraphicsFromPlacer(game.m_placer, game.m_graphics);
   
   assert(game.m_graphics.getComponent(testGraphics).position == game.m_placer.getComponent(testGraphics).position);
   
   
-  Entity testController = new Entity(["mass":"2.0","control":"chaser"]);
+  Entity testController = new Entity(["mass":"2.0", "control":"alwaysaccelerate", "thrustForce":"1.0"]);
   
   game.registerEntity(testController);
   assert(game.m_physics.hasComponent(testController));
   assert(game.m_controller.hasComponent(testController)); 
-  
-  game.m_controller.getComponent(testController).control = 
-      new class () Control 
-      {
-        override void update(ref ControlComponent p_sourceComponent) 
-        {
-          p_sourceComponent.force = vec2(1.0, 1.0);
-        }
-      };
   
   assert(game.m_controller.getComponent(testController).control !is null);
   
   foreach (subSystem; game.m_subSystems)
     subSystem.update();
     
-  assert(game.m_controller.getComponent(testController).force.length > 0.0);
+  assert(game.m_controller.getComponent(testController).force.length > 0.0, "Force of alwaysaccelerate controlcomponent should be nonzero, was " ~ to!string(game.m_controller.getComponent(testController).force));
+  
+  Entity owner = new Entity(["":""]);
+  owner.setValue("owner", to!string(owner.id));
+  Entity parent = new Entity(["connectpoint.lower.position" : "0 -1", "connectpoint.upper.position" : "0 1", "owner" : to!string(owner.id)]);
+  Entity child = new Entity(["connection" : to!string(parent.id) ~ ".lower", "owner" : to!string(owner.id)]);
+  
+  game.registerEntity(owner);
+  game.registerEntity(parent);
+  game.registerEntity(child);
+  
+  assert(game.m_connector.hasComponent(parent));
+  assert(game.m_connector.hasComponent(child));
 }
 
 
 class Game
 {
-invariant()
-{
-
-}
-
-
 public:
   this()
   {
@@ -161,7 +158,7 @@ public:
     m_subSystems["controller"] = m_controller = new Controller(m_inputHandler);
     m_subSystems["collider"] = m_collider = new CollisionHandler();
     m_subSystems["connector"] = m_connector = new ConnectionHandler();
-    m_subSystems["sound"] = new SoundSubSystem(16);    
+    m_subSystems["sound"] = new SoundSubSystem(16);
     m_subSystems["spawner"] = m_spawner = new Spawner();
 
     assert(m_controller !is null);
@@ -226,7 +223,7 @@ public:
         
         Entity spawn;
 
-        writeln("loadworld, loading from source " ~ to!string(worldEntity.getValue(spawnName ~ ".source")) ~ " with extravalues " ~ to!string(extraValues));
+        //writeln("loadworld, loading from source " ~ to!string(worldEntity.getValue(spawnName ~ ".source")) ~ " with extravalues " ~ to!string(extraValues));
         
         spawn = loadShip(worldEntity.getValue(spawnName ~ ".source"), extraValues);
         
@@ -311,6 +308,7 @@ private:
           m_controller.removeEntity(entity);
           m_collider.registerEntity(entity);
           
+          // disconnect all connected entities
           foreach (connectedEntity; m_connector.getConnectedEntities(entity))
           {
             connectedEntity.setValue("control", "nothing");
@@ -499,7 +497,7 @@ private:
         {
           assert(m_graphics.hasComponent(draggable), "Couldn't find graphics component for draggable entity " ~ to!string(draggable.values) ~ " with id " ~ to!string(draggable.id));
           
-          auto dragGfxComp = m_graphics.getComponent(draggable);          
+          auto dragGfxComp = m_graphics.getComponent(draggable);
           // screenAbsolutePosition is true for GUI and screen elements - we don't want to drag them
           if (dragGfxComp.screenAbsolutePosition)
             continue;
@@ -541,6 +539,10 @@ private:
                 auto dragEntityConnection = extractEntityIdAndConnectPointName(m_dragEntity.getValue("connection"));
                 
                 Entity connectEntity;
+                
+                // TODO: this syntax should work in dmd version 2.058+
+                //find!(entity => entity.id == to!int(dragEntityConnection[0]))(m_entities.values);
+                
                 foreach (entity; m_entities)
                 {
                   if (entity.id == to!int(dragEntityConnection[0]))
@@ -571,7 +573,7 @@ private:
             
             assert(m_controller.hasComponent(m_dragEntity) == false);
           }
-              
+
           // TODO: reset physics forces, velocity and other stuff?
         }
       }
@@ -701,8 +703,8 @@ private:
               auto entityOwner = m_connector.getComponent(entity).owner;
               
               // we don't want to control modules floating by themself not connected to anything... or do we?
-              //if (entityOwner.id == entity.id)
-                //continue;
+              if (entityOwner.id == entity.id)
+                continue;
               
               // remove control from eventual old playership so we don't end up controlling multiple ships at once
               if (m_playerShip !is null && m_playerShip != entityOwner)
@@ -730,12 +732,11 @@ private:
               // give player control to new playership
               foreach (ownedEntity; m_connector.getOwnedEntities(m_playerShip))
               {
-                if (ownedEntity.getValue("source") == "data/engine.txt" || ownedEntity.getValue("source") == "engine.txt")
+                if (ownedEntity.getValue("source").find("engine.txt").empty == false)
                   ownedEntity.setValue("control", "playerEngine");
 
-                if (ownedEntity.getValue("source") == "data/cannon.txt" || ownedEntity.getValue("source") == "cannon.txt")
+                if (ownedEntity.getValue("source").find("cannon.txt").empty == false || ownedEntity.getValue("source").find("launcher.txt").empty == false)
                   ownedEntity.setValue("control", "playerLauncher");
-
 
                 //registerEntity(ownedEntity);
                 m_controller.registerEntity(ownedEntity);
@@ -926,9 +927,12 @@ private:
       
     auto physComp = m_physics.getComponent(p_ownerEntity);
     physComp.mass = accumulatedMass;
-    writeln("setting accumulated mass to " ~ to!string(accumulatedMass));
-    assert(physComp.mass == physComp.mass);
+    //writeln("setting accumulated mass to " ~ to!string(accumulatedMass));
+    assert(isFinite(physComp.mass));
     m_physics.setComponent(p_ownerEntity, physComp);
+    
+    auto ownerConnectComp = m_connector.getComponent(p_ownerEntity);
+    auto originalCenterOfMass = ownerConnectComp.relativePositionToCenterOfMass;
     
     // recalculate relative position to center of mass for all owned entities
     vec2 centerOfMass = vec2(0.0, 0.0);
@@ -946,6 +950,15 @@ private:
       auto ownedComponent = m_connector.getComponent(ownedEntity);
       ownedComponent.relativePositionToCenterOfMass = ownedComponent.relativePosition - centerOfMass;
     }
+    
+    writeln("centerofmass: " ~ to!string(centerOfMass) ~ ", original com: " ~ to!string(originalCenterOfMass) ~ ", physcomp position: " ~ to!string(physComp.position));
+    
+    //ownerConnectComp.relativePositionToCenterOfMass = ownerConnectComp.position - centerOfMass;
+    //m_placer.getComponent(p_ownerEntity).position = ownerConnectComp.position + (centerOfMass - originalCenterOfMass);
+    //physComp.position += (centerOfMass - originalCenterOfMass);
+    //physComp.position -= originalCenterOfMass;
+    
+    //ownerConnectComp.relativePositionToCenterOfMass = centerOfMass;
   }
   
   

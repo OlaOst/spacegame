@@ -33,13 +33,6 @@ import SubSystem.Controller;
 import gl3n.linalg;
 
 
-unittest
-{
-  auto playerControl = new PlayerLauncherControl(new InputHandler());
-  
-}
-
-
 class PlayerLauncher : public ControlBase
 {
 invariant()

@@ -112,16 +112,12 @@ void setPlacerFromConnector(ConnectionHandler connection, Placer placer)
     assert(connectionComponent.relativeAngle == connectionComponent.relativeAngle);
     
     //enforce(connectionComponent.owner !is null, "Owner entity was null for connection component with entity " ~ to!string(entity.id));
-    enforce(connectionComponent.owner !is null, "Owner entity was null for connection component");
-    enforce(placer.hasComponent(connectionComponent.owner), "owner entity " ~ to!string(connectionComponent.owner.id) ~ " did not have placer component");
+    assert(connectionComponent.owner !is null, "Owner entity was null for connection component");
+    assert(placer.hasComponent(connectionComponent.owner), "owner entity " ~ to!string(connectionComponent.owner.id) ~ " did not have placer component");
     auto ownerComponent = placer.getComponent(connectionComponent.owner);
     
-    //placerComponent.position = vec2.fromAngle(ownerComponent.angle + connectionComponent.relativePosition.) * connectionComponent.relativePosition.length();
-    
     // need to rotate around middle of mass point
-    //placerComponent.position = ownerComponent.position + connectionComponent.relativePositionToCenterOfMass.rotate(ownerComponent.angle);    
     placerComponent.position = ownerComponent.position + mat2.rotation(-ownerComponent.angle) * connectionComponent.relativePositionToCenterOfMass;
-    //placerComponent.position.z += connectionComponent.relativePosition.z; // set z component here since it is not transferred in rotate operation
     placerComponent.angle = ownerComponent.angle + connectionComponent.relativeAngle;
     
     placerComponent.velocity = ownerComponent.velocity;

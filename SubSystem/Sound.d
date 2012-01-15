@@ -24,6 +24,7 @@ module SubSystem.Sound;
 
 import std.algorithm;
 import std.conv;
+import std.exception;
 import std.stdio;
 
 import derelict.openal.al;
@@ -116,9 +117,11 @@ protected:
     if (soundFile !in m_fileToBuffer)
     {
       m_fileToBuffer[soundFile] = alutCreateBufferFromFile(cast(char*)soundFile);
-      assert(alGetError() == AL_NO_ERROR, "error code " ~ to!string(alGetError()));
+      enforce(alGetError() == AL_NO_ERROR, "error code " ~ to!string(alGetError()));
     }
 
+    //writeln("creating sound component from " ~ soundFile);
+    
     auto newComponent = new SoundComponent(m_fileToBuffer[soundFile]);
     
     newComponent.shouldPlay = true;

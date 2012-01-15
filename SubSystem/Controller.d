@@ -204,7 +204,7 @@ protected:
           component.control = new class() ControlBase
           { 
             override void update(ref ControlComponent p_sourceComponent) 
-            { 
+            {
               p_sourceComponent.force += vec2(0.0, 1.0 * p_sourceComponent.thrustForce);
             }
           };
