@@ -173,6 +173,8 @@ public:
   float angle = 0.0;
   float rotation = 0.0;
   
+  float parallax = 1.0;
+  
   bool screenAbsolutePosition = false;
   
   string text;
@@ -214,9 +216,28 @@ public:
   
     glPushMatrix();
     
+    glDisable(GL_TEXTURE_2D);
+    
+    // stable sort randomly crashes, phobos bug or float fuckery?
+    //foreach (component; sort!((left, right) { return left.position.z < right.position.z; }, SwapStrategy.stable)(components))
+    //foreach (component; sort!((left, right) { return left.position.z < right.position.z; })(components))
+    //foreach (component; components)
+    
+    foreach (component; filter!((component) { return component.screenAbsolutePosition == true; })(components))
+    {
+      glPushMatrix();
+      
+      glTranslatef(component.position.x, component.position.y, 0.0);
+      
+      if (component.displayListId > 0)
+        glCallList(component.displayListId);
+      else
+        drawComponent(component);
+      
+      glPopMatrix();
+    }
+    
     glScalef(m_zoom, m_zoom, 1.0);
-
-    glTranslatef(0.0, 0.0, -512.0);
     
     auto centerComponent = GraphicsComponent();
     assert(centerComponent.position.ok);
@@ -228,32 +249,18 @@ public:
       glTranslatef(-centerComponent.position.x, -centerComponent.position.y, 0.0);
     }
     
-    glDisable(GL_TEXTURE_2D);
-    
-    // stable sort randomly crashes, phobos bug or float fuckery?
-    //foreach (component; sort!((left, right) { return left.position.z < right.position.z; }, SwapStrategy.stable)(components))
-    //foreach (component; sort!((left, right) { return left.position.z < right.position.z; })(components))
-    foreach (component; components)
+    foreach (component; filter!((component) { return component.screenAbsolutePosition == false; })(components))
     {
       glPushMatrix();
       
-      if (component.screenAbsolutePosition)
-      {
-        glTranslatef(centerComponent.position.x, centerComponent.position.y, 0.0);
-          
-        glScalef(1.0/m_zoom, 1.0/m_zoom, 1.0);
-      }
-      
       assert(component.position.ok);
       
-      //glTranslatef(component.position.x, component.position.y, component.position.z);
       glTranslatef(component.position.x, component.position.y, 0.0);
       
       if (component.drawSource == DrawSource.Text && component.text.length > 0)
       {
         glPushMatrix();
           glTranslatef(0.0, component.radius*2, 0.0);
-          //m_textRender.renderString(to!string(component.velocity.length()));
           m_textRender.renderString(to!string(component.text));
         glPopMatrix();
       }
@@ -275,17 +282,6 @@ public:
         glCallList(component.displayListId);
       else
         drawComponent(component);
-      
-      
-      // draw text if component entity has text and has mouse pointer over it 
-      // should only be for blueprint modules but right now we have no way of figuring out if it's a blueprint or not
-      if (component.screenAbsolutePosition == false)
-      {
-        if (component.isPointedAt(m_mouseWorldPos) && component.text.length > 0)
-        {
-          m_textRender.renderString(component.text);
-        }
-      }
 
       // draw circle indicating radius in debug mode
       debug
@@ -383,7 +379,7 @@ protected:
   {
     //enforce(p_entity.getValue("radius").length > 0, "Couldn't find radius for graphics component");
     float radius = 1.0;
-    if (p_entity.getValue("radius").length > 0)
+    if ("radius" in p_entity.values)
       radius = to!float(p_entity.getValue("radius"));
     
     GraphicsComponent component = GraphicsComponent(radius);
@@ -495,7 +491,7 @@ protected:
       
     //writeln(name ~ " setting angle to " ~ to!string(component.angle) ~ " from " ~ p_entity.getValue("angle"));
     
-    if (p_entity.getValue("screenAbsolutePosition").length > 0)
+    if ("screenAbsolutePosition" in p_entity.values)
     {
       component.screenAbsolutePosition = true;
     }
@@ -508,6 +504,11 @@ protected:
     if (p_entity.getValue("color").length > 0)
     {
       component.color = Vertex.fromString("0 0 " ~ p_entity.getValue("color"));
+    }
+    
+    if ("parallax" in p_entity.values)
+    {
+      component.parallax = to!float(p_entity.getValue("parallax"));
     }
     
     if (component.drawSource != DrawSource.Text)

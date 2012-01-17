@@ -5,7 +5,9 @@ startupDing.name = startupDing
 # backdrop picture
 backdrop.drawsource = images/galaxiesbackdrop.jpg
 backdrop.position = 0 0 -200
-backdrop.radius = 100.0
+backdrop.radius = 10.0
+backdrop.parallax = 0.05
+backdrop.screenAbsolutePosition = true
 
 
 # greeting text
@@ -70,9 +72,7 @@ npcship.position = 25 25 to 50 50
 npcship.angle = 0 to 360
 npcship.spawnCount = 0
 
-# npc dispenser
-npcDispenser.drawsource = Triangle
-npcDispenser.position = 25 25
+# npc dispenser, will spawn an npc at a random position periodically
 npcDispenser.spawn.source = simpleship.txt
 npcDispenser.spawn.*.collisionType = NpcModule
 npcDispenser.spawn.*.target = player
@@ -82,8 +82,9 @@ npcDispenser.spawn.leftGun.control = aigunner
 npcDispenser.spawn.rightGun.control = aigunner
 npcDispenser.spawn.type = enemy ship
 npcDispenser.spawn.angle = 0 to 360
-npcDispenser.spawn.position = -35 -35 to 35 35
-npcDispenser.control = dispenser
+npcDispenser.spawn.position = -100 -100 to 100 100
+npcDispenser.reloadTime = 100
+npcDispenser.control = alwaysfire
 
 
 # dispensers create modules when clicked and serve as an unlimited supply of modules
@@ -116,6 +117,13 @@ verticalSkeletonDispenser.position = 13 5
 verticalSkeletonDispenser.spawn.source = verticalskeleton.txt
 verticalSkeletonDispenser.spawn.draggable = true
 verticalSkeletonDispenser.control = dispenser
+
+stationPlateDispenser.drawsource = images/stationplate.png
+stationPlateDispenser.position = 15 5
+stationPlateDispenser.spawn.source = stationplate.txt
+stationPlateDispenser.spawn.draggable = true
+stationPlateDispenser.control = dispenser
+
 
 # description text for dispensers
 blueprinttext.text = These are module dispensers\nClick and drag modules out of them!

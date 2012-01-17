@@ -102,10 +102,9 @@ unittest
 
 void addValue(string line, ref string[string] values)
 {
-  if (line.strip.length > 0 && line.strip.startsWith("#") == false)
+  line = line.strip;
+  if (line.length > 0 && line.startsWith("#") == false)
   {
-    line = line.strip;
-    
     auto key = to!string(line.until("=")).strip;
     
     values[key] = line.split("=")[1].strip;

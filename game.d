@@ -47,6 +47,7 @@ import Control.Flocker;
 
 import CommsCentral;
 import Entity;
+import EntityGenerator;
 import EntityLoader;
 import InputHandler;
 import Starfield;
@@ -172,6 +173,8 @@ public:
     //loadWorldFromFile("data/simpleworld.txt");
     loadWorldFromFile("data/world.txt");
     
+    //Entity station = loadShip("", getValues(cache, EntityGenerator.createStation()));
+    
     //m_starfield = new Starfield(m_graphics, 10.0);
 
     m_inputHandler.setScreenResolution(xres, yres);
@@ -187,9 +190,11 @@ public:
     auto file = File(p_fileName);
     foreach (string line; lines(file))
     {
-      if (line.strip.length > 0 && line.strip.startsWith("#") == false)
-        if (orderedEntityNames.find(line.strip.split(".")[0]) == [])
-          orderedEntityNames ~= line.strip.split(".")[0];
+      line = line.strip;
+      
+      if (line.length > 0 && line.startsWith("#") == false)
+        if (orderedEntityNames.find(line.split(".")[0]) == [])
+          orderedEntityNames ~= line.split(".")[0];
     }
     
     string[string][string] spawnNameWithValues;
@@ -411,7 +416,7 @@ private:
       if (fpsValue < 0)
         fpsDisplayComponent.text = "FPS: ??";
       else
-        fpsDisplayComponent.text = "FPS: " ~ to!string(fpsValue);
+        fpsDisplayComponent.text = "FPS: " ~ to!string(fpsValue) ~ "\\nEntities: " ~ to!string(m_entities.length) ~ " entities\\n" ~ m_debugInfo;
         
       m_graphics.setComponent(m_fpsDisplay, fpsDisplayComponent);
     }
@@ -990,8 +995,14 @@ private:
     
       auto timeSpents = map!((SubSystem.Base.SubSystem sys) { return sys.timeSpent;} )(m_subSystems.values);
       float subSystemTime = reduce!"a+b"(timeSpents);
+      
+      m_debugInfo = "";
+      foreach (name, sys; m_subSystems)
+        m_debugInfo ~= "\\n" ~ name ~ ": " ~ to!string(roundTo!int((sys.timeSpent/subSystemTime) * 100)) ~ "%";
     
       //debug writeln("Subsystem update spent " ~ to!string(timeSpent) ~ ", time saved parallelizing: " ~ to!string(subSystemTime - timeSpent));
+      
+      m_debugInfo ~= "\\nSubsystem update spent " ~ to!string(roundTo!int(timeSpent*1000)) ~ "ms, time saved parallelizing: " ~ to!string(roundTo!int((subSystemTime - timeSpent)*1000));
     }
   }
   
@@ -1086,6 +1097,8 @@ private:
   Entity m_closestShipDisplay;
   
   float[20] m_fpsBuffer;
+  
+  string m_debugInfo;
   
   AiGunner m_aiGunner;
   AiChaser m_aiChaser;
