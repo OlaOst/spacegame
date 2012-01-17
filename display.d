@@ -93,7 +93,7 @@ void setupGL(int p_screenWidth, int p_screenHeight)
   float widthHeightRatio = cast(float)p_screenWidth / cast(float)p_screenHeight;
   
   //gluOrtho2D(-widthHeightRatio, widthHeightRatio, -1.0, 1.0);
-  glOrtho(-widthHeightRatio, widthHeightRatio, -1.0, 1.0, 0.0, 1000.0);
+  glOrtho(-widthHeightRatio, widthHeightRatio, -1.0, 1.0, 0.0, 65536.0);
   
   // make textures show up in the expected direction (stuff pointing up in image edit program should be pointing up in the game)
   //glMatrixMode(GL_TEXTURE);
@@ -104,11 +104,11 @@ void setupGL(int p_screenWidth, int p_screenHeight)
   
   glLoadIdentity();
   
-  //glEnable(GL_DEPTH_TEST);
-  glDisable(GL_DEPTH_TEST);
+  glEnable(GL_DEPTH_TEST);
+  //glDisable(GL_DEPTH_TEST);
   
   //glEnable(GL_BLEND);
-  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 

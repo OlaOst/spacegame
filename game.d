@@ -232,8 +232,8 @@ public:
         
         spawn = loadShip(worldEntity.getValue(spawnName ~ ".source"), extraValues);
         
-        if (spawn.getValue("name") == "FPS display")
-          m_fpsDisplay = spawn;
+        if (spawn.getValue("name") == "Debug display")
+          m_debugDisplay = spawn;
           
         if (spawn.getValue("name") == "trashbin")
           m_trashBin = spawn;
@@ -407,18 +407,38 @@ private:
     
     m_fpsBuffer[m_updateCount % m_fpsBuffer.length] = floor(1.0 / elapsedTime);
     
-    if (m_graphics.hasComponent(m_fpsDisplay))
+    if (m_graphics.hasComponent(m_debugDisplay))
     {
-      auto fpsDisplayComponent = m_graphics.getComponent(m_fpsDisplay);
+      auto debugDisplayComponent = m_graphics.getComponent(m_debugDisplay);
       
-      int fpsValue = cast(int)(reduce!"a+b"(m_fpsBuffer)/m_fpsBuffer.length);
-      
-      if (fpsValue < 0)
-        fpsDisplayComponent.text = "FPS: ??";
-      else
-        fpsDisplayComponent.text = "FPS: " ~ to!string(fpsValue) ~ "\\nEntities: " ~ to!string(m_entities.length) ~ " entities\\n" ~ m_debugInfo;
+      if ("elements" in m_debugDisplay.values)
+      {
+        string elements = m_debugDisplay.getValue("elements");
         
-      m_graphics.setComponent(m_fpsDisplay, fpsDisplayComponent);
+        m_debugInfo = "";
+        
+        if (elements.find("FPS") != [])
+        {
+          int fpsValue = cast(int)(reduce!"a+b"(m_fpsBuffer)/m_fpsBuffer.length);
+      
+          if (fpsValue > 0)
+            m_debugInfo ~= "FPS: " ~ to!string(fpsValue);
+        }
+        
+        if (elements.find("entityNumber") != [])
+        {
+          m_debugInfo ~= "\\nEntities: " ~ to!string(m_entities.length);
+        }
+        
+        if (elements.find("subsystemTimings") != [])
+        {
+          m_debugInfo ~= m_timingInfo;
+        }
+        
+        debugDisplayComponent.text = m_debugInfo;
+      }
+        
+      m_graphics.setComponent(m_debugDisplay, debugDisplayComponent);
     }
     
     if (m_graphics.hasComponent(m_closestShipDisplay))
@@ -995,14 +1015,13 @@ private:
     
       auto timeSpents = map!((SubSystem.Base.SubSystem sys) { return sys.timeSpent;} )(m_subSystems.values);
       float subSystemTime = reduce!"a+b"(timeSpents);
-      
-      m_debugInfo = "";
-      foreach (name, sys; m_subSystems)
-        m_debugInfo ~= "\\n" ~ name ~ ": " ~ to!string(roundTo!int((sys.timeSpent/subSystemTime) * 100)) ~ "%";
     
-      //debug writeln("Subsystem update spent " ~ to!string(timeSpent) ~ ", time saved parallelizing: " ~ to!string(subSystemTime - timeSpent));
-      
-      m_debugInfo ~= "\\nSubsystem update spent " ~ to!string(roundTo!int(timeSpent*1000)) ~ "ms, time saved parallelizing: " ~ to!string(roundTo!int((subSystemTime - timeSpent)*1000));
+      m_timingInfo = "";
+    
+      m_timingInfo ~= "\\nSubsystem update spent " ~ to!string(roundTo!int(timeSpent*1000)) ~ "ms"; //, time saved parallelizing: " ~ to!string(roundTo!int((subSystemTime - timeSpent)*1000));
+          
+      foreach (name, sys; m_subSystems)
+        m_timingInfo ~= "\\n  " ~ name ~ ": " ~ to!string(roundTo!int((sys.timeSpent/subSystemTime) * 100)) ~ "%";
     }
   }
   
@@ -1093,12 +1112,13 @@ private:
   Entity m_playerShip;
   Entity m_trashBin;
   Entity m_dragEntity;
-  Entity m_fpsDisplay;
+  Entity m_debugDisplay;
   Entity m_closestShipDisplay;
   
   float[20] m_fpsBuffer;
   
   string m_debugInfo;
+  string m_timingInfo;
   
   AiGunner m_aiGunner;
   AiChaser m_aiChaser;

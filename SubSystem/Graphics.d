@@ -112,6 +112,7 @@ enum DrawSource
   Unknown,
   Invisible,
   Triangle,
+  Quad,
   Star,
   Bullet,
   Vertices,
@@ -123,15 +124,15 @@ enum DrawSource
 struct Vertex
 {
   float x = 0.0, y = 0.0;
-  float r = 0.0, g = 0.0, b = 0.0;
+  float r = 1.0, g = 1.0, b = 1.0, a = 1.0;
   
   static Vertex fromString(string p_data)
   {
     auto comps = std.string.split(p_data, " ");
     
-    assert(comps.length == 5, "should have 5 values in vertex data, got " ~ p_data ~ " instead");
+    assert(comps.length == 6, "should have 6 values in vertex data, got " ~ p_data ~ " instead");
     
-    return Vertex(to!float(comps[0]), to!float(comps[1]), to!float(comps[2]), to!float(comps[3]), to!float(comps[4]));
+    return Vertex(to!float(comps[0]), to!float(comps[1]), to!float(comps[2]), to!float(comps[3]), to!float(comps[4]), to!float(comps[5]));
   }
 }
 
@@ -173,7 +174,7 @@ public:
   float angle = 0.0;
   float rotation = 0.0;
   
-  float parallax = 1.0;
+  float depth = 0.0;
   
   bool screenAbsolutePosition = false;
   
@@ -218,50 +219,38 @@ public:
     
     glDisable(GL_TEXTURE_2D);
     
-    // stable sort randomly crashes, phobos bug or float fuckery?
-    //foreach (component; sort!((left, right) { return left.position.z < right.position.z; }, SwapStrategy.stable)(components))
-    //foreach (component; sort!((left, right) { return left.position.z < right.position.z; })(components))
-    //foreach (component; components)
+    glTranslatef(0.0, 0.0, -32768.0);
     
-    foreach (component; filter!((component) { return component.screenAbsolutePosition == true; })(components))
-    {
-      glPushMatrix();
-      
-      glTranslatef(component.position.x, component.position.y, 0.0);
-      
-      if (component.displayListId > 0)
-        glCallList(component.displayListId);
-      else
-        drawComponent(component);
-      
-      glPopMatrix();
-    }
-    
-    glScalef(m_zoom, m_zoom, 1.0);
-    
-    auto centerComponent = GraphicsComponent();
-    assert(centerComponent.position.ok);
-    if (hasComponent(m_centerEntity))
-    {
-      centerComponent = getComponent(m_centerEntity);
-      assert(centerComponent.position.ok);
-    
-      glTranslatef(-centerComponent.position.x, -centerComponent.position.y, 0.0);
-    }
-    
-    foreach (component; filter!((component) { return component.screenAbsolutePosition == false; })(components))
+    // stable sort sometimes randomly crashes, phobos bug or float fuckery with lots of similar floats?
+    foreach (component; sort!((left, right) { return left.depth < right.depth; }/*, SwapStrategy.stable*/)(components))
     {
       glPushMatrix();
       
       assert(component.position.ok);
       
-      glTranslatef(component.position.x, component.position.y, 0.0);
+      if (component.screenAbsolutePosition == false)
+      {
+        glScalef(m_zoom, m_zoom, 1.0);
       
-      if (component.drawSource == DrawSource.Text && component.text.length > 0)
+        auto centerComponent = GraphicsComponent();
+        assert(centerComponent.position.ok);
+        if (hasComponent(m_centerEntity))
+        {
+          centerComponent = getComponent(m_centerEntity);
+          assert(centerComponent.position.ok);
+        
+          glTranslatef(-centerComponent.position.x, -centerComponent.position.y, 0.0);
+        }
+      }
+      
+      glTranslatef(component.position.x, component.position.y, component.depth);
+      
+      if (component.drawSource == DrawSource.Text && component.text.length > 0 && component.screenAbsolutePosition == false)
       {
         glPushMatrix();
           glTranslatef(0.0, component.radius*2, 0.0);
-          m_textRender.renderString(to!string(component.text));
+          glColor4f(component.color.r, component.color.g, component.color.b, component.color.a);
+          m_textRender.renderString(component.text);
         glPopMatrix();
       }
       glDisable(GL_TEXTURE_2D);
@@ -274,7 +263,7 @@ public:
         glPointSize(4.0);
         glColor3f(1.0, 1.0, 1.0);
         glBegin(GL_POINTS);
-          glVertex3f(connectPoint.x, connectPoint.y, 1.0);
+          glVertex3f(connectPoint.x, connectPoint.y, component.depth + 1);
         glEnd();
       }
       
@@ -288,7 +277,7 @@ public:
       {
         glDisable(GL_TEXTURE_2D);
       
-        if (component.screenAbsolutePosition == false)
+        if (component.screenAbsolutePosition == false && component.drawSource != DrawSource.Text)
         {
           if (component.isPointedAt(m_mouseWorldPos))
             glColor3f(1.0, 0.0, 0.0);
@@ -298,7 +287,7 @@ public:
           glBegin(GL_LINE_LOOP);
           for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 16)
           {
-            glVertex3f(cos(angle) * component.radius, sin(angle) * component.radius, 0.0);
+            glVertex3f(cos(angle) * component.radius, sin(angle) * component.radius, 100.0);
           }
           glEnd();
         }
@@ -456,11 +445,11 @@ protected:
     }
     else
     {
-      if (p_entity.getValue("drawsource").length > 0)
+      if ("drawsource" in p_entity.values)
       {
         component.drawSource = to!DrawSource(p_entity.getValue("drawsource"));
       }
-      else if (p_entity.getValue("text").length > 0)
+      else if ("text" in p_entity.values)
       {
         component.drawSource = DrawSource.Text;
       }
@@ -481,34 +470,45 @@ protected:
       }
     }
     
-    if (p_entity.getValue("position").length > 0)
+    if ("position" in p_entity.values)
     {
       component.position = vec2.fromString(p_entity.getValue("position"));
     }
     
-    if (p_entity.getValue("angle").length > 0)
+    component.depth = to!float(p_entity.id);
+    if ("depth" in p_entity.values)
+    {
+      if (p_entity.getValue("depth") == "bottom")
+        component.depth -= 100;
+      else if (p_entity.getValue("depth") == "top")
+        component.depth += 200;
+      else
+        component.depth = to!float(p_entity.getValue("depth"));
+    }
+    
+    if ("angle" in p_entity.values)
       component.angle = to!float(p_entity.getValue("angle")) * PI_180;
-      
-    //writeln(name ~ " setting angle to " ~ to!string(component.angle) ~ " from " ~ p_entity.getValue("angle"));
     
     if ("screenAbsolutePosition" in p_entity.values)
     {
       component.screenAbsolutePosition = true;
     }
     
-    if (p_entity.getValue("text").length > 0)
+    if ("text" in p_entity.values)
     {
       component.text = p_entity.getValue("text");
     }
     
-    if (p_entity.getValue("color").length > 0)
+    if ("color" in p_entity.values)
     {
-      component.color = Vertex.fromString("0 0 " ~ p_entity.getValue("color"));
-    }
-    
-    if ("parallax" in p_entity.values)
-    {
-      component.parallax = to!float(p_entity.getValue("parallax"));
+      string colorString = p_entity.getValue("color");
+      
+      assert(colorString.split(" ").length >= 3);
+      
+      if (colorString.split(" ").length == 3)
+        colorString ~= " 0";
+        
+      component.color = Vertex.fromString("0 0 " ~ colorString);
     }
     
     if (component.drawSource != DrawSource.Text)
@@ -553,6 +553,19 @@ private:
         }
       glEnd();
     }
+    else if (p_component.drawSource == DrawSource.Quad)
+    {
+      glColor4f(p_component.color.r, p_component.color.g, p_component.color.b, p_component.color.a);
+      
+      float halfLength = p_component.radius * 0.5;
+      
+      glBegin(GL_QUADS);
+        glVertex3f(-halfLength, -halfLength, p_component.depth);
+        glVertex3f(-halfLength,  halfLength, p_component.depth);
+        glVertex3f( halfLength,  halfLength, p_component.depth);
+        glVertex3f( halfLength, -halfLength, p_component.depth);
+      glEnd();
+    }
     else if (p_component.drawSource == DrawSource.Star)
     {
       glBegin(GL_TRIANGLE_FAN);
@@ -589,11 +602,13 @@ private:
       }
       glEnd();
     }
-    else if (p_component.drawSource == DrawSource.Text)
+    else if (p_component.drawSource == DrawSource.Text && p_component.screenAbsolutePosition == true)
     {
       glScalef(0.05, 0.05, 1.0);
       
-      glColor3f(p_component.color.r, p_component.color.g, p_component.color.b);
+      //writeln("rendering text: " ~ p_component.text);
+      
+      glColor4f(p_component.color.r, p_component.color.g, p_component.color.b, p_component.color.a);
       m_textRender.renderString(p_component.text);
     }
     else if (p_component.drawSource == DrawSource.Texture)
