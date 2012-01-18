@@ -993,22 +993,24 @@ private:
     // the sdl/gl stuff in the graphics subsystem needs to run in the main thread for stuff to be shown on the screen
     // so we filter the graphics subsystem out of the subsystem list 
     // and explicitly update it outside the parallel foreach to ensure it runs in the main thread
-    debug
-    {
+    //debug
+    //{
       StopWatch subSystemTimer;
       subSystemTimer.reset();
       subSystemTimer.start();
-    }
+    //}
     
-    debug m_graphics.updateWithTiming();
-    else  m_graphics.update();
+    //debug m_graphics.updateWithTiming();
+    //else  m_graphics.update();
+    m_graphics.updateWithTiming();
     //foreach (subSystem; taskPool.parallel(filter!(delegate (SubSystem.Base.SubSystem sys) { return sys !is m_graphics; })(m_subSystems.values), 1))
     foreach (subSystem; filter!(delegate (SubSystem.Base.SubSystem sys) { return sys !is m_graphics; })(m_subSystems.values))
     {
-      debug subSystem.updateWithTiming();
-      else  subSystem.update();
+      //debug subSystem.updateWithTiming();
+      //else  subSystem.update();
+      subSystem.updateWithTiming();
     }
-    debug
+    //debug
     {
       subSystemTimer.stop();
       float timeSpent = subSystemTimer.peek.usecs / 1_000_000.0;
@@ -1016,9 +1018,15 @@ private:
       auto timeSpents = map!((SubSystem.Base.SubSystem sys) { return sys.timeSpent;} )(m_subSystems.values);
       float subSystemTime = reduce!"a+b"(timeSpents);
     
+      static float[60] subSystemTimeBuffer = 0.0;
+      
+      subSystemTimeBuffer[m_updateCount % subSystemTimeBuffer.length] = subSystemTime;
+    
+      float avgSubSystemTime = reduce!"a+b"(subSystemTimeBuffer) / subSystemTimeBuffer.length;
+    
       m_timingInfo = "";
     
-      m_timingInfo ~= "\\nSubsystem update spent " ~ to!string(roundTo!int(timeSpent*1000)) ~ "ms"; //, time saved parallelizing: " ~ to!string(roundTo!int((subSystemTime - timeSpent)*1000));
+      m_timingInfo ~= "\\nSubsystem update spent " ~ to!string(roundTo!int(avgSubSystemTime*1000)) ~ "ms"; //, time saved parallelizing: " ~ to!string(roundTo!int((subSystemTime - timeSpent)*1000));
           
       foreach (name, sys; m_subSystems)
         m_timingInfo ~= "\\n  " ~ name ~ ": " ~ to!string(roundTo!int((sys.timeSpent/subSystemTime) * 100)) ~ "%";
@@ -1115,7 +1123,7 @@ private:
   Entity m_debugDisplay;
   Entity m_closestShipDisplay;
   
-  float[20] m_fpsBuffer;
+  float[60] m_fpsBuffer;
   
   string m_debugInfo;
   string m_timingInfo;

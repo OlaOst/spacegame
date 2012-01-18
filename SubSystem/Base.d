@@ -26,6 +26,7 @@ import std.algorithm;
 import std.array;
 import std.conv;
 import std.datetime;
+import std.math;
 import std.stdio;
 
 import Entity;
@@ -189,20 +190,27 @@ public:
     update();
     
     m_timer.stop();
-    m_timeSpent = m_timer.peek.usecs / 1_000_000.0;
     
-    assert(m_timeSpent == m_timeSpent);
+    auto timeSpent = m_timer.peek.usecs / 1_000_000.0;
+    assert(isFinite(timeSpent));
+    m_timeSpentBuffer[(m_updateCount++) % m_timeSpentBuffer.length] = timeSpent;
   }
+  
   float timeSpent()
   {
-    assert(m_timeSpent == m_timeSpent);
-    return m_timeSpent;
+    auto avgTime = reduce!"a+b"(m_timeSpentBuffer)/m_timeSpentBuffer.length;
+    
+    assert(isFinite(avgTime), "avg subsystem time not finite, buffer is " ~ to!string(m_timeSpentBuffer));
+    
+    return avgTime;
   }
   
 public:
-  float m_timeSpent;
+  float[60] m_timeSpentBuffer = 0.0;
   
 private:
+  int m_updateCount = 0;
+  
   StopWatch m_timer;
   
   ComponentType[Entity] m_entityToComponent;
