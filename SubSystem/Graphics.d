@@ -297,6 +297,68 @@ public:
       glPopMatrix();
     }
     
+    glPushMatrix();
+      import Hilbert;
+      import core.bitop;
+      int dim = 8;
+      glScalef(m_zoom, m_zoom, 1.0);
+      glTranslatef(-dim/2, -dim/2, 10000.0);
+
+      glBegin(GL_LINE_STRIP);
+        for (int i = 0; i < dim^^2; i++)
+        {
+          vec2i vector = Hilbert.scalarToVector(i);
+          
+          glColor3f(1.0, bsr(i)*0.1, 1.0);
+          
+          glVertex2f(cast(float)vector.x, cast(float)vector.y);
+        }
+      glEnd();
+      
+      for (int i = 0; i < dim^^2; i++)
+      {
+        vec2i vector = Hilbert.scalarToVector(i);
+        
+        string sectors;
+        if (i == 0)
+          sectors = "sw ";
+        for (int j = i, c=0; j > 0; j /= 4, c++)
+        {
+          //sectors = to!string(c) ~ " " ~ sectors;
+          
+          if (j%4 == 0)
+            sectors ~= "sw ";
+            //sectors = "00" ~ sectors;
+          if (j%4 == 1)
+            sectors ~= ((c%2==0)?"nw " : "se ");
+            //sectors = "01" ~ sectors;
+          if (j%4 == 2)
+            sectors ~= "ne ";
+            //sectors = "10" ~ sectors;
+          if (j%4 == 3)
+            sectors ~= ((c%2==0)?"se " : "nw ");
+            //sectors = "11" ~ sectors;
+          
+          //sectors ~= (j%2==0)?'s':'n';
+          //sectors ~= (((j/2)%2==0)?'w':'e');
+          //sectors ~= " ";
+        }
+        
+        import std.stdio;
+        import std.format;
+        import std.range;
+        auto writer = appender!string();
+        formattedWrite(writer, "%b\\n%s", i, sectors);
+        
+        glPushMatrix();
+        glTranslatef(vector.x, vector.y, 0.0);
+        glScalef(0.15, 0.15, 1.0);
+        m_textRender.renderString(writer.data);
+        glPopMatrix();
+      }
+
+    glPopMatrix();
+    
     glPopMatrix();
   }
   

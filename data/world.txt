@@ -80,7 +80,7 @@ npcship.type = enemy ship
 npcship.position = 25 25 to 50 50
 #npcship.position = 5 5
 npcship.angle = 0 to 360
-npcship.spawnCount = 0
+npcship.spawnCount = 1
 
 # npc dispenser, will spawn an npc at a random position periodically
 npcDispenser.spawn.source = simpleship.txt

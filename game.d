@@ -170,8 +170,8 @@ public:
     m_controller.controls["playerlauncher"] = new PlayerLauncher(m_inputHandler);
     m_controller.controls["playerengine"] = new PlayerEngine(m_inputHandler);
     
-    //loadWorldFromFile("data/simpleworld.txt");
-    loadWorldFromFile("data/world.txt");
+    loadWorldFromFile("data/simpleworld.txt");
+    //loadWorldFromFile("data/world.txt");
     
     //Entity station = loadShip("", getValues(cache, EntityGenerator.createStation()));
     
@@ -1029,7 +1029,8 @@ private:
       m_timingInfo ~= "\\nSubsystem update spent " ~ to!string(roundTo!int(avgSubSystemTime*1000)) ~ "ms"; //, time saved parallelizing: " ~ to!string(roundTo!int((subSystemTime - timeSpent)*1000));
           
       foreach (name, sys; m_subSystems)
-        m_timingInfo ~= "\\n  " ~ name ~ ": " ~ to!string(roundTo!int((sys.timeSpent/subSystemTime) * 100)) ~ "%";
+        //m_timingInfo ~= "\\n  " ~ name ~ ": " ~ to!string(sys.components.length) ~ ", " ~ to!string(roundTo!int((sys.timeSpent/subSystemTime) * 100)) ~ "%";
+        m_timingInfo ~= "\\n  " ~ name ~ ": " ~ sys.debugInfo(subSystemTime);
     }
   }
   

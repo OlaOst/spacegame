@@ -1,37 +1,25 @@
-# playership controllable by player
-playership.source = simpleship.txt
-playership.leftEngine.control = playerEngine
-playership.rightEngine.control = playerEngine
+gun.source = cannon.txt
+gun.control = playerLauncher
+#gun.collisionType = PlayerModule
+gun.spawnAngle = 90
+gun.spawnForce = 10
 
-playership.leftGun.source = launcher.txt
-playership.leftGun.control = playerLauncher
-#playership.leftGun.spawn.source = simpleship.txt
-playership.leftGun.spawn.*.target = closestEnemy
-playership.leftGun.reloadTime = 0.5
+#gun2.source = cannon.txt
+#gun2.control = playerLauncher
+#gun2.collisionType = PlayerModule
+#gun2.position = 0 0
+#gun2.spawnAngle = 5
 
-playership.rightGun.source = launcher.txt
-playership.rightGun.control = playerLauncher
-#playership.rightGun.spawn.source = simpleship.txt
-playership.rightGun.spawn.*.target = closestEnemy
-playership.rightGun.reloadTime = 0.5
+target.source = stationplate.txt
+target.collisionType = NpcModule
+target.position = 12 8
 
-playership.*.collisionType = PlayerModule
-playership.position = 0 0
-playership.angle = 0
-playership.name = playership
-playership.keepInCenter = true
 
-npcSpawner.position = 20 20
-npcSpawner.reloadTime = 10
-npcSpawner.control = alwaysfire
-
-npcSpawner.spawn.source = simpleship.txt
-npcSpawner.spawn.*.collisionType = NpcModule
-npcSpawner.spawn.*.target = player
-npcSpawner.spawn.*.maxSpeed = 10.0
-npcSpawner.spawn.leftEngine.control = chaser
-npcSpawner.spawn.rightEngine.control = chaser
-npcSpawner.spawn.leftGun.control = aigunner
-npcSpawner.spawn.rightGun.control = aigunner
-npcSpawner.spawn.type = enemy ship
-npcSpawner.spawn.angle = 0 to 360
+# debug display is shown in a fixed position on the screen, and shows various debug stuff
+debugDisplay.text = here we should see debug info
+debugDisplay.screenAbsolutePosition = true
+debugDisplay.position = -1.2 0.9
+debugDisplay.depth = top
+debugDisplay.color = 1.0 1.0 1.0 1.0
+debugDisplay.name = Debug display
+debugDisplay.elements = FPS,entityNumber,subsystemTimings

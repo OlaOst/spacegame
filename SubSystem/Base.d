@@ -205,6 +205,11 @@ public:
     return avgTime;
   }
   
+  override string debugInfo(float subSystemTime)
+  {
+    return to!string(components.length) ~ " components, " ~ to!string(roundTo!int((timeSpent/subSystemTime) * 100)) ~ "%";
+  }
+  
 public:
   float[60] m_timeSpentBuffer = 0.0;
   
@@ -244,6 +249,8 @@ interface SubSystem
   float timeSpent();
   
   string name();
+  
+  string debugInfo(float subSystemTime);
 }
 
 
