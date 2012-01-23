@@ -214,35 +214,20 @@ private:
     
     //writeln("bulletcomps: " ~ to!string(array(bulletComponents).length) ~ ", notbulletcomps: " ~ to!string(array(bulletComponents).length));
     
-    int[ColliderComponent] hilbertMapping;
-    int[ColliderComponent] hilbertMapping2;
+    int[ColliderComponent][8] componentToIndex;
+    ColliderComponent[][int][8] indexToComponent;
     
-    ColliderComponent[][int] componentsInHilbertIndex;
-    
-    hilbertMapping = reduce!((int[ColliderComponent] hilbertMapping, ColliderComponent component)
+    foreach (component; bulletComponents)
+    {
+      auto vector = vec2i(to!int(component.position.x), to!int(component.position.y));
+      auto scalar = Hilbert.vectorToScalar(vector);
+      
+      for (int level = 0; level < componentToIndex.length; level++)
       {
-        //auto vector = vec2i(to!int(component.position.x)-32768, to!int(component.position.y)-32768);
-        auto vector = vec2i(to!int(component.position.x), to!int(component.position.y));
-        auto scalar = Hilbert.vectorToScalar(vector);
-        
-        //auto vector2 = vec2i(to!int(component.position.x*0.5)-32768, to!int(component.position.y*0.5)-32768);
-        auto vector2 = vec2i(to!int(component.position.x*0.5), to!int(component.position.y*0.5));
-        auto scalar2 = Hilbert.vectorToScalar(vector2) * 2;
-        
-        import std.format;
-        import std.range;
-        auto writer = appender!string();
-        formattedWrite(writer, "%d %d -> %b", to!int(vector.x), to!int(vector.y), scalar);
-        writeln(writer.data);
-        
-        hilbertMapping[component] = scalar;
-        hilbertMapping2[component] = scalar2;
-        
-        componentsInHilbertIndex[scalar] ~= component;
-        
-        return hilbertMapping;
+        componentToIndex[level][component] = scalar/(4^^level);
+        indexToComponent[level][scalar/(4^^level)] ~= component;
       }
-    )(hilbertMapping, bulletComponents);
+    }
     
     //writeln("bullet position diff: " ~ to!string((hilbertMapping.keys[0].position - hilbertMapping.keys[1].position).length) ~ ", hilbert diff: " ~ to!string(hilbertMapping.values[0]-hilbertMapping.values[1]));
     
@@ -250,17 +235,20 @@ private:
     {
       // find smallest prefix that completely covers bulletComponent
       // start with hilbert mapping number, drop lowest (or highest?) number of bits according to something with radius and powers of two
-      int hilbertIndex = hilbertMapping[bulletComponent];
       
-      // the two most significant bits tells us what quadrant the component is in (00 topleft, 01 bottomleft, 10 bottomright, 11 topright - but only for the O1 square)
-      // the next two significant bits tells us which subquadrant - and so on
+      // find smallest n where 2 ^ n > radius
+      int n = 1;
+      while (2^^n < bulletComponent.radius && n < componentToIndex.length && n < indexToComponent.length)
+        n++;
       
-      // since our component has a radius > 0, it may overlap some of the least squares
-      // we assume it overlaps four squares at least
-      // if radius < 1 then it cannot overlap more than 2*2 squares
-      // if radius < 2 it cannot overlap more than 4*4 squares
+      //write("bullet n: " ~ to!string(n));
       
-      //componentsInHilbertIndex[hilbertIndex]
+      int index = componentToIndex[n][bulletComponent];
+      
+      //writeln(", index: " ~ to!string(index) ~ ", comps in index: " ~ to!string(indexToComponent[n][index].length));
+      
+      writeln(to!string(map!((component){return (component.position-bulletComponent.position).length;})(filter!((component){return component!=bulletComponent;})(indexToComponent[n][index]))));
+      
     
       ColliderComponent first = bulletComponent;
       

@@ -1,14 +1,16 @@
 gun.source = cannon.txt
 gun.control = playerLauncher
 #gun.collisionType = PlayerModule
-gun.spawnAngle = 90
-gun.spawnForce = 10
+gun.spawnAngle = 0
+gun.spawnForce = 20
+gun.spawn.radius = 3.0
 
 #gun2.source = cannon.txt
 #gun2.control = playerLauncher
 #gun2.collisionType = PlayerModule
 #gun2.position = 0 0
-#gun2.spawnAngle = 5
+#gun2.spawnAngle = 10
+#gun2.spawnForce = 20
 
 target.source = stationplate.txt
 target.collisionType = NpcModule
