@@ -22,129 +22,131 @@
 
 module SpatialIndex;
 
+import std.math;
+
 import gl3n.linalg;
+
+import SpatialIndexUtils;
 
 
 unittest
 {
-  assert(interleave(0, 0) == 0, "Expected " ~ to!string(0) ~ ", got " ~ to!string(interleave(0, 0)));
-  assert(interleave(1, 0) == 1, "Expected " ~ to!string(1) ~ ", got " ~ to!string(interleave(1, 0)));
-  assert(interleave(0, 1) == 2, "Expected " ~ to!string(2) ~ ", got " ~ to!string(interleave(0, 1)));
-  assert(interleave(1, 1) == 3, "Expected " ~ to!string(3) ~ ", got " ~ to!string(interleave(1, 1)));
+  Index index;
   
-  assert(interleave(2^^15-1, 2^^15-1) == 2^^30-1, "Expected " ~ to!string(2^^30-1) ~ ", got " ~ to!string(interleave(2^^15-1, 2^^15-1)));
+  vec2i pos = [0,0];
   
-  assert(interleave(2^^15, 2^^15) == 2^^31/2, "Expected " ~ to!string(2^^30) ~ ", got " ~ to!string(interleave(2^^15, 2^^15)));
+  index[indexForVector(pos)] = pos;
+  
+  assert(index[indexForVector(pos)] == pos);
+  
+  AABB box = AABB(vec2i(-1,-1), vec2i(1,1));
+  
+  index.insert(box);
+  
+  assert(box in index.AABBtoIndices);
+  
+  assert(index[box].length == 1);
+  
+  
+  AABB bigbox = AABB(vec2i(-1,-1), vec2i(10,10));
+  
+  index.insert(bigbox);
+}
 
+struct AABB
+{
+  invariant()
+  {
+    assert(lowerleft.x < upperright.x);
+    assert(lowerleft.y < upperright.y);
+  }
+
+  vec2i lowerleft;
+  vec2i upperright;
   
-  vec2i origoVector = [0,0];
-  int origoIndex = -2^^30;
+  vec2i midpoint()
+  {
+    return vec2i((lowerleft.x+upperright.x)/2, (lowerleft.y+upperright.y)/2);
+  }
+}
+
+struct Index
+{
+  vec2i[int] indexToVector;
+  int[][AABB] AABBtoIndices;
   
-  vec2i leastVector = [-2^^15, -2^^15];
-  int leastIndex = 0;
+  vec2i opIndex(int index)
+  {
+    return indexToVector[index];
+  }
   
-  vec2i largestVector = [2^^15-1, 2^^15-1];
-  int largestIndex = 2^^32-1;
-  
-  assert(indexForVector(origoVector)   == origoIndex, "Expected " ~   to!string(origoIndex) ~   ", got " ~ to!string(indexForVector(origoVector)));
-  assert(vectorForIndex(origoIndex)    == origoVector, "Expected "   ~ to!string(origoVector)   ~ ", got " ~ to!string(vectorForIndex(origoIndex)));
-  
-  assert(indexForVector(leastVector)   == leastIndex, "Expected " ~   to!string(leastIndex) ~   ", got " ~ to!string(indexForVector(leastVector)));
-  assert(vectorForIndex(leastIndex)    == leastVector, "Expected "   ~ to!string(leastVector)   ~ ", got " ~ to!string(vectorForIndex(leastIndex)));
-  
-  assert(indexForVector(largestVector) == largestIndex, "Expected " ~ to!string(largestIndex) ~ ", got " ~ to!string(indexForVector(largestVector)));
-  assert(vectorForIndex(largestIndex)  == largestVector, "Expected " ~ to!string(largestVector) ~ ", got " ~ to!string(vectorForIndex(largestIndex)));
+  vec2i opIndexAssign(vec2i position, int index)
+  {
+    return indexToVector[index] = position;
+  }
   
   
-  assert(indexForVector(vectorForIndex(-2^^16)) == -2^^16);
-  assert(indexForVector(vectorForIndex(2^^16)) == 2^^16);
+  int[] opIndex(AABB box)
+  {
+    return AABBtoIndices[box];
+  }
   
+  
+  void insert(AABB box)
+  {
+    insert(box, AABB(vec2i(0,0), vec2i(2^^15, 2^^15)), 15);
+  }
+  
+  void insert(AABB box, AABB sector, int level = 15)
+  in
+  {
+    assert(level >= 0 && level <= 15, "Tried to insert AABB with level out of bounds (0-15): " ~ to!string(level));
+  }
+  body
+  {
+    //import std.stdio;
+    //writeln("putting box " ~ to!string(box) ~ " in sector " ~ to!string(sector) ~ " at level " ~ to!string(level));
     
-  for (int i = -256; i < 256; i++)
-    assert(indexForVector(vectorForIndex(i)) == i, "Expected " ~ to!string(i) ~ ", got " ~ to!string(indexForVector(vectorForIndex(i))) ~ ", via " ~ to!string(vectorForIndex(i)));
-  
-  for (int i = int.max - 256; i < int.max + 256; i++)
-    assert(indexForVector(vectorForIndex(i)) == i, "Expected " ~ to!string(i) ~ ", got " ~ to!string(indexForVector(vectorForIndex(i))) ~ ", via " ~ to!string(vectorForIndex(i)));
-  
-  for (int y = 0; y < 256; y++)
-    for (int x = 0; x < 256; x++)
-      assert(vectorForIndex(indexForVector(vec2i(x,y))) == vec2i(x,y), "Expected " ~ to!string(vec2i(x,y)) ~ ", got " ~ to!string(vectorForIndex(indexForVector(vec2i(x,y)))));
-
-  for (int y = int.max - 256; y < int.max + 256; y++)
-    for (int x = int.max - 256; x < int.max + 256; x++)
-      assert(vectorForIndex(indexForVector(vec2i(x,y))) == vec2i(x,y), "Expected " ~ to!string(vec2i(x,y)) ~ ", got " ~ to!string(vectorForIndex(indexForVector(vec2i(x,y)))));      
-}
-
-
-int indexForVector(vec2i vector)
-in
-{
-  assert(vector.x >= -2^^15 && vector.x < 2^^15, "Tried to call indexForVector with vector.x out of bounds: " ~ to!string(vector.x));
-  assert(vector.y >= -2^^15 && vector.y < 2^^15, "Tried to call indexForVector with vector.y out of bounds: " ~ to!string(vector.y));
-}
-body
-{
-  return interleave(vector.x + 2^^15, vector.y + 2^^15);
-}
-
-vec2i vectorForIndex(int index)
-in
-{
-  assert(index >= -2^^31 && index < 2^^31-1, "Tried to call vectorForIndex with index out of bounds: " ~ to!string(index));
-}
-body
-{
-  return vec2i(deinterleave(index) - 2^^15, deinterleave(index >> 1) - 2^^15);
-}
-
-
-// will extract even bits
-int deinterleave(int z)
-in
-{
-  assert(z >= -2^^31 && z < 2^^31-1, "Tried to call deinterleave with z out of bounds: " ~ to!string(z));
-}
-body
-{
-  z = z & 0x55555555;
-  
-  z = (z | (z >> 1)) & 0x33333333;
-  z = (z | (z >> 2)) & 0x0F0F0F0F;
-  z = (z | (z >> 4)) & 0x00FF00FF;
-  z = (z | (z >> 8)) & 0x0000FFFF;
-  
-  return z;
-}
-
-int interleave(int x, int y)
-in
-{
-  assert(x >= 0 && x < 2^^16, "Tried to call interleave with x out of bounds: " ~ to!string(x));
-  assert(y >= 0 && y < 2^^16, "Tried to call interleave with y out of bounds: " ~ to!string(y));
-}
-body
-{
-  // from http://graphics.stanford.edu/~seander/bithack.html#InterleaveBMN
-  static immutable uint B[] = [0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF];
-  static immutable uint S[] = [1, 2, 4, 8];
-
-  // Interleave lower 16 bits of x and y, so the bits of x
-  // are in the even positions and bits from y in the odd;
-  
-  uint z; // z gets the resulting 32-bit Morton Number.  
-          // x and y must initially be less than 65536.
-
-  x = (x | (x << S[3])) & B[3];
-  x = (x | (x << S[2])) & B[2];
-  x = (x | (x << S[1])) & B[1];
-  x = (x | (x << S[0])) & B[0];
-
-  y = (y | (y << S[3])) & B[3];
-  y = (y | (y << S[2])) & B[2];
-  y = (y | (y << S[1])) & B[1];
-  y = (y | (y << S[0])) & B[0];
-
-  z = x | (y << 1);
-  
-  return z;
+    if (level == 0)
+    {
+      AABBtoIndices[box] ~= indexForVector(box.midpoint);
+      return;
+    }
+    
+    if (box.lowerleft.x < sector.lowerleft.x && box.upperright.x > sector.lowerleft.x &&  // the box is overlapping one of the left squares of this level
+        box.lowerleft.y < sector.lowerleft.y && box.upperright.y > sector.lowerleft.y)    // the box is overlapping one of the lower squares of this level
+    {
+      insert(box, 
+             AABB(sector.lowerleft, 
+                  vec2i(sector.upperright.x - 2^^(level-1), sector.upperright.y - 2^^(level-1))), 
+             level-1);
+    }
+    
+    if (box.lowerleft.x < sector.upperright.x && box.upperright.x > sector.upperright.x &&  // the box is overlapping one of the right squares of this level
+        box.lowerleft.y < sector.lowerleft.y && box.upperright.y > sector.lowerleft.y)      // the box is overlapping one of the lower squares of this level
+    {
+      insert(box, 
+             AABB(vec2i(sector.lowerleft.x + 2^^(level-1), sector.lowerleft.y), 
+                  vec2i(sector.upperright.x, sector.upperright.y - 2^^(level-1))), 
+             level-1);
+    }
+    
+    if (box.lowerleft.x < sector.upperright.x && box.upperright.x > sector.upperright.x &&  // the box is overlapping one of the right squares of this level
+        box.lowerleft.y < sector.upperright.y && box.upperright.y > sector.upperright.y)    // the box is overlapping one of the upper squares of this level
+    {
+      insert(box, 
+             AABB(vec2i(sector.lowerleft.x + 2^^(level-1), sector.lowerleft.y + 2^^(level-1)), 
+                  vec2i(sector.upperright)), 
+             level-1);
+    }
+    
+    if (box.lowerleft.x < sector.lowerleft.x && box.upperright.x > sector.lowerleft.x &&  // the box is overlapping one of the left squares of this level
+        box.lowerleft.y < sector.upperright.y && box.upperright.y > sector.upperright.y)  // the box is overlapping one of the upper squares of this level
+    {
+      insert(box, 
+             AABB(sector.lowerleft, 
+                  vec2i(sector.upperright)), 
+             level-1);
+    }
+  }
 }
