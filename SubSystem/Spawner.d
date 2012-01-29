@@ -65,7 +65,8 @@ struct SpawnerComponent
   
   float spawnForce = 0.0; // goes in the direction of spawnAngle
   
-  float spawnAngle = 0.0;
+  //float spawnAngle = 0.0;
+  string spawnAngle = "0.0";
   float spawnRotation = 0.0;
   
   int entityId;
@@ -97,7 +98,24 @@ public:
           spawnValues = component.spawnValues.dup;
         }
         
-        auto spawnAngle = component.angle + component.spawnAngle;
+        float spawnAngle = component.angle;
+        if (component.spawnAngle.find("to").length > 0)
+        {
+          auto angleData = component.spawnAngle.split(" ");
+          
+          assert(angleData.length == 3, "Problem parsing angle data with from/to values: " ~ to!string(angleData));
+          
+          auto fromAngle = to!float(angleData[0]);
+          auto toAngle = to!float(angleData[2]);
+          
+          spawnAngle += uniform(fromAngle, toAngle);
+        }
+        else
+        {
+          spawnAngle += to!float(component.spawnAngle);
+        }
+        
+        //auto spawnAngle = component.angle + component.spawnAngle;
         
         assert(component.velocity.ok);
         
@@ -190,7 +208,8 @@ protected:
       component.spawnForce = to!float(p_entity.getValue("spawnForce"));
     
     if (p_entity.getValue("spawnAngle").length > 0)
-      component.spawnAngle = to!float(p_entity.getValue("spawnAngle")) * PI_180;
+      //component.spawnAngle = to!float(p_entity.getValue("spawnAngle")) * PI_180;
+      component.spawnAngle = p_entity.getValue("spawnAngle");
     if (p_entity.getValue("spawnRotation").length > 0)
       component.spawnRotation = to!float(p_entity.getValue("spawnRotation"));
       

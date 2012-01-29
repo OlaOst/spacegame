@@ -501,7 +501,7 @@ protected:
         glTexImage2D(GL_TEXTURE_2D, 0, textureSurface.format.BytesPerPixel, textureSurface.w, textureSurface.h, 0, format, GL_UNSIGNED_BYTE, textureSurface.pixels);
         
         auto error = glGetError();
-        enforce(error == GL_NO_ERROR, "Error texturizing image " ~ imageFile ~ ": " ~ to!string(gluErrorString(error)));
+        enforce(error == GL_NO_ERROR, "Error texturizing image " ~ imageFile ~ ": " ~ to!string(gluErrorString(error)) ~ " (errorcode " ~ to!string(error) ~ ")");
       }
       component.textureId = m_imageToTextureId[imageFile];
     }

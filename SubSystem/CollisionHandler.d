@@ -204,8 +204,8 @@ private:
   {
     m_collisions.length = 0;
     
-    if (components.length <= 1)
-      return;
+    //if (components.length <= 1)
+      //return;
     
     // for now, we only consider collisions between bullets and not-bullets. this makes it possible to have more than 10 guns shooting without FPS dropping below 5
     // optimizing with spatial hash or similar could speed things up a bit further
@@ -214,42 +214,8 @@ private:
     
     //writeln("bulletcomps: " ~ to!string(array(bulletComponents).length) ~ ", notbulletcomps: " ~ to!string(array(bulletComponents).length));
     
-    int[ColliderComponent][8] componentToIndex;
-    ColliderComponent[][int][8] indexToComponent;
-    
-    foreach (component; bulletComponents)
-    {
-      auto vector = vec2i(to!int(component.position.x), to!int(component.position.y));
-      auto scalar = Hilbert.vectorToScalar(vector);
-      
-      for (int level = 0; level < componentToIndex.length; level++)
-      {
-        componentToIndex[level][component] = scalar/(4^^level);
-        indexToComponent[level][scalar/(4^^level)] ~= component;
-      }
-    }
-    
-    //writeln("bullet position diff: " ~ to!string((hilbertMapping.keys[0].position - hilbertMapping.keys[1].position).length) ~ ", hilbert diff: " ~ to!string(hilbertMapping.values[0]-hilbertMapping.values[1]));
-    
     foreach (bulletComponent; bulletComponents)
     {
-      // find smallest prefix that completely covers bulletComponent
-      // start with hilbert mapping number, drop lowest (or highest?) number of bits according to something with radius and powers of two
-      
-      // find smallest n where 2 ^ n > radius
-      int n = 1;
-      while (2^^n < bulletComponent.radius && n < componentToIndex.length && n < indexToComponent.length)
-        n++;
-      
-      //write("bullet n: " ~ to!string(n));
-      
-      int index = componentToIndex[n][bulletComponent];
-      
-      //writeln(", index: " ~ to!string(index) ~ ", comps in index: " ~ to!string(indexToComponent[n][index].length));
-      
-      writeln(to!string(map!((component){return (component.position-bulletComponent.position).length;})(filter!((component){return component!=bulletComponent;})(indexToComponent[n][index]))));
-      
-    
       ColliderComponent first = bulletComponent;
       
       foreach (notBulletComponent; notBulletComponents)

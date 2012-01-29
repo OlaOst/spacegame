@@ -1,9 +1,11 @@
 gun.source = cannon.txt
 gun.control = playerLauncher
 #gun.collisionType = PlayerModule
-gun.spawnAngle = 0
-gun.spawnForce = 20
-gun.spawn.radius = 3.0
+gun.spawnAngle = 0 to 360
+gun.spawnForce = 50
+gun.spawn.radius = 0.2
+gun.reloadTime = 0.05
+gun.position = 0 0
 
 #gun2.source = cannon.txt
 #gun2.control = playerLauncher
@@ -15,6 +17,12 @@ gun.spawn.radius = 3.0
 target.source = stationplate.txt
 target.collisionType = NpcModule
 target.position = 12 8
+target.radius = 5
+
+#target2.source = stationplate.txt
+#target2.collisionType = NpcModule
+#target2.position = -12 8
+#target2.radius = 1
 
 
 # debug display is shown in a fixed position on the screen, and shows various debug stuff
