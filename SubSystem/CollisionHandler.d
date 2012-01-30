@@ -30,7 +30,7 @@ import std.stdio;
 import gl3n.linalg;
 
 import Entity;
-import Hilbert;
+import SpatialIndex;
 import SubSystem.Base;
 
 
@@ -105,9 +105,30 @@ class ColliderComponent
     collisionType = p_collisionType;
     
     id = idCounter++;
+    
+    setAABB(m_position);
   }
   
-  vec2 position = vec2(0.0, 0.0);
+  vec2 m_position = vec2(0.0, 0.0);
+  
+  @property vec2 position() { return m_position; }
+  
+  @property vec2 position(vec2 p_position)
+  {
+    setAABB(p_position);
+    
+    return m_position = p_position;
+  }
+  
+  void setAABB(vec2 position)
+  {
+    vec2i pos = vec2i(cast(int)position.x, cast(int)position.y);
+    
+    int rad = radius < 1.0 ? 1 : cast(int)radius;
+    
+    aabb = AABB(vec2i(pos.x - rad, pos.y - rad), vec2i(pos.x + rad, pos.y + rad));
+  }
+  
   float radius;
   
   vec2 force;
@@ -117,6 +138,8 @@ class ColliderComponent
   
   float lifetime = float.infinity;
   float health = float.infinity;
+  
+  AABB aabb;
   
   // we might not want stuff to collide from the entity it spawned from
   int spawnedFrom;
@@ -214,16 +237,25 @@ private:
     
     //writeln("bulletcomps: " ~ to!string(array(bulletComponents).length) ~ ", notbulletcomps: " ~ to!string(array(bulletComponents).length));
     
-    foreach (bulletComponent; bulletComponents)
+    index.clear();
+    foreach (component; bulletComponents)
     {
-      ColliderComponent first = bulletComponent;
+      index.insert(component);
+    }
+    
+    foreach (component; notBulletComponents)
+    {
+      auto candidates = index.findNearbyContent(component);
       
-      foreach (notBulletComponent; notBulletComponents)
+      auto first = component;
+      
+      foreach (candidate; candidates)
       {
-        ColliderComponent second = notBulletComponent;
+        auto second = candidate;
         
-        assert(first != second, "collider component with id " ~ to!string(first.id) ~ " is equal to component with id " ~ to!string(second.id));
-
+        if (first.id == second.id)
+          continue;
+          
         // bullets should not collide with the entity that spawned them, or any entities that has the same owner... or should they?
         if ((first.spawnedFromOwner > 0 && second.ownerId > 0 && first.spawnedFromOwner == second.ownerId) || 
             (first.ownerId > 0 && second.spawnedFromOwner > 0 && first.ownerId == second.spawnedFromOwner))
@@ -267,4 +299,6 @@ private:
   
 private:
   Collision[] m_collisions;
+  
+  Index!ColliderComponent index;
 }

@@ -59,7 +59,8 @@ playership.leftGun.control = playerLauncher
 playership.rightGun.control = playerLauncher
 playership.leftGun.source = launcher.txt
 playership.rightGun.source = launcher.txt
-#playership.rightGun.reloadTime = 0.1
+playership.leftGun.reloadTime = 0.2
+playership.rightGun.reloadTime = 0.2
 playership.*.collisionType = PlayerModule
 playership.*.spawn.*.target = closestEnemy
 playership.position = 0 0
@@ -93,7 +94,7 @@ npcDispenser.spawn.rightEngine.control = chaser
 npcDispenser.spawn.type = enemy ship
 npcDispenser.spawn.angle = 0 to 360
 npcDispenser.spawn.position = -100 -100 to 100 100
-npcDispenser.reloadTime = 10
+npcDispenser.reloadTime = 5
 npcDispenser.control = alwaysfire
 
 

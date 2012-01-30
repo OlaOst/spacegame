@@ -38,16 +38,14 @@ unittest
 
   Index!Content index;
   
-  auto one = Content(AABB(vec2i(0, 0), vec2i(1, 1)), "one");
-  
+  auto one = Content(AABB(vec2i(0, 0), vec2i(1, 1)), "one");  
   index.insert(one);
   
   assert(one in index.indicesForContent);
   assert(index[one].length == 1);
   
   
-  auto two = Content(AABB(vec2i(0, 0), vec2i(2, 2)), "two");
-  
+  auto two = Content(AABB(vec2i(0, 0), vec2i(2, 2)), "two");  
   index.insert(two);
   
   assert(two in index.indicesForContent);
@@ -57,13 +55,27 @@ unittest
   auto check = Content(AABB(vec2i(1, 1), vec2i(3, 3)), "three");
   
   Content[] candidates = index.findNearbyContent(check);
-  assert(candidates == [two], "Expected " ~ to!string([two]) ~ ", got " ~ to!string(candidates) ~ " instead");
+  assert(candidates == [one, two], "Expected " ~ to!string([two]) ~ ", got " ~ to!string(candidates) ~ " instead");
   
   
   auto checkAll = Content(AABB(vec2i(-10, -10), vec2i(10, 10)), "four");
   
   candidates = index.findNearbyContent(checkAll);
   assert(candidates == [one, two], "Expected " ~ to!string([one, two]) ~ ", got " ~ to!string(candidates) ~ " instead");
+  
+  
+  auto negative = Content(AABB(vec2i(-100, -100), vec2i(-50, -50)), "negative");
+  index.insert(negative);
+  
+  assert(negative in index.indicesForContent);
+  assert(index[negative].length >= 1);  
+  
+  
+  auto weird = Content(AABB(vec2i(5,-7), vec2i(7, -5)), "weird");
+  index.insert(weird);
+  
+  assert(weird in index.indicesForContent);
+  assert(index[weird].length >= 1);  
 }
 
 struct AABB
@@ -86,7 +98,16 @@ struct AABB
 struct Index(Content)
   if (__traits(compiles, function AABB (Content c) { return c.aabb; }))
 {
+public:
   int[][Content] indicesForContent;
+  Content[][int] contentsInIndex;
+  
+  
+  void clear()
+  {
+    indicesForContent = null;
+    contentsInIndex = null;
+  }
   
   int[] opIndex(Content content)
   {
@@ -96,48 +117,48 @@ struct Index(Content)
   Content[] findNearbyContent(Content checkContent)
   {
     int[][Content] indicesToCheck;
+    Content[][int] contentsToCheck;
     
-    insert(checkContent, AABB(vec2i(0,0), vec2i(2^^15, 2^^15)), 15, indicesToCheck);
+    insert(checkContent, AABB(vec2i(-2^^15, -2^^15), vec2i(2^^15, 2^^15)), 15, indicesToCheck, contentsToCheck);
     
-    assert(indicesToCheck.length == 1, to!string(indicesToCheck.length));
+    assert(indicesToCheck.length == 1, "Did not find checkContent with " ~ to!string(checkContent.aabb) ~ " in indicesToCheck");
     assert(checkContent in indicesToCheck);
     
     Content[] nearbyContent;
     
-    // return indicesForContent that matches indicesToCheck
-    foreach (checkIndex; uniq(sort(indicesToCheck[checkContent])))
+    foreach (index, contents; contentsToCheck)
     {
-      foreach (content, indices; indicesForContent)
-      {
-        //writeln("checking indices " ~ to!string(uniq(sort(indices))) ~ " against checkindex " ~ to!string(checkIndex));
-        if (canFind(uniq(sort(indices)), checkIndex))
-          nearbyContent ~= content;
-      }
+      if (index in contentsInIndex)
+        nearbyContent ~= contentsInIndex[index];
     }
     
-    return array(uniq!((a, b) { return a.aabb == b.aabb; })(nearbyContent));
+    return nearbyContent;
   }
     
   
   void insert(Content content)
   {
-    insert(content, AABB(vec2i(0,0), vec2i(2^^15, 2^^15)), 15, indicesForContent);
+    insert(content, AABB(vec2i(-2^^15, -2^^15), vec2i(2^^15, 2^^15)), 15, indicesForContent, contentsInIndex);
   }
+
   
-  
-  static void insert(Content content, AABB sector, int level, ref int[][Content] indicesForContent)
+private:
+  static void insert(Content content, AABB sector, int level, ref int[][Content] indicesForContent, ref Content[][int] contentsInIndex)
   in
   {
     assert(level >= 0 && level <= 15, "Tried to insert content with level out of bounds (0-15): " ~ to!string(level));
   }
   body
   {
-    //writeln("putting content " ~ to!string(content) ~ " in sector " ~ to!string(sector) ~ " at level " ~ to!string(level));
+    //writeln("putting content with AABB " ~ to!string(content.aabb) ~ " in sector " ~ to!string(sector) ~ " with midpoint " ~ to!string(sector.midpoint) ~ " at level " ~ to!string(level));
     
-    if (level == 0)
+    if (level <= 3)
     {
-      //indicesForContent[content] ~= indexForVector(content.aabb.midpoint);
-      indicesForContent[content] ~= indexForVector(sector.midpoint);
+      auto index = indexForVector(sector.midpoint);
+      
+      indicesForContent[content] ~= index;
+      contentsInIndex[index] ~= content;
+      
       return;
     }
     
@@ -148,7 +169,7 @@ struct Index(Content)
     {
       insert(content, AABB(sector.lowerleft, 
                       vec2i(sector.upperright.x - 2^^(level-1), sector.upperright.y - 2^^(level-1))), 
-             level-1, indicesForContent);
+             level-1, indicesForContent, contentsInIndex);
     }
     
     if (box.lowerleft.x < sector.upperright.x && box.upperright.x > sector.midpoint.x &&  // the box is overlapping one of the right squares of this level
@@ -156,7 +177,7 @@ struct Index(Content)
     {
       insert(content, AABB(vec2i(sector.lowerleft.x + 2^^(level-1), sector.lowerleft.y), 
                       vec2i(sector.upperright.x, sector.upperright.y - 2^^(level-1))), 
-             level-1, indicesForContent);
+             level-1, indicesForContent, contentsInIndex);
     }
     
     if (box.lowerleft.x < sector.upperright.x && box.upperright.x > sector.midpoint.x &&  // the box is overlapping one of the right squares of this level
@@ -164,7 +185,7 @@ struct Index(Content)
     {
       insert(content, AABB(vec2i(sector.lowerleft.x + 2^^(level-1), sector.lowerleft.y + 2^^(level-1)), 
                       vec2i(sector.upperright)), 
-             level-1, indicesForContent);
+             level-1, indicesForContent, contentsInIndex);
     }
     
     if (box.lowerleft.x < sector.midpoint.x && box.upperright.x > sector.lowerleft.x &&  // the box is overlapping one of the left squares of this level
@@ -172,7 +193,7 @@ struct Index(Content)
     {
       insert(content, AABB(sector.lowerleft, 
                       vec2i(sector.upperright)), 
-             level-1, indicesForContent);
+             level-1, indicesForContent, contentsInIndex);
     }
   }
 }

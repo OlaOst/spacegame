@@ -170,8 +170,8 @@ public:
     m_controller.controls["playerlauncher"] = new PlayerLauncher(m_inputHandler);
     m_controller.controls["playerengine"] = new PlayerEngine(m_inputHandler);
     
-    loadWorldFromFile("data/simpleworld.txt");
-    //loadWorldFromFile("data/world.txt");
+    //loadWorldFromFile("data/simpleworld.txt");
+    loadWorldFromFile("data/world.txt");
     
     //Entity station = loadShip("", getValues(cache, EntityGenerator.createStation()));
     
