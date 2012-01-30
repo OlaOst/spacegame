@@ -22,7 +22,10 @@
 
 module SpatialIndex;
 
+import std.algorithm;
+import std.array;
 import std.math;
+import std.stdio;
 
 import gl3n.linalg;
 
@@ -31,26 +34,36 @@ import SpatialIndexUtils;
 
 unittest
 {
-  Index index;
+  struct Content { AABB aabb; string payload; }
+
+  Index!Content index;
   
-  vec2i pos = [0,0];
+  auto one = Content(AABB(vec2i(0, 0), vec2i(1, 1)), "one");
   
-  index[indexForVector(pos)] = pos;
+  index.insert(one);
   
-  assert(index[indexForVector(pos)] == pos);
-  
-  AABB box = AABB(vec2i(-1,-1), vec2i(1,1));
-  
-  index.insert(box);
-  
-  assert(box in index.AABBtoIndices);
-  
-  assert(index[box].length == 1);
+  assert(one in index.indicesForContent);
+  assert(index[one].length == 1);
   
   
-  AABB bigbox = AABB(vec2i(-1,-1), vec2i(10,10));
+  auto two = Content(AABB(vec2i(0, 0), vec2i(2, 2)), "two");
   
-  index.insert(bigbox);
+  index.insert(two);
+  
+  assert(two in index.indicesForContent);
+  assert(index[two].length >= 1);
+  
+  
+  auto check = Content(AABB(vec2i(1, 1), vec2i(3, 3)), "three");
+  
+  Content[] candidates = index.findNearbyContent(check);
+  assert(candidates == [two], "Expected " ~ to!string([two]) ~ ", got " ~ to!string(candidates) ~ " instead");
+  
+  
+  auto checkAll = Content(AABB(vec2i(-10, -10), vec2i(10, 10)), "four");
+  
+  candidates = index.findNearbyContent(checkAll);
+  assert(candidates == [one, two], "Expected " ~ to!string([one, two]) ~ ", got " ~ to!string(candidates) ~ " instead");
 }
 
 struct AABB
@@ -70,83 +83,96 @@ struct AABB
   }
 }
 
-struct Index
+struct Index(Content)
+  if (__traits(compiles, function AABB (Content c) { return c.aabb; }))
 {
-  vec2i[int] indexToVector;
-  int[][AABB] AABBtoIndices;
+  int[][Content] indicesForContent;
   
-  vec2i opIndex(int index)
+  int[] opIndex(Content content)
   {
-    return indexToVector[index];
+    return indicesForContent[content];
   }
   
-  vec2i opIndexAssign(vec2i position, int index)
+  Content[] findNearbyContent(Content checkContent)
   {
-    return indexToVector[index] = position;
+    int[][Content] indicesToCheck;
+    
+    insert(checkContent, AABB(vec2i(0,0), vec2i(2^^15, 2^^15)), 15, indicesToCheck);
+    
+    assert(indicesToCheck.length == 1, to!string(indicesToCheck.length));
+    assert(checkContent in indicesToCheck);
+    
+    Content[] nearbyContent;
+    
+    // return indicesForContent that matches indicesToCheck
+    foreach (checkIndex; uniq(sort(indicesToCheck[checkContent])))
+    {
+      foreach (content, indices; indicesForContent)
+      {
+        //writeln("checking indices " ~ to!string(uniq(sort(indices))) ~ " against checkindex " ~ to!string(checkIndex));
+        if (canFind(uniq(sort(indices)), checkIndex))
+          nearbyContent ~= content;
+      }
+    }
+    
+    return array(uniq!((a, b) { return a.aabb == b.aabb; })(nearbyContent));
+  }
+    
+  
+  void insert(Content content)
+  {
+    insert(content, AABB(vec2i(0,0), vec2i(2^^15, 2^^15)), 15, indicesForContent);
   }
   
   
-  int[] opIndex(AABB box)
-  {
-    return AABBtoIndices[box];
-  }
-  
-  
-  void insert(AABB box)
-  {
-    insert(box, AABB(vec2i(0,0), vec2i(2^^15, 2^^15)), 15);
-  }
-  
-  void insert(AABB box, AABB sector, int level = 15)
+  static void insert(Content content, AABB sector, int level, ref int[][Content] indicesForContent)
   in
   {
-    assert(level >= 0 && level <= 15, "Tried to insert AABB with level out of bounds (0-15): " ~ to!string(level));
+    assert(level >= 0 && level <= 15, "Tried to insert content with level out of bounds (0-15): " ~ to!string(level));
   }
   body
   {
-    //import std.stdio;
-    //writeln("putting box " ~ to!string(box) ~ " in sector " ~ to!string(sector) ~ " at level " ~ to!string(level));
+    //writeln("putting content " ~ to!string(content) ~ " in sector " ~ to!string(sector) ~ " at level " ~ to!string(level));
     
     if (level == 0)
     {
-      AABBtoIndices[box] ~= indexForVector(box.midpoint);
+      //indicesForContent[content] ~= indexForVector(content.aabb.midpoint);
+      indicesForContent[content] ~= indexForVector(sector.midpoint);
       return;
     }
     
-    if (box.lowerleft.x < sector.lowerleft.x && box.upperright.x > sector.lowerleft.x &&  // the box is overlapping one of the left squares of this level
-        box.lowerleft.y < sector.lowerleft.y && box.upperright.y > sector.lowerleft.y)    // the box is overlapping one of the lower squares of this level
+    AABB box = content.aabb;
+    
+    if (box.lowerleft.x < sector.midpoint.x && box.upperright.x > sector.lowerleft.x &&  // the box is overlapping one of the left squares of this level
+        box.lowerleft.y < sector.midpoint.y && box.upperright.y > sector.lowerleft.y)    // the box is overlapping one of the lower squares of this level
     {
-      insert(box, 
-             AABB(sector.lowerleft, 
-                  vec2i(sector.upperright.x - 2^^(level-1), sector.upperright.y - 2^^(level-1))), 
-             level-1);
+      insert(content, AABB(sector.lowerleft, 
+                      vec2i(sector.upperright.x - 2^^(level-1), sector.upperright.y - 2^^(level-1))), 
+             level-1, indicesForContent);
     }
     
-    if (box.lowerleft.x < sector.upperright.x && box.upperright.x > sector.upperright.x &&  // the box is overlapping one of the right squares of this level
-        box.lowerleft.y < sector.lowerleft.y && box.upperright.y > sector.lowerleft.y)      // the box is overlapping one of the lower squares of this level
+    if (box.lowerleft.x < sector.upperright.x && box.upperright.x > sector.midpoint.x &&  // the box is overlapping one of the right squares of this level
+        box.lowerleft.y < sector.midpoint.y && box.upperright.y > sector.lowerleft.y)     // the box is overlapping one of the lower squares of this level
     {
-      insert(box, 
-             AABB(vec2i(sector.lowerleft.x + 2^^(level-1), sector.lowerleft.y), 
-                  vec2i(sector.upperright.x, sector.upperright.y - 2^^(level-1))), 
-             level-1);
+      insert(content, AABB(vec2i(sector.lowerleft.x + 2^^(level-1), sector.lowerleft.y), 
+                      vec2i(sector.upperright.x, sector.upperright.y - 2^^(level-1))), 
+             level-1, indicesForContent);
     }
     
-    if (box.lowerleft.x < sector.upperright.x && box.upperright.x > sector.upperright.x &&  // the box is overlapping one of the right squares of this level
-        box.lowerleft.y < sector.upperright.y && box.upperright.y > sector.upperright.y)    // the box is overlapping one of the upper squares of this level
+    if (box.lowerleft.x < sector.upperright.x && box.upperright.x > sector.midpoint.x &&  // the box is overlapping one of the right squares of this level
+        box.lowerleft.y < sector.upperright.y && box.upperright.y > sector.midpoint.y)    // the box is overlapping one of the upper squares of this level
     {
-      insert(box, 
-             AABB(vec2i(sector.lowerleft.x + 2^^(level-1), sector.lowerleft.y + 2^^(level-1)), 
-                  vec2i(sector.upperright)), 
-             level-1);
+      insert(content, AABB(vec2i(sector.lowerleft.x + 2^^(level-1), sector.lowerleft.y + 2^^(level-1)), 
+                      vec2i(sector.upperright)), 
+             level-1, indicesForContent);
     }
     
-    if (box.lowerleft.x < sector.lowerleft.x && box.upperright.x > sector.lowerleft.x &&  // the box is overlapping one of the left squares of this level
-        box.lowerleft.y < sector.upperright.y && box.upperright.y > sector.upperright.y)  // the box is overlapping one of the upper squares of this level
+    if (box.lowerleft.x < sector.midpoint.x && box.upperright.x > sector.lowerleft.x &&  // the box is overlapping one of the left squares of this level
+        box.lowerleft.y < sector.upperright.y && box.upperright.y > sector.midpoint.y)   // the box is overlapping one of the upper squares of this level
     {
-      insert(box, 
-             AABB(sector.lowerleft, 
-                  vec2i(sector.upperright)), 
-             level-1);
+      insert(content, AABB(sector.lowerleft, 
+                      vec2i(sector.upperright)), 
+             level-1, indicesForContent);
     }
   }
 }
