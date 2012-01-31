@@ -221,6 +221,8 @@ public:
     
     glTranslatef(0.0, 0.0, -32768.0);
     
+    int drawnComponents = 0;
+    
     // stable sort sometimes randomly crashes, phobos bug or float fuckery with lots of similar floats?
     foreach (component; sort!((left, right) { return left.depth < right.depth; }/*, SwapStrategy.stable*/)(components))
     {
@@ -238,6 +240,17 @@ public:
         {
           centerComponent = getComponent(m_centerEntity);
           assert(centerComponent.position.ok);
+          
+          // cull stuff that won't be shown on screen
+          if ((component.position - centerComponent.position).magnitude > (1.0 / m_zoom * 2.0))
+          {
+            glPopMatrix();
+            continue;
+          }
+          else
+          {
+            drawnComponents++;
+          }
         
           glTranslatef(-centerComponent.position.x, -centerComponent.position.y, 0.0);
         }
@@ -295,7 +308,6 @@ public:
 
       glPopMatrix();
     }
-    
     
     glPopMatrix();
   }
