@@ -154,7 +154,7 @@ public:
     int xres = 1024;
     int yres = 768;
     
-    m_console = new Console();
+    m_console = new Console(this);
     
     m_subSystems["placer"] = m_placer = new Placer();
     m_subSystems["graphics"] = m_graphics = new Graphics(cache, xres, yres);
@@ -263,6 +263,19 @@ public:
     }
   }
   
+ 
+  OutputLine executeCommand(string command)
+  {
+    if (command == "help")
+      return OutputLine("Don't panic", vec3(0, 1, 0));
+    else if (command == "entities")
+    {
+      return OutputLine(to!string(m_entities.length) ~  " entities registered", vec3(1, 1, 1));
+    }
+    
+    return OutputLine("?? " ~ command, vec3(1, 0, 0));
+  }
+
   
 private:
   int updateCount()
@@ -1109,6 +1122,7 @@ private:
 
     return closestEntity;
   }
+  
   
 private:
   int m_updateCount;

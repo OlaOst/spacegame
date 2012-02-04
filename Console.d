@@ -29,8 +29,12 @@ import std.stdio;
 import derelict.opengl.gl;
 import derelict.sdl.sdl;
 
+import gl3n.linalg;
+
 import SubSystem.Graphics;
 import InputHandler;
+
+public import Game;
 
 
 unittest
@@ -54,9 +58,22 @@ unittest
 }
 
 
+struct OutputLine
+{
+  string text;
+  vec3 color;
+}
+
+
 class Console
 {
 public:
+  this(Game p_game)
+  {
+    game = p_game;
+  }
+  
+  
   void display(Graphics graphics, float elapsedTime)
   {
     glPushMatrix();
@@ -70,11 +87,12 @@ public:
       else
         graphics.renderString(inputLine ~ "_");
         
-      glColor3f(1.0, 1.0, 1.0);
+      //glColor3f(1.0, 1.0, 1.0);
       foreach (outputLine; take(outputBuffer.retro,10))
       {
         glTranslatef(0.0, 1.0, 0.0);
-        graphics.renderString(outputLine);
+        glColor3f(outputLine.color.r, outputLine.color.g, outputLine.color.b);
+        graphics.renderString(outputLine.text);
       }
     glPopMatrix();
     
@@ -96,7 +114,7 @@ public:
     {
       if (key == SDLK_KP_ENTER || key == SDLK_RETURN)
       {
-        outputBuffer ~= inputLine;
+        outputBuffer ~= game.executeCommand(inputLine);
         inputLine = "";
       }
       else if (key == SDLK_BACKSPACE && inputLine.length > 0)
@@ -105,9 +123,12 @@ public:
         inputLine ~= to!char(key);
     }
   }
-  
+    
+    
 private:
   string inputLine;
   
-  string[] outputBuffer;
+  OutputLine[] outputBuffer;
+  
+  Game game;
 }
