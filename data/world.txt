@@ -38,8 +38,9 @@ debugDisplay.elements = FPS,entityNumber,subsystemTimings
 # special closest ship indicator points to closest ship entity
 closestShip.screenAbsolutePosition = true
 closestShip.position = 0.0 0.9
+closestShip.depth = top
 closestShip.name = Closest ship display
-closestShip.color = 0.0 1.0 0.2
+#closestShip.color = 0.0 1.0 0.2
 closestShip.text = ??
 
 
@@ -57,10 +58,10 @@ playership.leftEngine.control = playerEngine
 playership.rightEngine.control = playerEngine
 playership.leftGun.control = playerLauncher
 playership.rightGun.control = playerLauncher
-playership.leftGun.source = launcher.txt
-playership.rightGun.source = launcher.txt
-playership.leftGun.reloadTime = 0.2
-playership.rightGun.reloadTime = 0.2
+#playership.leftGun.source = launcher.txt
+#playership.rightGun.source = launcher.txt
+playership.leftGun.reloadTime = 0.02
+playership.rightGun.reloadTime = 0.02
 playership.*.collisionType = PlayerModule
 playership.*.spawn.*.target = closestEnemy
 playership.position = 0 0

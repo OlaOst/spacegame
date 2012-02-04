@@ -24,6 +24,7 @@
 module SubSystem.Graphics;
 
 import std.algorithm;
+import std.array;
 import std.conv;
 import std.exception;
 import std.format;
@@ -123,8 +124,10 @@ enum DrawSource
 
 struct Vertex
 {
-  float x = 0.0, y = 0.0;
-  float r = 1.0, g = 1.0, b = 1.0, a = 1.0;
+  //float x = 0.0, y = 0.0;
+  //float r = 1.0, g = 1.0, b = 1.0, a = 1.0;
+  vec2 position = vec2(0.0, 0.0);
+  vec4 color = vec4(1.0, 1.0, 1.0, 1.0);
   
   static Vertex fromString(string p_data)
   {
@@ -132,7 +135,7 @@ struct Vertex
     
     assert(comps.length == 6, "should have 6 values in vertex data, got " ~ p_data ~ " instead");
     
-    return Vertex(to!float(comps[0]), to!float(comps[1]), to!float(comps[2]), to!float(comps[3]), to!float(comps[4]), to!float(comps[5]));
+    return Vertex(vec2(to!float(comps[0]), to!float(comps[1])), vec4(to!float(comps[2]), to!float(comps[3]), to!float(comps[4]), to!float(comps[5])));
   }
 }
 
@@ -163,7 +166,7 @@ public:
   
   Vertex[] vertices;
   vec2[] connectPoints;
-  Vertex color;
+  vec4 color;
   
   int displayListId = -1;
   uint textureId = -1;
@@ -515,12 +518,16 @@ protected:
     {
       string colorString = p_entity.getValue("color");
       
+      writeln(to!string(p_entity.getValue("color")));
+      
       assert(colorString.split(" ").length >= 3);
       
-      if (colorString.split(" ").length == 3)
-        colorString ~= " 0";
+      auto colorComponents = colorString.split(" ");
+      
+      if (colorComponents.length == 3)
+        colorComponents ~= "1"; // default alpha is 1
         
-      component.color = Vertex.fromString("0 0 " ~ colorString);
+      component.color = vec4(array(map!(to!float)(colorComponents)));
     }
     
     if (component.drawSource != DrawSource.Text)
@@ -609,8 +616,8 @@ private:
       glBegin(GL_POLYGON);
       foreach (vertex; p_component.vertices)
       {
-        glColor3f(vertex.r, vertex.g, vertex.b);
-        glVertex3f(vertex.x, vertex.y, 0.0);
+        glColor3f(vertex.color.r, vertex.color.g, vertex.color.b);
+        glVertex3f(vertex.position.x, vertex.position.y, 0.0);
       }
       glEnd();
     }

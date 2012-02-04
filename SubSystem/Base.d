@@ -154,12 +154,12 @@ public:
     return m_entityToComponent[p_entity];
   }
   
-  void setComponent(Entity p_entity, ComponentType p_component)
+  final void setComponent(Entity p_entity, ComponentType p_component)
   {
     m_entityToComponent[p_entity] = p_component;
   }  
   
-  final ComponentType[] components() 
+  final ComponentType[] components()
   {
     ComponentType[] componentArray;
     
