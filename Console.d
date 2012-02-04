@@ -23,6 +23,7 @@
 module Console;
 
 import std.conv;
+import std.range;
 import std.stdio;
 
 import derelict.opengl.gl;
@@ -68,6 +69,13 @@ public:
         graphics.renderString(inputLine);
       else
         graphics.renderString(inputLine ~ "_");
+        
+      glColor3f(1.0, 1.0, 1.0);
+      foreach (outputLine; take(outputBuffer.retro,10))
+      {
+        glTranslatef(0.0, 1.0, 0.0);
+        graphics.renderString(outputLine);
+      }
     glPopMatrix();
     
     
@@ -87,7 +95,10 @@ public:
     foreach (key; input.getNonMappedKeys)
     {
       if (key == SDLK_KP_ENTER || key == SDLK_RETURN)
+      {
+        outputBuffer ~= inputLine;
         inputLine = "";
+      }
       else if (key == SDLK_BACKSPACE && inputLine.length > 0)
         inputLine = inputLine[0..$-1];
       else if (key >= SDLK_SPACE && key <= 255)
@@ -97,4 +108,6 @@ public:
   
 private:
   string inputLine;
+  
+  string[] outputBuffer;
 }
