@@ -22,6 +22,15 @@
 
 module Console;
 
+import std.conv;
+import std.stdio;
+
+import derelict.opengl.gl;
+import derelict.sdl.sdl;
+
+import SubSystem.Graphics;
+import InputHandler;
+
 
 unittest
 {
@@ -32,4 +41,60 @@ unittest
   // it should have an input line that the user can type commands into
   
   // it should hide and deactivate when the toggle console button is pressed
+  
+  // example debugging would be something like:
+  // getValues(playerShip)              - prints all name/value pairs for the player ship entity
+  // playerShip.position = 0 0          - set position value to 0 0
+  // updateEntity(playerShip)           - updates player entity, will put the playership at 0 0
+  // newShip.source = simpleship.txt    - creates a new entity if there is none named newShip
+  // newShip.position = 10 10           - sets the position value of the new ship
+  // newShip.control = NpcPilot         - sets the control value so the ship will be computer controlled
+  // registerEntity(newShip)            - registers the new entity, spawning it at 10 10
+}
+
+
+class Console
+{
+public:
+  void display(Graphics graphics, float elapsedTime)
+  {
+    glPushMatrix();
+      glTranslatef(-0.9, -0.9, 0.0);
+      glScalef(0.1, 0.1, 1.0);      
+      
+      glColor3f(0.2, 1.0, 0.4);
+      
+      if (to!int(elapsedTime*2) % 2 == 0)
+        graphics.renderString(inputLine);
+      else
+        graphics.renderString(inputLine ~ "_");
+    glPopMatrix();
+    
+    
+    glPushMatrix();
+      glColor4f(0.0, 0.0, 0.5, 0.5);
+      glBegin(GL_QUADS);
+        glVertex2f(-1.0, -0.95);
+        glVertex2f(-1.0,  0.3);
+        glVertex2f( 0.9,  0.3);
+        glVertex2f( 0.9, -0.95);
+      glEnd();
+    glPopMatrix();
+  }
+  
+  void handleInput(InputHandler input)
+  {
+    foreach (key; input.getNonMappedKeys)
+    {
+      if (key == SDLK_KP_ENTER || key == SDLK_RETURN)
+        inputLine = "";
+      else if (key == SDLK_BACKSPACE && inputLine.length > 0)
+        inputLine = inputLine[0..$-1];
+      else if (key >= SDLK_SPACE && key <= 255)
+        inputLine ~= to!char(key);
+    }
+  }
+  
+private:
+  string inputLine;
 }

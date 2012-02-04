@@ -46,6 +46,7 @@ import Control.PlayerLauncher;
 import Control.Flocker;
 
 import CommsCentral;
+import Console;
 import Entity;
 import EntityGenerator;
 import EntityLoader;
@@ -152,6 +153,8 @@ public:
     
     int xres = 1024;
     int yres = 768;
+    
+    m_console = new Console();
     
     m_subSystems["placer"] = m_placer = new Placer();
     m_subSystems["graphics"] = m_graphics = new Graphics(cache, xres, yres);
@@ -273,6 +276,8 @@ private:
     m_timer.stop();
     
     float elapsedTime = m_timer.peek.msecs * 0.001;
+    static float totalTime = 0.0;
+    totalTime += elapsedTime;
     
     if (elapsedTime <= 0)
       elapsedTime = 0.001;
@@ -511,6 +516,8 @@ private:
         }
       }
     }
+    
+    m_console.display(m_graphics, totalTime);
     
     handleInput(elapsedTime);
     
@@ -805,6 +812,8 @@ private:
     {
       m_paused = !m_paused;
     }
+    
+    m_console.handleInput(m_inputHandler);
   }
   
   
@@ -1111,6 +1120,8 @@ private:
   
   InputHandler m_inputHandler;
   
+  Console m_console;
+  
   SubSystem.Base.SubSystem[string] m_subSystems;
   Placer m_placer;
   Physics m_physics;
@@ -1123,7 +1134,7 @@ private:
   Starfield m_starfield;
   
   Entity[int] m_entities;
-
+  
   // special entities.. do they really need to be hardcoded?
   Entity m_playerShip;
   Entity m_trashBin;

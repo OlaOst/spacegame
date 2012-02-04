@@ -370,6 +370,10 @@ public:
     return m_centerEntity;
   }
   
+  void renderString(string text)
+  {
+    m_textRender.renderString(text);
+  }
   
 protected:
   bool canCreateComponent(Entity p_entity)
