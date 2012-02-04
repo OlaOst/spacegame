@@ -329,7 +329,7 @@ public:
     foreach (buttonEvent; m_buttonEventMapping.values)
       m_events[buttonEvent] = EventState.Unchanged;
     
-    m_nonMappedKeys.length = 0;
+    m_keysPressed.length = 0;
     
     SDL_Event event;
     
@@ -366,9 +366,9 @@ public:
     return m_mousePos;
   }
   
-  SDLKey[] getNonMappedKeys()
+  SDLKey[] getKeysPressed()
   {
-    return m_nonMappedKeys;
+    return m_keysPressed;
   }
   
 private:
@@ -387,10 +387,9 @@ private:
           m_events[m_keyEventMapping[event.key.keysym.sym]] = EventState.Pressed;
           m_pressedEvents[m_keyEventMapping[event.key.keysym.sym]] = true;
         }
-        else
-        {
-          m_nonMappedKeys ~= event.key.keysym.sym;
-        }
+        
+        m_keysPressed ~= event.key.keysym.sym;
+        
         break;
       }
       
@@ -484,7 +483,7 @@ private:
   EventState[Event] m_events;
   bool[Event] m_pressedEvents;
   
-  SDLKey[] m_nonMappedKeys;
+  SDLKey[] m_keysPressed;
   
   static Event[SDLKey] m_keyEventMapping;
   static Event[SDLKey] m_buttonEventMapping;

@@ -25,6 +25,7 @@ module Console;
 import std.conv;
 import std.range;
 import std.stdio;
+import std.string;
 
 import derelict.opengl.gl;
 import derelict.sdl.sdl;
@@ -78,7 +79,7 @@ public:
   {
     glPushMatrix();
       glTranslatef(-0.9, -0.9, 0.0);
-      glScalef(0.1, 0.1, 1.0);      
+      glScalef(0.05, 0.05, 1.0);      
       
       glColor3f(0.2, 1.0, 0.4);
       
@@ -110,11 +111,11 @@ public:
   
   void handleInput(InputHandler input)
   {
-    foreach (key; input.getNonMappedKeys)
+    foreach (key; input.getKeysPressed())
     {
       if (key == SDLK_KP_ENTER || key == SDLK_RETURN)
       {
-        outputBuffer ~= game.executeCommand(inputLine);
+        outputBuffer ~= game.executeCommand(inputLine.strip);
         inputLine = "";
       }
       else if (key == SDLK_BACKSPACE && inputLine.length > 0)

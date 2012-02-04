@@ -270,7 +270,27 @@ public:
       return OutputLine("Don't panic", vec3(0, 1, 0));
     else if (command == "entities")
     {
-      return OutputLine(to!string(m_entities.length) ~  " entities registered", vec3(1, 1, 1));
+      return OutputLine("Registered entities: " ~ to!string(m_entities.keys), vec3(1, 1, 1));
+    }
+    else if (command.startsWith("values"))
+    {
+      try
+      {
+        command.skipOver("values");
+        
+        int entityId = to!int(command.strip);
+        
+        if (entityId in m_entities)
+        {
+          string text = to!string(m_entities[entityId].values);
+          
+          return OutputLine(to!string(text.until("\\n")), vec3(1, 1, 1));
+        }
+        else
+          return OutputLine("No entity with id " ~ to!string(entityId), vec3(1, 0.5, 0));
+      }
+      catch (ConvException e)
+      {writeln("ohnoes: " ~ to!string(e));}
     }
     
     return OutputLine("?? " ~ command, vec3(1, 0, 0));
