@@ -465,18 +465,9 @@ private:
           poscomp.position = closestEntityPosition.normalized() * 0.9;
           gfxcomp.position = closestEntityPosition.normalized() * 0.9;
           gfxcomp.text = to!string(floor(closestEntityDistance));
-          gfxcomp.color = vec4(1, 0, 0, 1);
           
           m_placer.setComponent(m_closestShipDisplay, poscomp);
           m_graphics.setComponent(m_closestShipDisplay, gfxcomp);
-          
-          //m_closestShipDisplay.setValue("position", (closestEntityPosition.normalized() * 0.9).toString());
-          //m_closestShipDisplay.setValue("text", to!string(floor(closestEntityDistance)));
-          //m_closestShipDisplay.setValue("color", "1 0 0");
-          
-          //registerEntity(m_closestShipDisplay);
-          
-          writeln(to!string(m_placer.getComponent(m_closestShipDisplay).position) ~ ", gfxpos " ~ to!string(m_graphics.getComponent(m_closestShipDisplay).position));
         }
       }
     }

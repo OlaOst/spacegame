@@ -40,7 +40,7 @@ closestShip.screenAbsolutePosition = true
 closestShip.position = 0.0 0.9
 closestShip.depth = top
 closestShip.name = Closest ship display
-#closestShip.color = 0.0 1.0 0.2
+closestShip.color = 0.0 1.0 0.2
 closestShip.text = ??
 
 

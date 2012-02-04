@@ -518,8 +518,6 @@ protected:
     {
       string colorString = p_entity.getValue("color");
       
-      writeln(to!string(p_entity.getValue("color")));
-      
       assert(colorString.split(" ").length >= 3);
       
       auto colorComponents = colorString.split(" ");
