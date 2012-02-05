@@ -366,7 +366,7 @@ public:
     return m_mousePos;
   }
   
-  SDLKey[] getKeysPressed()
+  SDL_keysym[] getKeysPressed()
   {
     return m_keysPressed;
   }
@@ -388,7 +388,7 @@ private:
           m_pressedEvents[m_keyEventMapping[event.key.keysym.sym]] = true;
         }
         
-        m_keysPressed ~= event.key.keysym.sym;
+        m_keysPressed ~= event.key.keysym;
         
         break;
       }
@@ -483,7 +483,7 @@ private:
   EventState[Event] m_events;
   bool[Event] m_pressedEvents;
   
-  SDLKey[] m_keysPressed;
+  SDL_keysym[] m_keysPressed;
   
   static Event[SDLKey] m_keyEventMapping;
   static Event[SDLKey] m_buttonEventMapping;

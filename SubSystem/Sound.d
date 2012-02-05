@@ -27,6 +27,9 @@ import std.conv;
 import std.exception;
 import std.stdio;
 
+import derelict.ogg.ogg;
+import derelict.ogg.vorbis;
+import derelict.ogg.vorbisfile;
 import derelict.openal.al;
 import derelict.openal.alut;
 
@@ -49,11 +52,12 @@ public:
   this(ALuint p_buffer)
   {
     buffer = p_buffer;
-    shouldPlay = false;
   }
 
   ALuint buffer;
-  bool shouldPlay;
+  bool shouldStartPlaying = false;
+  bool isPlaying = false;
+  bool isMusic = false;
 }
 
 
@@ -70,12 +74,18 @@ public:
   {
     DerelictAL.load();  
     DerelictALUT.load();
+    DerelictOgg.load();
+    DerelictVorbis.load();
+    DerelictVorbisFile.load();
     
     alutInit(null, null);
   
-    m_sources.length = p_sources;
+    alGenSources(1, &m_musicSource);
   
-    for (int n = 0; n < p_sources; n++)
+    // subtract 1 from requested sources, since one source is reserved for music
+    m_sources.length = p_sources - 1;
+    
+    for (int n = 0; n < p_sources - 1; n++)
     {
       alGenSources(1, &m_sources[n]);
     }
@@ -87,16 +97,34 @@ public:
   {
     foreach (component; components)
     {
-      if (component.shouldPlay)
+      if (component.shouldStartPlaying)
       {
-        alSourcei(m_sources[m_lastSourcePlayed], AL_BUFFER, component.buffer);
+        ALuint source;
         
-        //writeln("source " ~ to!string(m_source) ~ " playing buffer " ~ to!string(component.buffer));
-        alSourcePlay(m_sources[m_lastSourcePlayed]);
+        if (component.isMusic)
+          source = m_musicSource;
+        else
+          source = m_sources[m_lastSourcePlayed];
+        
+        alSourcei(source, AL_BUFFER, component.buffer);
+        alSourcePlay(source);
 
-        component.shouldPlay = false;
+        component.shouldStartPlaying = false;
+        component.isPlaying = true;
         
-        m_lastSourcePlayed = (m_lastSourcePlayed + 1) % m_sources.length;
+        if (component.isMusic == false)
+          m_lastSourcePlayed = (m_lastSourcePlayed + 1) % m_sources.length;
+      }
+      if (component.isPlaying)
+      {
+        if (component.isMusic)
+        {
+          ALint state;
+          alGetSourcei(m_musicSource, AL_SOURCE_STATE, &state);
+          
+          if (state == AL_STOPPED)
+            component.shouldStartPlaying = true;
+        }
       }
     }
   }
@@ -113,25 +141,88 @@ protected:
     
     if (soundFile.startsWith("data/sounds/") == false)
       soundFile = "data/sounds/" ~ soundFile;
-      
+
     if (soundFile !in m_fileToBuffer)
     {
-      m_fileToBuffer[soundFile] = alutCreateBufferFromFile(cast(char*)soundFile);
+      if (soundFile.find(".ogg") != [])
+      {
+        byte[] buffer;
+        ALenum format;
+        ALsizei frequency;
+        
+        loadOgg(soundFile, buffer, format, frequency);
+        
+        writeln("read in " ~ to!string(buffer.length) ~ " bytes from oggfile " ~ soundFile);
+        
+        ALuint bufferId;
+        alGenBuffers(1, &bufferId);
+        
+        alBufferData(bufferId, format, buffer.ptr, buffer.length, frequency);
+        
+        m_fileToBuffer[soundFile] = bufferId;
+      }
+      else if (soundFile.find(".wav") != [])
+      {
+        m_fileToBuffer[soundFile] = alutCreateBufferFromFile(cast(char*)soundFile);
+      }
+      
       enforce(alGetError() == AL_NO_ERROR, "error code " ~ to!string(alGetError()));
     }
 
     //writeln("creating sound component from " ~ soundFile);
+    assert(soundFile in m_fileToBuffer);
     
     auto newComponent = new SoundComponent(m_fileToBuffer[soundFile]);
     
-    newComponent.shouldPlay = true;
+    newComponent.shouldStartPlaying = true;
+    
+    if ("isMusic" in p_entity.values)
+      newComponent.isMusic = true;
     
     return newComponent;
   }
   
   
 private:
+  void loadOgg(string fileName, ref byte[] buffer, ref ALenum format, ref ALsizei frequency)
+  {
+    File file = File(fileName);
+    
+    OggVorbis_File oggFile;
+    
+    ov_open(file.getFP(), &oggFile, null, 0);
+    
+    // get some info about the ogg file
+    auto info = ov_info(&oggFile, -1);
+    
+    writeln("ogg file info: " ~ to!string(*info));
+    
+    if (info.channels == 1)
+      format = AL_FORMAT_MONO16;
+    else
+      format = AL_FORMAT_STEREO16;
+      
+    frequency = info.rate;
+    
+
+    int endian = 0;             // 0 for Little-Endian, 1 for Big-Endian
+    int bitStream;
+    byte[32768] array;    // Local fixed size array
+    
+    for (int bytesRead = ov_read(&oggFile, array.ptr, array.length, endian, 2, 1, &bitStream); 
+             bytesRead > 0; 
+             bytesRead = ov_read(&oggFile, array.ptr, array.length, endian, 2, 1, &bitStream))
+    {
+      buffer ~= array[0..bytesRead];
+    } 
+    
+    //ov_clear(&oggFile);
+  }
+  
+
+private:
   ALuint[] m_sources;
+  ALuint m_musicSource;
   
   ALuint[string] m_fileToBuffer;
   

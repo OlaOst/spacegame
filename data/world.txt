@@ -1,6 +1,11 @@
 # just a sound played at startup letting us know the game has started
-startupDing.soundFile = test.wav
-startupDing.name = startupDing
+#startupDing.soundFile = test.wav
+#startupDing.name = startupDing
+
+# background music
+backgroundMusic.soundFile = orbitalelevator.ogg
+backgroundMusic.isMusic = true
+
 
 # backdrop picture
 backdrop.drawsource = images/galaxiesbackdrop.jpg
