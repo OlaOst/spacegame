@@ -89,7 +89,7 @@ public:
         graphics.renderString(inputLine ~ "_");
         
       //glColor3f(1.0, 1.0, 1.0);
-      foreach (outputLine; take(outputBuffer.retro,10))
+      foreach (outputLine; take(outputBuffer.retro, 20))
       {
         glTranslatef(0.0, 1.0, 0.0);
         glColor3f(outputLine.color.r, outputLine.color.g, outputLine.color.b);
@@ -111,17 +111,23 @@ public:
   
   void handleInput(InputHandler input)
   {
-    foreach (key; input.getKeysPressed())
+    foreach (keysym; input.getKeysPressed())
     {
+      auto key = keysym.sym;
+      
       if (key == SDLK_KP_ENTER || key == SDLK_RETURN)
       {
+        auto test = inputLine.strip;
+        
         outputBuffer ~= game.executeCommand(inputLine.strip);
         inputLine = "";
       }
       else if (key == SDLK_BACKSPACE && inputLine.length > 0)
         inputLine = inputLine[0..$-1];
-      else if (key >= SDLK_SPACE && key <= 255)
-        inputLine ~= to!char(key);
+      else if (keysym.unicode > 0)
+      {
+        inputLine ~= to!dchar(keysym.unicode);
+      }
     }
   }
     

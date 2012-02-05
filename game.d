@@ -162,7 +162,7 @@ public:
     m_subSystems["controller"] = m_controller = new Controller(m_inputHandler);
     m_subSystems["collider"] = m_collider = new CollisionHandler();
     m_subSystems["connector"] = m_connector = new ConnectionHandler();
-    m_subSystems["sound"] = new SoundSubSystem(16);
+    m_subSystems["sound"] = new SoundSubSystem(64);
     m_subSystems["spawner"] = m_spawner = new Spawner();
 
     assert(m_controller !is null);
@@ -172,6 +172,8 @@ public:
     m_controller.controls["dispenser"] = m_dispenser = new Dispenser(m_inputHandler);
     m_controller.controls["playerlauncher"] = new PlayerLauncher(m_inputHandler);
     m_controller.controls["playerengine"] = new PlayerEngine(m_inputHandler);
+    
+    SDL_EnableUNICODE(1);
     
     //loadWorldFromFile("data/simpleworld.txt");
     loadWorldFromFile("data/world.txt");
@@ -289,8 +291,51 @@ public:
         else
           return OutputLine("No entity with id " ~ to!string(entityId), vec3(1, 0.5, 0));
       }
-      catch (ConvException e)
-      {writeln("ohnoes: " ~ to!string(e));}
+      catch (ConvException e) {}
+    }
+    else if (command.startsWith("register"))
+    {
+      try
+      {
+        command.skipOver("register");
+        
+        int entityId = to!int(command.strip);
+        
+        if (entityId in m_entities)
+        {
+          registerEntity(m_entities[entityId]);
+          
+          return OutputLine("Registered entity " ~ to!string(entityId), vec3(1, 1, 1));
+        }
+        else
+          return OutputLine("No entity with id " ~ to!string(entityId), vec3(1, 0.5, 0));
+      }
+      catch (ConvException e) {}
+    }
+    else if (command.startsWith("set"))
+    {
+      try
+      {
+        command.skipOver("set");
+        
+        auto parameters = command.strip.split(" ");
+        
+        int entityId = to!int(parameters[0]);
+        string key = parameters[1];
+        string value = parameters[2];
+        
+        if (entityId in m_entities)
+        {
+          m_entities[entityId].setValue(key, value);
+        
+          string text = to!string(m_entities[entityId].values);
+          
+          return OutputLine(to!string(text.until("\\n")), vec3(1, 1, 1));
+        }
+        else
+          return OutputLine("No entity with id " ~ to!string(entityId), vec3(1, 0.5, 0));
+      }
+      catch (ConvException e) {}
     }
     
     return OutputLine("?? " ~ command, vec3(1, 0, 0));
