@@ -30,6 +30,7 @@ import std.exception;
 import std.math;
 import std.parallelism;
 import std.random;
+import std.range;
 import std.stdio;
 import std.string;
 
@@ -175,8 +176,8 @@ public:
     
     SDL_EnableUNICODE(1);
     
-    //loadWorldFromFile("data/simpleworld.txt");
-    loadWorldFromFile("data/world.txt");
+    loadWorldFromFile("data/simpleworld.txt");
+    //loadWorldFromFile("data/world.txt");
     
     //Entity station = loadShip("", getValues(cache, EntityGenerator.createStation()));
     
@@ -266,13 +267,37 @@ public:
   }
   
  
-  OutputLine executeCommand(string command)
+  OutputLine[] executeCommand(string command)
   {
     if (command == "help")
-      return OutputLine("Don't panic", vec3(0, 1, 0));
+    {
+      return [OutputLine("Commands available: ", vec3(1, 1, 1)),
+              OutputLine("help            - shows this list", vec3(1, 1, 1)),
+              OutputLine("exit/quit       - exits the program", vec3(1, 1, 1)),
+              OutputLine("entities        - list of entity ids", vec3(1, 1, 1)),
+              OutputLine("values n        - list values in entity with id n", vec3(1, 1, 1)),
+              OutputLine("systems n       - list subsystems entity with id n is registered in", vec3(1, 1, 1)),
+              OutputLine("register n      - registers entity with id n", vec3(1, 1, 1)),
+              OutputLine("set n key value - for entity with id n, sets key to the given value", vec3(1, 1, 1)),
+              OutputLine("new name        - creates a new entity with the given name", vec3(1, 1, 1)),
+              OutputLine("Don't panic", vec3(0, 1, 0)),];
+    }
+    else if (command == "exit" || command == "quit")
+    {
+      m_running = false;
+    }
     else if (command == "entities")
     {
-      return OutputLine("Registered entities: " ~ to!string(m_entities.keys), vec3(1, 1, 1));
+      OutputLine[] lines;
+      
+      auto ids = m_entities.keys.dup;
+      
+      for (int n = 0; n < ids.length; n += 20)
+        lines ~= OutputLine(to!string(ids[n..min(n+20, ids.length-1)]), vec3(1, 1, 1));
+      
+      lines ~= OutputLine("", vec3(1, 1, 1));
+      
+      return lines;
     }
     else if (command.startsWith("values"))
     {
@@ -286,10 +311,53 @@ public:
         {
           string text = to!string(m_entities[entityId].values);
           
-          return OutputLine(to!string(text.until("\\n")), vec3(1, 1, 1));
+          OutputLine[] values;
+          foreach (key, value; m_entities[entityId].values)
+            values ~= OutputLine(key ~ ": " ~ to!string(value.until("\\n")), vec3(1, 1, 1));
+          
+          values ~= OutputLine("", vec3(1, 1, 1));
+          
+          return values;
         }
         else
-          return OutputLine("No entity with id " ~ to!string(entityId), vec3(1, 0.5, 0));
+          return [OutputLine("No entity with id " ~ to!string(entityId), vec3(1, 0.5, 0))];
+      }
+      catch (ConvException e) {}
+    }
+    else if (command.startsWith("systems"))
+    {
+      try
+      {
+        command.skipOver("systems");
+        
+        int entityId = to!int(command.strip);
+        
+        if (entityId in m_entities)
+        {
+          string text = to!string(m_entities[entityId].values);
+          
+          auto entity = m_entities[entityId];
+          
+          OutputLine[] values;
+          
+          values ~= OutputLine("Entity " ~ to!string(entityId) ~ " is registered in: ", vec3(1, 1, 1));
+          foreach (subSystem; m_subSystems)
+          {
+            auto name = subSystem.name;
+            
+            name.findSkip("SubSystem.");
+            name.findSkip(".");
+            
+            if (subSystem.hasComponent(entity))
+              values ~= OutputLine(name, vec3(1, 1, 1));
+          }
+          
+          values ~= OutputLine("", vec3(1, 1, 1));
+          
+          return values;
+        }
+        else
+          return [OutputLine("No entity with id " ~ to!string(entityId), vec3(1, 0.5, 0))];
       }
       catch (ConvException e) {}
     }
@@ -305,10 +373,10 @@ public:
         {
           registerEntity(m_entities[entityId]);
           
-          return OutputLine("Registered entity " ~ to!string(entityId), vec3(1, 1, 1));
+          return [OutputLine("Registered entity " ~ to!string(entityId), vec3(1, 1, 1))];
         }
         else
-          return OutputLine("No entity with id " ~ to!string(entityId), vec3(1, 0.5, 0));
+          return [OutputLine("No entity with id " ~ to!string(entityId), vec3(1, 0.5, 0))];
       }
       catch (ConvException e) {}
     }
@@ -322,7 +390,7 @@ public:
         
         int entityId = to!int(parameters[0]);
         string key = parameters[1];
-        string value = parameters[2];
+        string value = reduce!((a, b) { return a ~= " " ~ b;  } )(parameters[2..$]);
         
         if (entityId in m_entities)
         {
@@ -330,15 +398,26 @@ public:
         
           string text = to!string(m_entities[entityId].values);
           
-          return OutputLine(to!string(text.until("\\n")), vec3(1, 1, 1));
+          return [OutputLine(to!string(text.until("\\n")), vec3(1, 1, 1))];
         }
         else
-          return OutputLine("No entity with id " ~ to!string(entityId), vec3(1, 0.5, 0));
+          return [OutputLine("No entity with id " ~ to!string(entityId), vec3(1, 0.5, 0))];
       }
       catch (ConvException e) {}
     }
+    else if (command.startsWith("new"))
+    {
+      command.skipOver("new");
+      auto name = command.strip;
+      
+      auto newEntity = new Entity(["name": name]);
+      
+      m_entities[newEntity.id] = newEntity;
+      
+      return [OutputLine("Created new entity with id " ~ to!string(newEntity.id), vec3(1, 1, 1))];
+    }
     
-    return OutputLine("?? " ~ command, vec3(1, 0, 0));
+    return [OutputLine("?? " ~ command, vec3(1, 0, 0))];
   }
 
   
@@ -913,8 +992,6 @@ private:
     
     auto mainEntity = new Entity(values);
     
-    mainEntity.setValue("owner", to!string(mainEntity.id));
-    
     float accumulatedMass = 0.0;
     if ("mass" in mainEntity.values)
       accumulatedMass += to!float(mainEntity.getValue("mass"));
@@ -958,6 +1035,9 @@ private:
     
     if (accumulatedMass > 0.0)
       mainEntity.setValue("mass", to!string(accumulatedMass));
+    
+    if (childEntities.length > 0)
+      mainEntity.setValue("owner", to!string(mainEntity.id));
     
     registerEntity(mainEntity);
     
