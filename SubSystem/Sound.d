@@ -80,15 +80,13 @@ public:
     
     alutInit(null, null);
   
-    alGenSources(1, &m_musicSource);
+    m_musicSources.length = 3;
+    for (int n = 0; n < m_musicSources.length; n++)
+      alGenSources(1, &m_musicSources[n]);
   
-    // subtract 1 from requested sources, since one source is reserved for music
-    m_sources.length = p_sources - 1;
-    
-    for (int n = 0; n < p_sources - 1; n++)
-    {
+    m_sources.length = p_sources - m_musicSources.length;
+    for (int n = 0; n < p_sources - m_musicSources.length; n++)
       alGenSources(1, &m_sources[n]);
-    }
     
     m_lastSourcePlayed = 0;
   }
@@ -102,9 +100,11 @@ public:
         ALuint source;
         
         if (component.isMusic)
-          source = m_musicSource;
+          source = m_musicSources[0];
         else
           source = m_sources[m_lastSourcePlayed];
+        
+        writeln("source " ~ to!string(source) ~ " playing buffer " ~ to!string(component.buffer));
         
         alSourcei(source, AL_BUFFER, component.buffer);
         alSourcePlay(source);
@@ -115,12 +115,13 @@ public:
         if (component.isMusic == false)
           m_lastSourcePlayed = (m_lastSourcePlayed + 1) % m_sources.length;
       }
+      
       if (component.isPlaying)
       {
         if (component.isMusic)
         {
           ALint state;
-          alGetSourcei(m_musicSource, AL_SOURCE_STATE, &state);
+          alGetSourcei(m_musicSources[0], AL_SOURCE_STATE, &state);
           
           if (state == AL_STOPPED)
             component.shouldStartPlaying = true;
@@ -138,6 +139,8 @@ protected:
   SoundComponent createComponent(Entity p_entity)
   {
     auto soundFile = p_entity.getValue("soundFile");
+    
+    writeln("sound creating comp from " ~ soundFile);
     
     if (soundFile.startsWith("data/sounds/") == false)
       soundFile = "data/sounds/" ~ soundFile;
@@ -205,7 +208,7 @@ private:
     frequency = info.rate;
     
 
-    int endian = 0;             // 0 for Little-Endian, 1 for Big-Endian
+    int endian = 0;       // 0 for Little-Endian, 1 for Big-Endian
     int bitStream;
     byte[32768] array;    // Local fixed size array
     
@@ -222,7 +225,7 @@ private:
 
 private:
   ALuint[] m_sources;
-  ALuint m_musicSource;
+  ALuint[] m_musicSources;
   
   ALuint[string] m_fileToBuffer;
   
