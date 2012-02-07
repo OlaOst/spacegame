@@ -62,13 +62,16 @@ public:
     //assert(p_sourceComponent.torque == p_sourceComponent.torque);
   }
   body
-  {    
+  {
+    if (consoleActive)
+      return;
+      
     p_sourceComponent.isFiring = false;
     
     assert(m_inputHandler !is null);
     
     if (m_inputHandler.isPressed(Event.Space))
-    {    
+    {
       if (p_sourceComponent.reloadTimeLeft <= 0.0)
       {
         p_sourceComponent.isFiring = true;

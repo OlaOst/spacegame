@@ -31,7 +31,6 @@ import gl3n.math;
 import gl3n.linalg;
 
 import Control.ControlBase;
-import InputHandler;
 import SubSystem.Base;
 
 
@@ -85,9 +84,8 @@ private:
 class Controller : public Base!(ControlComponent)
 {
 public:
-  this(InputHandler p_inputHandler)
+  this()
   {
-    m_inputHandler = p_inputHandler;
   }
   
   void update()
@@ -233,7 +231,5 @@ public:
   ControlBase[string] controls;
   
 private:
-  InputHandler m_inputHandler;
-  
   float m_timeStep;
 }

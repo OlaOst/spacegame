@@ -160,7 +160,7 @@ public:
     m_subSystems["placer"] = m_placer = new Placer();
     m_subSystems["graphics"] = m_graphics = new Graphics(cache, xres, yres);
     m_subSystems["physics"] = m_physics = new Physics();
-    m_subSystems["controller"] = m_controller = new Controller(m_inputHandler);
+    m_subSystems["controller"] = m_controller = new Controller();
     m_subSystems["collider"] = m_collider = new CollisionHandler();
     m_subSystems["connector"] = m_connector = new ConnectionHandler();
     m_subSystems["sound"] = new SoundSubSystem(64);
@@ -168,16 +168,16 @@ public:
 
     assert(m_controller !is null);
     
-    m_controller.controls["aigunner"] = m_aiGunner = new AiGunner();
-    m_controller.controls["chaser"] = m_aiChaser = new AiChaser();
+    m_controller.controls["aigunner"] = new AiGunner();
+    m_controller.controls["chaser"] = new AiChaser();
     m_controller.controls["dispenser"] = m_dispenser = new Dispenser(m_inputHandler);
     m_controller.controls["playerlauncher"] = new PlayerLauncher(m_inputHandler);
     m_controller.controls["playerengine"] = new PlayerEngine(m_inputHandler);
     
     SDL_EnableUNICODE(1);
     
-    loadWorldFromFile("data/simpleworld.txt");
-    //loadWorldFromFile("data/world.txt");
+    //loadWorldFromFile("data/simpleworld.txt");
+    loadWorldFromFile("data/world.txt");
     
     //Entity station = loadShip("", getValues(cache, EntityGenerator.createStation()));
     
@@ -684,6 +684,13 @@ private:
   
   void handleInput(float p_elapsedTime)
   {
+    m_console.handleInput(m_inputHandler);
+      
+    foreach (control; m_controller.controls.values)
+    {
+      control.consoleActive = m_console.isActive();
+    }
+  
     if (m_inputHandler.isPressed(Event.LeftButton))
     {
       // TODO: if we have a dragentity we must ensure it stops getting dragged before it's destroyed or removed by something - lifetime expiration for bullets for example
@@ -969,8 +976,6 @@ private:
     {
       m_paused = !m_paused;
     }
-    
-    m_console.handleInput(m_inputHandler);
   }
   
   
@@ -1306,8 +1311,6 @@ private:
   string m_debugInfo;
   string m_timingInfo;
   
-  AiGunner m_aiGunner;
-  AiChaser m_aiChaser;
   Dispenser m_dispenser;
   
   string[][string] cache;

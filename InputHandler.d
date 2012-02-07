@@ -256,6 +256,7 @@ enum Event
   WheelUp,
   WheelDown,
   Pause,
+  ToggleConsole,
   
   StrafeLeft,
   StrafeRight,
@@ -308,6 +309,8 @@ public:
     m_keyEventMapping[SDLK_SPACE] = Event.Space;
     
     m_keyEventMapping[SDLK_PAUSE] = Event.Pause;
+    
+    m_keyEventMapping[SDLK_BACKQUOTE] = Event.ToggleConsole;
     
     m_buttonEventMapping[SDL_BUTTON_LEFT] = Event.LeftButton;
     m_buttonEventMapping[SDL_BUTTON_MIDDLE] = Event.MiddleButton;

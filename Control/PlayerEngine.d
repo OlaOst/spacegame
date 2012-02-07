@@ -67,6 +67,9 @@ public:
   }
   body*/
   {
+    if (consoleActive)
+      return;
+  
     //auto dir = vec2.fromAngle(p_sourceComponent.angle);
     auto dir = vec2(0.0, 1.0); // default direction is up
     

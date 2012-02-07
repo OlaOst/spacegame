@@ -3,21 +3,22 @@
 #startupDing.name = startupDing
 
 # background music
-backgroundMusic.soundFile = orbitalelevator.ogg
-backgroundMusic.isMusic = true
+#backgroundMusic.soundFile = orbitalelevator.ogg
+#backgroundMusic.isMusic = true
 
 
 # backdrop picture
-backdrop.drawsource = images/galaxiesbackdrop.jpg
-backdrop.position = 0 0 -200
-backdrop.depth = bottom
-backdrop.radius = 10.0
-backdrop.screenAbsolutePosition = true
+#backdrop.drawsource = images/galaxiesbackdrop.jpg
+#backdrop.position = 0 0 -200
+#backdrop.depth = bottom
+#backdrop.radius = 10.0
+#backdrop.screenAbsolutePosition = true
 
 
 # greeting text
 greeting.text = Welcome!\nPage Up/Down zooms in/out\nArrow keys accelerates and rotates your ship\nX brakes, Z and C for strafing
 greeting.position = -9 -5
+#greeting.depth = top
 
 # drag drop instruction text
 #dragdrophelp.text = blabla

@@ -25,7 +25,7 @@ module Control.ControlBase;
 import SubSystem.Controller;
 
 
-interface ControlBase
+interface ControlInterface
 {
   public:
     void update(ref ControlComponent p_sourceComponent);
@@ -40,4 +40,12 @@ interface ControlBase
         assert(otherComponent.position.ok);
       }
     }*/
+}
+
+
+abstract class ControlBase : ControlInterface
+{
+  public:
+    abstract void update(ref ControlComponent p_sourceComponent);
+    bool consoleActive = false; // we want to block player input controls when console is active - we don't want to fire guns when pressing space for example
 }

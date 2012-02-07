@@ -72,11 +72,16 @@ public:
   this(Game p_game)
   {
     game = p_game;
+    
+    active = false;
   }
   
   
   void display(Graphics graphics, float elapsedTime)
   {
+    if (!active)
+      return;
+      
     glPushMatrix();
       glTranslatef(-0.9, -0.9, 0.0);
       glScalef(0.05, 0.05, 1.0);      
@@ -111,31 +116,43 @@ public:
   
   void handleInput(InputHandler input)
   {
-    foreach (keysym; input.getKeysPressed())
+    if (input.eventState(Event.ToggleConsole) == EventState.Released)
+      active = !active;
+    
+    if (active)
     {
-      auto key = keysym.sym;
-      
-      if (key == SDLK_KP_ENTER || key == SDLK_RETURN)
+      foreach (keysym; input.getKeysPressed())
       {
-        auto test = inputLine.strip;
+        auto key = keysym.sym;
         
-        outputBuffer ~= game.executeCommand(inputLine.strip);
-        inputLine = "";
-      }
-      else if (key == SDLK_BACKSPACE && inputLine.length > 0)
-        inputLine = inputLine[0..$-1];
-      else if (keysym.unicode > 0)
-      {
-        inputLine ~= to!dchar(keysym.unicode);
+        if (key == SDLK_KP_ENTER || key == SDLK_RETURN)
+        {
+          auto test = inputLine.strip;
+          
+          outputBuffer ~= game.executeCommand(inputLine.strip);
+          inputLine = "";
+        }
+        else if (key == SDLK_BACKSPACE && inputLine.length > 0)
+          inputLine = inputLine[0..$-1];
+        else if (keysym.unicode > 0 && key != SDLK_BACKQUOTE)
+        {
+          inputLine ~= to!dchar(keysym.unicode);
+        }
       }
     }
   }
-    
-    
+  
+  bool isActive()
+  {
+    return active;
+  }
+  
 private:
   string inputLine;
   
   OutputLine[] outputBuffer;
   
   Game game;
+  
+  bool active;
 }

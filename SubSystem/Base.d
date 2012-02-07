@@ -177,7 +177,7 @@ public:
     return m_entityToComponent.keys;
   }
 
-  final string name()
+  @property final string name()
   {
     return this.classinfo.name;
   }
