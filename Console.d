@@ -83,7 +83,7 @@ public:
       return;
       
     glPushMatrix();
-      glTranslatef(-0.9, -0.9, 0.0);
+      glTranslatef(-1.2, -0.9, 0.0);
       glScalef(0.05, 0.05, 1.0);      
       
       glColor3f(0.2, 1.0, 0.4);
@@ -92,8 +92,7 @@ public:
         graphics.renderString(inputLine);
       else
         graphics.renderString(inputLine ~ "_");
-        
-      //glColor3f(1.0, 1.0, 1.0);
+
       foreach (outputLine; take(outputBuffer.retro, 20))
       {
         glTranslatef(0.0, 1.0, 0.0);
@@ -104,12 +103,12 @@ public:
     
     
     glPushMatrix();
-      glColor4f(0.0, 0.0, 0.5, 0.5);
+      glColor4f(0.0, 0.0, 0.5, 0.8);
       glBegin(GL_QUADS);
-        glVertex2f(-1.0, -0.95);
-        glVertex2f(-1.0,  0.3);
-        glVertex2f( 0.9,  0.3);
-        glVertex2f( 0.9, -0.95);
+        glVertex2f(-1.3, -0.95);
+        glVertex2f(-1.3,  0.95);
+        glVertex2f( 1.3,  0.95);
+        glVertex2f( 1.3, -0.95);
       glEnd();
     glPopMatrix();
   }

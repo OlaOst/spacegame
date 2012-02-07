@@ -141,6 +141,20 @@ struct Vertex
 
 struct GraphicsComponent 
 {
+invariant()
+{
+  assert(position.ok);
+  assert(velocity.ok);
+  
+  assert(isFinite(angle));
+  assert(isFinite(rotation));
+  
+  assert(color.ok);
+  
+  assert(isFinite(drawSource));
+  assert(radius >= 0.0);
+}
+
 public:
   this(float p_radius)
   {
@@ -149,6 +163,8 @@ public:
     
     drawSource = DrawSource.Unknown;
     radius = p_radius;
+    
+    color = vec4(1, 1, 1, 1);
   }
   
   bool isPointedAt(vec2 p_pos)

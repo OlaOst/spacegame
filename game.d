@@ -176,8 +176,8 @@ public:
     
     SDL_EnableUNICODE(1);
     
-    //loadWorldFromFile("data/simpleworld.txt");
-    loadWorldFromFile("data/world.txt");
+    loadWorldFromFile("data/simpleworld2.txt");
+    //loadWorldFromFile("data/world.txt");
     
     //Entity station = loadShip("", getValues(cache, EntityGenerator.createStation()));
     
