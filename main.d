@@ -38,6 +38,10 @@ void main(string[] args)
   else
   {
     Game game = new Game();
+    
+    if (args.length >= 2)
+      game.loadWorldFromFile(args[1]);
+    
     game.run();
   }
 }

@@ -176,7 +176,7 @@ public:
     
     SDL_EnableUNICODE(1);
     
-    loadWorldFromFile("data/simpleworld2.txt");
+    //loadWorldFromFile("data/simpleworld2.txt");
     //loadWorldFromFile("data/world.txt");
     
     //Entity station = loadShip("", getValues(cache, EntityGenerator.createStation()));
@@ -189,6 +189,9 @@ public:
  
   void loadWorldFromFile(string p_fileName)
   {
+    if (p_fileName.startsWith("data/") == false)
+      p_fileName = "data/" ~ p_fileName;
+
     Entity worldEntity = new Entity(loadValues(cache, p_fileName));
 
     string[] orderedEntityNames;
@@ -272,19 +275,30 @@ public:
     if (command == "help")
     {
       return [OutputLine("Commands available: ", vec3(1, 1, 1)),
-              OutputLine("help            - shows this list", vec3(1, 1, 1)),
-              OutputLine("exit/quit       - exits the program", vec3(1, 1, 1)),
-              OutputLine("entities        - list of entity ids", vec3(1, 1, 1)),
-              OutputLine("values n        - list values in entity with id n", vec3(1, 1, 1)),
-              OutputLine("systems n       - list subsystems entity with id n is registered in", vec3(1, 1, 1)),
-              OutputLine("register n      - registers entity with id n", vec3(1, 1, 1)),
-              OutputLine("set n key value - for entity with id n, sets key to the given value", vec3(1, 1, 1)),
-              OutputLine("new name        - creates a new entity with the given name", vec3(1, 1, 1)),
+              OutputLine("help                - shows this list", vec3(1, 1, 1)),
+              OutputLine("exit/quit           - exits the program", vec3(1, 1, 1)),
+              OutputLine("loadworld world.txt - loads world from given file" , vec3(1, 1, 1)),
+              OutputLine("entities            - list of entity ids", vec3(1, 1, 1)),
+              OutputLine("values n            - list values in entity with id n", vec3(1, 1, 1)),
+              OutputLine("systems n           - list subsystems entity with id n is registered in", vec3(1, 1, 1)),
+              OutputLine("register n          - registers entity with id n", vec3(1, 1, 1)),
+              OutputLine("set n key value     - for entity with id n, sets key to the given value", vec3(1, 1, 1)),
+              OutputLine("new name            - creates a new entity with the given name", vec3(1, 1, 1)),
               OutputLine("Don't panic", vec3(0, 1, 0)),];
     }
     else if (command == "exit" || command == "quit")
     {
       m_running = false;
+    }
+    else if (command.startsWith("loadworld"))
+    {
+      command.skipOver("loadworld");
+      
+      string fileName = command.strip;
+      
+      loadWorldFromFile(fileName);
+      
+      return [OutputLine("Loading world from " ~ fileName, vec3(1, 1, 1))];
     }
     else if (command == "entities")
     {

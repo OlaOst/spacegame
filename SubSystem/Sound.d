@@ -104,8 +104,6 @@ public:
         else
           source = m_sources[m_lastSourcePlayed];
         
-        writeln("source " ~ to!string(source) ~ " playing buffer " ~ to!string(component.buffer));
-        
         alSourcei(source, AL_BUFFER, component.buffer);
         alSourcePlay(source);
 
@@ -140,8 +138,6 @@ protected:
   {
     auto soundFile = p_entity.getValue("soundFile");
     
-    writeln("sound creating comp from " ~ soundFile);
-    
     if (soundFile.startsWith("data/sounds/") == false)
       soundFile = "data/sounds/" ~ soundFile;
 
@@ -155,7 +151,7 @@ protected:
         
         loadOgg(soundFile, buffer, format, frequency);
         
-        writeln("read in " ~ to!string(buffer.length) ~ " bytes from oggfile " ~ soundFile);
+        //writeln("read in " ~ to!string(buffer.length) ~ " bytes from oggfile " ~ soundFile);
         
         ALuint bufferId;
         alGenBuffers(1, &bufferId);
@@ -172,7 +168,6 @@ protected:
       enforce(alGetError() == AL_NO_ERROR, "error code " ~ to!string(alGetError()));
     }
 
-    //writeln("creating sound component from " ~ soundFile);
     assert(soundFile in m_fileToBuffer);
     
     auto newComponent = new SoundComponent(m_fileToBuffer[soundFile]);
@@ -198,7 +193,7 @@ private:
     // get some info about the ogg file
     auto info = ov_info(&oggFile, -1);
     
-    writeln("ogg file info: " ~ to!string(*info));
+    //writeln("ogg file info: " ~ to!string(*info));
     
     if (info.channels == 1)
       format = AL_FORMAT_MONO16;

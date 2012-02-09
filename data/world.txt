@@ -3,8 +3,8 @@
 #startupDing.name = startupDing
 
 # background music
-#backgroundMusic.soundFile = orbitalelevator.ogg
-#backgroundMusic.isMusic = true
+backgroundMusic.soundFile = orbitalelevator.ogg
+backgroundMusic.isMusic = true
 
 
 # backdrop picture
@@ -24,13 +24,6 @@ greeting.position = -9 -5
 #dragdrophelp.text = blabla
 #dragdrophelp.position = 15 -7
 
-debugcover.screenAbsolutePosition = true
-debugcover.position = -0.9 0.9
-debugcover.depth = 102
-debugcover.color = 0.2 0.2 0.9 0.3
-debugcover.radius = 1.1
-debugcover.drawsource = Quad
-
 # debug display is shown in a fixed position on the screen, and shows various debug stuff
 debugDisplay.text = here we should see debug info
 debugDisplay.screenAbsolutePosition = true
@@ -39,6 +32,13 @@ debugDisplay.depth = top
 debugDisplay.color = 1.0 1.0 1.0 1.0
 debugDisplay.name = Debug display
 debugDisplay.elements = FPS,entityNumber,subsystemTimings
+
+debugcover.screenAbsolutePosition = true
+debugcover.position = -0.9 0.9
+debugcover.depth = top
+debugcover.color = 0.2 0.2 0.9 0.3
+debugcover.radius = 1.1
+debugcover.drawsource = Quad
 
 
 # special closest ship indicator points to closest ship entity
