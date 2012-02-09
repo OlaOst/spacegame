@@ -119,10 +119,18 @@ public:
     int[][Content] indicesToCheck;
     Content[][int] contentsToCheck;
     
-    insert(checkContent, AABB(vec2i(-2^^15, -2^^15), vec2i(2^^15, 2^^15)), 15, indicesToCheck, contentsToCheck);
+    AABB sector = AABB(vec2i(-2^^15, -2^^15), vec2i(2^^15, 2^^15));
     
-    assert(indicesToCheck.length == 1, "Did not find checkContent with " ~ to!string(checkContent.aabb) ~ " in indicesToCheck");
-    assert(checkContent in indicesToCheck);
+    insert(checkContent, sector, 15, indicesToCheck, contentsToCheck);
+    
+    if (checkContent.aabb.lowerleft.x > sector.lowerleft.x &&
+        checkContent.aabb.lowerleft.y > sector.lowerleft.y &&
+        checkContent.aabb.upperright.x < sector.upperright.x &&
+        checkContent.aabb.upperright.y < sector.upperright.y)
+    {
+      assert(indicesToCheck.length == 1, "Did not find checkContent with " ~ to!string(checkContent.aabb) ~ " in indicesToCheck");
+      assert(checkContent in indicesToCheck);
+    }
     
     Content[] nearbyContent;
     
@@ -147,10 +155,24 @@ private:
   in
   {
     assert(level >= 0 && level <= 15, "Tried to insert content with level out of bounds (0-15): " ~ to!string(level));
+    
+    /* we allow out of bounds content, we just ignore it instead
+    assert(content.aabb.lowerleft.x > sector.lowerleft.x &&
+           content.aabb.lowerleft.y > sector.lowerleft.y &&
+           content.aabb.upperright.x < sector.upperright.x &&
+           content.aabb.upperright.y < sector.upperright.y, "Tried to insert content out of bounds: " ~ to!string(content.aabb));
+    */
   }
   body
   {
     //writeln("putting content with AABB " ~ to!string(content.aabb) ~ " in sector " ~ to!string(sector) ~ " with midpoint " ~ to!string(sector.midpoint) ~ " at level " ~ to!string(level));
+    
+    // ignore out of bounds content
+    if (content.aabb.lowerleft.x < sector.lowerleft.x ||
+        content.aabb.lowerleft.y < sector.lowerleft.y ||
+        content.aabb.upperright.x > sector.upperright.x ||
+        content.aabb.upperright.y > sector.upperright.y)
+      return;
     
     if (level <= 3)
     {

@@ -230,8 +230,6 @@ private:
     //if (components.length <= 1)
       //return;
     
-    // for now, we only consider collisions between bullets and not-bullets. this makes it possible to have more than 10 guns shooting without FPS dropping below 5
-    // optimizing with spatial hash or similar could speed things up a bit further
     auto bulletComponents = filter!((ColliderComponent component){return component.collisionType == CollisionType.Bullet;})(components);
     auto notBulletComponents = filter!((ColliderComponent component){return component.collisionType != CollisionType.Bullet;})(components);
     
