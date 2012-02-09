@@ -278,6 +278,7 @@ public:
               OutputLine("help                - shows this list", vec3(1, 1, 1)),
               OutputLine("exit/quit           - exits the program", vec3(1, 1, 1)),
               OutputLine("loadworld world.txt - loads world from given file" , vec3(1, 1, 1)),
+              OutputLine("clearworld          - clears all entities", vec3(1, 1, 1)),
               OutputLine("entities            - list of entity ids", vec3(1, 1, 1)),
               OutputLine("values n            - list values in entity with id n", vec3(1, 1, 1)),
               OutputLine("systems n           - list subsystems entity with id n is registered in", vec3(1, 1, 1)),
@@ -299,6 +300,19 @@ public:
       loadWorldFromFile(fileName);
       
       return [OutputLine("Loading world from " ~ fileName, vec3(1, 1, 1))];
+    }
+    else if (command == "clearworld")
+    {
+      m_playerShip = null;
+      m_trashBin = null;
+      m_dragEntity = null;
+      m_debugDisplay = null;
+      m_closestShipDisplay = null;
+      
+      m_entities = null;
+      
+      foreach (subSystem; m_subSystems)
+        subSystem.clearEntities();
     }
     else if (command == "entities")
     {

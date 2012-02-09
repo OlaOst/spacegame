@@ -210,6 +210,11 @@ public:
     return to!string(components.length) ~ " components, " ~ to!string(roundTo!int((timeSpent/subSystemTime) * 100)) ~ "%";
   }
   
+  void clearEntities()
+  {
+    m_entityToComponent = null;
+  }
+  
 public:
   float[60] m_timeSpentBuffer = 0.0;
   
@@ -251,6 +256,8 @@ interface SubSystem
   string name();
   
   string debugInfo(float subSystemTime);
+  
+  void clearEntities();
 }
 
 
