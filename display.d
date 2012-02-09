@@ -32,8 +32,6 @@ import derelict.sdl.sdl;
 import derelict.opengl.gl;
 import derelict.opengl.glu;
 
-import ShaderHandler;
-
 
 unittest
 {
