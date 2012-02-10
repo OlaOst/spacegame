@@ -335,12 +335,19 @@ public:
     glTranslatef(0.8, -0.6, 0.0);
     glScalef(0.25, 0.25, 1.0);
     
+    auto centerComponent = GraphicsComponent();
+    if (hasComponent(m_centerEntity))
+      centerComponent = getComponent(m_centerEntity);
+    
     foreach (component; sort!((left, right) { return left.depth < right.depth; }/*, SwapStrategy.stable*/)(components))
     {
       glPointSize(max((1+component.radius)*2-1, 1.0));
       
-      vec2 pos = component.position.normalized * log(component.position.length + 1) * 0.2;
-      vec2 vel = component.velocity.normalized * log(component.velocity.length + 1) * 0.2;
+      vec2 relativePos = component.position - centerComponent.position;
+      vec2 relativeVel = component.velocity - centerComponent.velocity;
+      
+      vec2 pos = relativePos.normalized * log(relativePos.length + 1) * 0.2;
+      vec2 vel = relativeVel.normalized * log(relativeVel.length + 1) * 0.2;
       
       glColor3f(1.0, vel.length, 0.0);
       
