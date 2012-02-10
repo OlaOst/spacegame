@@ -1333,6 +1333,7 @@ private:
   Entity m_dragEntity;
   Entity m_debugDisplay;
   Entity m_closestShipDisplay;
+  Entity m_radar;
   
   float[60] m_fpsBuffer;
   
