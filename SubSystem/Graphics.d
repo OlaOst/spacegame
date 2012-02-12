@@ -339,7 +339,13 @@ public:
     if (hasComponent(m_centerEntity))
       centerComponent = getComponent(m_centerEntity);
     
-    foreach (component; sort!((left, right) { return left.depth < right.depth; }/*, SwapStrategy.stable*/)(components))
+    glColor3f(1.0, 1.0, 1.0);
+    glBegin(GL_LINE_LOOP);
+    for (float angle = 0.0; angle < PI*2.0; angle += (PI*2.0) / 32.0)
+      glVertex2f(sin(angle) * 1.25, cos(angle) * 1.25);
+    glEnd();
+    
+    foreach (component; filter!((component) { return (component.position - centerComponent.position).length < 500.0; })(components))
     {
       glPointSize(max((1+component.radius)*2-1, 1.0));
       
