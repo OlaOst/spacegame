@@ -93,7 +93,7 @@ public:
       else
         graphics.renderString(inputLine ~ "_");
 
-      foreach (outputLine; take(outputBuffer.retro, 20))
+      foreach (outputLine; take(outputBuffer.retro, 34))
       {
         glTranslatef(0.0, 1.0, 0.0);
         glColor3f(outputLine.color.r, outputLine.color.g, outputLine.color.b);
