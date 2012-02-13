@@ -490,18 +490,23 @@ private:
         // disconnect if no health left
         if (colliderComponent.health <= 0.0)
         {
-          writeln("no health left, disconnecting entity " ~ to!string(entity.id) ~ " named " ~ entity.getValue("name"));
+          writeln("no health left, disconnecting entity " ~ to!string(entity.id) ~ " with source " ~ entity.getValue("source"));
           
           // de-control entity and all connected entities
           entity.setValue("control", "nothing");
           entity.setValue("collisionType", "FreeFloatingModule");
           entity.setValue("position", m_placer.getComponent(entity).position.toString());
           entity.setValue("angle", to!string(m_placer.getComponent(entity).angle));
-          entity.setValue("velocity", vec2(0.0, 0.0).toString());
+          //entity.setValue("velocity", vec2(0.0, 0.0).toString());
           entity.setValue("force", vec2(0.0, 0.0).toString());
           
           m_controller.removeEntity(entity);
           m_collider.registerEntity(entity);
+          
+          m_physics.registerEntity(entity);
+          
+          assert(m_collider.getComponent(entity).force.ok);
+          assert(m_physics.getComponent(entity).force.ok);
           
           // disconnect all connected entities
           foreach (connectedEntity; m_connector.getConnectedEntities(entity))

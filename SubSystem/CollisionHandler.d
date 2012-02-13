@@ -131,8 +131,8 @@ class ColliderComponent
   
   float radius;
   
-  vec2 force;
-  vec2 torque;
+  vec2 force = vec2(0.0, 0.0);
+  //vec2 torque = 0.0;
   
   CollisionType collisionType;
   
