@@ -353,10 +353,14 @@ public:
       vec2 relativeVel = component.velocity - centerComponent.velocity;
       
       vec2 pos = relativePos.normalized * log(relativePos.length + 1) * 0.15;
-      vec2 vel = relativeVel.normalized * log(relativeVel.length + 1) * 0.2;
+      vec2 vel = relativeVel.normalized * log(relativeVel.length + 1) * 0.25;
       
-      glColor3f(1.0, vel.length, 0.0);
-      
+      // figure out if the component is moving towards or away from the centercomponent, so we can redshift-colorize
+      if ((relativePos + relativeVel).length > relativePos.length)
+        glColor3f(vel.length, 1.0 - vel.length, 1.0 - vel.length);
+      else
+        glColor3f(1.0 - vel.length, 1.0 - vel.length, vel.length);
+        
       glBegin(GL_POINTS);
         glVertex2f(pos.x, pos.y);
       glEnd();
