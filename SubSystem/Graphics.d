@@ -345,14 +345,14 @@ public:
       glVertex2f(sin(angle) * 1.25, cos(angle) * 1.25);
     glEnd();
     
-    foreach (component; filter!((component) { return (component.position - centerComponent.position).length < 500.0; })(components))
+    foreach (component; filter!((component) { return (component.position - centerComponent.position).length < 3500.0; })(components))
     {
       glPointSize(max((1+component.radius)*2-1, 1.0));
       
       vec2 relativePos = component.position - centerComponent.position;
       vec2 relativeVel = component.velocity - centerComponent.velocity;
       
-      vec2 pos = relativePos.normalized * log(relativePos.length + 1) * 0.2;
+      vec2 pos = relativePos.normalized * log(relativePos.length + 1) * 0.15;
       vec2 vel = relativeVel.normalized * log(relativeVel.length + 1) * 0.2;
       
       glColor3f(1.0, vel.length, 0.0);
