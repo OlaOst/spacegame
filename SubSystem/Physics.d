@@ -106,9 +106,6 @@ private:
     assert(mass > 0.0, "Trying to move physics component with zero mass");
     assert(isFinite(torque));
     
-    //if (force.length > 0.0)
-      //writeln("physics update, force is " ~ to!string(force));
-    
     velocity += (force * (1.0 / mass)) * p_time;
     velocity += impulse * p_time;
     
@@ -118,25 +115,6 @@ private:
     angle += rotation * p_time;
     
     assert(angle == angle);
-    
-    // clamp don't wrap angle
-    /*if (angle < -PI)
-      angle = -PI;
-    if (angle > PI)
-      angle = PI;*/
-    
-    /**while (angle < -PI)
-    {
-      writeln("normalizing angle up: " ~ to!string(angle));
-      assert(angle > -PI*10);
-      angle += PI*2;
-    }
-    while (angle > PI)
-    {
-      writeln("normalizing angle down: " ~ to!string(angle));
-      assert(angle < PI*10);
-      angle -= PI*2;
-    }*/
     
     // reset force and torque after applying them
     force = vec2(0.0, 0.0);
@@ -228,15 +206,13 @@ protected:
   
   PhysicsComponent createComponent(Entity p_entity)
   {
-    auto newComponent = new PhysicsComponent(/*p_entity*/);
+    auto newComponent = new PhysicsComponent();
     
     if (p_entity.getValue("position").length > 0)
       newComponent.position = vec2.fromString(p_entity.getValue("position"));
     
     if (p_entity.getValue("angle").length > 0)
       newComponent.angle = to!float(p_entity.getValue("angle")) * PI_180;
-    
-    //writeln(name ~ " setting angle to " ~ to!string(newComponent.angle) ~ " from " ~ p_entity.getValue("angle"));
     
     if (p_entity.getValue("velocity").length > 0)
       newComponent.velocity = vec2.fromString(p_entity.getValue("velocity"));
