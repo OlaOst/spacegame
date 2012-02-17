@@ -230,8 +230,8 @@ private:
     //if (components.length <= 1)
       //return;
     
-    auto bulletComponents = filter!((ColliderComponent component){return component.collisionType == CollisionType.Bullet;})(components);
-    auto notBulletComponents = filter!((ColliderComponent component){return component.collisionType != CollisionType.Bullet;})(components);
+    auto bulletComponents = filter!(component => component.collisionType == CollisionType.Bullet)(components);
+    auto notBulletComponents = filter!(component => component.collisionType != CollisionType.Bullet)(components);
     
     //writeln("bulletcomps: " ~ to!string(array(bulletComponents).length) ~ ", notbulletcomps: " ~ to!string(array(bulletComponents).length));
     

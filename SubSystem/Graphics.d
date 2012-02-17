@@ -243,7 +243,7 @@ public:
     int drawnComponents = 0;
     
     // stable sort sometimes randomly crashes, phobos bug or float fuckery with lots of similar floats?
-    foreach (component; sort!((left, right) { return left.depth < right.depth; }/*, SwapStrategy.stable*/)(components))
+    foreach (component; sort!((left, right) => left.depth < right.depth, SwapStrategy.stable)(components))
     {
       glPushMatrix();
       
@@ -345,7 +345,7 @@ public:
       glVertex2f(sin(angle) * 1.25, cos(angle) * 1.25);
     glEnd();
     
-    foreach (component; filter!((component) { return (component.position - centerComponent.position).length < 3500.0; })(components))
+    foreach (component; filter!(component => (component.position - centerComponent.position).length < 3500.0)(components))
     {
       glPointSize(max((1+component.radius)*2-1, 1.0));
       

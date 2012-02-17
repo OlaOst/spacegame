@@ -418,7 +418,7 @@ public:
         
         int entityId = to!int(parameters[0]);
         string key = parameters[1];
-        string value = reduce!((a, b) { return a ~= " " ~ b;  } )(parameters[2..$]);
+        string value = reduce!((a, b) => (a ~= " " ~ b))(parameters[2..$]);
         
         if (entityId in m_entities)
         {
@@ -729,7 +729,7 @@ private:
       // TODO: if we have a dragentity we must ensure it stops getting dragged before it's destroyed or removed by something - lifetime expiration for bullets for example
       if (m_dragEntity is null)
       {
-        foreach (draggable; filter!((Entity entity) { return entity.getValue("draggable") == "true" && m_graphics.hasComponent(entity); })(m_entities.values))
+        foreach (draggable; filter!(entity => entity.getValue("draggable") == "true" && m_graphics.hasComponent(entity))(m_entities.values))
         {
           assert(m_graphics.hasComponent(draggable), "Couldn't find graphics component for draggable entity " ~ to!string(draggable.values) ~ " with id " ~ to!string(draggable.id));
           
@@ -1215,8 +1215,8 @@ private:
     //debug m_graphics.updateWithTiming();
     //else  m_graphics.update();
     m_graphics.updateWithTiming();
-    //foreach (subSystem; taskPool.parallel(filter!(delegate (SubSystem.Base.SubSystem sys) { return sys !is m_graphics; })(m_subSystems.values), 1))
-    foreach (subSystem; filter!(delegate (SubSystem.Base.SubSystem sys) { return sys !is m_graphics; })(m_subSystems.values))
+    foreach (subSystem; taskPool.parallel(filter!(sys => sys !is m_graphics)(m_subSystems.values), 1))
+    //foreach (subSystem; filter!(sys => sys !is m_graphics)(m_subSystems.values))
     {
       //debug subSystem.updateWithTiming();
       //else  subSystem.update();
@@ -1227,8 +1227,7 @@ private:
       subSystemTimer.stop();
       float timeSpent = subSystemTimer.peek.usecs / 1_000_000.0;
     
-      auto timeSpents = map!((SubSystem.Base.SubSystem sys) { return sys.timeSpent;} )(m_subSystems.values);
-      float subSystemTime = reduce!"a+b"(timeSpents);
+      float subSystemTime = reduce!((total, sys) => total + sys.timeSpent)(0.0, m_subSystems.values);
     
       static float[60] subSystemTimeBuffer = 0.0;
       
@@ -1290,18 +1289,17 @@ private:
   {
     auto entityPosition = m_placer.getComponent(p_entity).position;
     
-    auto candidates = filter!((entity) { return (entity.id != p_entity.id && entity.getValue("type") == "enemy ship"); } )(m_entities.values);
+    auto candidates = filter!(entity => entity.id != p_entity.id && entity.getValue("type") == "enemy ship")(m_entities.values);
     
     //writeln("closestenemyship candidates: " ~ to!string(array(candidates).length));
     
     if (candidates.empty)
       return null;
       
-    Entity closestEntity = reduce!((closestSoFar, entity)
-    {
-      return ((m_connector.getComponent(closestSoFar).position - entityPosition).length < 
-              (m_connector.getComponent(entity).position - entityPosition).length) ? closestSoFar : entity;
-    })(candidates);
+    Entity closestEntity = reduce!((closestSoFar, entity) =>
+      ((m_connector.getComponent(closestSoFar).position - entityPosition).length < 
+       (m_connector.getComponent(entity).position - entityPosition).length) ? closestSoFar : entity)
+    (candidates);
 
     return closestEntity;
   }
