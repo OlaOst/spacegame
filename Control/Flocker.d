@@ -61,7 +61,7 @@ unittest
 }
 
 
-class FlockControl : public ControlBase
+class FlockControl : ControlBase
 {
 invariant()
 {

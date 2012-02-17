@@ -201,7 +201,7 @@ public:
 }
 
 
-class Graphics : public Base!(GraphicsComponent)
+class Graphics : Base!(GraphicsComponent)
 {
 invariant()
 {

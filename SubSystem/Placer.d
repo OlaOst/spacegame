@@ -42,7 +42,7 @@ struct PlacerComponent
 }
 
 
-class Placer : public Base!(PlacerComponent)
+class Placer : Base!(PlacerComponent)
 {
 public:
   void update() 

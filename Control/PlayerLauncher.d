@@ -33,7 +33,7 @@ import SubSystem.Controller;
 import gl3n.linalg;
 
 
-class PlayerLauncher : public ControlBase
+class PlayerLauncher : ControlBase
 {
 invariant()
 {

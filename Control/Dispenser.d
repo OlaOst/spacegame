@@ -31,7 +31,7 @@ import InputHandler;
 import SubSystem.Controller;
 
 
-class Dispenser : public ControlBase
+class Dispenser : ControlBase
 {
 public:
   this(InputHandler p_inputHandler)

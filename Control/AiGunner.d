@@ -43,7 +43,7 @@ unittest
 }
 
 
-class AiGunner : public ControlBase
+class AiGunner : ControlBase
 {
 invariant()
 {  

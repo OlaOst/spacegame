@@ -81,7 +81,7 @@ private:
 }
 
 
-class Controller : public Base!(ControlComponent)
+class Controller : Base!(ControlComponent)
 {
 public:
   this()

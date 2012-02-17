@@ -136,7 +136,7 @@ public:
 }
 
 
-class Physics : public Base!(PhysicsComponent)
+class Physics : Base!(PhysicsComponent)
 {
 public:
   this()

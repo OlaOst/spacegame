@@ -40,7 +40,7 @@ unittest
 }
 
 
-class AiChaser : public ControlBase
+class AiChaser : ControlBase
 {
 public:
   

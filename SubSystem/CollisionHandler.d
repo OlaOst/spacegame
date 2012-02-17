@@ -162,7 +162,7 @@ struct Collision
 }
 
 
-class CollisionHandler : public Base!(ColliderComponent)
+class CollisionHandler : Base!(ColliderComponent)
 {
 public:
   this()

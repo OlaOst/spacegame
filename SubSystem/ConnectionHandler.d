@@ -133,7 +133,7 @@ public:
 }
 
 
-class ConnectionHandler : public Base!(ConnectionComponent)
+class ConnectionHandler : Base!(ConnectionComponent)
 {
 public:
   void update() 

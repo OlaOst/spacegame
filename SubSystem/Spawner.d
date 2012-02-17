@@ -76,7 +76,7 @@ struct SpawnerComponent
 }
 
 
-class Spawner : public Base!(SpawnerComponent)
+class Spawner : Base!(SpawnerComponent)
 {
 public:
 

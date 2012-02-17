@@ -61,7 +61,7 @@ public:
 }
 
 
-class SoundSubSystem : public Base!(SoundComponent)
+class SoundSubSystem : Base!(SoundComponent)
 {
 invariant()
 {

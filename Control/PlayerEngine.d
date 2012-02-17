@@ -40,7 +40,7 @@ unittest
 }
 
 
-class PlayerEngine : public ControlBase
+class PlayerEngine : ControlBase
 {
 invariant()
 {

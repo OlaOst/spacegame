@@ -47,7 +47,7 @@ struct Vector(type, int dimension_) if((dimension_ >= 2) && (dimension_ <= 4)) {
     /// Returns a pointer to the coordinates.
     @property auto value_ptr() { return vector.ptr; }
 
-    private @property vt get_(char coord)() {
+    private @property vt get_(char coord)() const {
         return vector[coord_to_index!coord];
     }
     private @property void set_(char coord)(vt value) {
@@ -180,7 +180,7 @@ struct Vector(type, int dimension_) if((dimension_ >= 2) && (dimension_ <= 4)) {
     }
           
     /// Returns true if all values are not nan and finite, otherwise false.
-    @property bool ok() {
+    @property bool ok() const {
         foreach(v; vector) {
             if(isNaN(v) || isInfinity(v)) {
                 return false;

@@ -39,7 +39,7 @@ unittest
   
   struct MockComponent { int uniqueId; }
   
-  class MockSubSystem : public Base!(MockComponent)
+  class MockSubSystem : Base!(MockComponent)
   {
     public:
       void update() {}
@@ -93,7 +93,7 @@ unittest
 }
 
 
-abstract class Base(ComponentType) : public SubSystem, public ComponentFactory!(ComponentType)
+abstract class Base(ComponentType) : SubSystem, ComponentFactory!(ComponentType)
 {
 invariant()
 {
