@@ -126,8 +126,7 @@ public:
         
         if (key == SDLK_KP_ENTER || key == SDLK_RETURN)
         {
-          auto test = inputLine.strip;
-          
+          outputBuffer ~= OutputLine(inputLine.strip, vec3(0, 1, 0));
           outputBuffer ~= game.executeCommand(inputLine.strip);
           inputLine = "";
         }
