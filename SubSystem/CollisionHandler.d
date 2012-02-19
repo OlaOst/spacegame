@@ -201,21 +201,21 @@ protected:
     
     auto colliderComponent = new ColliderComponent(radius, collisionType);
     
-    if (p_entity.getValue("owner").length > 0)
+    if ("owner" in p_entity.values)
       colliderComponent.ownerId = to!int(p_entity.getValue("owner"));
     
-    if (p_entity.getValue("spawnedFrom").length > 0)
+    if ("spawnedFrom" in p_entity.values)
       colliderComponent.spawnedFrom = to!int(p_entity.getValue("spawnedFrom"));
-    if (p_entity.getValue("spawnedFromOwner").length > 0)
+    if ("spawnedFromOwner" in p_entity.values)
       colliderComponent.spawnedFromOwner = to!int(p_entity.getValue("spawnedFromOwner"));
     
-    if (p_entity.getValue("position").length > 0)
+    if ("position" in p_entity.values)
       colliderComponent.position = vec2.fromString(p_entity.getValue("position"));
     
-    if (p_entity.getValue("lifetime").length > 0)
+    if ("lifetime" in p_entity.values)
       colliderComponent.lifetime = to!float(p_entity.getValue("lifetime"));
       
-    if (p_entity.getValue("health").length > 0)
+    if ("health" in p_entity.values)
       colliderComponent.health = to!float(p_entity.getValue("health"));
     
     return colliderComponent;
@@ -227,21 +227,18 @@ private:
   {
     m_collisions.length = 0;
     
-    //if (components.length <= 1)
-      //return;
+    index.clear();    
     
-    auto bulletComponents = filter!(component => component.collisionType == CollisionType.Bullet)(components);
-    auto notBulletComponents = filter!(component => component.collisionType != CollisionType.Bullet)(components);
-    
-    //writeln("bulletcomps: " ~ to!string(array(bulletComponents).length) ~ ", notbulletcomps: " ~ to!string(array(bulletComponents).length));
-    
-    index.clear();
-    foreach (component; bulletComponents)
+    // for now, only bullets can collide, so we only put bullets in the index
+    foreach (component; filter!(component => component.collisionType == CollisionType.Bullet)(components))
+    //foreach (component; components)
     {
       index.insert(component);
     }
     
-    foreach (component; notBulletComponents)
+    // for now, bullets can't collide with freefloating modules or other bullets, so we filter them out
+    foreach (component; filter!(component => component.collisionType != CollisionType.FreeFloatingModule &&
+                                             component.collisionType != CollisionType.Bullet)(components))
     {
       auto candidates = index.findNearbyContent(component);
       
@@ -250,11 +247,11 @@ private:
       foreach (candidate; candidates)
       {
         auto second = candidate;
-        
-        if (first.id == second.id)
-          continue;
+          
+        assert(first.id != second.id);
           
         // bullets should not collide with the entity that spawned them, or any entities that has the same owner... or should they?
+        // in other words, should it be possible for your bullets to hit modules on your own ship?
         if ((first.spawnedFromOwner > 0 && second.ownerId > 0 && first.spawnedFromOwner == second.ownerId) || 
             (first.ownerId > 0 && second.spawnedFromOwner > 0 && first.ownerId == second.spawnedFromOwner))
           continue;
@@ -262,9 +259,9 @@ private:
         if ((first.position - second.position).length < (first.radius + second.radius))
         {
           // determine contact point
-          vec2 normalizedContactvec2 = (second.position - first.position).normalized(); // / (first.radius + second.radius); // * first.radius;
+          vec2 normalizedContactPoint = (second.position - first.position).normalized(); // / (first.radius + second.radius); // * first.radius;
 
-          vec2 contactPoint = normalizedContactvec2 * (1.0/(first.radius + second.radius)) * first.radius;
+          vec2 contactPoint = normalizedContactPoint * (1.0/(first.radius + second.radius)) * first.radius;
           
           m_collisions ~= Collision(first, second, contactPoint);
         }
@@ -290,8 +287,7 @@ private:
         collision.first.health -= 1.0;
       }
       
-      //Entity collisionSound = new Entity();
-      //collisionSound.setValue("soundFile", "mgshot3.wav");
+      //Entity collisionSound = new Entity(["soundFile":"mgshot3.wav"]);
     }
   }
   
