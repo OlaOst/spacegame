@@ -474,83 +474,80 @@ private:
     
     Entity[] entitiesToRemove;
     
-    foreach (entity; m_entities)
+    // TODO: make subsystem dedicated to removing entities. it should be responsible for values like lifetime and health 
+    // TODO: ideally all this code should be handled by just setting values on the entity and then re-register it
+    foreach (entity; filter!(entity => m_collider.hasComponent(entity))(m_entities.values))
     {
-      // TODO: make subsystem dedicated to removing entities. it should be responsible for values like lifetime and health 
-      // TODO: ideally all this code should be handled by just setting values on the entity and then re-register it
-      if (m_collider.hasComponent(entity))
+      auto colliderComponent = m_collider.getComponent(entity);
+      
+      colliderComponent.lifetime -= elapsedTime;
+      
+      if (colliderComponent.lifetime <= 0.0)
+        entitiesToRemove ~= entity;
+        
+      // disconnect if no health left
+      if (colliderComponent.health <= 0.0)
       {
-        auto colliderComponent = m_collider.getComponent(entity);
+        writeln("no health left, disconnecting entity " ~ to!string(entity.id) ~ " with source " ~ entity.getValue("source"));
         
-        colliderComponent.lifetime -= elapsedTime;
+        // de-control entity and all connected entities
+        entity.setValue("control", "nothing");
+        entity.setValue("collisionType", "FreeFloatingModule");
+        entity.setValue("position", m_placer.getComponent(entity).position.toString());
+        entity.setValue("angle", to!string(m_placer.getComponent(entity).angle));
+        //entity.setValue("velocity", vec2(0.0, 0.0).toString());
+        entity.setValue("force", vec2(0.0, 0.0).toString());
         
-        if (colliderComponent.lifetime <= 0.0)
-          entitiesToRemove ~= entity;
-          
-        // disconnect if no health left
-        if (colliderComponent.health <= 0.0)
+        m_controller.removeEntity(entity);
+        m_collider.registerEntity(entity);
+        
+        m_physics.registerEntity(entity);
+        
+        assert(m_collider.getComponent(entity).force.ok);
+        assert(m_physics.getComponent(entity).force.ok);
+        
+        // disconnect all connected entities
+        foreach (connectedEntity; m_connector.getConnectedEntities(entity))
         {
-          writeln("no health left, disconnecting entity " ~ to!string(entity.id) ~ " with source " ~ entity.getValue("source"));
+          connectedEntity.setValue("control", "nothing");
+          connectedEntity.setValue("collisionType", "FreeFloatingModule");
+          connectedEntity.setValue("owner", to!string(connectedEntity.id));
+          m_controller.removeEntity(connectedEntity);
+          m_connector.removeEntity(connectedEntity);
+          m_collider.registerEntity(connectedEntity);
           
-          // de-control entity and all connected entities
-          entity.setValue("control", "nothing");
-          entity.setValue("collisionType", "FreeFloatingModule");
-          entity.setValue("position", m_placer.getComponent(entity).position.toString());
-          entity.setValue("angle", to!string(m_placer.getComponent(entity).angle));
-          //entity.setValue("velocity", vec2(0.0, 0.0).toString());
-          entity.setValue("force", vec2(0.0, 0.0).toString());
-          
-          m_controller.removeEntity(entity);
-          m_collider.registerEntity(entity);
-          
-          m_physics.registerEntity(entity);
-          
-          assert(m_collider.getComponent(entity).force.ok);
-          assert(m_physics.getComponent(entity).force.ok);
-          
-          // disconnect all connected entities
-          foreach (connectedEntity; m_connector.getConnectedEntities(entity))
+          if (m_collider.hasComponent(connectedEntity))
           {
-            connectedEntity.setValue("control", "nothing");
-            connectedEntity.setValue("collisionType", "FreeFloatingModule");
-            connectedEntity.setValue("owner", to!string(connectedEntity.id));
-            m_controller.removeEntity(connectedEntity);
-            m_connector.removeEntity(connectedEntity);
-            m_collider.registerEntity(connectedEntity);
+            auto connectedColliderComponent = m_collider.getComponent(connectedEntity);
+            connectedColliderComponent.health = to!float(connectedEntity.getValue("health"));
             
-            if (m_collider.hasComponent(connectedEntity))
+            if (m_physics.hasComponent(connectedEntity))
             {
-              auto connectedColliderComponent = m_collider.getComponent(connectedEntity);
-              connectedColliderComponent.health = to!float(connectedEntity.getValue("health"));
+              auto connectedPhysComp = m_physics.getComponent(connectedEntity);
+              connectedPhysComp.position = connectedColliderComponent.position;
+              connectedPhysComp.force = vec2(0.0, 0.0);
               
-              if (m_physics.hasComponent(connectedEntity))
-              {
-                auto connectedPhysComp = m_physics.getComponent(connectedEntity);
-                connectedPhysComp.position = connectedColliderComponent.position;
-                connectedPhysComp.force = vec2(0.0, 0.0);
-                
-                m_physics.setComponent(connectedEntity, connectedPhysComp);
-              }
+              m_physics.setComponent(connectedEntity, connectedPhysComp);
             }
           }
+        }
+      
+        // TODO: figure out why entity is getting reconnected later on
+        entity.setValue("owner", to!string(entity.id));
+        m_connector.removeEntity(entity);
         
-          // TODO: figure out why entity is getting reconnected later on
-          entity.setValue("owner", to!string(entity.id));
-          m_connector.removeEntity(entity);
+        writeln("disconnecting entity " ~ to!string(entity.id) ~ " with position " ~ colliderComponent.position.toString());
+        colliderComponent.health = to!float(entity.getValue("health"));
+        
+        assert(m_connector.hasComponent(entity) == false);
+        
+        if (m_physics.hasComponent(entity))
+        {
+          auto physComp = m_physics.getComponent(entity);
+          physComp.position = colliderComponent.position;
+          physComp.force = vec2(0.0, 0.0);
           
-          writeln("disconnecting entity " ~ to!string(entity.id) ~ " with position " ~ colliderComponent.position.toString());
-          colliderComponent.health = to!float(entity.getValue("health"));
-          
-          assert(m_connector.hasComponent(entity) == false);
-          
-          if (m_physics.hasComponent(entity))
-          {
-            auto physComp = m_physics.getComponent(entity);
-            physComp.position = colliderComponent.position;
-            physComp.force = vec2(0.0, 0.0);
-            
-            m_physics.setComponent(entity, physComp);
-          }
+          m_physics.setComponent(entity, physComp);
         }
       }
     }
@@ -672,7 +669,7 @@ private:
     
     foreach (spawnValues; m_spawner.getAndClearSpawnValues())
     {
-      assert("source" in spawnValues, to!string(spawnValues));
+      assert("source" in spawnValues, "Could not find source value in spawnvalues: " ~ to!string(spawnValues));
       
       loadShip(spawnValues["source"], spawnValues);
     }
@@ -729,14 +726,13 @@ private:
       // TODO: if we have a dragentity we must ensure it stops getting dragged before it's destroyed or removed by something - lifetime expiration for bullets for example
       if (m_dragEntity is null)
       {
-        foreach (draggable; filter!(entity => entity.getValue("draggable") == "true" && m_graphics.hasComponent(entity))(m_entities.values))
+        foreach (draggable; filter!(entity => entity.getValue("draggable") == "true" && 
+                                    m_graphics.hasComponent(entity) &&
+                                    m_graphics.getComponent(entity).screenAbsolutePosition == false)(m_entities.values))
         {
           assert(m_graphics.hasComponent(draggable), "Couldn't find graphics component for draggable entity " ~ to!string(draggable.values) ~ " with id " ~ to!string(draggable.id));
           
           auto dragGfxComp = m_graphics.getComponent(draggable);
-          // screenAbsolutePosition is true for GUI and screen elements - we don't want to drag them
-          if (dragGfxComp.screenAbsolutePosition)
-            continue;
           
           if ((dragGfxComp.position - m_graphics.mouseWorldPos).length < dragGfxComp.radius)
           {
@@ -754,6 +750,7 @@ private:
           }
         }
 
+        // ok, we picked up an entity. now what do we do with it?
         if (m_dragEntity !is null)
         {
           if (m_connector.hasComponent(m_dragEntity))
@@ -923,65 +920,58 @@ private:
       }
     }
     
-    // transfer ship control with rightclick
+    // rightclick changes center entity - the entity in the center of the screen
     if (m_inputHandler.eventState(Event.RightButton) == EventState.Released)
     {
-      foreach (entity; m_entities)
+      foreach (entity; filter!(entity => entity != m_playerShip && 
+                                         entity.getValue("radius").length > 0 &&
+                                         m_placer.hasComponent(entity) && 
+                                         (m_placer.getComponent(entity).position - m_graphics.mouseWorldPos).length < to!float(entity.getValue("radius")) &&
+                                         m_connector.hasComponent(entity))(m_entities.values))
       {
-        if (entity != m_playerShip && m_placer.hasComponent(entity) && entity.getValue("radius").length > 0)
+        auto entityOwner = m_connector.getComponent(entity).owner;
+        
+        // we don't want to control modules floating by themself not connected to anything... or do we?
+        if (entityOwner.id == entity.id)
+          continue;
+        
+        // remove control from eventual old playership so we don't end up controlling multiple ships at once
+        if (m_playerShip !is null && m_playerShip != entityOwner)
         {
-          auto position = m_placer.getComponent(entity).position;
-          
-          if ((position - m_graphics.mouseWorldPos).length < to!float(entity.getValue("radius")))
+          foreach (oldOwnedEntity; m_connector.getOwnedEntities(m_playerShip))
           {
-            if (m_connector.hasComponent(entity))
-            {
-              auto entityOwner = m_connector.getComponent(entity).owner;
-              
-              // we don't want to control modules floating by themself not connected to anything... or do we?
-              if (entityOwner.id == entity.id)
-                continue;
-              
-              // remove control from eventual old playership so we don't end up controlling multiple ships at once
-              if (m_playerShip !is null && m_playerShip != entityOwner)
-              {
-                foreach (oldOwnedEntity; m_connector.getOwnedEntities(m_playerShip))
-                {
-                  m_controller.removeEntity(oldOwnedEntity);
-                }
-              }
-              
-              m_playerShip = m_connector.getComponent(entity).owner;
-              
-              // disable eventual old center entity
-              auto oldCenterEntity = m_graphics.getCenterEntity();
-              
-              if (oldCenterEntity !is null)
-                oldCenterEntity.setValue("keepInCenter", "false");
-              
-              m_playerShip.setValue("keepInCenter", "true");
-              m_playerShip.setValue("drawsource", "Invisible");
-              
-              // also set as center
-              m_graphics.registerEntity(m_playerShip);
-              
-              // give player control to new playership
-              foreach (ownedEntity; m_connector.getOwnedEntities(m_playerShip))
-              {
-                if (ownedEntity.getValue("source").find("engine.txt").empty == false)
-                  ownedEntity.setValue("control", "playerEngine");
-
-                if (ownedEntity.getValue("source").find("cannon.txt").empty == false || ownedEntity.getValue("source").find("launcher.txt").empty == false)
-                  ownedEntity.setValue("control", "playerLauncher");
-
-                //registerEntity(ownedEntity);
-                m_controller.registerEntity(ownedEntity);
-              }
-              
-              break;
-            }
+            m_controller.removeEntity(oldOwnedEntity);
           }
         }
+        
+        m_playerShip = m_connector.getComponent(entity).owner;
+        
+        // disable eventual old center entity
+        auto oldCenterEntity = m_graphics.getCenterEntity();
+        
+        if (oldCenterEntity !is null)
+          oldCenterEntity.setValue("keepInCenter", "false");
+        
+        m_playerShip.setValue("keepInCenter", "true");
+        m_playerShip.setValue("drawsource", "Invisible");
+        
+        // also set as center
+        m_graphics.registerEntity(m_playerShip);
+        
+        // give player control to new playership
+        foreach (ownedEntity; m_connector.getOwnedEntities(m_playerShip))
+        {
+          if (ownedEntity.getValue("source").find("engine.txt").empty == false)
+            ownedEntity.setValue("control", "playerEngine");
+
+          if (ownedEntity.getValue("source").find("cannon.txt").empty == false || ownedEntity.getValue("source").find("launcher.txt").empty == false)
+            ownedEntity.setValue("control", "playerLauncher");
+
+          //registerEntity(ownedEntity);
+          m_controller.registerEntity(ownedEntity);
+        }
+        
+        break;
       }
     }  
   
