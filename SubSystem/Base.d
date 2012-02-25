@@ -161,15 +161,7 @@ public:
   
   final ComponentType[] components()
   {
-    ComponentType[] componentArray;
-    
-    //foreach (sortedEntity; sort!((left, right) { return left.id < right.id; })(m_entityToComponent.keys))
-    foreach (stupidCannotGetFramePointerBugMakesThisEntityNotSorted; m_entityToComponent.keys.sort)
-    {
-      componentArray ~= getComponent(stupidCannotGetFramePointerBugMakesThisEntityNotSorted);
-    }
-    
-    return componentArray;
+    return m_entityToComponent.values;
   }
   
   final Entity[] entities()
