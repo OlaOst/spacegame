@@ -271,7 +271,7 @@ void setSpawnerFromPlacer(Placer placer, Spawner spawner)
     spawnerComponent.velocity = placerComponent.velocity;
     spawnerComponent.angle = placerComponent.angle;
     
-    //writeln("setspawnerfromplacer, angle is " ~ to!string(spawnerComponent.angle));
+    //writeln("setspawnerfromplacer, pos is " ~ to!string(spawnerComponent.pos));
     
     return spawnerComponent;
   });

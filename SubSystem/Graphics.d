@@ -243,6 +243,7 @@ public:
     int drawnComponents = 0;
     
     // stable sort sometimes randomly crashes, phobos bug or float fuckery with lots of similar floats?
+    // haven't seen any crashes so far with dmd 2.058
     foreach (component; sort!((left, right) => left.depth < right.depth, SwapStrategy.stable)(components))
     {
       glPushMatrix();

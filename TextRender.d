@@ -139,9 +139,9 @@ public:
         {
           if (letter == 'n')
           {
-            glPopMatrix();
-            glTranslatef(0.0, -1.0, 0.0);
-            glPushMatrix();
+            glPopMatrix(); // simulates carriage return
+            glTranslatef(0.0, -1.0, 0.0); // simulates newline
+            glPushMatrix(); // ready to write on new line
           }
           if (letter == '\\')
             renderChar(letter, true);

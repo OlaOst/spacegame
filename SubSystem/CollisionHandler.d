@@ -271,6 +271,8 @@ private:
   
   void calculateCollisionResponse()
   {
+    // physics response is handled in CommsCentral, since we don't know about other types of components here
+  
     foreach (ref collision; m_collisions)
     {
       // bullets should disappear on contact - set lifetime to zero
