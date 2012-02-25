@@ -639,7 +639,8 @@ private:
       {
         auto playerPos = m_placer.getComponent(m_playerShip).position;        
 
-        auto closestEntity = findClosestEnemyShip(m_playerShip);
+        //auto closestEntity = findClosestEnemyShip(m_playerShip);
+        auto closestEntity = findClosestShipGivenKeyValue(m_playerShip, "type", "enemy ship");
         
         if (closestEntity !is null)
         {
@@ -681,9 +682,11 @@ private:
       {
         auto controlComponent = m_controller.getComponent(entity);
         
-        if (controlComponent.target == "closestEnemy")
+        string target = controlComponent.target;
+        
+        if (target == "closestEnemy")
         {
-          auto closestEnemy = findClosestEnemyShip(entity);
+          auto closestEnemy = findClosestShipGivenKeyValue(entity, "type", "enemy ship");
           
           if (closestEnemy !is null)
           {
@@ -693,12 +696,26 @@ private:
             controlComponent.targetVelocity = closestEnemyComponent.velocity;
           }
         }
-        else if (controlComponent.target == "player")
+        else if (target == "player")
         {
           if (m_playerShip !is null)
           {
             controlComponent.targetPosition = m_placer.getComponent(m_playerShip).position;
             controlComponent.targetVelocity = m_placer.getComponent(m_playerShip).velocity;
+          }
+        }
+        else if (target.startsWith("closestTeam."))
+        {
+          target.skipOver("closestTeam.");
+          
+          auto closestShip = findClosestShipGivenKeyValue(entity, "team", target);
+          
+          if (closestShip !is null)
+          {
+            auto closestShipComponent = m_placer.getComponent(closestShip);
+            
+            controlComponent.targetPosition = closestShipComponent.position;
+            controlComponent.targetVelocity = closestShipComponent.velocity;
           }
         }
       }
@@ -1205,8 +1222,8 @@ private:
     //debug m_graphics.updateWithTiming();
     //else  m_graphics.update();
     m_graphics.updateWithTiming();
-    foreach (subSystem; taskPool.parallel(filter!(sys => sys !is m_graphics)(m_subSystems.values), 1))
-    //foreach (subSystem; filter!(sys => sys !is m_graphics)(m_subSystems.values))
+    //foreach (subSystem; taskPool.parallel(filter!(sys => sys !is m_graphics)(m_subSystems.values), 1))
+    foreach (subSystem; filter!(sys => sys !is m_graphics)(m_subSystems.values))
     {
       //debug subSystem.updateWithTiming();
       //else  subSystem.update();
@@ -1272,16 +1289,31 @@ private:
       outValues["angle"] = to!string(angle);
     }
     
+    if ("team" in inValues && inValues["team"].find("to").length > 0)
+    {
+      auto teamData = inValues["team"].split(" ");
+      
+      assert(teamData.length == 3, "Problem parsing team data with from/to values: " ~ to!string(teamData));
+      
+      int minTeam = to!int(teamData[0]);
+      int maxTeam = to!int(teamData[2]);
+      
+      auto team = uniform(minTeam, maxTeam+1);
+      
+      outValues["team"] = to!string(team);
+    }
+    
     return outValues;
   }
+    
   
-  Entity findClosestEnemyShip(Entity p_entity)
+  Entity findClosestShipGivenKeyValue(Entity p_entity, string key, string value)
   {
     auto entityPosition = m_placer.getComponent(p_entity).position;
     
-    auto candidates = filter!(entity => entity.id != p_entity.id && entity.getValue("type") == "enemy ship")(m_entities.values);
+    auto candidates = filter!(entity => entity.id != p_entity.id && entity.getValue(key) == value)(m_entities.values);
     
-    //writeln("closestenemyship candidates: " ~ to!string(array(candidates).length));
+    //writeln("closestshipgivenkeyvalue candidates: " ~ to!string(array(candidates).length));
     
     if (candidates.empty)
       return null;

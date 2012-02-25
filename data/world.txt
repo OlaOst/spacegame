@@ -93,7 +93,9 @@ npcship.spawnCount = 0
 # npc dispenser, will spawn an npc at a random position periodically
 npcDispenser.spawn.source = simpleship.txt
 npcDispenser.spawn.*.collisionType = NpcModule
-npcDispenser.spawn.*.target = player
+npcDispenser.spawn.team = 1
+#npcDispenser.spawn.*.target = player
+npcDispenser.spawn.*.target = closestTeam.1
 npcDispenser.spawn.leftEngine.control = chaser
 npcDispenser.spawn.rightEngine.control = chaser
 #npcDispenser.spawn.leftGun.control = aigunner
@@ -104,6 +106,7 @@ npcDispenser.spawn.position = -100 -100 to 100 100
 npcDispenser.reloadTime = 5
 npcDispenser.control = alwaysfire
 
+# [npcDispenser: spawn: [source: simpleship.txt, team: 1]]
 
 # dispensers create modules when clicked and serve as an unlimited supply of modules
 engineDispenser.drawsource = images/engine2.png
