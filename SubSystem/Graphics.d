@@ -245,6 +245,7 @@ public:
     // stable sort sometimes randomly crashes, phobos bug or float fuckery with lots of similar floats?
     // haven't seen any crashes so far with dmd 2.058
     foreach (component; sort!((left, right) => left.depth < right.depth, SwapStrategy.stable)(components))
+    //foreach (component; components)
     {
       glPushMatrix();
       
@@ -330,7 +331,7 @@ public:
     }
     
     
-    // draw radar blobs, log scaled
+    // draw radar circle
     glPushMatrix();
     
     glTranslatef(0.8, -0.6, 0.0);
@@ -340,12 +341,23 @@ public:
     if (hasComponent(m_centerEntity))
       centerComponent = getComponent(m_centerEntity);
     
+    // the radar circle is slightly transparent
+    glColor4f(0.0, 0.0, 0.0, 0.9);
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2f(0.0, 0.0);
+    for (float angle = 0.0; angle < PI*2.0; angle += (PI*2.0) / 32.0)
+      glVertex2f(sin(angle) * 1.25, cos(angle) * 1.25);
+    glVertex2f(sin(0.0) * 1.25, cos(0.0) * 1.25);
+    glEnd();
+    
+    // draw white radar circle
     glColor3f(1.0, 1.0, 1.0);
     glBegin(GL_LINE_LOOP);
     for (float angle = 0.0; angle < PI*2.0; angle += (PI*2.0) / 32.0)
       glVertex2f(sin(angle) * 1.25, cos(angle) * 1.25);
     glEnd();
     
+    // draw radar blips - with logarithmic distance and redshifted
     foreach (component; filter!(component => (component.position - centerComponent.position).length < 3500.0)(components))
     {
       glPointSize(max((1+component.radius)*2-1, 1.0));

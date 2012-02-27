@@ -83,6 +83,16 @@ public:
       return;
       
     glPushMatrix();
+      glColor4f(0.0, 0.0, 0.5, 0.8);
+      glBegin(GL_QUADS);
+        glVertex2f(-1.3, -0.95);
+        glVertex2f(-1.3,  0.95);
+        glVertex2f( 1.3,  0.95);
+        glVertex2f( 1.3, -0.95);
+      glEnd();
+    glPopMatrix();
+      
+    glPushMatrix();
       glTranslatef(-1.2, -0.9, 0.0);
       glScalef(0.05, 0.05, 1.0);      
       
@@ -99,17 +109,6 @@ public:
         glColor3f(outputLine.color.r, outputLine.color.g, outputLine.color.b);
         graphics.renderString(outputLine.text);
       }
-    glPopMatrix();
-    
-    
-    glPushMatrix();
-      glColor4f(0.0, 0.0, 0.5, 0.8);
-      glBegin(GL_QUADS);
-        glVertex2f(-1.3, -0.95);
-        glVertex2f(-1.3,  0.95);
-        glVertex2f( 1.3,  0.95);
-        glVertex2f( 1.3, -0.95);
-      glEnd();
     glPopMatrix();
   }
   
