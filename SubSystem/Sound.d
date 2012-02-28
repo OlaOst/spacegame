@@ -27,11 +27,11 @@ import std.conv;
 import std.exception;
 import std.stdio;
 
-import derelict.ogg.ogg;
-import derelict.ogg.vorbis;
-import derelict.ogg.vorbisfile;
+//import derelict.ogg.ogg;
+//import derelict.ogg.vorbis;
+//import derelict.ogg.vorbisfile;
 import derelict.openal.al;
-import derelict.openal.alut;
+//import derelict.openal.alut;
 
 import Entity;
 import SubSystem.Base;

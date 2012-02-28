@@ -26,7 +26,7 @@ import std.stdio;
 import std.exception;
 import std.conv;
 
-import derelict.sdl.sdl;
+import derelict.sdl2.sdl2;
 
 import gl3n.linalg;
 
@@ -369,7 +369,7 @@ public:
     return m_mousePos;
   }
   
-  SDL_keysym[] getKeysPressed()
+  SDL_Keysym[] getKeysPressed()
   {
     return m_keysPressed;
   }
@@ -486,10 +486,11 @@ private:
   EventState[Event] m_events;
   bool[Event] m_pressedEvents;
   
-  SDL_keysym[] m_keysPressed;
+  SDL_Keysym[] m_keysPressed;
   
-  static Event[SDLKey] m_keyEventMapping;
-  static Event[SDLKey] m_buttonEventMapping;
+  // TODO: SDL_Keycode or SDL_Scancode?
+  static Event[SDL_Keycode] m_keyEventMapping;
+  static Event[SDL_Keycode] m_buttonEventMapping;
   
   int m_screenWidth;
   int m_screenHeight;

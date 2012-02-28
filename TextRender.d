@@ -28,8 +28,8 @@ import std.range;
 import std.stdio;
 
 import derelict.freetype.ft;
-import derelict.opengl.gl;
-import derelict.opengl.glu;
+import derelict.opengl3.gl3;
+import derelict.opengl3.glx;
 
 import Display;
 import gl3n.linalg;

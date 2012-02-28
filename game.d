@@ -34,7 +34,7 @@ import std.range;
 import std.stdio;
 import std.string;
 
-import derelict.sdl.sdl;
+import derelict.sdl2.sdl2;
 
 import gl3n.linalg;
 import gl3n.math;

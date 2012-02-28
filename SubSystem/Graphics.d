@@ -33,10 +33,10 @@ import std.stdio;
 import std.string;
 
 import derelict.freetype.ft;
-import derelict.opengl.gl;
-import derelict.opengl.glu;
-import derelict.sdl.image;
-import derelict.sdl.sdl;
+import derelict.opengl3.gl3;
+import derelict.opengl3.glx;
+import derelict.sdl2.image;
+import derelict.sdl2.sdl2;
 
 import gl3n.math;
 import gl3n.linalg;
