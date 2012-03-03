@@ -438,6 +438,13 @@ public:
     return m_centerEntity;
   }
   
+  vec2 getCenterEntityPosition()
+  {
+    assert(hasComponent(m_centerEntity));
+    
+    return getComponent(m_centerEntity).position;
+  }
+  
   void renderString(string text)
   {
     m_textRender.renderString(text);

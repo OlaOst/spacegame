@@ -22,22 +22,13 @@
 
 module Console;
 
-import std.algorithm;
-import std.conv;
-import std.range;
-import std.stdio;
 import std.string;
 
-import derelict.opengl.gl;
 import derelict.sdl.sdl;
-
 import gl3n.linalg;
 
-import SubSystem.Graphics;
-//import SubSystem.Placer;
 import InputHandler;
-
-public import Game;
+import SubSystem.Graphics;
 
 
 unittest
@@ -73,18 +64,17 @@ abstract class Console
 public:
   this()
   {
-    m_active = false;
+    active = false;
   }
   
   abstract void display(Graphics graphics, float elapsedTime);
   
-  
   void handleInput(InputHandler input)
   {
     if (input.eventState(Event.ToggleConsole) == EventState.Released)
-      m_active = !m_active;
+      active = !active;
     
-    if (m_active)
+    if (active)
     {
       foreach (keysym; input.getKeysPressed())
       {
@@ -108,200 +98,13 @@ public:
   
   bool isActive()
   {
-    return m_active;
+    return active;
   }
   
-private:
-  string inputLine;
-  
-  OutputLine[] outputBuffer;
-  
-  bool m_active;
-  
+
+protected:
+  bool active;
   OutputLine[] delegate (string command) executeCommand;
-}
-
-
-class GameConsole : Console
-{
-public:
-  this(Game p_game)
-  {
-    game = p_game;
-    
-    executeCommand = &game.executeCommand;
-  }
-  
-  
-  override void display(Graphics graphics, float elapsedTime)
-  {
-    if (!m_active)
-      return;
-      
-    glPushMatrix();
-      glColor4f(0.0, 0.0, 0.5, 0.8);
-      glBegin(GL_QUADS);
-        glVertex2f(-1.3, -0.95);
-        glVertex2f(-1.3,  0.95);
-        glVertex2f( 1.3,  0.95);
-        glVertex2f( 1.3, -0.95);
-      glEnd();
-    glPopMatrix();
-      
-    glPushMatrix();
-      glTranslatef(-1.2, -0.9, 0.0);
-      glScalef(0.05, 0.05, 1.0);      
-      
-      glColor3f(0.2, 1.0, 0.4);
-      
-      if (to!int(elapsedTime*2) % 2 == 0)
-        graphics.renderString(inputLine);
-      else
-        graphics.renderString(inputLine ~ "_");
-
-      foreach (outputLine; take(outputBuffer.retro, 34))
-      {
-        glTranslatef(0.0, 1.0, 0.0);
-        glColor3f(outputLine.color.r, outputLine.color.g, outputLine.color.b);
-        graphics.renderString(outputLine.text);
-      }
-    glPopMatrix();
-  }
-  
-
-private:
-  Game game;
-}
-
-
-class EntityConsole : Console
-{
-public:
-  this(Game p_game)
-  {
-    game = p_game;
-    m_entity = null;
-    
-    executeCommand = &this.executeEntityCommand;
-  }
-  
-  void setEntity(Entity p_entity)
-  {
-    m_entity = p_entity;
-    
-    if (m_entity !is null)
-      m_active = true;
-  }
-  
-  override bool isActive()
-  {
-    return m_entity !is null;
-  }
-  
-  OutputLine[] executeEntityCommand(string command)
-  {
-    if (command == "help")
-    {
-      return [OutputLine("Commands available: ", vec3(1, 1, 1)),
-              OutputLine("help                - shows this list", vec3(1, 1, 1)),
-              OutputLine("exit/quit           - closes this console", vec3(1, 1, 1)),
-              OutputLine("values              - list values in entity", vec3(1, 1, 1)),
-              OutputLine("register            - registers entity", vec3(1, 1, 1)),
-              OutputLine("set key value       - sets key to the given value", vec3(1, 1, 1)),
-              OutputLine("Don't panic", vec3(0, 1, 0)),];
-    }
-    else if (command == "exit" || command == "quit")
-    {
-      m_entity = null;
-      return [];
-    }
-    else if (command == "values")
-    {
-      OutputLine[] values;
-      foreach (key, value; m_entity.values)
-        values ~= OutputLine(key ~ ": " ~ to!string(value.until("\\n")), vec3(1, 1, 1));
-      
-      values ~= OutputLine("", vec3(1, 1, 1));
-      
-      return values;
-    }
-    else if (command.startsWith("register"))
-    {
-      game.registerEntity(m_entity);
-      
-      return [OutputLine("Registered entity " ~ to!string(m_entity.id), vec3(1, 1, 1))];
-    }
-    else if (command.startsWith("set"))
-    {
-      try
-      {
-        command.skipOver("set");
-        
-        auto parameters = command.strip.split(" ");
-        
-        string key = parameters[0];
-        string value = reduce!((a, b) => (a ~= " " ~ b))(parameters[1..$]);
-        
-        m_entity.setValue(key, value);
-      
-        string text = to!string(m_entity.values);
-        
-        return [OutputLine(to!string(text.until("\\n")), vec3(1, 1, 1))];        
-      }
-      catch (ConvException e) {}
-    }
-    
-    return [OutputLine("?? " ~ command, vec3(1, 0, 0))];
-  }
-  
-  override void display(Graphics graphics, float elapsedTime)
-  {
-    if (!isActive() || m_entity is null)
-      return;
-      
-    assert(m_entity !is null);
-    assert(game !is null),
-    assert(game.m_placer.hasComponent(m_entity));
-    
-    auto placerComponent = game.m_placer.getComponent(m_entity);
-    
-    glPushMatrix();
-      //glScalef(graphics.zoom, graphics.zoom, 1.0);
-      //glTranslatef(placerComponent.position.x, placerComponent.position.y, 0.0);
-      //glScalef(1.0 / graphics.zoom, 1.0 / graphics.zoom, 1.0);    
-    
-      glColor4f(0.0, 0.5, 0.5, 0.8);
-      glBegin(GL_QUADS);
-        glVertex2f( 0.0, -0.2);
-        glVertex2f( 0.0,  0.5);
-        glVertex2f( 0.9,  0.5);
-        glVertex2f( 0.9, -0.2);
-      glEnd();
-    glPopMatrix();
-    
-    glPushMatrix();
-      glTranslatef(0.05, -0.15, 0.0);
-      glScalef(0.05, 0.05, 1.0);
-      
-      glColor3f(0.2, 1.0, 0.4);
-      
-      if (to!int(elapsedTime*2) % 2 == 0)
-        graphics.renderString(inputLine);
-      else
-        graphics.renderString(inputLine ~ "_");
-
-      foreach (outputLine; take(outputBuffer.retro, 34))
-      {
-        glTranslatef(0.0, 1.0, 0.0);
-        glColor3f(outputLine.color.r, outputLine.color.g, outputLine.color.b);
-        graphics.renderString(outputLine.text);
-      }
-    glPopMatrix();
-  }
-  
-
-private:
-  Game game;
-  //Placer placer;
-  Entity m_entity;
+  string inputLine;
+  OutputLine[] outputBuffer;
 }

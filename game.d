@@ -49,8 +49,10 @@ import Control.Flocker;
 import CommsCentral;
 import Console;
 import Entity;
+import EntityConsole;
 import EntityGenerator;
 import EntityLoader;
+import GameConsole;
 import InputHandler;
 import Starfield;
 
