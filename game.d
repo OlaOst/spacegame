@@ -154,8 +154,7 @@ public:
     
     int xres = 1024;
     int yres = 768;
-    
-    m_console = new Console(this);
+
     
     m_subSystems["placer"] = m_placer = new Placer();
     m_subSystems["graphics"] = m_graphics = new Graphics(cache, xres, yres);
@@ -166,6 +165,9 @@ public:
     m_subSystems["sound"] = new SoundSubSystem(64);
     m_subSystems["spawner"] = m_spawner = new Spawner();
 
+    m_gameConsole = new GameConsole(this);
+    m_entityConsole = new EntityConsole(this);
+    
     assert(m_controller !is null);
     
     m_controller.controls["aigunner"] = new AiGunner();
@@ -290,6 +292,7 @@ public:
     else if (command == "exit" || command == "quit")
     {
       m_running = false;
+      return [];
     }
     else if (command.startsWith("loadworld"))
     {
@@ -313,6 +316,8 @@ public:
       
       foreach (subSystem; m_subSystems)
         subSystem.clearEntities();
+        
+      return [];
     }
     else if (command == "entities")
     {
@@ -350,7 +355,10 @@ public:
         else
           return [OutputLine("No entity with id " ~ to!string(entityId), vec3(1, 0.5, 0))];
       }
-      catch (ConvException e) {}
+      catch (ConvException e)
+      {
+        return [OutputLine("Conversion error", vec3(1, 0, 0))];
+      }
     }
     else if (command.startsWith("systems"))
     {
@@ -387,7 +395,10 @@ public:
         else
           return [OutputLine("No entity with id " ~ to!string(entityId), vec3(1, 0.5, 0))];
       }
-      catch (ConvException e) {}
+      catch (ConvException e)
+      {
+        return [OutputLine("Conversion error", vec3(1, 0, 0))];
+      }
     }
     else if (command.startsWith("register"))
     {
@@ -406,7 +417,10 @@ public:
         else
           return [OutputLine("No entity with id " ~ to!string(entityId), vec3(1, 0.5, 0))];
       }
-      catch (ConvException e) {}
+      catch (ConvException e)
+      {
+        return [OutputLine("Conversion error", vec3(1, 0, 0))];
+      }
     }
     else if (command.startsWith("set"))
     {
@@ -431,7 +445,10 @@ public:
         else
           return [OutputLine("No entity with id " ~ to!string(entityId), vec3(1, 0.5, 0))];
       }
-      catch (ConvException e) {}
+      catch (ConvException e)
+      {
+        return [OutputLine("Conversion error", vec3(1, 0, 0))];
+      }
     }
     else if (command.startsWith("new"))
     {
@@ -721,7 +738,8 @@ private:
       }
     }
     
-    m_console.display(m_graphics, totalTime);
+    m_entityConsole.display(m_graphics, totalTime);
+    m_gameConsole.display(m_graphics, totalTime);
     
     handleInput(elapsedTime);
     
@@ -731,11 +749,12 @@ private:
   
   void handleInput(float p_elapsedTime)
   {
-    m_console.handleInput(m_inputHandler);
+    m_gameConsole.handleInput(m_inputHandler);
+    m_entityConsole.handleInput(m_inputHandler);
       
     foreach (control; m_controller.controls.values)
     {
-      control.consoleActive = m_console.isActive();
+      control.consoleActive = m_gameConsole.isActive();
     }
   
     if (m_inputHandler.isPressed(Event.LeftButton))
@@ -937,16 +956,33 @@ private:
       }
     }
     
-    // rightclick changes center entity - the entity in the center of the screen
     if (m_inputHandler.eventState(Event.RightButton) == EventState.Released)
     {
-      foreach (entity; filter!(entity => entity != m_playerShip && 
+      auto clickedEntities = find!(entity => entity != m_playerShip && 
+                                   entity.getValue("radius").length > 0 &&
+                                   entity.getValue("ScreenAbsolutePosition") != "true" &&
+                                   m_placer.hasComponent(entity) && 
+                                   (m_placer.getComponent(entity).position - m_graphics.mouseWorldPos).length < to!float(entity.getValue("radius")) &&
+                                   m_connector.hasComponent(entity))(m_entities.values);
+    
+      if (!clickedEntities.empty)
+      {
+        auto entity = clickedEntities[0];
+        
+        m_entityConsole.setEntity(entity);
+      }
+      else
+      {
+        m_entityConsole.setEntity(null);
+      }
+    
+      /*foreach (entity; filter!(entity => entity != m_playerShip && 
                                          entity.getValue("radius").length > 0 &&
                                          m_placer.hasComponent(entity) && 
                                          (m_placer.getComponent(entity).position - m_graphics.mouseWorldPos).length < to!float(entity.getValue("radius")) &&
                                          m_connector.hasComponent(entity))(m_entities.values))
       {
-        auto entityOwner = m_connector.getComponent(entity).owner;
+        /*auto entityOwner = m_connector.getComponent(entity).owner;
         
         // we don't want to control modules floating by themself not connected to anything... or do we?
         if (entityOwner.id == entity.id)
@@ -989,7 +1025,7 @@ private:
         }
         
         break;
-      }
+      }*/
     }  
   
     if (m_inputHandler.isPressed(Event.PageUp))
@@ -1116,7 +1152,7 @@ private:
   }
   
 
-  void registerEntity(Entity p_entity)
+  public void registerEntity(Entity p_entity)
   {
     //assert(p_entity.id !in m_entities, "Tried registering entity " ~ to!string(p_entity.id) ~ " that was already registered");
     
@@ -1337,10 +1373,11 @@ private:
   
   InputHandler m_inputHandler;
   
-  Console m_console;
+  GameConsole m_gameConsole;
+  EntityConsole m_entityConsole;
   
   SubSystem.Base.SubSystem[string] m_subSystems;
-  Placer m_placer;
+  public Placer m_placer;
   Physics m_physics;
   Graphics m_graphics;
   Controller m_controller;
