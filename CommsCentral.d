@@ -121,6 +121,7 @@ void setPlacerFromConnector(ConnectionHandler connection, Placer placer)
     placerComponent.angle = ownerComponent.angle + connectionComponent.relativeAngle;
     
     placerComponent.velocity = ownerComponent.velocity;
+    placerComponent.rotation = ownerComponent.rotation;
     
     //writeln("placer from connector, pos is " ~ placerComponent.position.toString());
     
@@ -163,12 +164,14 @@ void setPhysicsFromConnector(ConnectionHandler connection, Physics physics)
       //ownerComponent.force += physicsComponent.force.rotate(ownerComponent.angle);
       ownerComponent.force += mat2.rotation(-ownerComponent.angle) * physicsComponent.force;
       ownerComponent.impulse += physicsComponent.impulse;
+      ownerComponent.angularImpulse += physicsComponent.angularImpulse;
       ownerComponent.torque += physicsComponent.torque;
       
       physics.setComponent(connectionComponent.owner, ownerComponent);
     }
   }
 }
+
 
 // controllers can add forces, for example engine exhaust or gun recoil
 void setPhysicsFromController(Controller controller, Physics physics)
@@ -179,6 +182,7 @@ void setPhysicsFromController(Controller controller, Physics physics)
     physicsComponent.torque += controllerComponent.torque;
     
     physicsComponent.impulse += controllerComponent.impulse;
+    physicsComponent.angularImpulse += controllerComponent.angularImpulse;
     
     return physicsComponent;
   });

@@ -86,9 +86,9 @@ public:
       force -= dir * thrustForce;
     
     if (m_inputHandler.isPressed(Event.LeftKey))
-      torque -= torqueForce;
+      torque = min(torque - torqueForce, -0.5);
     if (m_inputHandler.isPressed(Event.RightKey))
-      torque += torqueForce;
+      torque = max(torque + torqueForce, 0.5);
       
     // dampen rotation if no rotation input from player
     /*if (m_inputHandler.isPressed(Event.LeftKey) == false && m_inputHandler.isPressed(Event.RightKey) == false)
@@ -109,8 +109,19 @@ public:
       if (abs(p_sourceComponent.rotation) > 0.001)
         torque -= (p_sourceComponent.rotation / abs(p_sourceComponent.rotation)) * torqueForce;*/
 
-      p_sourceComponent.impulse = p_sourceComponent.velocity * -1.0;
+      // should be impulse according to ownercomponent
+        
+      p_sourceComponent.impulse += p_sourceComponent.velocity * -1.0;
+      p_sourceComponent.angularImpulse += p_sourceComponent.rotation * -1.0;
+      //if (abs(p_sourceComponent.rotation) > 0.0)
+        //p_sourceComponent.angularImpulse = (p_sourceComponent.rotation / abs(p_sourceComponent.rotation)) * -1.0;
+      
+      assert(isFinite(p_sourceComponent.angularImpulse));
+      
+      //writeln("angularimpulse is " ~ to!string(p_sourceComponent.angularImpulse) ~ ", rotation is " ~ to!string(p_sourceComponent.rotation));
     }
+    p_sourceComponent.angularImpulse += p_sourceComponent.rotation * -1.0;
+    //writeln("rotation is " ~ to!string(p_sourceComponent.rotation));
     
     p_sourceComponent.force = force;
     p_sourceComponent.torque = torque;

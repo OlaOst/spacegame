@@ -81,7 +81,7 @@ public:
   {
     force = impulse = velocity = position = vec2(0.0, 0.0);
     
-    torque = rotation = angle = 0.0;
+    torque = rotation = angularImpulse = angle = 0.0;
     
     mass = 1.0;
   }
@@ -108,18 +108,31 @@ private:
     
     velocity += (force * (1.0 / mass)) * p_time;
     velocity += impulse * p_time;
-    
     position += velocity * p_time;
     
     rotation += (torque / mass) * p_time;
+    float originalRotation = rotation;
+    rotation += angularImpulse * p_time;
+    // to avoid crazy oscillations, we do not want angularimpulse to flip the sign of rotation
+    // just set rotation to zero in that case
+    if (rotation * originalRotation < 0.0)
+    {
+      rotation = 0.0;
+      angularImpulse = 0.0;
+    }
+    
     angle += rotation * p_time;
     
-    assert(angle == angle);
+    //if (abs(rotation) > 0.0)
+      //writeln("physics rotation is " ~ to!string(rotation) ~ ", mass is " ~ to!string(mass));
+    
+    assert(isFinite(angle));
     
     // reset force and torque after applying them
     force = vec2(0.0, 0.0);
     torque = 0.0;
     impulse = vec2(0.0, 0.0);
+    angularImpulse = 0.0;
   }
 
 public:
@@ -131,6 +144,7 @@ public:
   float angle;
   float rotation;
   float torque;
+  float angularImpulse;
   
   float mass;
 }
@@ -180,7 +194,7 @@ private:
       //writeln("comp rotation is " ~ to!string(component.rotation));
       
       component.force += (component.velocity * -0.15);
-      component.torque += min(100.0, (component.rotation * -20.5));
+      //component.torque += min(100.0, (component.rotation * -20.5));
       
       assert(component.force.ok);
       assert(isFinite(component.torque));

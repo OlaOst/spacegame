@@ -50,6 +50,7 @@ class ControlComponent
   float rotation = 0.0;
   
   vec2 impulse = vec2(0.0, 0.0);
+  float angularImpulse = 0.0;
   
   vec2 force = vec2(0.0, 0.0);
   float torque = 0.0;
@@ -101,6 +102,7 @@ public:
       // reset component force and torque before update
       component.force = vec2(0.0, 0.0);
       component.impulse = vec2(0.0, 0.0);
+      component.angularImpulse = 0.0;
       component.torque = 0.0;
       
       component.isFiring = false;

@@ -3,8 +3,8 @@
 #startupDing.name = startupDing
 
 # background music
-#backgroundMusic.soundFile = orbitalelevator.ogg
-#backgroundMusic.isMusic = true
+backgroundMusic.soundFile = orbitalelevator.ogg
+backgroundMusic.isMusic = true
 
 
 # backdrop picture

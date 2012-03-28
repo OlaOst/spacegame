@@ -1,2 +1,20 @@
 greeting.text = Hello?
 greeting.position = 0 0
+
+# playership controllable by player
+#playership.source = playership.txt
+playership.source = simpleship.txt
+playership.leftEngine.control = playerEngine
+playership.rightEngine.control = playerEngine
+playership.leftGun.control = playerLauncher
+playership.rightGun.control = playerLauncher
+#playership.leftGun.source = launcher.txt
+#playership.rightGun.source = launcher.txt
+playership.leftGun.reloadTime = 0.02
+playership.rightGun.reloadTime = 0.02
+playership.*.collisionType = PlayerModule
+playership.*.spawn.*.target = closestEnemy
+playership.position = 0 0
+playership.angle = 0
+playership.name = playership
+playership.keepInCenter = true

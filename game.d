@@ -756,7 +756,7 @@ private:
       
     foreach (control; m_controller.controls.values)
     {
-      control.consoleActive = m_gameConsole.isActive();
+      control.consoleActive = m_gameConsole.isActive() || m_entityConsole.isActive();
     }
   
     if (m_inputHandler.isPressed(Event.LeftButton))
@@ -960,13 +960,20 @@ private:
     
     if (m_inputHandler.eventState(Event.RightButton) == EventState.Released)
     {
-      auto clickedEntities = find!(entity => entity != m_playerShip && 
+      /*auto clickedEntities = find!(entity => entity != m_playerShip && 
                                    entity.getValue("radius").length > 0 &&
                                    entity.getValue("ScreenAbsolutePosition") != "true" &&
                                    m_placer.hasComponent(entity) && 
                                    (m_placer.getComponent(entity).position - m_graphics.mouseWorldPos).length < to!float(entity.getValue("radius")) &&
-                                   m_connector.hasComponent(entity))(m_entities.values);
+                                   m_connector.hasComponent(entity))(m_entities.values);*/
     
+      auto clickedEntities = find!(entity => entity.getValue("ScreenAbsolutePosition") != "true" &&
+                                             entity.getValue("radius").length > 0 &&
+                                             m_placer.hasComponent(entity) && 
+                                             (m_placer.getComponent(entity).position - m_graphics.mouseWorldPos).length < to!float(entity.getValue("radius")))
+                                  (m_entities.values);
+
+                                  
       if (!clickedEntities.empty)
       {
         auto entity = clickedEntities[0];

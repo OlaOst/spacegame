@@ -440,9 +440,10 @@ public:
   
   vec2 getCenterEntityPosition()
   {
-    assert(hasComponent(m_centerEntity));
-    
-    return getComponent(m_centerEntity).position;
+    if (hasComponent(m_centerEntity))
+      return getComponent(m_centerEntity).position;
+    else
+      return vec2(0,0);
   }
   
   void renderString(string text)
