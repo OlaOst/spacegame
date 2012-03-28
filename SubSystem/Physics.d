@@ -123,9 +123,6 @@ private:
     
     angle += rotation * p_time;
     
-    //if (abs(rotation) > 0.0)
-      //writeln("physics rotation is " ~ to!string(rotation) ~ ", mass is " ~ to!string(mass));
-    
     assert(isFinite(angle));
     
     // reset force and torque after applying them
