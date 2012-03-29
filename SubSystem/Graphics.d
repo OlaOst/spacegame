@@ -196,6 +196,7 @@ public:
   float depth = 0.0;
   
   bool screenAbsolutePosition = false;
+  bool hideFromRadar = false;
   
   string text;
 }
@@ -358,7 +359,7 @@ public:
     glEnd();
     
     // draw radar blips - with logarithmic distance and redshifted
-    foreach (component; filter!(component => (component.position - centerComponent.position).length < 3500.0)(components))
+    foreach (component; filter!(component => component.hideFromRadar == false && (component.position - centerComponent.position).length < 3500.0)(components))
     {
       glPointSize(max((1+component.radius)*2-1, 1.0));
       
@@ -471,6 +472,11 @@ protected:
     if (p_entity.getValue("keepInCenter") == "true")
     {
       m_centerEntity = p_entity;
+    }
+    
+    if (p_entity.getValue("hideFromRadar") == "true")
+    {
+      component.hideFromRadar = true;
     }
     
     if (looksLikeATextFile(p_entity.getValue("drawsource")))

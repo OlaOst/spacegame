@@ -753,7 +753,7 @@ private:
   {
     m_gameConsole.handleInput(m_inputHandler);
     m_entityConsole.handleInput(m_inputHandler);
-      
+
     foreach (control; m_controller.controls.values)
     {
       control.consoleActive = m_gameConsole.isActive() || m_entityConsole.isActive();
