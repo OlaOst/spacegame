@@ -61,6 +61,11 @@ public:
   
   OutputLine[] executeEntityCommand(string command)
   {
+    if (entity is null)
+    {
+      return [];
+    }
+    
     if (command == "help")
     {
       return [OutputLine("Commands available: ", vec3(1, 1, 1)),
