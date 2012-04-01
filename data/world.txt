@@ -4,7 +4,7 @@
 
 # background music
 backgroundMusic.soundFile = orbitalelevator.ogg
-backgroundMusic.isMusic = true
+backgroundMusic.streaming = true
 
 
 # backdrop picture
@@ -99,12 +99,12 @@ npcDispenser.spawn.*.target = player
 #npcDispenser.spawn.*.target = closestTeam.1
 npcDispenser.spawn.leftEngine.control = chaser
 npcDispenser.spawn.rightEngine.control = chaser
-#npcDispenser.spawn.leftGun.control = aigunner
-#npcDispenser.spawn.rightGun.control = aigunner
+npcDispenser.spawn.leftGun.control = aigunner
+npcDispenser.spawn.rightGun.control = aigunner
 npcDispenser.spawn.type = enemy ship
 npcDispenser.spawn.angle = 0 to 360
 npcDispenser.spawn.position = -100 -100 to 100 100
-npcDispenser.reloadTime = 5
+npcDispenser.reloadTime = 500
 npcDispenser.control = alwaysfire
 
 # [npcDispenser: spawn: [source: simpleship.txt, team: 1]]

@@ -5,6 +5,6 @@ radius = 0.85
 mass = 1.0
 health = 25.0
 
-thrustForce = 30.0
-torqueForce = 25.0
-slideForce = 15.0
+thrustForce = 40.0
+torqueForce = 50.0
+slideForce = 25.0

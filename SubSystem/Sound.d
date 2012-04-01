@@ -33,6 +33,7 @@ import derelict.ogg.vorbisfile;
 import derelict.openal.al;
 import derelict.openal.alut;
 
+import AudioStream;
 import Entity;
 import SubSystem.Base;
 
@@ -53,11 +54,18 @@ public:
   {
     buffer = p_buffer;
   }
+  
+  this(AudioStream p_stream)
+  {
+    stream = p_stream;
+  }
 
   ALuint buffer;
   bool shouldStartPlaying = false;
   bool isPlaying = false;
-  bool isMusic = false;
+  
+  bool streaming = false;
+  AudioStream stream = null;
 }
 
 
@@ -80,13 +88,11 @@ public:
     
     alutInit(null, null);
   
-    m_musicSources.length = 3;
-    for (int n = 0; n < m_musicSources.length; n++)
-      alGenSources(1, &m_musicSources[n]);
-  
-    m_sources.length = p_sources - m_musicSources.length;
-    for (int n = 0; n < p_sources - m_musicSources.length; n++)
+    m_sources.length = p_sources;
+    for (int n = 0; n < p_sources; n++)
+    {
       alGenSources(1, &m_sources[n]);
+    }
     
     m_lastSourcePlayed = 0;
   }
@@ -95,34 +101,39 @@ public:
   {
     foreach (component; components)
     {
-      if (component.shouldStartPlaying)
+      if (component.stream !is null)
+      {
+        // need some threading to handle updating the stream
+        if (component.stream.update())
+        {
+          if (component.stream.playing() == false)
+          {
+            enforce(component.stream.playback(), "Ogg abruptly stopped");
+          }
+        }
+      }
+      else if (component.shouldStartPlaying)
       {
         ALuint source;
         
-        if (component.isMusic)
-          source = m_musicSources[0];
-        else
-          source = m_sources[m_lastSourcePlayed];
+        source = m_sources[(m_lastSourcePlayed++) % m_sources.length];
         
-        alSourcei(source, AL_BUFFER, component.buffer);
-        alSourcePlay(source);
-
-        component.shouldStartPlaying = false;
-        component.isPlaying = true;
+        // we need to check if this source is playing
+        ALenum state;
+        alGetSourcei(source, AL_SOURCE_STATE, &state);
         
-        if (component.isMusic == false)
-          m_lastSourcePlayed = (m_lastSourcePlayed + 1) % m_sources.length;
-      }
-      
-      if (component.isPlaying)
-      {
-        if (component.isMusic)
+        if (state != AL_PLAYING)
         {
-          ALint state;
-          alGetSourcei(m_musicSources[0], AL_SOURCE_STATE, &state);
+          alSourcei(source, AL_BUFFER, component.buffer);
+          alSourcePlay(source);
           
-          if (state == AL_STOPPED)
-            component.shouldStartPlaying = true;
+          component.shouldStartPlaying = false;
+          component.isPlaying = true;
+        }
+        else
+        {
+          component.shouldStartPlaying = false;
+          component.isPlaying = false;
         }
       }
     }
@@ -141,7 +152,11 @@ protected:
     if (soundFile.startsWith("data/sounds/") == false)
       soundFile = "data/sounds/" ~ soundFile;
 
-    if (soundFile !in m_fileToBuffer)
+    if ("streaming" in p_entity.values)
+    {
+      return new SoundComponent(new AudioStream(soundFile));
+    }
+    else if (soundFile !in m_fileToBuffer)
     {
       if (soundFile.find(".ogg") != [])
       {
@@ -173,9 +188,6 @@ protected:
     auto newComponent = new SoundComponent(m_fileToBuffer[soundFile]);
     
     newComponent.shouldStartPlaying = true;
-    
-    if ("isMusic" in p_entity.values)
-      newComponent.isMusic = true;
     
     return newComponent;
   }
@@ -220,7 +232,6 @@ private:
 
 private:
   ALuint[] m_sources;
-  ALuint[] m_musicSources;
   
   ALuint[string] m_fileToBuffer;
   
