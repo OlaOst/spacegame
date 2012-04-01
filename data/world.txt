@@ -66,9 +66,9 @@ playership.rightEngine.control = playerEngine
 playership.leftGun.control = playerLauncher
 playership.rightGun.control = playerLauncher
 #playership.leftGun.source = launcher.txt
-#playership.rightGun.source = launcher.txt
+playership.rightGun.source = launcher.txt
 playership.leftGun.reloadTime = 0.02
-playership.rightGun.reloadTime = 0.02
+playership.rightGun.reloadTime = 0.2
 playership.*.collisionType = PlayerModule
 playership.*.spawn.*.target = closestEnemy
 playership.position = 0 0
@@ -99,12 +99,12 @@ npcDispenser.spawn.*.target = player
 #npcDispenser.spawn.*.target = closestTeam.1
 npcDispenser.spawn.leftEngine.control = chaser
 npcDispenser.spawn.rightEngine.control = chaser
-npcDispenser.spawn.leftGun.control = aigunner
-npcDispenser.spawn.rightGun.control = aigunner
+#npcDispenser.spawn.leftGun.control = aigunner
+#npcDispenser.spawn.rightGun.control = aigunner
 npcDispenser.spawn.type = enemy ship
 npcDispenser.spawn.angle = 0 to 360
 npcDispenser.spawn.position = -100 -100 to 100 100
-npcDispenser.reloadTime = 500
+npcDispenser.reloadTime = 5
 npcDispenser.control = alwaysfire
 
 # [npcDispenser: spawn: [source: simpleship.txt, team: 1]]
@@ -148,7 +148,7 @@ stationPlateDispenser.control = dispenser
 
 
 # description text for dispensers
-blueprinttext.text = These are module dispensers\nClick and drag modules out of them!
+blueprinttext.text = These are module dispensers\nClick and drag modules out of them\nThey can be put on free connectpoints on your ship
 blueprinttext.position = 3 6
 
 # junkfield with modules ready for the pickings

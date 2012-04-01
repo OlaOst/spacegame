@@ -102,7 +102,7 @@ public:
       
       assert(isFinite(p_sourceComponent.angularImpulse));
     }
-    p_sourceComponent.angularImpulse += p_sourceComponent.rotation * -1.0;
+    p_sourceComponent.angularImpulse += p_sourceComponent.rotation * -3.0;
     
     p_sourceComponent.force = force;
     p_sourceComponent.torque = torque;

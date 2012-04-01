@@ -518,6 +518,7 @@ private:
         entity.setValue("force", vec2(0.0, 0.0).toString());
         
         m_controller.removeEntity(entity);
+        m_spawner.removeEntity(entity);
         m_collider.registerEntity(entity);
         
         m_physics.registerEntity(entity);
@@ -532,6 +533,7 @@ private:
           connectedEntity.setValue("collisionType", "FreeFloatingModule");
           connectedEntity.setValue("owner", to!string(connectedEntity.id));
           m_controller.removeEntity(connectedEntity);
+          m_spawner.removeEntity(entity);
           m_connector.removeEntity(connectedEntity);
           m_collider.registerEntity(connectedEntity);
           
@@ -811,16 +813,11 @@ private:
                 
                 Entity connectEntity;
                 
-                // TODO: this syntax should work in dmd version 2.058+
-                //find!(entity => entity.id == to!int(dragEntityConnection[0]))(m_entities.values);
+                auto match = find!(entity => entity.id == to!int(dragEntityConnection[0]))(m_entities.values);
                 
-                foreach (entity; m_entities)
+                if (match.empty == false)
                 {
-                  if (entity.id == to!int(dragEntityConnection[0]))
-                  {
-                    connectEntity = entity;
-                    break;
-                  }
+                  connectEntity = match.front;
                 }
                 
                 assert(connectEntity !is null);
@@ -862,7 +859,7 @@ private:
         
         assert(m_dragEntity.getValue("radius").length > 0, "Couldn't find radius for drag entity " ~ m_dragEntity.getValue("name"));
         
-        // trash entities dropped in the trashbin, but don't trash the trashbin...
+        // delete entities dropped in the trashbin, but don't delete the trashbin...
         if (m_dragEntity != m_trashBin && (dragPos - trashBinPos).length < to!float(m_trashBin.getValue("radius")))
         {
           removeEntity(m_dragEntity);
@@ -905,6 +902,9 @@ private:
               //if (m_dragEntity.getValue("source") == "data/cannon.txt" || m_dragEntity.getValue("source") == "cannon.txt")
               if (m_dragEntity.getValue("spawn.source").length > 0)
                 m_dragEntity.setValue("control", "playerLauncher");
+                
+              // in case the module launches missiles, set target so that missiles will have a target to home in to
+              m_dragEntity.setValue("spawn.*.target", "closestEnemy");
             }
             registerEntity(m_dragEntity);
             

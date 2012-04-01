@@ -55,15 +55,15 @@ public:
     auto targetVelocity = p_sourceComponent.targetVelocity;
     
     vec2 relativeTargetPosition = targetPosition - p_sourceComponent.position;
-    vec2 relativeVelocity = targetVelocity - p_sourceComponent.velocity;
+    vec2 relativeTargetVelocity = targetVelocity - p_sourceComponent.velocity;
     
-    if (relativeTargetPosition.length > 1.0)
+    if (relativeTargetPosition.length > 0.0)
     {
       assert(p_sourceComponent.torqueForce == p_sourceComponent.torqueForce);
       
-      vec2 desiredVelocity = relativeTargetPosition;
+      //vec2 desiredVelocity = relativeTargetPosition;
       //vec2 desiredVelocity = relativeTargetPosition + targetVelocity * 2.0;
-      //vec2 desiredVelocity = relativeTargetPosition + relativeVelocity * 2.0;
+      vec2 desiredVelocity = relativeTargetPosition + relativeTargetVelocity * sqrt(relativeTargetPosition.length) * 0.1;
       
       vec2 currentDirection = vec2.fromAngle(p_sourceComponent.angle);
       vec2 desiredDirection = desiredVelocity.normalized;
@@ -75,18 +75,20 @@ public:
       while (angle < -PI)
         angle += PI * 2.0;
       
-      float desiredTorque = 0.0;
+      float desiredTorque = (angle / PI) * p_sourceComponent.torqueForce - p_sourceComponent.rotation;
       
-      if (angle > 0.0)
+      /*if (angle > 0.0)
         desiredTorque = 1.0;
       else
         desiredTorque = -1.0;
 
-      desiredTorque *= p_sourceComponent.torqueForce;
+      desiredTorque *= p_sourceComponent.torqueForce;*/
 
       assert(isFinite(desiredTorque));
       
       p_sourceComponent.torque = desiredTorque;
+      
+      p_sourceComponent.angularImpulse += p_sourceComponent.rotation * -1.0;
       
       if (abs(angle) < 0.2 && p_sourceComponent.velocity.length < p_sourceComponent.maxSpeed)
         p_sourceComponent.force += vec2(0.0, 1.0 * p_sourceComponent.thrustForce);
