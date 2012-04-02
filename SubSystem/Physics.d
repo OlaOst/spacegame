@@ -113,6 +113,7 @@ private:
     rotation += (torque / mass) * p_time;
     float originalRotation = rotation;
     rotation += angularImpulse * p_time;
+    
     // to avoid crazy oscillations, we do not want angularimpulse to flip the sign of rotation
     // just set rotation to zero in that case
     if (rotation * originalRotation < 0.0)
@@ -120,7 +121,7 @@ private:
       rotation = 0.0;
       angularImpulse = 0.0;
     }
-    
+        
     angle += rotation * p_time;
     
     assert(isFinite(angle));
@@ -227,6 +228,9 @@ protected:
     
     if (p_entity.getValue("velocity").length > 0)
       newComponent.velocity = vec2.fromString(p_entity.getValue("velocity"));
+    
+    if (p_entity.getValue("rotation").length > 0)
+      newComponent.rotation = to!float(p_entity.getValue("rotation")) * PI_180;
     
     if (p_entity.getValue("force").length > 0)
       newComponent.force = vec2.fromString(p_entity.getValue("force"));

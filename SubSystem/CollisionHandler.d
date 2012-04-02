@@ -25,6 +25,7 @@ module SubSystem.CollisionHandler;
 import std.algorithm;
 import std.conv;
 import std.exception;
+import std.random;
 import std.stdio;
 
 import gl3n.linalg;
@@ -93,7 +94,8 @@ enum CollisionType
   PlayerModule,
   FreeFloatingModule,
   Asteroid,
-  Bullet
+  Bullet,
+  Particle
 }
 
 
@@ -110,6 +112,7 @@ class ColliderComponent
   }
   
   vec2 m_position = vec2(0.0, 0.0);
+  vec2 velocity = vec2(0.0, 0.0);
   
   @property vec2 position() { return m_position; }
   
@@ -151,6 +154,8 @@ class ColliderComponent
   
   static int idCounter = 0;
   int id;
+  
+  bool hasCollided = false;
 }
 
 
@@ -159,6 +164,8 @@ struct Collision
   ColliderComponent first;
   ColliderComponent second;
   vec2 contactPoint;
+  
+  bool hasSpawnedParticles = false;
 }
 
 
@@ -178,6 +185,20 @@ public:
   {
     determineCollisions();
     calculateCollisionResponse();
+  }
+  
+  string[string][] getAndClearSpawnParticleValues()
+  out
+  {
+    assert(m_spawnParticleValues.length == 0);
+  }
+  body
+  {
+    string[string][] tmp = m_spawnParticleValues;
+    
+    m_spawnParticleValues.length = 0;
+    
+    return tmp;
   }
   
 
@@ -229,8 +250,8 @@ private:
     
     index.clear();    
     
-    // for now, only bullets can collide, so we only put bullets in the index
-    foreach (component; filter!(component => component.collisionType == CollisionType.Bullet)(components))
+    // for now, only bullets can collide, so we only put bullets in the index first - and only if they haven't collided yet
+    foreach (component; filter!(component => component.collisionType == CollisionType.Bullet && component.hasCollided == false)(components))
     //foreach (component; components)
     {
       index.insert(component);
@@ -238,6 +259,7 @@ private:
     
     // for now, bullets can't collide with freefloating modules or other bullets, so we filter them out
     foreach (component; filter!(component => component.collisionType != CollisionType.FreeFloatingModule &&
+                                             component.collisionType != CollisionType.Particle &&
                                              component.collisionType != CollisionType.Bullet)(components))
     {
       auto candidates = index.findNearbyContent(component);
@@ -247,7 +269,7 @@ private:
       foreach (candidate; candidates)
       {
         auto second = candidate;
-          
+
         assert(first.id != second.id);
           
         // bullets should not collide with the entity that spawned them, or any entities that has the same owner... or should they?
@@ -262,6 +284,11 @@ private:
           vec2 normalizedContactPoint = (second.position - first.position).normalized(); // / (first.radius + second.radius); // * first.radius;
 
           vec2 contactPoint = normalizedContactPoint * (1.0/(first.radius + second.radius)) * first.radius;
+          
+          /*if (first.collisionType == CollisionType.Bullet)
+            first.hasCollided = true;
+          if (second.collisionType == CollisionType.Bullet)
+            second.hasCollided = true;*/
           
           m_collisions ~= Collision(first, second, contactPoint);
         }
@@ -289,12 +316,42 @@ private:
         collision.first.health -= 1.0;
       }
       
+      if (collision.hasSpawnedParticles == false && (collision.first.hasCollided == false && collision.second.hasCollided == false))
+      {
+        if (collision.first.collisionType == CollisionType.Bullet)
+          collision.first.hasCollided = true;
+        if (collision.second.collisionType == CollisionType.Bullet)
+          collision.second.hasCollided = true;
+      
+        int particles = 2;
+        for (int i = 0; i < particles; i++)
+        {
+          string[string] particleValues;
+          
+          particleValues["position"] = to!string((collision.first.position + collision.second.position) * 0.5 + collision.contactPoint);
+          particleValues["rotation"] = to!string(uniform(-3600, 3600));
+          particleValues["velocity"] = to!string((collision.first.velocity + collision.second.velocity) * 0.5 + vec2.fromAngle(uniform(-PI, PI)) * 25.0);
+          particleValues["drawsource"] = "Star";
+          particleValues["radius"] = to!string(uniform(0.15, 0.25));
+          particleValues["mass"] = to!string(uniform(0.02, 0.1));
+          particleValues["lifetime"] = to!string(uniform(0.5, 2.0));
+          particleValues["collisionType"] = "Particle";
+          
+          m_spawnParticleValues ~= particleValues;
+          
+          collision.hasSpawnedParticles = true;
+        }
+      }
+      
       //Entity collisionSound = new Entity(["soundFile":"mgshot3.wav"]);
     }
   }
+  
   
 private:
   Collision[] m_collisions;
   
   Index!ColliderComponent index;
+  
+  string[string][] m_spawnParticleValues;
 }

@@ -696,6 +696,13 @@ private:
       loadShip(spawnValues["source"], spawnValues);
     }
     
+    foreach (spawnParticleValues; m_collider.getAndClearSpawnParticleValues())
+    {
+      Entity particle = new Entity(spawnParticleValues);
+      
+      registerEntity(particle);
+    }
+    
     // update target values for control components
     foreach (entity; m_entities)
     {

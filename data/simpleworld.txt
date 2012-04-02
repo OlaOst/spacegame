@@ -10,11 +10,17 @@ playership.leftGun.control = playerLauncher
 playership.rightGun.control = playerLauncher
 #playership.leftGun.source = launcher.txt
 #playership.rightGun.source = launcher.txt
-playership.leftGun.reloadTime = 0.02
-playership.rightGun.reloadTime = 0.02
+#playership.leftGun.reloadTime = 0.02
+#playership.rightGun.reloadTime = 0.02
 playership.*.collisionType = PlayerModule
 playership.*.spawn.*.target = closestEnemy
 playership.position = 0 0
 playership.angle = 0
 playership.name = playership
 playership.keepInCenter = true
+
+
+target.source = simpleship.txt
+target.position = 0 5
+target.*.collisionType = NpcModule
+target.*.health = 10000

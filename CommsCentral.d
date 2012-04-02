@@ -208,6 +208,7 @@ void setCollidersFromPlacer(Placer placer, CollisionHandler collisionHandler)
   subSystemCommunication!(PlacerComponent, ColliderComponent)(placer, collisionHandler, (PlacerComponent placerComponent, ColliderComponent colliderComponent)
   {
     colliderComponent.position = placerComponent.position;
+    colliderComponent.velocity = placerComponent.velocity;
     //ColliderComponent.angle = placerComponent.angle;
     
     return colliderComponent;

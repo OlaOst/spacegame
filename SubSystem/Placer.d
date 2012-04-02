@@ -78,7 +78,7 @@ protected:
     if (p_entity.getValue("angle").length > 0)
       component.angle = to!float(p_entity.getValue("angle")) * PI_180;
     if (p_entity.getValue("rotation").length > 0)
-      component.rotation = to!float(p_entity.getValue("rotation"));
+      component.rotation = to!float(p_entity.getValue("rotation")) * PI_180;
       
     //writeln("creating placercomponent, angle is " ~ to!string(component.angle) ~ ", created from " ~ to!string(p_entity.values));
       
