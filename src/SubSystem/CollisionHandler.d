@@ -324,12 +324,14 @@ private:
         if (collision.second.collisionType == CollisionType.Bullet)
           collision.second.hasCollided = true;
       
+        vec2 collisionPosition = (collision.first.position + collision.second.position) * 0.5 + collision.contactPoint;
+      
         int particles = 1;
         for (int i = 0; i < particles; i++)
         {
           string[string] particleValues;
           
-          particleValues["position"] = to!string((collision.first.position + collision.second.position) * 0.5 + collision.contactPoint);
+          particleValues["position"] = to!string(collisionPosition);
           particleValues["rotation"] = to!string(uniform(-3600, 3600));
           particleValues["velocity"] = to!string((collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * -0.1 + vec2.fromAngle(uniform(-PI, PI)) * 5.0);
           particleValues["drawsource"] = "Star";
@@ -347,11 +349,11 @@ private:
         {
           string[string] particleValues;
           
-          auto velocity = (collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * -0.5 + vec2.fromAngle(uniform(-PI, PI)) * 10.0;
+          vec2 collisionVelocity = (collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * -0.5 + vec2.fromAngle(uniform(-PI, PI)) * 10.0;
           
-          particleValues["position"] = to!string((collision.first.position + collision.second.position) * 0.5 + collision.contactPoint);
-          particleValues["angle"] = to!string(velocity.angle * _180_PI);
-          particleValues["velocity"] = to!string(velocity);
+          particleValues["position"] = to!string(collisionPosition);
+          particleValues["angle"] = to!string(collisionVelocity.angle * _180_PI);
+          particleValues["velocity"] = to!string(collisionVelocity);
           particleValues["drawsource"] = "Vertices";
           particleValues["vertices"] = to!string(["0.0 0.25 1.0 1.0 1.0 0.0", 
                                                   "-0.05 0.0 1.0 1.0 0.5 0.5", 
@@ -370,6 +372,8 @@ private:
         string[string] collisionSound;
         
         collisionSound["soundFile"] = "collision1.wav";
+        collisionSound["position"] = to!string(collisionPosition);
+        collisionSound["velocity"] = to!string((collision.first.velocity + collision.second.velocity) * 0.5);
         
         m_spawnParticleValues ~= collisionSound;
       }
