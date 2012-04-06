@@ -29,6 +29,7 @@ import std.random;
 import std.stdio;
 
 import gl3n.linalg;
+import gl3n.math;
 
 import Entity;
 import SpatialIndex;
@@ -323,17 +324,42 @@ private:
         if (collision.second.collisionType == CollisionType.Bullet)
           collision.second.hasCollided = true;
       
-        int particles = 2;
+        int particles = 1;
         for (int i = 0; i < particles; i++)
         {
           string[string] particleValues;
           
           particleValues["position"] = to!string((collision.first.position + collision.second.position) * 0.5 + collision.contactPoint);
           particleValues["rotation"] = to!string(uniform(-3600, 3600));
-          particleValues["velocity"] = to!string((collision.first.velocity + collision.second.velocity) * 0.5 + vec2.fromAngle(uniform(-PI, PI)) * 25.0);
+          particleValues["velocity"] = to!string((collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * -0.1 + vec2.fromAngle(uniform(-PI, PI)) * 5.0);
           particleValues["drawsource"] = "Star";
           particleValues["radius"] = to!string(uniform(0.15, 0.25));
-          particleValues["mass"] = to!string(uniform(0.02, 0.1));
+          particleValues["mass"] = to!string(uniform(0.2, 1.0));
+          particleValues["lifetime"] = to!string(uniform(0.5, 2.0));
+          particleValues["collisionType"] = "Particle";
+          
+          m_spawnParticleValues ~= particleValues;
+          
+          collision.hasSpawnedParticles = true;
+        }
+        
+        for (int i = 0; i < particles; i++)
+        {
+          string[string] particleValues;
+          
+          auto velocity = (collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * -0.5 + vec2.fromAngle(uniform(-PI, PI)) * 10.0;
+          
+          particleValues["position"] = to!string((collision.first.position + collision.second.position) * 0.5 + collision.contactPoint);
+          //particleValues["rotation"] = to!string(uniform(-3600, 3600));
+          particleValues["angle"] = to!string(velocity.angle * _180_PI);
+          particleValues["velocity"] = to!string(velocity);
+          particleValues["drawsource"] = "Vertices";
+          particleValues["vertices"] = to!string(["0.0 0.25 1.0 1.0 1.0 0.0", 
+                                                  "-0.05 0.0 1.0 1.0 0.5 0.5", 
+                                                  "0.0 -0.25 1.0 1.0 0.0 0.0",
+                                                  "0.05 0.0 1.0 1.0 0.5 0.5"]);
+          particleValues["radius"] = to!string(uniform(0.15, 0.25));
+          particleValues["mass"] = to!string(uniform(0.2, 1.0));
           particleValues["lifetime"] = to!string(uniform(0.5, 2.0));
           particleValues["collisionType"] = "Particle";
           

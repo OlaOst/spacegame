@@ -561,6 +561,14 @@ protected:
         
         component.drawSource = DrawSource.Invisible;
       }
+      
+      if (component.drawSource == DrawSource.Vertices && "vertices" in p_entity.values)
+      {
+        string[] verticesData = to!(string[])(p_entity.getValue("vertices"));
+        
+        foreach (vertexData; verticesData)
+          component.vertices ~= Vertex.fromString(vertexData);
+      }
     }
     
     foreach (value; p_entity.values.keys)
