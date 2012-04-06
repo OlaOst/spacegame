@@ -359,7 +359,10 @@ public:
     glEnd();
     
     // draw radar blips - with logarithmic distance and redshifted
-    foreach (component; filter!(component => component.hideFromRadar == false && (component.position - centerComponent.position).length < 3500.0)(components))
+    
+    // when the foreach with the length check is compiled, we get a Assertion failure: '!vthis->csym' on line 681 in file 'glue.c' when using dmd 2.058
+    //foreach (component; filter!(component => component.hideFromRadar == false && (centerComponent.position - component.position).length < 3500.0)(components))
+    foreach (component; filter!(component => component.hideFromRadar == false)(components))
     {
       glPointSize(max((1+component.radius)*2-1, 1.0));
       
