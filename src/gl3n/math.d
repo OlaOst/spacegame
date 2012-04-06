@@ -59,8 +59,8 @@ T mod(T)(T x, T y) {
 
 unittest {
     assert(inversesqrt(1) == 1.0);
-    assert(inversesqrt(10) == (1/sqrt(10)));
-    assert(inversesqrt(2342342) == (1/sqrt(2342342)));
+    assert(inversesqrt(10) == (1/sqrt(10.0)));
+    assert(inversesqrt(2342342) == (1/sqrt(2342342.0)));
     
     assert(sign(-1) == -1.0f);
     assert(sign(0) == 0.0f);
