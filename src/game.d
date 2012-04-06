@@ -256,6 +256,9 @@ public:
           
         if (spawn.getValue("name") == "Closest ship display")
           m_closestShipDisplay = spawn;
+          
+        if (spawn.getValue("name") == "Dashboard")
+          m_dashboard = spawn;
       }
     }
   }
@@ -313,6 +316,7 @@ public:
       m_dragEntity = null;
       m_debugDisplay = null;
       m_closestShipDisplay = null;
+      m_dashboard = null;
       
       m_entities = null;
       
@@ -685,6 +689,25 @@ private:
           m_graphics.setComponent(m_closestShipDisplay, gfxcomp);
         }
       }
+    }
+    
+    if (m_graphics.hasComponent(m_dashboard))
+    {
+      auto dashboardComponent = m_graphics.getComponent(m_dashboard);
+      
+      string dashboardText;
+      
+      if (m_playerShip !is null)
+      {
+        auto placerComponent = m_placer.getComponent(m_playerShip);
+        dashboardText ~= "Position: " ~ to!string(round(placerComponent.position.x)) ~ " " ~ to!string(round(placerComponent.position.y)) ~ "\\n";
+        dashboardText ~= "Speed: " ~ to!string(round(placerComponent.velocity.length)) ~ " m/s\\n";
+        dashboardText ~= "Mass: " ~ to!string(m_physics.getComponent(m_playerShip).mass) ~ " tons";
+      }
+      
+      dashboardComponent.text = dashboardText;
+      
+      m_graphics.setComponent(m_dashboard, dashboardComponent);
     }
     
     m_graphics.calculateMouseWorldPos(m_inputHandler.mousePos);
@@ -1208,6 +1231,7 @@ private:
   
   // update mass, center of mass etc
   // called when entities are added or removed to a owner entity, which means the owner entity must update its accumulated stuff
+  // TODO: ConnectionHandler should handle this
   void updateOwnerEntity(Entity p_ownerEntity)
   {
     float accumulatedMass = 0.0;
@@ -1275,8 +1299,8 @@ private:
     //debug m_graphics.updateWithTiming();
     //else  m_graphics.update();
     m_graphics.updateWithTiming();
-    //foreach (subSystem; taskPool.parallel(filter!(sys => sys !is m_graphics)(m_subSystems.values), 1))
-    foreach (subSystem; filter!(sys => sys !is m_graphics)(m_subSystems.values))
+    foreach (subSystem; taskPool.parallel(filter!(sys => sys !is m_graphics)(m_subSystems.values), 1))
+    //foreach (subSystem; filter!(sys => sys !is m_graphics)(m_subSystems.values))
     {
       //debug subSystem.updateWithTiming();
       //else  subSystem.update();
@@ -1413,6 +1437,7 @@ private:
   Entity m_dragEntity;
   Entity m_debugDisplay;
   Entity m_closestShipDisplay;
+  Entity m_dashboard;
   
   float[60] m_fpsBuffer;
   

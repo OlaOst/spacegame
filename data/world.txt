@@ -42,11 +42,24 @@ debugcover.radius = 1.1
 debugcover.drawsource = Quad
 
 radarDisplay.drawsource = RadarDisplay
-radarDisplay.position = 0.8 -0.6
+radarDisplay.position = 0.85 -0.6
 radarDisplay.depth = top
 radarDisplay.radius = 0.25
 radarDisplay.screenAbsolutePosition = true
 
+dashboard.text = here we should see dashboard info
+dashboard.screenAbsolutePosition = true
+dashboard.position = -1.2 -0.8
+dashboard.depth = top
+dashboard.color = 1.0 1.0 1.0 1.0
+dashboard.name = Dashboard
+
+dashboardCover.screenAbsolutePosition = true
+dashboardCover.position = -1.05 -0.9
+dashboardCover.depth = top
+dashboardCover.color = 0.2 0.2 0.9 0.3
+dashboardCover.radius = 0.5
+dashboardCover.drawsource = Quad
 
 # special closest ship indicator points to closest ship entity
 closestShip.screenAbsolutePosition = true
