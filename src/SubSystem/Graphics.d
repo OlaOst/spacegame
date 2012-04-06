@@ -118,7 +118,8 @@ enum DrawSource
   Bullet,
   Vertices,
   Text,
-  Texture
+  Texture,
+  RadarDisplay
 }
 
 
@@ -331,59 +332,6 @@ public:
       glPopMatrix();
     }
     
-    
-    // draw radar circle
-    glPushMatrix();
-    
-    glTranslatef(0.8, -0.6, 0.0);
-    glScalef(0.25, 0.25, 1.0);
-    
-    auto centerComponent = GraphicsComponent();
-    if (hasComponent(m_centerEntity))
-      centerComponent = getComponent(m_centerEntity);
-    
-    // the radar circle is slightly transparent
-    glColor4f(0.0, 0.0, 0.0, 0.9);
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex2f(0.0, 0.0);
-    for (float angle = 0.0; angle < PI*2.0; angle += (PI*2.0) / 32.0)
-      glVertex2f(sin(angle) * 1.25, cos(angle) * 1.25);
-    glVertex2f(sin(0.0) * 1.25, cos(0.0) * 1.25);
-    glEnd();
-    
-    // draw white radar circle
-    glColor3f(1.0, 1.0, 1.0);
-    glBegin(GL_LINE_LOOP);
-    for (float angle = 0.0; angle < PI*2.0; angle += (PI*2.0) / 32.0)
-      glVertex2f(sin(angle) * 1.25, cos(angle) * 1.25);
-    glEnd();
-    
-    // draw radar blips - with logarithmic distance and redshifted
-    
-    // when the foreach with the length check is compiled, we get a Assertion failure: '!vthis->csym' on line 681 in file 'glue.c' when using dmd 2.058
-    //foreach (component; filter!(component => component.hideFromRadar == false && (centerComponent.position - component.position).length < 3500.0)(components))
-    foreach (component; filter!(component => component.hideFromRadar == false)(components))
-    {
-      glPointSize(max((1+component.radius)*2-1, 1.0));
-      
-      vec2 relativePos = component.position - centerComponent.position;
-      vec2 relativeVel = component.velocity - centerComponent.velocity;
-      
-      vec2 pos = relativePos.normalized * log(relativePos.length + 1) * 0.15;
-      vec2 vel = relativeVel.normalized * log(relativeVel.length + 1) * 0.25;
-      
-      // figure out if the component is moving towards or away from the centercomponent, so we can redshift-colorize
-      if ((relativePos + relativeVel).length > relativePos.length)
-        glColor3f(vel.length, 1.0 - vel.length, 1.0 - vel.length);
-      else
-        glColor3f(1.0 - vel.length, 1.0 - vel.length, vel.length);
-        
-      glBegin(GL_POINTS);
-        glVertex2f(pos.x, pos.y);
-      glEnd();
-    }
-    glPopMatrix();
-    
     glPopMatrix();
   }
   
@@ -454,6 +402,7 @@ public:
   {
     m_textRender.renderString(text);
   }
+  
   
 protected:
   bool canCreateComponent(Entity p_entity)
@@ -625,7 +574,7 @@ protected:
       component.color = vec4(array(map!(to!float)(colorComponents)));
     }
     
-    if (component.drawSource != DrawSource.Text)
+    if (component.drawSource != DrawSource.Text && component.drawSource != DrawSource.RadarDisplay)
       createDisplayList(component);
     
     return component;
@@ -754,6 +703,10 @@ private:
       
       glPopMatrix();
     }
+    else if (p_component.drawSource == DrawSource.RadarDisplay)
+    {
+      drawRadar(p_component);
+    }
     else if (p_component.drawSource == DrawSource.Unknown)
     {
       // TODO: should just draw a big fat question mark here
@@ -770,6 +723,63 @@ private:
         glVertex3f(cos(0.0) * p_component.radius, sin(0.0) * p_component.radius, 0.0);
       glEnd();
     }
+  }
+  
+  void drawRadar(GraphicsComponent radarComponent)
+  {
+    // draw radar circle
+    glPushMatrix();
+    
+    glScalef(radarComponent.radius, radarComponent.radius, 1.0);
+    
+    auto centerComponent = GraphicsComponent();
+    if (hasComponent(m_centerEntity))
+      centerComponent = getComponent(m_centerEntity);
+    
+    // the radar circle is slightly transparent
+    glColor4f(0.0, 0.0, 0.0, 0.9);
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2f(0.0, 0.0);
+    for (float angle = 0.0; angle < PI*2.0; angle += (PI*2.0) / 32.0)
+      glVertex2f(sin(angle) * 1.25, cos(angle) * 1.25);
+    glVertex2f(sin(0.0) * 1.25, cos(0.0) * 1.25);
+    glEnd();
+    
+    // draw white radar circle
+    glColor3f(1.0, 1.0, 1.0);
+    glBegin(GL_LINE_LOOP);
+    for (float angle = 0.0; angle < PI*2.0; angle += (PI*2.0) / 32.0)
+      glVertex2f(sin(angle) * 1.25, cos(angle) * 1.25);
+    glEnd();
+    
+    // draw radar blips - with logarithmic distance and redshifted
+    
+    // when the foreach with the length check is compiled, we get a Assertion failure: '!vthis->csym' on line 681 in file 'glue.c' when using dmd 2.058
+    //foreach (component; filter!(component => component.hideFromRadar == false && (centerComponent.position - component.position).length < 3500.0)(components))
+    
+    //writeln("radar drawing " ~ to!string(array(filter!(component => component.hideFromRadar == false)(components)).length) ~ " entities");
+    
+    foreach (component; filter!(component => component.hideFromRadar == false)(components))
+    {
+      glPointSize(max((1+component.radius)*2-1, 1.0));
+      
+      vec2 relativePos = component.position - centerComponent.position;
+      vec2 relativeVel = component.velocity - centerComponent.velocity;
+      
+      vec2 pos = relativePos.normalized * log(relativePos.length + 1) * 0.15;
+      vec2 vel = relativeVel.normalized * log(relativeVel.length + 1) * 0.25;
+      
+      // figure out if the component is moving towards or away from the centercomponent, so we can redshift-colorize
+      if ((relativePos + relativeVel).length > relativePos.length)
+        glColor3f(vel.length, 1.0 - vel.length, 1.0 - vel.length);
+      else
+        glColor3f(1.0 - vel.length, 1.0 - vel.length, vel.length);
+        
+      glBegin(GL_POINTS);
+        glVertex2f(pos.x, pos.y);
+      glEnd();
+    }
+    glPopMatrix();
   }
   
 private:
