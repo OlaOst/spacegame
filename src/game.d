@@ -164,7 +164,7 @@ public:
     m_subSystems["controller"] = m_controller = new Controller();
     m_subSystems["collider"] = m_collider = new CollisionHandler();
     m_subSystems["connector"] = m_connector = new ConnectionHandler();
-    m_subSystems["sound"] = new SoundSubSystem(64);
+    m_subSystems["sound"] = m_sound = new Sound(64);
     m_subSystems["spawner"] = m_spawner = new Spawner();
 
     m_gameConsole = new GameConsole(this);
@@ -613,6 +613,7 @@ private:
       CommsCentral.setCollidersFromPlacer(m_placer, m_collider);
       CommsCentral.setSpawnerFromPlacer(m_placer, m_spawner);
       CommsCentral.setConnectorFromPlacer(m_placer, m_connector);
+      CommsCentral.setSoundFromPlacer(m_placer, m_sound);
       
       //CommsCentral.calculateCollisionResponse(m_collider, m_physics);
     }
@@ -1400,6 +1401,7 @@ private:
   ConnectionHandler m_connector;
   CollisionHandler m_collider;
   Spawner m_spawner;
+  Sound m_sound;
   
   Starfield m_starfield;
   

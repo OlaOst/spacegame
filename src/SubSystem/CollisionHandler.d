@@ -350,7 +350,6 @@ private:
           auto velocity = (collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * -0.5 + vec2.fromAngle(uniform(-PI, PI)) * 10.0;
           
           particleValues["position"] = to!string((collision.first.position + collision.second.position) * 0.5 + collision.contactPoint);
-          //particleValues["rotation"] = to!string(uniform(-3600, 3600));
           particleValues["angle"] = to!string(velocity.angle * _180_PI);
           particleValues["velocity"] = to!string(velocity);
           particleValues["drawsource"] = "Vertices";
@@ -367,6 +366,12 @@ private:
           
           collision.hasSpawnedParticles = true;
         }
+        
+        string[string] collisionSound;
+        
+        collisionSound["soundFile"] = "collision1.wav";
+        
+        m_spawnParticleValues ~= collisionSound;
       }
       
       //Entity collisionSound = new Entity(["soundFile":"mgshot3.wav"]);

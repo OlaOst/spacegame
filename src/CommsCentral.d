@@ -34,6 +34,7 @@ import SubSystem.Placer;
 import SubSystem.Controller;
 import SubSystem.ConnectionHandler;
 import SubSystem.CollisionHandler;
+import SubSystem.Sound;
 import SubSystem.Spawner;
 
 
@@ -94,6 +95,25 @@ void setGraphicsFromPlacer(Placer placer, Graphics graphics)
     //writeln("graphics from placer, pos is " ~ graphicsComponent.position.toString());
     
     return graphicsComponent;
+  });
+}
+
+void setSoundFromPlacer(Placer placer, Sound sound)
+{
+  subSystemCommunication!(PlacerComponent, SoundComponent)(placer, sound, (PlacerComponent placerComponent, SoundComponent soundComponent)
+  {
+    assert(placerComponent.position.ok);
+    assert(placerComponent.velocity.ok);
+    
+    soundComponent.position = placerComponent.position;
+    soundComponent.velocity = placerComponent.velocity;
+    
+    soundComponent.angle = placerComponent.angle;
+    //soundComponent.rotation = placerComponent.rotation;
+    
+    //writeln("sound from placer, pos is " ~ soundComponent.position.toString());
+    
+    return soundComponent;
   });
 }
 

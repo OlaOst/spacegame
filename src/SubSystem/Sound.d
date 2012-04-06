@@ -33,6 +33,9 @@ import derelict.ogg.vorbisfile;
 import derelict.openal.al;
 import derelict.openal.alut;
 
+import gl3n.linalg;
+import gl3n.math;
+
 import AudioStream;
 import Entity;
 import SubSystem.Base;
@@ -43,7 +46,7 @@ unittest
   scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
   
-  auto sys = new SoundSubSystem(8);
+  auto sys = new Sound(8);
 }
 
 
@@ -66,10 +69,14 @@ public:
   
   bool streaming = false;
   AudioStream stream = null;
+  
+  vec2 position = vec2(0.0, 0.0);
+  vec2 velocity = vec2(0.0, 0.0);
+  float angle = 0.0;
 }
 
 
-class SoundSubSystem : Base!(SoundComponent)
+class Sound : Base!(SoundComponent)
 {
 invariant()
 {
@@ -99,6 +106,18 @@ public:
   
   void update()
   {
+    auto centerComponent = new SoundComponent(-1);
+    assert(centerComponent.position.ok);
+    
+    if (hasComponent(m_centerEntity))
+    {
+      centerComponent = getComponent(m_centerEntity);
+      assert(centerComponent.position.ok);
+    }
+    
+    alListener3f(AL_POSITION, centerComponent.position.x, centerComponent.position.y, 0.0);
+    alListener3f(AL_VELOCITY, centerComponent.velocity.x, centerComponent.velocity.y, 0.0);
+    
     foreach (component; components)
     {
       if (component.stream !is null)
@@ -117,6 +136,9 @@ public:
         ALuint source;
         
         source = m_sources[(m_lastSourcePlayed++) % m_sources.length];
+        
+        alSource3f(source, AL_POSITION, component.position.x, component.position.y, 0.0);
+        alSource3f(source, AL_VELOCITY, component.velocity.x, component.velocity.y, 0.0);
         
         // we need to check if this source is playing
         ALenum state;
@@ -142,11 +164,22 @@ public:
 protected:
   bool canCreateComponent(Entity p_entity)
   {
-    return p_entity.getValue("soundFile").length > 0;
+    return p_entity.getValue("soundFile").length > 0 ||
+           p_entity.getValue("keepInCenter").length > 0;
   }
   
   SoundComponent createComponent(Entity p_entity)
   {
+    if (p_entity.getValue("keepInCenter") == "true")
+    {
+      m_centerEntity = p_entity;
+      
+      if ("soundFile" !in p_entity.values)
+      {
+        return new SoundComponent(-1);
+      }
+    }
+      
     auto soundFile = p_entity.getValue("soundFile");
     
     if (soundFile.startsWith("data/sounds/") == false)
@@ -165,6 +198,8 @@ protected:
         ALsizei frequency;
         
         loadOgg(soundFile, buffer, format, frequency);
+        
+        enforce(buffer.length < 4194304, "Soundfile buffer too big, try setting 'streaming = true' instead");
         
         //writeln("read in " ~ to!string(buffer.length) ~ " bytes from oggfile " ~ soundFile);
         
@@ -185,11 +220,18 @@ protected:
 
     assert(soundFile in m_fileToBuffer);
     
-    auto newComponent = new SoundComponent(m_fileToBuffer[soundFile]);
+    auto component = new SoundComponent(m_fileToBuffer[soundFile]);
     
-    newComponent.shouldStartPlaying = true;
+    if ("position" in p_entity.values)
+      component.position = vec2.fromString(p_entity.getValue("position"));
+    if ("velocity" in p_entity.values)
+      component.velocity = vec2.fromString(p_entity.getValue("velocity"));
+    if ("angle" in p_entity.values)
+      component.angle = to!float(p_entity.getValue("angle")) * PI_180;
     
-    return newComponent;
+    component.shouldStartPlaying = true;
+    
+    return component;
   }
   
   
@@ -236,4 +278,6 @@ private:
   ALuint[string] m_fileToBuffer;
   
   uint m_lastSourcePlayed;
+  
+  Entity m_centerEntity;
 }
