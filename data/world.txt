@@ -32,7 +32,7 @@ debugDisplay.position = -1.2 0.9
 debugDisplay.depth = top
 debugDisplay.color = 1.0 1.0 1.0 1.0
 debugDisplay.name = Debug display
-debugDisplay.elements = FPS,entityNumber,subsystemTimings
+debugDisplay.elements = FPS,entityCount,subsystemTimings
 
 debugcover.screenAbsolutePosition = true
 debugcover.position = -0.9 0.9

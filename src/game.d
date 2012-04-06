@@ -639,7 +639,7 @@ private:
             m_debugInfo ~= "FPS: " ~ to!string(fpsValue);
         }
         
-        if (elements.find("entityNumber") != [])
+        if (elements.find("entityCount") != [])
         {
           m_debugInfo ~= "\\nEntities: " ~ to!string(m_entities.length);
         }
