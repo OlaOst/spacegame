@@ -533,6 +533,7 @@ protected:
     
     if ("position" in p_entity.values)
     {
+      assert(p_entity.getValue("position").length > 0);
       component.position = vec2.fromString(p_entity.getValue("position"));
     }
     

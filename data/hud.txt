@@ -1,0 +1,49 @@
+# debug display is shown in a fixed position on the screen, and shows various debug stuff
+debugDisplay.text = here we should see debug info
+debugDisplay.screenAbsolutePosition = true
+debugDisplay.position = -1.2 0.9
+debugDisplay.relativePosition = -1.2 0.9
+debugDisplay.depth = top
+debugDisplay.color = 1.0 1.0 1.0 1.0
+debugDisplay.name = Debug display
+debugDisplay.elements = FPS,entityCount,subsystemTimings
+
+debugcover.screenAbsolutePosition = true
+debugcover.position = -0.9 0.9
+debugcover.relativePosition = -0.9 0.9
+debugcover.depth = top
+debugcover.color = 0.2 0.2 0.9 0.3
+debugcover.radius = 1.1
+debugcover.drawsource = Quad
+
+radarDisplay.drawsource = RadarDisplay
+radarDisplay.position = 0.85 -0.6
+radarDisplay.relativePosition = 0.85 -0.6
+radarDisplay.depth = top
+radarDisplay.radius = 0.25
+radarDisplay.screenAbsolutePosition = true
+
+dashboard.text = here we should see dashboard info
+dashboard.screenAbsolutePosition = true
+dashboard.position = -1.2 -0.8
+dashboard.relativePosition = -1.2 -0.8
+dashboard.depth = top
+dashboard.color = 1.0 1.0 1.0 1.0
+dashboard.name = Dashboard
+
+dashboardCover.screenAbsolutePosition = true
+dashboardCover.position = -1.05 -0.9
+dashboardCover.relativePosition = -1.05 -0.9
+dashboardCover.depth = top
+dashboardCover.color = 0.2 0.2 0.9 0.3
+dashboardCover.radius = 0.5
+dashboardCover.drawsource = Quad
+
+# special closest ship indicator points to closest ship entity
+closestShip.screenAbsolutePosition = true
+closestShip.position = 0.0 0.9
+closestShip.relativePosition = 0.0 0.9
+closestShip.depth = top
+closestShip.name = Closest ship display
+closestShip.color = 0.0 1.0 0.2
+closestShip.text = ??

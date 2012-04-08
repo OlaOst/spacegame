@@ -210,8 +210,10 @@ public:
           orderedEntityNames ~= line.split(".")[0];
     }
     
+    // go through world entity values, put values for child entities in this AA
     string[string][string] spawnNameWithValues;
     
+    // we go only 1 level deep - child entities inside child entities are not registered here
     foreach (key; worldEntity.values.keys)
     {
       auto sourceAndKey = key.split(".");
@@ -243,22 +245,10 @@ public:
 
         //writeln("loadworld, loading from source " ~ to!string(worldEntity.getValue(spawnName ~ ".source")) ~ " with extravalues " ~ to!string(extraValues));
         
-        spawn = loadShip(worldEntity.getValue(spawnName ~ ".source"), extraValues);
-        
-        if (spawn.getValue("name") == "Debug display")
-          m_debugDisplay = spawn;
-          
-        if (spawn.getValue("name") == "trashbin")
-          m_trashBin = spawn;
-        
-        if (spawn.getValue("name") == "playership")
-          m_playerShip = spawn;
-          
-        if (spawn.getValue("name") == "Closest ship display")
-          m_closestShipDisplay = spawn;
-          
-        if (spawn.getValue("name") == "Dashboard")
-          m_dashboard = spawn;
+        if (spawnName ~ ".collectionSource" in worldEntity.values)
+          loadEntityCollection(worldEntity.getValue(spawnName ~ ".collectionSource"), extraValues);
+        else
+          spawn = loadShip(worldEntity.getValue(spawnName ~ ".source"), extraValues);
       }
     }
   }
@@ -1094,6 +1084,35 @@ private:
     }
   }
   
+  void loadEntityCollection(string p_fileName, string[string] p_extraParams = null)
+  {
+    writeln("loading entity collection from " ~ p_fileName ~ " with extravalues " ~ to!string(p_extraParams));
+    
+    Entity[] entities;
+    
+    string[string] values;
+    
+    if (p_fileName.length > 0)
+      values = loadValues(cache, p_fileName);
+      
+    foreach (extraKey, extraValue; p_extraParams)
+      values[extraKey] = extraValue;
+      
+    auto childrenValues = findChildrenValues(cache, values);
+    
+    values = parseRandomizedValues(values);
+    
+    // no need for mainentity, they should not be connected in this case
+    
+    foreach (childName, childValues; childrenValues)
+    {
+      childValues = parseRandomizedValues(childValues);
+      
+      registerEntity(new Entity(childValues));
+    }
+
+    //return entities;
+  }
   
   Entity loadShip(string p_fileName, string[string] p_extraParams = null)
   {
@@ -1103,6 +1122,8 @@ private:
 
     if (p_fileName.length > 0)
       values = loadValues(cache, p_fileName);
+    
+    //writeln("values after load: " ~ to!string(values));
     
     foreach (extraKey, extraValue; p_extraParams)
       values[extraKey] = extraValue;
@@ -1130,8 +1151,11 @@ private:
       childEntities[childName].setValue("owner", to!string(mainEntity.id));
       
       // position value is required for registering entities to connection subsystem
-      childEntities[childName].setValue("position", mainEntity.getValue("position"));
+      if ("position" !in childEntities[childName].values)
+        childEntities[childName].setValue("position", mainEntity.getValue("position"));
     }
+    
+    assert(accumulatedMass >= 0.0);
     
     string[string] childDependency;
     // replace connect entity names with ids, because names are not unique but ids are
@@ -1163,8 +1187,12 @@ private:
     registerEntity(mainEntity);
     
     foreach (childEntityName, childEntity; childEntities)
+    {
       if (childEntityName !in childDependency)
+      {
         registerEntity(childEntity);
+      }
+    }
     
     // loop over dependent entities until all are registered
     while (childDependency.length > 0)
@@ -1200,6 +1228,21 @@ private:
     
     //debug writeln("registering entity " ~ to!string(p_entity.id) ~ " with name " ~ p_entity.getValue("name"));
     //debug writeln("registering entity " ~ to!string(p_entity.id) ~ " with values " ~ to!string(p_entity.values));
+    
+    if (p_entity.getValue("name") == "Debug display")
+      m_debugDisplay = p_entity;
+      
+    if (p_entity.getValue("name") == "trashbin")
+      m_trashBin = p_entity;
+    
+    if (p_entity.getValue("name") == "playership")
+      m_playerShip = p_entity;
+      
+    if (p_entity.getValue("name") == "Closest ship display")
+      m_closestShipDisplay = p_entity;
+      
+    if (p_entity.getValue("name") == "Dashboard")
+      m_dashboard = p_entity;
     
     foreach (subSystem; m_subSystems)
       subSystem.registerEntity(p_entity);

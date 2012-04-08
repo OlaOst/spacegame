@@ -167,45 +167,40 @@ string[string] getValues(ref string[][string] cache, string[] lines)
 string[string][string] findChildrenValues(ref string[][string] cache, string[string] values)
 {
   string[string][string] childValues;
-  foreach (key, value; values)
+  
+  foreach (key; filter!(key => key.find(".").length > 0)(values.keys))
   {
-    if (key.find(".").length > 0)
-    {
-      string childName = to!string(key.until("."));
+    string childName = to!string(key.until("."));
       
-      if (childName.length == 0 || childName == "*" || childName == "spawn" || childName == "connectpoint")
-        continue;
-      
-      string childKey = key;
-      
-      auto ck = childKey.find(".")[1..$];
-      
-      childValues[childName][ck] = value;
-    }
+    if (childName.length == 0 || childName == "*" || childName == "spawn" || childName == "connectpoint")
+      continue;
+    
+    string childKey = key;
+    
+    auto ck = childKey.find(".")[1..$];
+    
+    childValues[childName][ck] = values[key];
   }
   
   // expand source values in children
   foreach (childName, values; childValues)
   {
-    foreach (key, value; values)
+    if ("source" in values)
     {
-      if (key == "source")
+      string sourceFilename = values["source"];
+      
+      if (sourceFilename !in cache)
+        addToCache(cache, sourceFilename);
+      
+      auto sourceValues = getValues(cache, cache[sourceFilename]);
+      
+      // values from source should not override already existing values
+      foreach (sourceKey, sourceValue; sourceValues)
       {
-        string sourceFilename = value;
-        
-        if (sourceFilename !in cache)
-          addToCache(cache, sourceFilename);
-        
-        auto sourceValues = getValues(cache, cache[sourceFilename]);
-        
-        // values from source should not override already existing values
-        foreach (sourceKey, sourceValue; sourceValues)
-        {
-          if (sourceKey !in values)
-            values[sourceKey] = sourceValue;
-        }
+        if (sourceKey !in values)
+          values[sourceKey] = sourceValue;
       }
-    }
+    }  
   }
   
   // override wildcard values from parent
