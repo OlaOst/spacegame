@@ -92,6 +92,12 @@ public:
       
       if (abs(angle) < 0.2 && p_sourceComponent.velocity.length < p_sourceComponent.maxSpeed)
         p_sourceComponent.force += vec2(0.0, 1.0 * p_sourceComponent.thrustForce);
+        
+      p_sourceComponent.isFiring = false;
+      if (p_sourceComponent.force.length > 0.0)
+      {
+        p_sourceComponent.isFiring = true;
+      }
     }
   }
 

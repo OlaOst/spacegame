@@ -705,9 +705,16 @@ private:
     
     foreach (spawnValues; m_spawner.getAndClearSpawnValues())
     {
-      assert("source" in spawnValues, "Could not find source value in spawnvalues: " ~ to!string(spawnValues));
+      //assert("source" in spawnValues, "Could not find source value in spawnvalues: " ~ to!string(spawnValues));
       
-      loadShip(spawnValues["source"], spawnValues);
+      if ("source" in spawnValues)
+        loadShip(spawnValues["source"], spawnValues);
+      else
+      {
+        //writeln("loading values " ~ to!string(spawnValues));
+        //loadEntityCollection("", spawnValues);
+        loadEntity("", spawnValues);
+      }
     }
     
     foreach (spawnParticleValues; m_collider.getAndClearSpawnParticleValues())
@@ -1084,9 +1091,22 @@ private:
     }
   }
   
+  void loadEntity(string p_fileName, string[string] p_extraParams = null)
+  {
+    string[string] values;
+    
+    if (p_fileName.length > 0)
+      values = loadValues(cache, p_fileName);
+      
+    foreach (extraKey, extraValue; p_extraParams)
+      values[extraKey] = extraValue;
+      
+    registerEntity(new Entity(values));
+  }
+  
   void loadEntityCollection(string p_fileName, string[string] p_extraParams = null)
   {
-    writeln("loading entity collection from " ~ p_fileName ~ " with extravalues " ~ to!string(p_extraParams));
+    //writeln("loading entity collection from " ~ p_fileName ~ " with extravalues " ~ to!string(p_extraParams));
     
     Entity[] entities;
     

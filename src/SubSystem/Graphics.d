@@ -414,6 +414,8 @@ protected:
   
   GraphicsComponent createComponent(Entity p_entity)
   {
+    //writeln("graphics creating component from values " ~ to!string(p_entity.values));
+    
     //enforce(p_entity.getValue("radius").length > 0, "Couldn't find radius for graphics component");
     float radius = 1.0;
     if ("radius" in p_entity.values)
@@ -520,6 +522,8 @@ protected:
         
         foreach (vertexData; verticesData)
           component.vertices ~= Vertex.fromString(vertexData);
+          
+        //writeln("comp vertices is " ~ to!string(component.vertices));
       }
     }
     

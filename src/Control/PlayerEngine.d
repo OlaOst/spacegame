@@ -96,7 +96,7 @@ public:
       force += mat2.rotation(-PI/2) * dir * slideForce;
       
     if (m_inputHandler.isPressed(Event.Brake))
-    {        
+    {
       p_sourceComponent.impulse += p_sourceComponent.velocity * -1.0;
       p_sourceComponent.angularImpulse += p_sourceComponent.rotation * -1.0;
       
@@ -106,6 +106,12 @@ public:
     
     p_sourceComponent.force = force;
     p_sourceComponent.torque = torque;
+    
+    p_sourceComponent.isFiring = false;
+    if (force.length > 0.0)
+    {
+      p_sourceComponent.isFiring = true;
+    }
   }
   
   

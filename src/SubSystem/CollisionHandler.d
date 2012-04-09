@@ -214,6 +214,8 @@ protected:
   
   ColliderComponent createComponent(Entity p_entity)
   {
+    //writeln("collider creating component from values " ~ to!string(p_entity.values));
+  
     float radius = to!float(p_entity.getValue("radius"));
     
     enforce(radius >= 0.0);

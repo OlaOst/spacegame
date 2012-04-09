@@ -22,7 +22,7 @@ unittest
 
   auto sys = new Spawner();
   
-  Entity spawner = new Entity(["spawn.source":"type=bullets"]);
+  Entity spawner = new Entity(["spawn.bullets.source":"type=bullets"]);
   
   sys.registerEntity(spawner);
   
@@ -50,7 +50,7 @@ unittest
 struct SpawnerComponent
 {
   //Entity spawnBlueprint;
-  string[string] spawnValues;
+  string[string][string] spawnValuesNames; // we can have multiple spawns, each with a name : spawnName[spawnKey] = spawnValue
   
   vec2 position = vec2(0.0, 0.0);
   vec2 velocity = vec2(0.0, 0.0);
@@ -60,14 +60,14 @@ struct SpawnerComponent
   float torque = 0.0;
   
   // these are relative
-  vec2 spawnPoint = vec2(0.0, 0.0);
-  vec2 spawnVelocity = vec2(0.0, 0.0);
+  //vec2 spawnPoint = vec2(0.0, 0.0);
+  //vec2 spawnVelocity = vec2(0.0, 0.0);
   
-  float spawnForce = 0.0; // goes in the direction of spawnAngle
+  //float spawnForce = 0.0; // goes in the direction of spawnAngle
   
   //float spawnAngle = 0.0;
-  string spawnAngle = "0.0";
-  float spawnRotation = 0.0;
+  //string spawnAngle = "0.0";
+  //float spawnRotation = 0.0;
   
   int entityId;
   int ownerId;
@@ -90,67 +90,67 @@ public:
     
       if (component.isSpawning)
       {
-        //Entity spawn;
-        string[string] spawnValues;
-        if (component.spawnValues.length > 0)
+        foreach (spawnName, spawnValuesOriginal; component.spawnValuesNames)
         {
-          //spawn = new Entity(component.spawnBlueprint.values);
-          spawnValues = component.spawnValues.dup;
+          string[string] spawnValues = spawnValuesOriginal.dup;
+
+          float spawnAngle = component.angle;
+          /*if (component.spawnAngle.find("to").length > 0)
+          {
+            auto angleData = component.spawnAngle.split(" ");
+            
+            assert(angleData.length == 3, "Problem parsing angle data with from/to values: " ~ to!string(angleData));
+            
+            auto fromAngle = to!float(angleData[0]);
+            auto toAngle = to!float(angleData[2]);
+            
+            spawnAngle += uniform(fromAngle, toAngle);
+          }
+          else
+          {
+            spawnAngle += to!float(component.spawnAngle);
+          }*/
+          
+          //auto spawnAngle = component.angle + component.spawnAngle;
+          
+          assert(component.velocity.ok);
+          
+          // should be impulse not force... or should it?
+          //auto spawnForce = vec2.fromAngle(spawnAngle) * component.spawnForce;
+          //auto spawnVelocity = component.velocity + spawnForce;
+          
+          vec2 spawnForce = vec2(0.0, 0.0);
+          if ("spawnForce" in spawnValues)
+            spawnForce = vec2.fromAngle(spawnAngle) * to!float(spawnValues["spawnForce"]);
+            
+          auto spawnVelocity = component.velocity + spawnForce;
+          
+          // spawning component gets some recoil force
+          //auto recoilDamping = 0.0;
+          //auto force = component.force;
+          //force -= spawnForce * (1.0 - recoilDamping);
+          //component.force = force;
+          
+          spawnValues["spawnedFrom"] = to!string(component.entityId);
+          spawnValues["spawnedFromOwner"] = to!string(component.ownerId);
+          
+          spawnValues["*.spawnedFrom"] = to!string(component.entityId);
+          spawnValues["*.spawnedFromOwner"] = to!string(component.ownerId);
+          
+          if ("position" in spawnValues)
+            spawnValues["position"] = to!string(spawnValues["position"]);
+          else if ("spawnPoint" in spawnValues)
+            spawnValues["position"] = to!string(component.position + vec2.fromString(spawnValues["spawnPoint"]));
+          else
+            spawnValues["position"] = to!string(component.position);
+          
+          spawnValues["angle"] = to!string(spawnAngle * _180_PI);
+          
+          spawnValues["velocity"] = spawnVelocity.toString();
+          spawnValues["force"] = spawnForce.toString();
+          
+          m_spawnValues ~= spawnValues;
         }
-        
-        float spawnAngle = component.angle;
-        if (component.spawnAngle.find("to").length > 0)
-        {
-          auto angleData = component.spawnAngle.split(" ");
-          
-          assert(angleData.length == 3, "Problem parsing angle data with from/to values: " ~ to!string(angleData));
-          
-          auto fromAngle = to!float(angleData[0]);
-          auto toAngle = to!float(angleData[2]);
-          
-          spawnAngle += uniform(fromAngle, toAngle);
-        }
-        else
-        {
-          spawnAngle += to!float(component.spawnAngle);
-        }
-        
-        //auto spawnAngle = component.angle + component.spawnAngle;
-        
-        assert(component.velocity.ok);
-        
-        // should be impulse not force... or should it?
-        auto spawnForce = vec2.fromAngle(spawnAngle) * component.spawnForce;
-        auto spawnVelocity = component.velocity + spawnForce;
-        
-        // spawning component gets some recoil force
-        auto recoilDamping = 0.0;
-        auto force = component.force;
-        force -= spawnForce * (1.0 - recoilDamping);
-        component.force = force;
-        
-        spawnValues["spawnedFrom"] = to!string(component.entityId);
-        spawnValues["spawnedFromOwner"] = to!string(component.ownerId);
-        
-        spawnValues["*.spawnedFrom"] = to!string(component.entityId);
-        spawnValues["*.spawnedFromOwner"] = to!string(component.ownerId);
-        
-        if ("position" !in spawnValues)
-          spawnValues["position"] = to!string(component.position + component.spawnPoint);
-          
-        spawnValues["angle"] = to!string(spawnAngle * _180_PI);
-        
-        spawnValues["velocity"] = spawnVelocity.toString();
-        spawnValues["force"] = spawnForce.toString();
-        
-        immutable string[4] sounds = ["mgshot1.wav", "mgshot2.wav", "mgshot3.wav", "mgshot4.wav"];
-        
-        // we should have two entity spawns here, one for the muzzle flash effect (which also will handle the sound)
-        // and another for the actual spawn entity
-        spawnValues["soundFile"] = sounds[uniform(0, sounds.length)];
-        //spawn.setValue("soundFile", sounds[0]);
-        
-        m_spawnValues ~= spawnValues;
       }
     }
   }
@@ -174,8 +174,9 @@ public:
 protected:
   bool canCreateComponent(Entity p_entity)
   {
-    return (p_entity.getValue("spawn.source").length > 0 ||
-            looksLikeAFile(p_entity.getValue("spawn.source")));
+    auto spawnKeys = filter!(key => key.startsWith("spawn."))(p_entity.values.keys);
+    
+    return spawnKeys.empty == false;
   }
   
   
@@ -183,14 +184,19 @@ protected:
   {
     auto component = SpawnerComponent();
     
-    if (looksLikeAFile(p_entity.getValue("spawn.source")))
+    foreach (key, value; p_entity.values)
     {
-      foreach (key, value; p_entity.values)
-      {
-        if (key.startsWith("spawn."))
-        {
-          component.spawnValues[key.find(".")[1..$]] = value;
-        }
+      string originalKey = key;
+      
+      if (key.skipOver("spawn."))
+      {        
+        enforce(key.find(".").length > 0, "Missing spawn name for " ~ originalKey ~ ", spawn values must be on the form spawn.<spawnname>.<spawnkey>");
+        
+        string spawnName = to!string(key.until("."));
+        
+        enforce(key.skipOver(spawnName ~ "."), "Could not parse spawn value for " ~ originalKey ~ ", spawn values must be on the form spawn.<spawnname>.<spawnkey>");
+        
+        component.spawnValuesNames[spawnName][key] = value;
       }
     }
     
@@ -198,22 +204,6 @@ protected:
     
     if (p_entity.getValue("owner").length > 0)
       component.ownerId = to!int(p_entity.getValue("owner"));
-    
-    if (p_entity.getValue("spawnPoint").length > 0)
-      component.spawnPoint = vec2.fromString(p_entity.getValue("spawnPoint"));
-    if (p_entity.getValue("spawnVelocity").length > 0)
-      component.spawnVelocity = vec2.fromString(p_entity.getValue("spawnVelocity"));
-    
-    if (p_entity.getValue("spawnForce").length > 0)
-      component.spawnForce = to!float(p_entity.getValue("spawnForce"));
-    
-    if (p_entity.getValue("spawnAngle").length > 0)
-      //component.spawnAngle = to!float(p_entity.getValue("spawnAngle")) * PI_180;
-      component.spawnAngle = p_entity.getValue("spawnAngle");
-    if (p_entity.getValue("spawnRotation").length > 0)
-      component.spawnRotation = to!float(p_entity.getValue("spawnRotation"));
-      
-    //writeln("creating spawncomponent, spawnangle is " ~ to!string(component.spawnAngle));
 
     return component;
   }

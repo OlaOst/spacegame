@@ -77,6 +77,8 @@ class ControlComponent
   }
   
   immutable int id;
+
+  
 private:
   shared synchronized static int idCounter;
 }
@@ -114,8 +116,7 @@ public:
       
       component.control.update(component);
     }
-  }
-    
+  }    
   
   void setTimeStep(float p_timeStep)
   out
@@ -126,8 +127,8 @@ public:
   {
     m_timeStep = p_timeStep;
   }
-  
-    
+   
+   
 protected:
   bool canCreateComponent(Entity p_entity)
   {
@@ -226,9 +227,9 @@ protected:
     assert(component.position.ok);
     
     return component;
-  }
-    
-    
+  } 
+  
+  
 public:
   ControlBase[string] controls;
   

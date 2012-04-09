@@ -66,6 +66,7 @@ public:
   ALuint buffer;
   bool shouldStartPlaying = false;
   bool isPlaying = false;
+  bool finishedPlaying = false;
   
   bool streaming = false;
   AudioStream stream = null;
@@ -151,6 +152,8 @@ public:
           
           component.shouldStartPlaying = false;
           component.isPlaying = true;
+          
+          m_componentToSource[component] = source;
         }
         else
         {
@@ -158,6 +161,34 @@ public:
           component.isPlaying = false;
         }
       }
+      else if (component.isPlaying)
+      {
+        auto source = m_componentToSource[component];
+        
+        ALenum state;
+        alGetSourcei(source, AL_SOURCE_STATE, &state);
+        
+        if (state != AL_PLAYING)
+        {
+          component.finishedPlaying = true;
+        }
+      }
+    }
+    
+    Entity[] entitiesToRemove;
+    foreach (entity; entities)
+    {
+      auto component = getComponent(entity);
+      
+      if (component.finishedPlaying)
+      {
+        entitiesToRemove ~= entity;
+      }
+    }
+    
+    foreach (entityToRemove; entitiesToRemove)
+    {
+      removeEntity(entityToRemove);
     }
   }
 
@@ -274,6 +305,7 @@ private:
 
 private:
   ALuint[] m_sources;
+  ALuint[SoundComponent] m_componentToSource;
   
   ALuint[string] m_fileToBuffer;
   
