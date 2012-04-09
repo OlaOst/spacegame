@@ -36,6 +36,7 @@ import SubSystem.ConnectionHandler;
 import SubSystem.CollisionHandler;
 import SubSystem.Sound;
 import SubSystem.Spawner;
+import SubSystem.Timer;
 
 
 unittest
@@ -327,3 +328,31 @@ void setPhysicsFromSpawner(Spawner spawner, Physics physics)
     return physicsComponent;
   });
 }
+
+
+/*void setTimerFromCollider(CollisionHandler collider, Timer timer)
+{
+  subSystemCommunication!(ColliderComponent, TimerComponent)(collider, timer, (ColliderComponent collisionComponent, TimerComponent timerComponent)
+  {
+    if (collisionComponent.health <= 0.0)
+      timerComponent.lifetime = 0.0;
+      
+    return timerComponent;
+  });
+}*/
+
+
+/*void setTimerFromSound(Sound sound, Timer timer)
+{
+  subSystemCommunication!(SoundComponent, TimerComponent)(sound, timer, (SoundComponent soundComponent, TimerComponent timerComponent)
+  {
+    writeln("soundcomp finished playing: " ~ to!string(soundComponent.finishedPlaying));
+    if (soundComponent.finishedPlaying)
+    {
+      writeln("setting timercomp lifetime to 0 for sound that finished playing");
+      timerComponent.lifetime = 0.0;
+    }
+
+    return timerComponent;
+  });
+}*/

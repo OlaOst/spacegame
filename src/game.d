@@ -64,6 +64,7 @@ import SubSystem.Physics;
 import SubSystem.Placer;
 import SubSystem.Sound;
 import SubSystem.Spawner;
+import SubSystem.Timer;
 
 
 unittest
@@ -166,6 +167,7 @@ public:
     m_subSystems["connector"] = m_connector = new ConnectionHandler();
     m_subSystems["sound"] = m_sound = new Sound(64);
     m_subSystems["spawner"] = m_spawner = new Spawner();
+    m_subSystems["timer"] = m_timer = new Timer();
 
     m_gameConsole = new GameConsole(this);
     m_entityConsole = new EntityConsole(this);
@@ -255,11 +257,7 @@ public:
  
  
   void run()
-  {
-    m_timer.reset();
-    m_timer.start();
-    m_timer.stop();
-  
+  {  
     while (m_running)
     {
       update();
@@ -471,37 +469,18 @@ private:
   
   void update()
   {
-    m_timer.stop();
-    
-    float elapsedTime = m_timer.peek.msecs * 0.001;
-    static float totalTime = 0.0;
-    totalTime += elapsedTime;
-    
-    if (elapsedTime <= 0)
-      elapsedTime = 0.001;
-    
-    m_timer.reset();
-    m_timer.start();
-    
     m_updateCount++;
-    
-    Entity[] entitiesToRemove;
     
     // TODO: make subsystem dedicated to removing entities. it should be responsible for values like lifetime and health 
     // TODO: ideally all this code should be handled by just setting values on the entity and then re-register it
     foreach (entity; filter!(entity => m_collider.hasComponent(entity))(m_entities.values))
     {
       auto colliderComponent = m_collider.getComponent(entity);
-      
-      colliderComponent.lifetime -= elapsedTime;
-      
-      if (colliderComponent.lifetime <= 0.0)
-        entitiesToRemove ~= entity;
-        
+
       // disconnect if no health left
-      if (colliderComponent.health <= 0.0)
+      if (colliderComponent.health <= 0.0 && m_connector.hasComponent(entity))
       {
-        writeln("no health left, disconnecting entity " ~ to!string(entity.id) ~ " with source " ~ entity.getValue("source"));
+        writeln("no health left, disconnecting entity " ~ to!string(entity.id) ~ " with values " ~ to!string(entity.values));
         
         // de-control entity and all connected entities
         entity.setValue("control", "nothing");
@@ -552,7 +531,8 @@ private:
         m_connector.removeEntity(entity);
         
         writeln("disconnecting entity " ~ to!string(entity.id) ~ " with position " ~ colliderComponent.position.toString());
-        colliderComponent.health = to!float(entity.getValue("health"));
+        if ("health" in entity.values)
+          colliderComponent.health = to!float(entity.getValue("health"));
         
         assert(m_connector.hasComponent(entity) == false);
         
@@ -567,6 +547,10 @@ private:
       }
     }
     
+    auto entitiesToRemove = m_timer.getTimeoutEntities() ~ 
+                            m_sound.getFinishedPlayingEntities() ~ 
+                            m_collider.getNoHealthEntities();
+    
     foreach (entityToRemove; entitiesToRemove)
       removeEntity(entityToRemove);
     
@@ -574,9 +558,8 @@ private:
 
     if (!m_paused)
     {
-      assert(elapsedTime > 0.0);
-      m_physics.setTimeStep(elapsedTime);
-      m_controller.setTimeStep(elapsedTime);
+      m_physics.setTimeStep(m_timer.elapsedTime);
+      m_controller.setTimeStep(m_timer.elapsedTime);
       
       CommsCentral.setPlacerFromPhysics(m_physics, m_placer);
       CommsCentral.setPlacerFromConnector(m_connector, m_placer);
@@ -608,12 +591,14 @@ private:
       CommsCentral.setSpawnerFromPlacer(m_placer, m_spawner);
       CommsCentral.setConnectorFromPlacer(m_placer, m_connector);
       CommsCentral.setSoundFromPlacer(m_placer, m_sound);
+      //CommsCentral.setTimerFromCollider(m_collider, m_timer);
+      //CommsCentral.setTimerFromSound(m_sound, m_timer);
       
       //CommsCentral.calculateCollisionResponse(m_collider, m_physics);
     }
     CommsCentral.setGraphicsFromPlacer(m_placer, m_graphics);
     
-    m_fpsBuffer[m_updateCount % m_fpsBuffer.length] = floor(1.0 / elapsedTime);
+    m_fpsBuffer[m_updateCount % m_fpsBuffer.length] = floor(1.0 / m_timer.elapsedTime);
     
     if (m_graphics.hasComponent(m_debugDisplay))
     {
@@ -770,10 +755,10 @@ private:
       }
     }
     
-    m_entityConsole.display(m_graphics, totalTime);
-    m_gameConsole.display(m_graphics, totalTime);
+    m_entityConsole.display(m_graphics, m_timer.totalTime);
+    m_gameConsole.display(m_graphics, m_timer.totalTime);
     
-    handleInput(elapsedTime);
+    handleInput(m_timer.elapsedTime);
     
     SDL_Delay(10);
   }
@@ -1473,8 +1458,6 @@ private:
   
   bool m_paused;
   
-  StopWatch m_timer;
-  
   InputHandler m_inputHandler;
   
   GameConsole m_gameConsole;
@@ -1489,6 +1472,7 @@ private:
   CollisionHandler m_collider;
   Spawner m_spawner;
   Sound m_sound;
+  Timer m_timer;
   
   Starfield m_starfield;
   

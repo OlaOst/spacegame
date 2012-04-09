@@ -90,6 +90,8 @@ public:
     
       if (component.isSpawning)
       {
+        //writeln("component spawning " ~ to!string(component.spawnValuesNames.length) ~ " comps");
+        
         foreach (spawnName, spawnValuesOriginal; component.spawnValuesNames)
         {
           string[string] spawnValues = spawnValuesOriginal.dup;
@@ -189,14 +191,19 @@ protected:
       string originalKey = key;
       
       if (key.skipOver("spawn."))
-      {        
+      {
         enforce(key.find(".").length > 0, "Missing spawn name for " ~ originalKey ~ ", spawn values must be on the form spawn.<spawnname>.<spawnkey>");
         
         string spawnName = to!string(key.until("."));
         
+        if (spawnName == "*")
+          continue;
+        
         enforce(key.skipOver(spawnName ~ "."), "Could not parse spawn value for " ~ originalKey ~ ", spawn values must be on the form spawn.<spawnname>.<spawnkey>");
         
         component.spawnValuesNames[spawnName][key] = value;
+        
+        //writeln("spawnname " ~ spawnName ~ " setting key " ~ key ~ " to value " ~ value);
       }
     }
     

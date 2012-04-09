@@ -119,6 +119,10 @@ public:
     alListener3f(AL_POSITION, centerComponent.position.x, centerComponent.position.y, 0.0);
     alListener3f(AL_VELOCITY, centerComponent.velocity.x, centerComponent.velocity.y, 0.0);
     
+    //writeln("shouldstartplaying: " ~ to!string(array(filter!(c => c.shouldStartPlaying)(components)).length));
+    //writeln("isplaying:          " ~ to!string(array(filter!(c => c.isPlaying)(components)).length));
+    //writeln("finishedplaying:    " ~ to!string(array(filter!(c => c.finishedPlaying)(components)).length));
+    
     foreach (component; components)
     {
       if (component.stream !is null)
@@ -138,6 +142,15 @@ public:
         
         source = m_sources[(m_lastSourcePlayed++) % m_sources.length];
         
+        // hold on - did we just grab a source in the process of playing?
+        // in that case we should set finishedPlaying on the soundcomponent that was already playing in that source
+        // so that the soundcomponent can be cleaned up properly
+        if (source in m_sourceToComponent)
+        {
+          //if (m_sourceToComponent[source].isPlaying)
+            m_sourceToComponent[source].finishedPlaying = true;
+        }
+        
         alSource3f(source, AL_POSITION, component.position.x, component.position.y, 0.0);
         alSource3f(source, AL_VELOCITY, component.velocity.x, component.velocity.y, 0.0);
         
@@ -154,6 +167,7 @@ public:
           component.isPlaying = true;
           
           m_componentToSource[component] = source;
+          m_sourceToComponent[source] = component;
         }
         else
         {
@@ -161,7 +175,7 @@ public:
           component.isPlaying = false;
         }
       }
-      else if (component.isPlaying)
+      else if (component in m_componentToSource) //if (component.isPlaying)
       {
         auto source = m_componentToSource[component];
         
@@ -173,24 +187,18 @@ public:
           component.finishedPlaying = true;
         }
       }
-    }
-    
-    Entity[] entitiesToRemove;
-    foreach (entity; entities)
-    {
-      auto component = getComponent(entity);
-      
-      if (component.finishedPlaying)
+      else if (component.shouldStartPlaying == false && component.isPlaying == false && component.finishedPlaying == false && component != getComponent(m_centerEntity))
       {
-        entitiesToRemove ~= entity;
+        component.finishedPlaying = true;
       }
     }
-    
-    foreach (entityToRemove; entitiesToRemove)
-    {
-      removeEntity(entityToRemove);
-    }
   }
+  
+  Entity[] getFinishedPlayingEntities()
+  {
+    return array(filter!(entity => getComponent(entity).finishedPlaying)(entities));
+  }
+  
 
 protected:
   bool canCreateComponent(Entity p_entity)
@@ -230,7 +238,7 @@ protected:
         
         loadOgg(soundFile, buffer, format, frequency);
         
-        enforce(buffer.length < 4194304, "Soundfile buffer too big, try setting 'streaming = true' instead");
+        enforce(buffer.length < 4194304, "Soundfile buffer too big, try setting 'streaming = true' to play it");
         
         //writeln("read in " ~ to!string(buffer.length) ~ " bytes from oggfile " ~ soundFile);
         
@@ -306,6 +314,7 @@ private:
 private:
   ALuint[] m_sources;
   ALuint[SoundComponent] m_componentToSource;
+  SoundComponent[ALuint] m_sourceToComponent;
   
   ALuint[string] m_fileToBuffer;
   

@@ -160,14 +160,12 @@ public:
         auto entityId = to!int(extractEntityIdAndConnectPointName(p_entity.getValue("connection"))[0]);
         auto connectPointName = extractEntityIdAndConnectPointName(p_entity.getValue("connection"))[1];
       
-        foreach (siblingEntity; entities)
+        //foreach (siblingEntity; entities)
+        // only look at entities whose owner is the same as p_entity
+        foreach (siblingEntity; filter!(entity => entity != p_entity &&
+                                                  getComponent(entity).owner == componentToDisconnect.owner &&
+                                                  entityId == entity.id)(entities))
         {
-          // only look at entities whose owner is the same as p_entity
-          if (siblingEntity == p_entity || 
-              getComponent(siblingEntity).owner != componentToDisconnect.owner || 
-              entityId != siblingEntity.id)
-            continue;
-
           auto siblingComp = getComponent(siblingEntity);
 
           if (connectPointName in siblingComp.connectPoints)
@@ -185,7 +183,8 @@ public:
           disconnectEntity(connectedEntity);
       }
       
-      auto ownerComponent = getComponent(componentToDisconnect.owner);
+      //assert(hasComponent(componentToDisconnect.owner));
+      //auto ownerComponent = getComponent(componentToDisconnect.owner);
       
       componentToDisconnect.relativePosition = vec2(0.0, 0.0);
       componentToDisconnect.relativePositionToCenterOfMass = vec2(0.0, 0.0);

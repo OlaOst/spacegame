@@ -24,3 +24,6 @@ target.source = simpleship.txt
 target.position = 0 5
 target.*.collisionType = NpcModule
 target.*.health = 10000
+
+
+hud.collectionSource = hud.txt
