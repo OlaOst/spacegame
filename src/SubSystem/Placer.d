@@ -32,7 +32,7 @@ import gl3n.math;
 import SubSystem.Base;
 
 
-struct PlacerComponent
+class PlacerComponent
 {
   vec2 position = vec2(0.0, 0.0);
   vec2 velocity = vec2(0.0, 0.0);
@@ -45,6 +45,12 @@ struct PlacerComponent
 class Placer : Base!(PlacerComponent)
 {
 public:
+  this()
+  {
+    m_timeStep = 0.0;
+  }
+  
+  
   void update() 
   {
     foreach (component; components)
@@ -52,11 +58,20 @@ public:
       // do wraparound stuff
       //if (component.position.length > 100.0)
         //component.position = component.position * -1;
-      if (abs(component.position.x) > 100.0)
+      /*if (abs(component.position.x) > 100.0)
         component.position = vec2(component.position.x * -1, component.position.y);
       if (abs(component.position.y) > 100.0)
-        component.position = vec2(component.position.x, component.position.y * -1);
+        component.position = vec2(component.position.x, component.position.y * -1);*/
+        
+      // update position with velocity - position and velocity will be overwritten by physics if the entity has mass (and thus is registered in the physics subsystem)
+      // see CommsCentral.setPlacerFromPhysics
+      component.position += component.velocity * m_timeStep;
     }
+  }
+  
+  void setTimeStep(float p_timeStep)
+  {
+    m_timeStep = p_timeStep;
   }
   
 protected:
@@ -68,7 +83,7 @@ protected:
   
   PlacerComponent createComponent(Entity p_entity)
   {
-    auto component = PlacerComponent();
+    auto component = new PlacerComponent();
     
     if (p_entity.getValue("position").length > 0)
       component.position = vec2.fromString(p_entity.getValue("position"));
@@ -84,4 +99,8 @@ protected:
       
     return component;
   }
+  
+  
+private:
+  float m_timeStep;
 }

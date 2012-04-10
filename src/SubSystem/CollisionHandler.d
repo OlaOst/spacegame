@@ -82,7 +82,7 @@ unittest
   
   sys.calculateCollisionResponse();
   
-  assert(sys.getComponent(collide).health <= 0.0, "Collided bullet didn't get health zeroed: " ~ to!string(sys.getComponent(collide).health));
+  assert(sys.getComponent(collide).lifetime <= 0.0, "Collided bullet didn't get lifetime zeroed: " ~ to!string(sys.getComponent(collide).lifetime));
 }
 
 
@@ -140,7 +140,7 @@ class ColliderComponent
   
   CollisionType collisionType;
   
-  //float lifetime = float.infinity;
+  float lifetime = float.infinity;
   float health = float.infinity;
   
   AABB aabb;
@@ -202,11 +202,6 @@ public:
     return tmp;
   }
   
-  Entity[] getNoHealthEntities()
-  {
-    return array(filter!(entity => getComponent(entity).health <= 0.0)(entities));
-  }
-  
 
 protected:
   bool canCreateComponent(Entity p_entity)
@@ -241,8 +236,8 @@ protected:
     if ("position" in p_entity.values)
       colliderComponent.position = vec2.fromString(p_entity.getValue("position"));
     
-    //if ("lifetime" in p_entity.values)
-      //colliderComponent.lifetime = to!float(p_entity.getValue("lifetime"));
+    if ("lifetime" in p_entity.values)
+      colliderComponent.lifetime = to!float(p_entity.getValue("lifetime"));
       
     if ("health" in p_entity.values)
       colliderComponent.health = to!float(p_entity.getValue("health"));
@@ -310,16 +305,16 @@ private:
   
     foreach (ref collision; m_collisions)
     {
-      // bullets should disappear on contact - set health to zero
+      // bullets should disappear on contact - set lifetime to zero
       if (collision.first.collisionType == CollisionType.Bullet)
       {
-        collision.first.health = 0.0;
+        collision.first.lifetime = 0.0;
         
         collision.second.health -= 1.0;
       }
       if (collision.second.collisionType == CollisionType.Bullet)
       {
-        collision.second.health = 0.0;
+        collision.second.lifetime = 0.0;
         
         collision.first.health -= 1.0;
       }

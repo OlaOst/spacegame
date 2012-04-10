@@ -147,11 +147,10 @@ public:
   final ComponentType getComponent(Entity p_entity) 
   in
   {
-    assert(p_entity in m_entityToComponent, "Could not find component for entity " ~ p_entity.getValue("name") ~ " with id " ~ to!string(p_entity.id) ~ " in " ~ to!string(this));
+    assert(p_entity in m_entityToComponent, "couldn't find component for entity " ~ p_entity.getValue("name") ~ " with id " ~ to!string(p_entity.id) ~ " in " ~ to!string(this));
   }
   body
   {
-    assert(p_entity in m_entityToComponent, "Could not find component for entity " ~ p_entity.getValue("name") ~ " with id " ~ to!string(p_entity.id) ~ " in " ~ to!string(this));
     return m_entityToComponent[p_entity];
   }
   

@@ -93,6 +93,7 @@ unittest
   
   assert(game.m_physics.getComponent(testPhysics).force == vec2(0.0, 1.0));
   
+  game.m_placer.setTimeStep(0.1);
   game.m_physics.setTimeStep(0.1);
   game.m_controller.setTimeStep(0.1);
   foreach (subSystem; game.m_subSystems)
@@ -558,6 +559,7 @@ private:
 
     if (!m_paused)
     {
+      m_placer.setTimeStep(m_timer.elapsedTime);
       m_physics.setTimeStep(m_timer.elapsedTime);
       m_controller.setTimeStep(m_timer.elapsedTime);
       

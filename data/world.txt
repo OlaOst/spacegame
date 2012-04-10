@@ -80,7 +80,7 @@ npcDispenser.spawn.ship.rightEngine.control = chaser
 npcDispenser.spawn.ship.type = enemy ship
 npcDispenser.spawn.ship.angle = 0 to 360
 npcDispenser.spawn.ship.position = -100 -100 to 100 100
-npcDispenser.reloadTime = 500
+npcDispenser.reloadTime = 5
 npcDispenser.control = alwaysfire
 
 # [npcDispenser: spawn: [source: simpleship.txt, team: 1]]
