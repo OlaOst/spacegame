@@ -127,13 +127,10 @@ public:
     {
       if (component.stream !is null)
       {
-        // need some threading to handle updating the stream
-        if (component.stream.update())
+        if (component.isPlaying == false)
         {
-          if (component.stream.playing() == false)
-          {
-            enforce(component.stream.playback(), "Ogg abruptly stopped");
-          }
+          component.isPlaying = true;
+          component.stream.startPlaybackThread();
         }
       }
       else if (component.shouldStartPlaying)

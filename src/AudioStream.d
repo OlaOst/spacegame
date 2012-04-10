@@ -25,6 +25,7 @@ module AudioStream;
 import std.algorithm;
 import std.conv;
 import std.exception;
+import std.parallelism;
 import std.stdio;
 
 import derelict.ogg.ogg;
@@ -94,24 +95,12 @@ public:
     check();
   }
   
-  
-  bool playback()
+  void startPlaybackThread()
   {
-    if (playing())
-      return true;
+    auto playbackTask = task(&this.playbackLoop);
     
-    foreach (buffer; buffers)
-    {
-      if (stream(buffer) == false)
-        return false;
-    }
-    
-    alSourceQueueBuffers(source, buffers.length, buffers.ptr);
-    alSourcePlay(source);
-    
-    return true;
+    playbackTask.executeInNewThread();
   }
-  
   
   void printInfo()
   {
@@ -132,6 +121,37 @@ public:
   }
   
   
+private:
+  void playbackLoop()
+  {
+    while (update())
+    {
+      if (playing() == false)
+      {
+        enforce(playback(), "Ogg abruptly stopped");
+        
+        writeln("Ogg stream interrupted");
+      }
+    }
+  }
+  
+  bool playback()
+  {
+    if (playing())
+      return true;
+    
+    foreach (buffer; buffers)
+    {
+      if (stream(buffer) == false)
+        return false;
+    }
+    
+    alSourceQueueBuffers(source, buffers.length, buffers.ptr);
+    alSourcePlay(source);
+    
+    return true;
+  }
+  
   bool playing()
   {
     ALenum state;
@@ -139,8 +159,7 @@ public:
     
     return state == AL_PLAYING;
   }
-  
-  
+    
   bool update()
   {
     int buffersProcessed;
@@ -164,8 +183,6 @@ public:
     return active;
   }
   
-  
-private:
   bool stream(ALuint buffer)
   {
     int size = 0;
@@ -193,8 +210,7 @@ private:
     check();
     
     return true;
-  }  
-  
+  }
   
   void check()
   {
