@@ -123,9 +123,10 @@ public:
       auto component = createComponent(p_entity);
         
       m_entityToComponent[p_entity] = component;
+      
+      //writeln("registering entity " ~ to!string(p_entity.id) ~ " on " ~ name());
     }
     
-    //writeln("registering entity " ~ to!string(p_entity.id) ~ " on " ~ name());
     //assert(m_componentArray == array(map!((entity) { return m_entityToComponent[entity]; })(sort!((left, right) { return left.id < right.id; })(m_entityToComponent.keys))));
   }
   
@@ -147,10 +148,11 @@ public:
   final ComponentType getComponent(Entity p_entity) 
   in
   {
-    assert(p_entity in m_entityToComponent, "couldn't find component for entity " ~ p_entity.getValue("name") ~ " with id " ~ to!string(p_entity.id) ~ " in " ~ to!string(this));
+    assert(p_entity in m_entityToComponent, "Could not find component for entity " ~ p_entity.getValue("name") ~ " with id " ~ to!string(p_entity.id) ~ " in " ~ to!string(this));
   }
   body
   {
+    assert(p_entity in m_entityToComponent, "Could not find component for entity " ~ p_entity.getValue("name") ~ " with id " ~ to!string(p_entity.id) ~ " in " ~ to!string(this));
     return m_entityToComponent[p_entity];
   }
   

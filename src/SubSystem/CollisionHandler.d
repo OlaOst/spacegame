@@ -82,7 +82,7 @@ unittest
   
   sys.calculateCollisionResponse();
   
-  assert(sys.getComponent(collide).lifetime <= 0.0, "Collided bullet didn't get lifetime zeroed: " ~ to!string(sys.getComponent(collide).lifetime));
+  assert(sys.getComponent(collide).health <= 0.0, "Collided bullet didn't get health zeroed: " ~ to!string(sys.getComponent(collide).health));
 }
 
 
@@ -140,7 +140,7 @@ class ColliderComponent
   
   CollisionType collisionType;
   
-  float lifetime = float.infinity;
+  //float lifetime = float.infinity;
   float health = float.infinity;
   
   AABB aabb;
@@ -202,12 +202,17 @@ public:
     return tmp;
   }
   
+  Entity[] getNoHealthEntities()
+  {
+    return array(filter!(entity => getComponent(entity).health <= 0.0)(entities));
+  }
+  
 
 protected:
   bool canCreateComponent(Entity p_entity)
   {
     return (p_entity.getValue("collisionType").length > 0) && 
-           (p_entity.getValue("radius").length > 0) &&
+           //(p_entity.getValue("radius").length > 0) &&
            (p_entity.getValue("isBlueprint") != "true");
   }
   
@@ -216,9 +221,11 @@ protected:
   {
     //writeln("collider creating component from values " ~ to!string(p_entity.values));
   
+    enforce("radius" in p_entity.values, "Cannot create collider component without radius");
+  
     float radius = to!float(p_entity.getValue("radius"));
     
-    enforce(radius >= 0.0);
+    enforce(radius >= 0.0, "Cannot create collider component with negative radius");
     
     auto collisionType = to!CollisionType(p_entity.getValue("collisionType"));
     enforce(collisionType != CollisionType.Unknown, "Tried to create collision component from entity with unknown collision type " ~ p_entity.getValue("collisionType"));
@@ -236,8 +243,8 @@ protected:
     if ("position" in p_entity.values)
       colliderComponent.position = vec2.fromString(p_entity.getValue("position"));
     
-    if ("lifetime" in p_entity.values)
-      colliderComponent.lifetime = to!float(p_entity.getValue("lifetime"));
+    //if ("lifetime" in p_entity.values)
+      //colliderComponent.lifetime = to!float(p_entity.getValue("lifetime"));
       
     if ("health" in p_entity.values)
       colliderComponent.health = to!float(p_entity.getValue("health"));
@@ -305,16 +312,16 @@ private:
   
     foreach (ref collision; m_collisions)
     {
-      // bullets should disappear on contact - set lifetime to zero
+      // bullets should disappear on contact - set health to zero
       if (collision.first.collisionType == CollisionType.Bullet)
       {
-        collision.first.lifetime = 0.0;
+        collision.first.health = 0.0;
         
         collision.second.health -= 1.0;
       }
       if (collision.second.collisionType == CollisionType.Bullet)
       {
-        collision.second.lifetime = 0.0;
+        collision.second.health = 0.0;
         
         collision.first.health -= 1.0;
       }
@@ -340,7 +347,7 @@ private:
           particleValues["radius"] = to!string(uniform(0.15, 0.25));
           particleValues["mass"] = to!string(uniform(0.2, 1.0));
           particleValues["lifetime"] = to!string(uniform(0.5, 2.0));
-          particleValues["collisionType"] = "Particle";
+          //particleValues["collisionType"] = "Particle";
           
           m_spawnParticleValues ~= particleValues;
           
@@ -364,7 +371,7 @@ private:
           particleValues["radius"] = to!string(uniform(0.15, 0.25));
           particleValues["mass"] = to!string(uniform(0.2, 1.0));
           particleValues["lifetime"] = to!string(uniform(0.5, 2.0));
-          particleValues["collisionType"] = "Particle";
+          //particleValues["collisionType"] = "Particle";
           
           m_spawnParticleValues ~= particleValues;
           

@@ -1,6 +1,5 @@
 name = missile
 
-collisionType = Bullet
 lifetime = 10.0
 
 *.collisionType = Bullet
