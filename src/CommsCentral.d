@@ -282,7 +282,15 @@ void setSpawnerFromController(Controller controller, Spawner spawner)
 {
   subSystemCommunication!(ControlComponent, SpawnerComponent)(controller, spawner, (ControlComponent controllerComponent, SpawnerComponent spawnerComponent)
   {
+    spawnerComponent.startSpawning = (spawnerComponent.isSpawning == false && 
+                                      controllerComponent.isFiring && 
+                                      spawnerComponent.startSpawning == false);
+      
     spawnerComponent.isSpawning = controllerComponent.isFiring;
+    
+    spawnerComponent.stopSpawning = (spawnerComponent.isSpawning && 
+                                     controllerComponent.isFiring == false && 
+                                     spawnerComponent.stopSpawning);
     
     return spawnerComponent;
   });

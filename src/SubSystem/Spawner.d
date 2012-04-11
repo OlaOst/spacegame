@@ -72,7 +72,9 @@ struct SpawnerComponent
   int entityId;
   int ownerId;
   
+  bool startSpawning = false;
   bool isSpawning = false;
+  bool stopSpawning = false;
 }
 
 
@@ -87,10 +89,12 @@ public:
     foreach (ref component; components)
     {
       //writeln("spawner.update: " ~ to!string(component.entityId) ~ ": " ~ to!string(component.isSpawning));
-    
-      if (component.isSpawning)
+      
+      foreach (spawnName, spawnValuesOriginal; component.spawnValuesNames)
       {
-        foreach (spawnName, spawnValuesOriginal; component.spawnValuesNames)
+        if ((component.isSpawning && ("trigger" !in spawnValuesOriginal || spawnValuesOriginal["trigger"] == "isSpawning")) ||
+            (component.startSpawning && "trigger" in spawnValuesOriginal && spawnValuesOriginal["trigger"] == "startSpawning") ||
+            (component.stopSpawning && "trigger" in spawnValuesOriginal && spawnValuesOriginal["trigger"] == "stopSpawning"))
         {
           string[string] spawnValues = spawnValuesOriginal.dup;
 

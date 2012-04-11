@@ -10,7 +10,10 @@ torqueForce = 50.0
 slideForce = 25.0
 
 
+#spawn.sound.soundFile = 59__fectoper__nostromo.wav
 spawn.sound.soundFile = engine.wav
+# we only want the sound to play once when engines fire - not every frame while the engines are firing
+spawn.sound.trigger = startSpawning
 
 spawn.exhaust.radius = 1.0
 spawn.exhaust.lifetime = 0.2
