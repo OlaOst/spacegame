@@ -279,7 +279,7 @@ public:
         }
       }
       
-      glTranslatef(component.position.x, component.position.y, component.depth);
+      glTranslatef(component.position.x, component.position.y, component.depth * 0.001);
       
       if (component.drawSource == DrawSource.Text && component.text.length > 0 && component.screenAbsolutePosition == false)
       {
@@ -472,7 +472,8 @@ protected:
           SDL_Surface* textureSurface = SDL_CreateRGBSurface(0, textureWidth, textureHeight, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
         
         // copy the image surface into the middle of the texture surface
-        SDL_BlitSurface(imageSurface, null, textureSurface, &SDL_Rect(to!short((textureWidth-imageSurface.w)/2), to!short((textureHeight-imageSurface.h)/2), 0, 0));
+        auto rect = SDL_Rect(to!short((textureWidth-imageSurface.w)/2), to!short((textureHeight-imageSurface.h)/2), 0, 0);
+        SDL_BlitSurface(imageSurface, null, textureSurface, &rect);
         
         enforce(textureSurface !is null, "Error creating texture surface: " ~ to!string(IMG_GetError()));
         enforce(textureSurface.pixels !is null, "Texture surface pixels are NULL!");
@@ -576,7 +577,7 @@ protected:
       if (colorComponents.length == 3)
         colorComponents ~= "1"; // default alpha is 1
         
-      component.color = vec4(array(map!(to!float)(colorComponents)));
+      component.color = vec4(map!(to!float)(colorComponents).array);
     }
     
     if (component.drawSource != DrawSource.Text && component.drawSource != DrawSource.RadarDisplay)
@@ -762,7 +763,7 @@ private:
     // when the foreach with the length check is compiled, we get a Assertion failure: '!vthis->csym' on line 681 in file 'glue.c' when using dmd 2.058
     //foreach (component; filter!(component => component.hideFromRadar == false && (centerComponent.position - component.position).length < 3500.0)(components))
     
-    //writeln("radar drawing " ~ to!string(array(filter!(component => component.hideFromRadar == false)(components)).length) ~ " entities");
+    //writeln("radar drawing " ~ to!string(filter!(component => component.hideFromRadar == false)(components).array.length) ~ " entities");
     
     foreach (component; filter!(component => component.hideFromRadar == false)(components))
     {

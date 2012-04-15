@@ -82,7 +82,7 @@ public:
   
   Entity[] getTimeoutEntities()
   {
-    return array(filter!(entity => getComponent(entity).lifetime <= 0.0)(entities));
+    return filter!(entity => getComponent(entity).lifetime <= 0.0)(entities).array;
   }
   
   

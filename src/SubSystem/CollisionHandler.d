@@ -204,7 +204,7 @@ public:
   
   Entity[] getNoHealthEntities()
   {
-    return array(filter!(entity => getComponent(entity).health <= 0.0)(entities));
+    return filter!(entity => getComponent(entity).health <= 0.0)(entities).array;
   }
   
 

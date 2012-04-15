@@ -147,7 +147,7 @@ struct Vector(type, int dimension_) if((dimension_ >= 2) && (dimension_ <= 4)) {
       //writeln(value);
       auto values = value.split(" ");
       
-      return vec2(array(map!(to!float)(values[0..2])));
+      return vec2(map!(to!float)(values[0..2]).array);
     }
     
     static Vector!(float, 2) fromAngle(float angle) {

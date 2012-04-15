@@ -127,7 +127,7 @@ public:
       //writeln("registering entity " ~ to!string(p_entity.id) ~ " on " ~ name());
     }
     
-    //assert(m_componentArray == array(map!((entity) { return m_entityToComponent[entity]; })(sort!((left, right) { return left.id < right.id; })(m_entityToComponent.keys))));
+    //assert(m_componentArray == map!((entity) { return m_entityToComponent[entity]; })(sort!((left, right) { return left.id < right.id; })(m_entityToComponent.keys)).array);
   }
   
   void removeEntity(Entity p_entity)
