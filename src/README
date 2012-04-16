@@ -1,0 +1,16 @@
+The code is designed around an Entity-Component-SubSystem model.
+
+The basic data structure is simply a key-value array - a string[string] associative array in D parlance.
+
+An entity is such an array, with a unique id.
+
+A component is a set of values from an entity, with proper types. For example, the physics component has a position value of type vec2 (a twodimensional vecotr) and a mass value of type float.
+
+A subsystem deals with components of a specific type. It can register an entity, which means looking up needed values in the entity and making a component out of these.
+It can update components.
+
+Subsystems have no knowledge of each other and no direct communication between subsystems should occur. This makes it possible to run all subsystems in parallel.
+
+The CommsCentral module handles transfer of component values between subsystems. 
+
+Controls handle input, either from a player or from an AI/NPC.
