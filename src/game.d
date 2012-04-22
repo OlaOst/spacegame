@@ -593,6 +593,7 @@ private:
       CommsCentral.setSpawnerFromPlacer(m_placer, m_spawner);
       CommsCentral.setConnectorFromPlacer(m_placer, m_connector);
       CommsCentral.setSoundFromPlacer(m_placer, m_sound);
+      CommsCentral.setSoundFromSpawner(m_spawner, m_sound);
       //CommsCentral.setTimerFromCollider(m_collider, m_timer);
       //CommsCentral.setTimerFromSound(m_sound, m_timer);
       
@@ -1440,7 +1441,7 @@ private:
     
     auto candidates = filter!(entity => entity.id != p_entity.id && entity.getValue(key) == value)(m_entities.values);
     
-    //writeln("closestshipgivenkeyvalue candidates: " ~ to!string(array(candidates).length));
+    //writeln("closestshipgivenkeyvalue candidates: " ~ to!string(candidates.array.length));
     
     if (candidates.empty)
       return null;

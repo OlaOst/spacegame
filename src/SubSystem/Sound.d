@@ -68,6 +68,8 @@ public:
   bool isPlaying = false;
   bool finishedPlaying = false;
   
+  bool repeat = false;
+  
   bool streaming = false;
   AudioStream stream = null;
   
@@ -119,9 +121,9 @@ public:
     alListener3f(AL_POSITION, centerComponent.position.x, centerComponent.position.y, 0.0);
     alListener3f(AL_VELOCITY, centerComponent.velocity.x, centerComponent.velocity.y, 0.0);
     
-    //writeln("shouldstartplaying: " ~ to!string(array(filter!(c => c.shouldStartPlaying)(components)).length));
-    //writeln("isplaying:          " ~ to!string(array(filter!(c => c.isPlaying)(components)).length));
-    //writeln("finishedplaying:    " ~ to!string(array(filter!(c => c.finishedPlaying)(components)).length));
+    //writeln("shouldstartplaying: " ~ to!string(filter!(c => c.shouldStartPlaying)(components).array.length));
+    //writeln("isplaying:          " ~ to!string(filter!(c => c.isPlaying)(components).array.length));
+    //writeln("finishedplaying:    " ~ to!string(filter!(c => c.finishedPlaying)(components).array.length));
     
     foreach (component; components)
     {
@@ -151,6 +153,8 @@ public:
         alSource3f(source, AL_POSITION, component.position.x, component.position.y, 0.0);
         alSource3f(source, AL_VELOCITY, component.velocity.x, component.velocity.y, 0.0);
         
+        //alSourcef(source, AL_GAIN, 0.1);
+        
         // we need to check if this source is playing
         ALenum state;
         alGetSourcei(source, AL_SOURCE_STATE, &state);
@@ -158,6 +162,10 @@ public:
         if (state != AL_PLAYING)
         {
           alSourcei(source, AL_BUFFER, component.buffer);
+          
+          if (component.repeat)
+            alSourcei(source, AL_LOOPING, AL_TRUE);
+          
           alSourcePlay(source);
           
           component.shouldStartPlaying = false;
@@ -181,10 +189,18 @@ public:
         
         if (state != AL_PLAYING)
         {
-          component.finishedPlaying = true;
+          /*if (component.repeat)
+          {
+            alSourceRewind(source);
+            component.shouldStartPlaying = true;
+          }
+          else*/
+          {
+            component.finishedPlaying = true;
+          }
         }
       }
-      else if (component.shouldStartPlaying == false && component.isPlaying == false && component.finishedPlaying == false && component != getComponent(m_centerEntity))
+      else if (component.shouldStartPlaying == false && component.isPlaying == false && component.finishedPlaying == false)
       {
         component.finishedPlaying = true;
       }
@@ -193,7 +209,7 @@ public:
   
   Entity[] getFinishedPlayingEntities()
   {
-    return array(filter!(entity => getComponent(entity).finishedPlaying)(entities));
+    return filter!(entity => entity != m_centerEntity && getComponent(entity).finishedPlaying)(entities).array;
   }
   
 
@@ -264,6 +280,9 @@ protected:
       component.velocity = vec2.fromString(p_entity.getValue("velocity"));
     if ("angle" in p_entity.values)
       component.angle = to!float(p_entity.getValue("angle")) * PI_180;
+    
+    if ("repeat" in p_entity.values)
+      component.repeat = p_entity.getValue("repeat") == "true";
     
     component.shouldStartPlaying = true;
     

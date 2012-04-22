@@ -1,14 +1,15 @@
 # just a sound played at startup letting us know the game has started
 #startupDing.soundFile = test.wav
-#startupDing.name = startupDing
+#startupSound.soundFile = gasturbinestartup.ogg
 
 # background music
-backgroundMusic.soundFile = orbitalelevator.ogg
-backgroundMusic.streaming = true
+#backgroundMusic.soundFile = orbitalelevator.ogg
+#backgroundMusic.streaming = true
 
 
 # backdrop picture
-backdrop.drawsource = images/galaxiesbackdrop.jpg
+#backdrop.drawsource = images/galaxiesbackdrop.jpg
+backdrop.drawsource = images/Hintergrund_Glitzern_Supernova.png
 backdrop.position = 0 0 -200
 backdrop.depth = bottom
 backdrop.radius = 100.0

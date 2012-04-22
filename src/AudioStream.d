@@ -130,7 +130,7 @@ private:
       {
         enforce(playback(), "Ogg abruptly stopped");
         
-        writeln("Ogg stream interrupted");
+        //writeln("Ogg stream interrupted");
       }
     }
   }

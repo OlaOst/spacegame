@@ -290,7 +290,7 @@ void setSpawnerFromController(Controller controller, Spawner spawner)
     
     spawnerComponent.stopSpawning = (spawnerComponent.isSpawning && 
                                      controllerComponent.isFiring == false && 
-                                     spawnerComponent.stopSpawning);
+                                     spawnerComponent.stopSpawning == false);
     
     return spawnerComponent;
   });
@@ -337,30 +337,13 @@ void setPhysicsFromSpawner(Spawner spawner, Physics physics)
   });
 }
 
-
-/*void setTimerFromCollider(CollisionHandler collider, Timer timer)
+void setSoundFromSpawner(Spawner spawner, Sound sound)
 {
-  subSystemCommunication!(ColliderComponent, TimerComponent)(collider, timer, (ColliderComponent collisionComponent, TimerComponent timerComponent)
+  subSystemCommunication!(SpawnerComponent, SoundComponent)(spawner, sound, (SpawnerComponent spawnerComponent, SoundComponent soundComponent)
   {
-    if (collisionComponent.health <= 0.0)
-      timerComponent.lifetime = 0.0;
-      
-    return timerComponent;
+    if (spawnerComponent.stopSpawning)
+      soundComponent.repeat = false;
+    
+    return soundComponent;
   });
-}*/
-
-
-/*void setTimerFromSound(Sound sound, Timer timer)
-{
-  subSystemCommunication!(SoundComponent, TimerComponent)(sound, timer, (SoundComponent soundComponent, TimerComponent timerComponent)
-  {
-    writeln("soundcomp finished playing: " ~ to!string(soundComponent.finishedPlaying));
-    if (soundComponent.finishedPlaying)
-    {
-      writeln("setting timercomp lifetime to 0 for sound that finished playing");
-      timerComponent.lifetime = 0.0;
-    }
-
-    return timerComponent;
-  });
-}*/
+}
