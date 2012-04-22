@@ -1,0 +1,16 @@
+drawsource = images/stationplate.png
+draggable = true
+
+radius = 1.0
+mass = 1.0
+health = 250.0
+
+#connectpoint.upperleft.position = -0.8 0.8
+#connectpoint.upperright.position = 0.8 0.8
+#connectpoint.lowerleft.position = -0.8 -0.8
+#connectpoint.lowerright.position = 0.8 -0.8
+
+connectpoint.upperleft.position = -1.0 1.0
+connectpoint.upperright.position = 1.0 1.0
+connectpoint.lowerleft.position = -1.0 -1.0
+connectpoint.lowerright.position = 1.0 -1.0
