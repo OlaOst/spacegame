@@ -76,7 +76,7 @@ unittest
 }
 
 
-struct AABB
+struct AABB(type)
 {
   invariant()
   {
@@ -84,12 +84,12 @@ struct AABB
     assert(lowerleft.y < upperright.y);
   }
 
-  vec2i lowerleft;
-  vec2i upperright;
+  type lowerleft;
+  type upperright;
   
-  vec2i midpoint()
+  type midpoint()
   {
-    return vec2i((lowerleft.x+upperright.x)/2, (lowerleft.y+upperright.y)/2);
+    return type((lowerleft.x+upperright.x)/2, (lowerleft.y+upperright.y)/2);
   }
 }
 

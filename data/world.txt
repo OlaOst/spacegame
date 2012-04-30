@@ -3,8 +3,8 @@
 #startupSound.soundFile = gasturbinestartup.ogg
 
 # background music
-#backgroundMusic.soundFile = orbitalelevator.ogg
-#backgroundMusic.streaming = true
+backgroundMusic.soundFile = orbitalelevator.ogg
+backgroundMusic.streaming = true
 
 
 # backdrop picture
@@ -12,9 +12,13 @@
 backdrop.drawsource = images/Hintergrund_Glitzern_Supernova.png
 backdrop.position = 0 0 -200
 backdrop.depth = bottom
-backdrop.radius = 100.0
+#backdrop.radius = 2.0
+#backdrop.lowerleft = -20 -10
+#backdrop.upperright = 20 10
+backdrop.width = 20
+backdrop.height = 10
 backdrop.hideFromRadar = true
-#backdrop.screenAbsolutePosition = true
+backdrop.screenAbsolutePosition = true
 
 
 # greeting text

@@ -79,6 +79,7 @@ public:
       
       starValues["drawsource"] = "Star";
       starValues["radius"] = "0.25";
+      starValues["hideFromRadar"] = "true";
       
       starValues["angle"] = to!string(uniform(0, 360));
       

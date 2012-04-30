@@ -181,7 +181,7 @@ public:
   
   DrawSource drawSource;
   float radius;
-  AABB aabb;
+  AABB!vec2 aabb;
   
   Vertex[] vertices;
   vec2[] connectPoints;
@@ -227,6 +227,11 @@ public:
     m_mouseWorldPos = vec2(0.0, 0.0);
     
     initDisplay(p_screenWidth, p_screenHeight);
+    
+    auto widthHeightRatio = cast(float)p_screenWidth / cast(float)p_screenHeight;
+    
+    m_screenBox.lowerleft = vec2((-1.0 / m_zoom) * widthHeightRatio, -1.0 / m_zoom);
+    m_screenBox.upperright = vec2((1.0 / m_zoom) * widthHeightRatio, 1.0 / m_zoom);
   }
   
   ~this()
@@ -267,7 +272,10 @@ public:
           assert(centerComponent.position.ok);
           
           // cull stuff that won't be shown on screen
-          if ((component.position - centerComponent.position).magnitude > (1.0 / m_zoom * 2.0))
+          if ((component.position - centerComponent.position).x < m_screenBox.lowerleft.x - component.radius ||
+              (component.position - centerComponent.position).x > m_screenBox.upperright.x + component.radius ||
+              (component.position - centerComponent.position).y < m_screenBox.lowerleft.y - component.radius ||
+              (component.position - centerComponent.position).y > m_screenBox.upperright.y + component.radius)
           {
             glPopMatrix();
             continue;
@@ -333,6 +341,8 @@ public:
 
       glPopMatrix();
     }
+    
+    writeln("drawn comps: " ~ to!string(drawnComponents));
     
     glPopMatrix();
   }
@@ -424,6 +434,16 @@ protected:
       radius = to!float(p_entity.getValue("radius"));
     
     GraphicsComponent component = GraphicsComponent(radius);
+    
+    float width = 0.0;
+    float height = 0.0;
+    if ("width" in p_entity.values)
+      width = to!float(p_entity.getValue("width"));
+    if ("height" in p_entity.values)
+      height = to!float(p_entity.getValue("height"));
+    
+    component.aabb.lowerleft = vec2(-width/2.0, -height/2.0);
+    component.aabb.upperright = vec2(width/2.0, height/2.0);
     
     if (p_entity.getValue("keepInCenter") == "true")
     {
@@ -802,4 +822,6 @@ private:
   Entity m_centerEntity;
   
   string[][string] cache;
+  
+  AABB!vec2 m_screenBox;
 }

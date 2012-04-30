@@ -131,7 +131,7 @@ class ColliderComponent
     
     int rad = radius < 1.0 ? 1 : cast(int)radius;
     
-    aabb = AABB(vec2i(pos.x - rad, pos.y - rad), vec2i(pos.x + rad, pos.y + rad));
+    aabb = AABB!vec2i(vec2i(pos.x - rad, pos.y - rad), vec2i(pos.x + rad, pos.y + rad));
   }
   
   float radius;
@@ -144,7 +144,7 @@ class ColliderComponent
   //float lifetime = float.infinity;
   float health = float.infinity;
   
-  AABB aabb;
+  AABB!vec2i aabb;
   
   // we might not want stuff to collide from the entity it spawned from
   int spawnedFrom;
