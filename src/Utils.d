@@ -20,7 +20,7 @@
  THE SOFTWARE.
 */
 
-module SpatialIndexUtils;
+module Utils;
 
 import gl3n.linalg;
 
@@ -73,6 +73,24 @@ unittest
   for (int y = int.max - 256; y < int.max + 256; y++)
     for (int x = int.max - 256; x < int.max + 256; x++)
       assert(vectorForIndex(indexForVector(vec2i(x,y))) == vec2i(x,y), "Expected " ~ to!string(vec2i(x,y)) ~ ", got " ~ to!string(vectorForIndex(indexForVector(vec2i(x,y)))));      
+}
+
+
+struct AABB
+{
+  invariant()
+  {
+    assert(lowerleft.x < upperright.x);
+    assert(lowerleft.y < upperright.y);
+  }
+
+  vec2i lowerleft;
+  vec2i upperright;
+  
+  vec2i midpoint()
+  {
+    return vec2i((lowerleft.x+upperright.x)/2, (lowerleft.y+upperright.y)/2);
+  }
 }
 
 

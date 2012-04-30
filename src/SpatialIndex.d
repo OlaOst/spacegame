@@ -29,7 +29,7 @@ import std.stdio;
 
 import gl3n.linalg;
 
-import SpatialIndexUtils;
+import Utils;
 
 
 unittest
@@ -78,22 +78,6 @@ unittest
   assert(index[weird].length >= 1);  
 }
 
-struct AABB
-{
-  invariant()
-  {
-    assert(lowerleft.x < upperright.x);
-    assert(lowerleft.y < upperright.y);
-  }
-
-  vec2i lowerleft;
-  vec2i upperright;
-  
-  vec2i midpoint()
-  {
-    return vec2i((lowerleft.x+upperright.x)/2, (lowerleft.y+upperright.y)/2);
-  }
-}
 
 struct Index(Content)
   if (__traits(compiles, function AABB (Content c) { return c.aabb; }))

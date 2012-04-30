@@ -46,6 +46,7 @@ import Entity;
 import EntityLoader;
 import SubSystem.Base;
 import TextRender;
+import Utils;
 
 
 unittest
@@ -180,6 +181,7 @@ public:
   
   DrawSource drawSource;
   float radius;
+  AABB aabb;
   
   Vertex[] vertices;
   vec2[] connectPoints;
