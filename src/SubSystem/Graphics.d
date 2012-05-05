@@ -228,10 +228,10 @@ public:
     
     initDisplay(p_screenWidth, p_screenHeight);
     
-    auto widthHeightRatio = cast(float)p_screenWidth / cast(float)p_screenHeight;
+    m_widthHeightRatio = cast(float)p_screenWidth / cast(float)p_screenHeight;
     
-    m_screenBox.lowerleft = vec2((-1.0 / m_zoom) * widthHeightRatio, -1.0 / m_zoom);
-    m_screenBox.upperright = vec2((1.0 / m_zoom) * widthHeightRatio, 1.0 / m_zoom);
+    m_screenBox.lowerleft = vec2((-1.0 / m_zoom) * m_widthHeightRatio, -1.0 / m_zoom);
+    m_screenBox.upperright = vec2((1.0 / m_zoom) * m_widthHeightRatio, 1.0 / m_zoom);
   }
   
   ~this()
@@ -336,6 +336,14 @@ public:
             glVertex3f(cos(angle) * component.radius, sin(angle) * component.radius, 100.0);
           }
           glEnd();
+          
+          // also draw AABB
+          glBegin(GL_LINE_LOOP);
+            glVertex2f(component.aabb.lowerleft.x, component.aabb.lowerleft.y);
+            glVertex2f(component.aabb.upperright.x, component.aabb.lowerleft.y);
+            glVertex2f(component.aabb.upperright.x, component.aabb.upperright.y);
+            glVertex2f(component.aabb.lowerleft.x, component.aabb.upperright.y);
+          glEnd();
         }
       }
 
@@ -362,11 +370,17 @@ public:
   void zoomIn(float p_time)
   {
     m_zoom += m_zoom * p_time;
+    
+    m_screenBox.lowerleft = vec2((-1.0 / m_zoom) * m_widthHeightRatio, -1.0 / m_zoom);
+    m_screenBox.upperright = vec2((1.0 / m_zoom) * m_widthHeightRatio, 1.0 / m_zoom);
   }
   
   void zoomOut(float p_time)
   {
     m_zoom -= m_zoom * p_time;
+    
+    m_screenBox.lowerleft = vec2((-1.0 / m_zoom) * m_widthHeightRatio, -1.0 / m_zoom);
+    m_screenBox.upperright = vec2((1.0 / m_zoom) * m_widthHeightRatio, 1.0 / m_zoom);
   }
   
   float zoom()
@@ -477,47 +491,7 @@ protected:
       
       if (imageFile !in m_imageToTextureId)
       {
-        SDL_Surface* imageSurface = IMG_Load(imageFile.toStringz);
-        
-        enforce(imageSurface !is null, "Error loading image " ~ imageFile ~ ": " ~ to!string(IMG_GetError()));
-        enforce(imageSurface.pixels !is null);
-        
-        int textureWidth = to!int(pow(2, ceil(log(imageSurface.w) / log(2)))); // round up to nearest power of 2
-        int textureHeight = to!int(pow(2, ceil(log(imageSurface.h) / log(2)))); // round up to nearest power of 2
-        
-        // we don't support alpha channels yet, ensure the image is 100% opaque
-        SDL_SetAlpha(imageSurface, 0, 255);
-        
-        static if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-          SDL_Surface* textureSurface = SDL_CreateRGBSurface(0, textureWidth, textureHeight, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
-        else
-          SDL_Surface* textureSurface = SDL_CreateRGBSurface(0, textureWidth, textureHeight, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
-        
-        // copy the image surface into the middle of the texture surface
-        auto rect = SDL_Rect(to!short((textureWidth-imageSurface.w)/2), to!short((textureHeight-imageSurface.h)/2), 0, 0);
-        SDL_BlitSurface(imageSurface, null, textureSurface, &rect);
-        
-        enforce(textureSurface !is null, "Error creating texture surface: " ~ to!string(IMG_GetError()));
-        enforce(textureSurface.pixels !is null, "Texture surface pixels are NULL!");
-        
-        auto format = (textureSurface.format.BytesPerPixel == 4 ? GL_RGBA : GL_RGB);
-        
-        uint textureId;
-        
-        glGenTextures(1, &textureId);
-        enforce(textureId > 0, "Failed to generate texture id: " ~ to!string(glGetError()));
-        
-        m_imageToTextureId[imageFile] = textureId;
-        
-        glBindTexture(GL_TEXTURE_2D, textureId);
-        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, textureSurface.format.BytesPerPixel, textureSurface.w, textureSurface.h, 0, format, GL_UNSIGNED_BYTE, textureSurface.pixels);
-        
-        auto error = glGetError();
-        enforce(error == GL_NO_ERROR, "Error texturizing image " ~ imageFile ~ ": " ~ to!string(gluErrorString(error)) ~ " (errorcode " ~ to!string(error) ~ ")");
+        loadTexture(imageFile);
       }
       component.textureId = m_imageToTextureId[imageFile];
     }
@@ -783,6 +757,7 @@ private:
     // draw radar blips - with logarithmic distance and redshifted
     
     // when the foreach with the length check is compiled, we get a Assertion failure: '!vthis->csym' on line 681 in file 'glue.c' when using dmd 2.058
+    // line 686 with dmd 2.059....
     //foreach (component; filter!(component => component.hideFromRadar == false && (centerComponent.position - component.position).length < 3500.0)(components))
     
     //writeln("radar drawing " ~ to!string(filter!(component => component.hideFromRadar == false)(components).array.length) ~ " entities");
@@ -810,11 +785,60 @@ private:
     glPopMatrix();
   }
   
+    
+  void loadTexture(string imageFile)
+  {
+    SDL_Surface* imageSurface = IMG_Load(imageFile.toStringz);
+    
+    enforce(imageSurface !is null, "Error loading image " ~ imageFile ~ ": " ~ to!string(IMG_GetError()));
+    enforce(imageSurface.pixels !is null);
+    
+    int textureWidth = to!int(pow(2, ceil(log(imageSurface.w) / log(2)))); // round up to nearest power of 2
+    int textureHeight = to!int(pow(2, ceil(log(imageSurface.h) / log(2)))); // round up to nearest power of 2
+    
+    // we don't support alpha channels yet, ensure the image is 100% opaque
+    SDL_SetAlpha(imageSurface, 0, 255);
+    
+    static if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+      SDL_Surface* textureSurface = SDL_CreateRGBSurface(0, textureWidth, textureHeight, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
+    else
+      SDL_Surface* textureSurface = SDL_CreateRGBSurface(0, textureWidth, textureHeight, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
+    
+    // copy the image surface into the middle of the texture surface
+    auto rect = SDL_Rect(to!short((textureWidth-imageSurface.w)/2), to!short((textureHeight-imageSurface.h)/2), 0, 0);
+    SDL_BlitSurface(imageSurface, null, textureSurface, &rect);
+    
+    enforce(textureSurface !is null, "Error creating texture surface: " ~ to!string(IMG_GetError()));
+    enforce(textureSurface.pixels !is null, "Texture surface pixels are NULL!");
+    
+    auto format = (textureSurface.format.BytesPerPixel == 4 ? GL_RGBA : GL_RGB);
+    
+    uint textureId;
+    
+    glGenTextures(1, &textureId);
+    enforce(textureId > 0, "Failed to generate texture id: " ~ to!string(glGetError()));
+    
+    m_imageToTextureId[imageFile] = textureId;
+    
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, textureSurface.format.BytesPerPixel, textureSurface.w, textureSurface.h, 0, format, GL_UNSIGNED_BYTE, textureSurface.pixels);
+    
+    auto error = glGetError();
+    enforce(error == GL_NO_ERROR, "Error texturizing image " ~ imageFile ~ ": " ~ to!string(gluErrorString(error)) ~ " (errorcode " ~ to!string(error) ~ ")");
+  }
+  
+  
 private:
   TextRender m_textRender;
   
   uint[string] m_imageToTextureId;
   
+  float m_widthHeightRatio;
+  AABB!vec2 m_screenBox;
   float m_zoom;
   
   vec2 m_mouseWorldPos;
@@ -822,6 +846,4 @@ private:
   Entity m_centerEntity;
   
   string[][string] cache;
-  
-  AABB!vec2 m_screenBox;
 }
