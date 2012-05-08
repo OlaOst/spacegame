@@ -188,7 +188,7 @@ public:
     
     //Entity station = loadShip("", getValues(cache, EntityGenerator.createStation()));
     
-    //m_starfield = new Starfield(m_graphics, 10.0);
+    //m_starfield = new Starfield(m_graphics, 1000.0);
 
     m_inputHandler.setScreenResolution(xres, yres);
   }
@@ -724,6 +724,11 @@ private:
         if (target == "closestEnemy")
         {
           auto closestEnemy = findClosestShipGivenKeyValue(entity, "type", "enemy ship");
+          
+          if (entity == m_playerShip)
+          {
+            m_graphics.setTargetEntity(closestEnemy);
+          }
           
           if (closestEnemy !is null)
           {

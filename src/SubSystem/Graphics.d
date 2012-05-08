@@ -120,7 +120,8 @@ enum DrawSource
   Vertices,
   Text,
   Texture,
-  RadarDisplay
+  RadarDisplay,
+  TargetDisplay
 }
 
 
@@ -350,7 +351,7 @@ public:
       glPopMatrix();
     }
     
-    writeln("drawn comps: " ~ to!string(drawnComponents));
+    //writeln("drawn comps: " ~ to!string(drawnComponents));
     
     glPopMatrix();
   }
@@ -406,9 +407,9 @@ public:
     return m_mouseWorldPos;
   }
   
-  void setCenterEntity(Entity p_entity)
+  void setTargetEntity(Entity p_entity)
   {
-    m_centerEntity = p_entity;
+    m_targetEntity = p_entity;
   }
   
   Entity getCenterEntity()
@@ -709,6 +710,10 @@ private:
     {
       drawRadar(p_component);
     }
+    else if (p_component.drawSource == DrawSource.TargetDisplay)
+    {
+      drawTargetDisplay(p_component);
+    }
     else if (p_component.drawSource == DrawSource.Unknown)
     {
       // TODO: should just draw a big fat question mark here
@@ -785,6 +790,22 @@ private:
     glPopMatrix();
   }
   
+  
+  void drawTargetDisplay(GraphicsComponent p_component)
+  {
+    // TODO: draw the entire scene, just make sure there's a proper AABB culling unnecessary stuff
+    // drawing just the target entity won't work since it's probably a ship composite entity - only the module entities of the ship have actual graphics
+    if (m_targetEntity !is null)
+    {
+      auto targetComponent = getComponent(m_targetEntity);
+      
+      if (targetComponent.displayListId > 0)
+        glCallList(targetComponent.displayListId);
+      else
+        drawComponent(targetComponent);
+    }
+  }
+  
     
   void loadTexture(string imageFile)
   {
@@ -844,6 +865,8 @@ private:
   vec2 m_mouseWorldPos;
   
   Entity m_centerEntity;
+  
+  Entity m_targetEntity;
   
   string[][string] cache;
 }
