@@ -240,6 +240,17 @@ public:
     teardownDisplay();
   }
 
+  void draw(vec2 center, float scale, AABB!vec2 drawBox)
+  {
+    glPushMatrix();
+    
+    glTranslatef(-center.x, -center.y, 0.0);
+    
+    
+    
+    glPopMatrix();
+  }
+  
   void update() 
   {
     swapBuffers();
@@ -314,7 +325,7 @@ public:
         glEnd();
       }
       
-      if (component.displayListId > 0)
+      if (component.displayListId > 0 && component.drawSource != DrawSource.TargetDisplay)
         glCallList(component.displayListId);
       else
         drawComponent(component);
@@ -409,6 +420,7 @@ public:
   
   void setTargetEntity(Entity p_entity)
   {
+    //assert(hasComponent(p_entity));
     m_targetEntity = p_entity;
   }
   
@@ -577,7 +589,9 @@ protected:
       component.color = vec4(map!(to!float)(colorComponents).array);
     }
     
-    if (component.drawSource != DrawSource.Text && component.drawSource != DrawSource.RadarDisplay)
+    if (component.drawSource != DrawSource.Text && 
+        component.drawSource != DrawSource.RadarDisplay &&
+        component.drawSource != DrawSource.TargetDisplay)
       createDisplayList(component);
     
     return component;
@@ -791,19 +805,81 @@ private:
   }
   
   
-  void drawTargetDisplay(GraphicsComponent p_component)
+  void drawTargetDisplay(GraphicsComponent p_displayComponent)
   {
     // TODO: draw the entire scene, just make sure there's a proper AABB culling unnecessary stuff
     // drawing just the target entity won't work since it's probably a ship composite entity - only the module entities of the ship have actual graphics
-    if (m_targetEntity !is null)
+    //if (m_targetEntity !is null)
+    glPushMatrix();
     {
+      /*
       auto targetComponent = getComponent(m_targetEntity);
       
       if (targetComponent.displayListId > 0)
         glCallList(targetComponent.displayListId);
       else
         drawComponent(targetComponent);
+      */
+
+      auto targetComponent = GraphicsComponent();
+      
+      if (m_targetEntity !is null && hasComponent(m_targetEntity))
+        targetComponent = getComponent(m_targetEntity);
+      
+      int drawnComponents = 0;      
+      
+      float targetZoom = 0.05;
+      
+      AABB!vec2 displayBox = AABB!vec2(p_displayComponent.position - vec2(4.0, 4.0), p_displayComponent.position + vec2(2.0, 2.0));
+      
+      // stable sort sometimes randomly crashes, phobos bug or float fuckery with lots of similar floats?
+      // haven't seen any crashes so far with dmd 2.058
+      foreach (component; sort!((left, right) => left.depth < right.depth, SwapStrategy.stable)(components))
+      //foreach (component; components)
+      {
+        glPushMatrix();
+        
+        assert(component.position.ok);
+        
+        if (component.screenAbsolutePosition == false)
+        {
+          glScalef(targetZoom, targetZoom, 1.0);
+            
+          // cull stuff that won't be shown on screen
+          if ((component.position - targetComponent.position).x < displayBox.lowerleft.x - component.radius ||
+              (component.position - targetComponent.position).x > displayBox.upperright.x + component.radius ||
+              (component.position - targetComponent.position).y < displayBox.lowerleft.y - component.radius ||
+              (component.position - targetComponent.position).y > displayBox.upperright.y + component.radius)
+          {
+            glPopMatrix();
+            continue;
+          }
+          else
+          {
+            drawnComponents++;
+          }
+          
+          glTranslatef(-targetComponent.position.x, -targetComponent.position.y, 0.0);
+          
+          //glTranslatef(-p_targetComponent.position.x, -p_targetComponent.position.y, 0.0);
+          glTranslatef(component.position.x, component.position.y, component.depth * 0.001);
+                
+          glDisable(GL_TEXTURE_2D);
+          
+          glRotatef(component.angle * _180_PI, 0.0, 0.0, -1.0);
+          
+          if (component.displayListId > 0)
+            glCallList(component.displayListId);
+          else
+            drawComponent(component);
+        }
+        
+        glPopMatrix();
+      }
+      
+      //writeln("targetdisplay drew " ~ to!string(drawnComponents) ~ " components, targetcomp is at " ~ to!string(p_targetComponent.position));
     }
+    glPopMatrix();
   }
   
     

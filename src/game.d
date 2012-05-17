@@ -665,6 +665,11 @@ private:
           
           m_placer.setComponent(m_closestShipDisplay, poscomp);
           m_graphics.setComponent(m_closestShipDisplay, gfxcomp);
+          
+          auto ownedEntitiesWithGraphics = m_connector.getOwnedEntities(closestEntity).filter!(e => m_graphics.hasComponent(e));
+          
+          if (ownedEntitiesWithGraphics.empty == false)
+            m_graphics.setTargetEntity(ownedEntitiesWithGraphics.front);
         }
       }
     }
@@ -724,11 +729,6 @@ private:
         if (target == "closestEnemy")
         {
           auto closestEnemy = findClosestShipGivenKeyValue(entity, "type", "enemy ship");
-          
-          if (entity == m_playerShip)
-          {
-            m_graphics.setTargetEntity(closestEnemy);
-          }
           
           if (closestEnemy !is null)
           {
