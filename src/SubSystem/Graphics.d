@@ -823,6 +823,10 @@ private:
 
       auto targetComponent = GraphicsComponent();
       
+      string targetText = "No target";
+      if (m_targetEntity !is null)
+        targetText = "Targeting " ~ to!string(m_targetEntity.id);
+      
       if (m_targetEntity !is null && hasComponent(m_targetEntity))
         targetComponent = getComponent(m_targetEntity);
       
@@ -831,6 +835,15 @@ private:
       float targetZoom = 0.05;
       
       AABB!vec2 displayBox = AABB!vec2(p_displayComponent.position - vec2(4.0, 4.0), p_displayComponent.position + vec2(2.0, 2.0));
+      
+      glPushMatrix();
+        glScalef(targetZoom, targetZoom, 1.0);
+        glTranslatef(displayBox.lowerleft.x, displayBox.lowerleft.y, 0.0);
+        
+        //glTranslatef(0.0, component.radius*2, 0.0);
+        //glColor4f(component.color.r, component.color.g, component.color.b, component.color.a);
+        m_textRender.renderString(targetText);
+      glPopMatrix();
       
       // stable sort sometimes randomly crashes, phobos bug or float fuckery with lots of similar floats?
       // haven't seen any crashes so far with dmd 2.058
