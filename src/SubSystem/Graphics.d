@@ -677,7 +677,7 @@ private:
       glBegin(GL_POLYGON);
       foreach (vertex; p_component.vertices)
       {
-        glColor3f(vertex.color.r, vertex.color.g, vertex.color.b);
+        glColor4f(vertex.color.r, vertex.color.g, vertex.color.b, vertex.color.a);
         glVertex3f(vertex.position.x, vertex.position.y, 0.0);
       }
       glEnd();
