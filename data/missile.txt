@@ -1,6 +1,5 @@
 name = missile
 
-collisionType = Bullet
 lifetime = 10.0
 
 *.collisionType = Bullet
@@ -15,4 +14,4 @@ engine.connection = body.lower
 engine.radius = 0.3
 engine.mass = 0.1
 engine.control = chaser
-engine.torqueForce = 75.0
+engine.torqueForce = 25.0

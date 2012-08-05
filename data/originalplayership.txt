@@ -1,0 +1,19 @@
+keepInCenter = true
+
+skeleton.source = skeleton.txt
+
+leftEngine.source = engine.txt
+rightEngine.source = engine.txt
+leftCannon.source = cannon.txt
+rightCannon.source = cannon.txt
+
+leftEngine.connection = skeleton.lowerleft
+rightEngine.connection = skeleton.lowerright
+leftCannon.connection = skeleton.upperleft
+rightCannon.connection = skeleton.upperright
+
+leftEngine.control = playerEngine
+rightEngine.control = playerEngine
+
+leftCannon.control = playerLauncher
+rightCannon.control = playerLauncher

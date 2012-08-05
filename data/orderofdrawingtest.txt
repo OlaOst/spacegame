@@ -1,0 +1,9 @@
+under.drawsource = Quad
+under.radius = 2.0
+under.position = -1 0
+under.color = 1 0 0 0.5
+
+over.drawsource = Quad
+over.radius = 1.0
+over.position = 0 0
+over.color = 0 0 1 0.5

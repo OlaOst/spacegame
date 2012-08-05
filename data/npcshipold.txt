@@ -1,0 +1,22 @@
+radius = 1.0
+mass = 1.0
+
+canCollide = true
+
+bodySkeleton.source = verticalskeleton.txt
+engineSkeleton.source = horizontalskeleton.txt
+leftEngine.source = engine.txt
+#rightEngine.source = engine.txt
+cannonSkeleton.source = horizontalskeleton.txt
+#leftCannon.source = cannon.txt
+#rightCannon.source = cannon.txt
+
+engineSkeleton.connection = bodySkeleton.lower
+cannonSkeleton.connection = bodySkeleton.upper
+leftEngine.connection = engineSkeleton.left
+rightEngine.connection = engineSkeleton.right
+leftCannon.connection = cannonSkeleton.left
+rightCannon.connection = cannonSkeleton.right
+
+#leftEngine.control = flocker
+#rightEngine.control = flocker
