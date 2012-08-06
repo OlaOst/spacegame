@@ -25,7 +25,7 @@ module Console;
 import std.string;
 
 import derelict.opengl3.gl3;
-import derelict.sdl2.sdl2;
+import derelict.sdl2.sdl;
 
 import gl3n.linalg;
 

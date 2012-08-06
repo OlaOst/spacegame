@@ -26,7 +26,7 @@ import std.stdio;
 import std.exception;
 import std.conv;
 
-import derelict.sdl2.sdl2;
+import derelict.sdl2.sdl;
 
 import gl3n.linalg;
 
@@ -39,7 +39,7 @@ unittest
   scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
   
-  DerelictSDL.load();
+  DerelictSDL2.load();
   
   enforce(SDL_Init(SDL_INIT_VIDEO) == 0, "Failed to initialize SDL: " ~ to!string(SDL_GetError()));
   
@@ -105,7 +105,7 @@ unittest
   assert(inputHandler.isPressed(Event.DownKey) == false, "InputHandler didn't clear pressed state when clearing all events");
   assert(inputHandler.eventState(Event.DownKey) == EventState.Unchanged);
   
-  {
+  /*{
     SDL_Event wheelUpEvent;
     wheelUpEvent.type = SDL_MOUSEBUTTONDOWN;
     wheelUpEvent.button.button = SDL_BUTTON_WHEELUP;
@@ -115,7 +115,7 @@ unittest
     inputHandler.receiveEvent(wheelUpEvent);
   }
   assert(inputHandler.eventState(Event.WheelUp) == EventState.Pressed);
-  assert(inputHandler.isPressed(Event.WheelUp), "InputHandler didn't register mouse wheel event");
+  assert(inputHandler.isPressed(Event.WheelUp), "InputHandler didn't register mouse wheel event");*/
   
   inputHandler.clearEvents();
   
@@ -188,7 +188,7 @@ unittest
   assert(inputHandler.isPressed(Event.DownKey), "InputHandler lost event when registering key release");
   assert(inputHandler.eventState(Event.DownKey) == EventState.Unchanged);
   
-  {
+  /*{
     SDL_Event wheelUpEvent;
     wheelUpEvent.type = SDL_MOUSEBUTTONDOWN;
     wheelUpEvent.button.button = SDL_BUTTON_WHEELUP;
@@ -197,13 +197,13 @@ unittest
     inputHandler.pollEvents();
   }
   assert(inputHandler.eventState(Event.WheelUp) == EventState.Pressed);
-  assert(inputHandler.isPressed(Event.WheelUp), "InputHandler didn't register mouse wheel event");
+  assert(inputHandler.isPressed(Event.WheelUp), "InputHandler didn't register mouse wheel event");*/
   
-  inputHandler.pollEvents();
+  /*inputHandler.pollEvents();
   assert(inputHandler.eventState(Event.WheelUp) == EventState.Unchanged);
-  assert(inputHandler.isPressed(Event.WheelUp));
+  assert(inputHandler.isPressed(Event.WheelUp));*/
   
-  {
+  /*{
     SDL_Event wheelUpReleaseEvent;
     wheelUpReleaseEvent.type = SDL_MOUSEBUTTONUP;
     wheelUpReleaseEvent.button.button = SDL_BUTTON_WHEELUP;
@@ -212,7 +212,7 @@ unittest
     inputHandler.pollEvents();
   }
   assert(inputHandler.eventState(Event.WheelUp) == EventState.Released);
-  assert(inputHandler.isPressed(Event.WheelUp) == false, "InputHandler didn't register mouse wheel event");
+  assert(inputHandler.isPressed(Event.WheelUp) == false, "InputHandler didn't register mouse wheel event");*/
   
   // TODO: mouse wheel events get press and release in the same update, so we don't really register it properly
   // need some way to tell that something was pushed and released in the same update
@@ -253,8 +253,8 @@ enum Event
   LeftButton,
   RightButton,
   MiddleButton,
-  WheelUp,
-  WheelDown,
+  //WheelUp,
+  //WheelDown,
   Pause,
   ToggleConsole,
   
@@ -316,8 +316,8 @@ public:
     m_buttonEventMapping[SDL_BUTTON_MIDDLE] = Event.MiddleButton;
     m_buttonEventMapping[SDL_BUTTON_RIGHT] = Event.RightButton;
     
-    m_buttonEventMapping[SDL_BUTTON_WHEELUP] = Event.WheelUp;
-    m_buttonEventMapping[SDL_BUTTON_WHEELDOWN] = Event.WheelDown;
+    //m_buttonEventMapping[SDL_BUTTON_WHEELUP] = Event.WheelUp;
+    //m_buttonEventMapping[SDL_BUTTON_WHEELDOWN] = Event.WheelDown;
     
     m_mousePos = vec2(0.0, 0.0);
   }
@@ -491,6 +491,7 @@ private:
   // TODO: SDL_Keycode or SDL_Scancode?
   static Event[SDL_Keycode] m_keyEventMapping;
   static Event[SDL_Keycode] m_buttonEventMapping;
+  
   
   int m_screenWidth;
   int m_screenHeight;

@@ -24,7 +24,7 @@ module GameConsole;
 
 import std.range;
 
-import derelict.opengl.gl;
+import derelict.opengl3.gl3;
 import gl3n.linalg;
 
 import Console;
@@ -48,7 +48,7 @@ public:
     if (!active)
       return;
       
-    glPushMatrix();
+    /*glPushMatrix();
       glColor4f(0.0, 0.0, 0.5, 0.8);
       glBegin(GL_QUADS);
         glVertex2f(-1.3, -0.95);
@@ -75,7 +75,7 @@ public:
         glColor3f(outputLine.color.r, outputLine.color.g, outputLine.color.b);
         graphics.renderString(outputLine.text);
       }
-    glPopMatrix();
+    glPopMatrix();*/
   }
   
 

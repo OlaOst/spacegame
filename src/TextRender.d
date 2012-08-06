@@ -47,7 +47,7 @@ unittest
   
   // assert derelict freetype is loaded? supposed to be internal stuff, not part of interface
   // NOPE just load gl here if this file is unittested in isolation
-  DerelictGL.load();
+  DerelictGL3.load();
   
   initDisplay(640, 480);
   
@@ -103,7 +103,7 @@ public:
     glBindTexture(GL_TEXTURE_2D, glyph.textureId);
 
     // translate the glyph so that its 'origin' matches the pen position
-    glPushMatrix();
+    /*glPushMatrix();
     glTranslatef(glyph.offset.x, glyph.offset.y, 0.0);
     
     glBegin(GL_QUADS);
@@ -119,13 +119,13 @@ public:
     
     // here we increment the pen position by the glyph's advance, when drawing strings
     if (p_translate)
-      glTranslatef(glyph.advance.x, glyph.advance.y, 0.0);
+      glTranslatef(glyph.advance.x, glyph.advance.y, 0.0);*/
   }
 
   
   void renderString(string p_string)
   {
-    glPushMatrix();
+    //glPushMatrix();
     
     bool nextLetterIsControlCharacter = false;
     
@@ -139,9 +139,9 @@ public:
         {
           if (letter == 'n')
           {
-            glPopMatrix(); // simulates carriage return
-            glTranslatef(0.0, -1.0, 0.0); // simulates newline
-            glPushMatrix(); // ready to write on new line
+            //glPopMatrix(); // simulates carriage return
+            //glTranslatef(0.0, -1.0, 0.0); // simulates newline
+            //glPushMatrix(); // ready to write on new line
           }
           if (letter == '\\')
             renderChar(letter, true);
@@ -153,7 +153,7 @@ public:
       }
     }
       
-    glPopMatrix();
+    //glPopMatrix();
     
     glDisable(GL_TEXTURE_2D);
   }

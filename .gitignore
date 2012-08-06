@@ -1,0 +1,8 @@
+
+*.lst
+*.deps
+*.wav
+*.mp3
+*.obj
+*.exe
+/coverage

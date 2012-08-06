@@ -34,7 +34,7 @@ import std.range;
 import std.stdio;
 import std.string;
 
-import derelict.sdl2.sdl2;
+import derelict.sdl2.sdl;
 
 import gl3n.linalg;
 import gl3n.math;
@@ -181,7 +181,7 @@ public:
     m_controller.controls["playerlauncher"] = new PlayerLauncher(m_inputHandler);
     m_controller.controls["playerengine"] = new PlayerEngine(m_inputHandler);
     
-    SDL_EnableUNICODE(1);
+    //SDL_EnableUNICODE(1);
     
     //loadWorldFromFile("data/simpleworld2.txt");
     //loadWorldFromFile("data/world.txt");
@@ -1062,18 +1062,18 @@ private:
     {
       m_graphics.zoomIn(p_elapsedTime * 2.0);
     }
-    if (m_inputHandler.isPressed(Event.WheelUp))
+    /*if (m_inputHandler.isPressed(Event.WheelUp))
     {
       m_graphics.zoomIn(p_elapsedTime * 15.0);
-    }
+    }*/
     if (m_inputHandler.isPressed(Event.PageDown))
     {
       m_graphics.zoomOut(p_elapsedTime * 2.0);
     }
-    if(m_inputHandler.isPressed(Event.WheelDown))
+    /*if(m_inputHandler.isPressed(Event.WheelDown))
     {
       m_graphics.zoomOut(p_elapsedTime * 15.0);
-    }
+    }*/
 
     if (m_inputHandler.eventState(Event.Escape) == EventState.Released)
       m_running = false;

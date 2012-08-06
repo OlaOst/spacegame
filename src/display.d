@@ -28,7 +28,7 @@ import std.stdio;
 import std.string;
 
 import derelict.sdl2.image;
-import derelict.sdl2.sdl2;
+import derelict.sdl2.sdl;
 import derelict.opengl3.gl3;
 
 

@@ -27,7 +27,7 @@ import std.conv;
 import std.range;
 import std.string;
 
-import derelict.opengl.gl;
+import derelict.opengl3.gl3;
 import gl3n.linalg;
 
 import Console;
@@ -154,7 +154,7 @@ public:
     
     auto placerComponent = game.m_placer.getComponent(entity);
     
-    glPushMatrix();
+    /*glPushMatrix();
       glScalef(graphics.zoom, graphics.zoom, 1.0);
       glTranslatef(-graphics.getCenterEntityPosition.x, -graphics.getCenterEntityPosition.y, 0.0);
       glTranslatef(placerComponent.position.x, placerComponent.position.y, 0.0);
@@ -188,7 +188,7 @@ public:
           graphics.renderString(outputLine.text);
         }
       glPopMatrix();
-    glPopMatrix();
+    glPopMatrix();*/
   }
   
 

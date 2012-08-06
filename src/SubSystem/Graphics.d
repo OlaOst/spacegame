@@ -36,7 +36,7 @@ import derelict.freetype.ft;
 import derelict.opengl3.gl3;
 import derelict.opengl3.glx;
 import derelict.sdl2.image;
-import derelict.sdl2.sdl2;
+import derelict.sdl2.sdl;
 
 import gl3n.math;
 import gl3n.linalg;
@@ -242,24 +242,24 @@ public:
 
   void draw(vec2 center, float scale, AABB!vec2 drawBox)
   {
-    glPushMatrix();
+    /*glPushMatrix();
     
     glTranslatef(-center.x, -center.y, 0.0);
     
     
     
-    glPopMatrix();
+    glPopMatrix();*/
   }
   
   void update() 
   {
     swapBuffers();
   
-    glPushMatrix();
+    //glPushMatrix();
     
     glDisable(GL_TEXTURE_2D);
     
-    glTranslatef(0.0, 0.0, -32768.0);
+    //glTranslatef(0.0, 0.0, -32768.0);
     
     int drawnComponents = 0;
     
@@ -268,13 +268,13 @@ public:
     foreach (component; sort!((left, right) => left.depth < right.depth, SwapStrategy.stable)(components))
     //foreach (component; components)
     {
-      glPushMatrix();
+      //glPushMatrix();
       
       assert(component.position.ok);
       
       if (component.screenAbsolutePosition == false)
       {
-        glScalef(m_zoom, m_zoom, 1.0);
+        //glScalef(m_zoom, m_zoom, 1.0);
       
         auto centerComponent = GraphicsComponent();
         assert(centerComponent.position.ok);
@@ -289,7 +289,7 @@ public:
               (component.position - centerComponent.position).y < m_screenBox.lowerleft.y - component.radius ||
               (component.position - centerComponent.position).y > m_screenBox.upperright.y + component.radius)
           {
-            glPopMatrix();
+            //glPopMatrix();
             continue;
           }
           else
@@ -297,37 +297,37 @@ public:
             drawnComponents++;
           }
         
-          glTranslatef(-centerComponent.position.x, -centerComponent.position.y, 0.0);
+          //glTranslatef(-centerComponent.position.x, -centerComponent.position.y, 0.0);
         }
       }
       
-      glTranslatef(component.position.x, component.position.y, component.depth * 0.001);
+      //glTranslatef(component.position.x, component.position.y, component.depth * 0.001);
       
       if (component.drawSource == DrawSource.Text && component.text.length > 0 && component.screenAbsolutePosition == false)
       {
-        glPushMatrix();
+        /*glPushMatrix();
           glTranslatef(0.0, component.radius*2, 0.0);
           glColor4f(component.color.r, component.color.g, component.color.b, component.color.a);
           m_textRender.renderString(component.text);
-        glPopMatrix();
+        glPopMatrix();*/
       }
       glDisable(GL_TEXTURE_2D);
       
-      glRotatef(component.angle * _180_PI, 0.0, 0.0, -1.0);
+      //glRotatef(component.angle * _180_PI, 0.0, 0.0, -1.0);
       
       // draw connectpoints
       foreach (connectPoint; component.connectPoints)
       {
-        glPointSize(4.0);
+        /*glPointSize(4.0);
         glColor3f(1.0, 1.0, 1.0);
         glBegin(GL_POINTS);
           glVertex3f(connectPoint.x, connectPoint.y, component.depth + 1);
-        glEnd();
+        glEnd();*/
       }
       
-      if (component.displayListId > 0 && component.drawSource != DrawSource.TargetDisplay)
+      /*if (component.displayListId > 0 && component.drawSource != DrawSource.TargetDisplay)
         glCallList(component.displayListId);
-      else
+      else*/
         drawComponent(component);
 
       // draw circle indicating radius in debug mode
@@ -337,34 +337,34 @@ public:
       
         if (component.screenAbsolutePosition == false && component.drawSource != DrawSource.Text)
         {
-          if (component.isPointedAt(m_mouseWorldPos))
+          /*if (component.isPointedAt(m_mouseWorldPos))
             glColor3f(1.0, 0.0, 0.0);
           else
-            glColor3f(1.0, 1.0, 1.0);
+            glColor3f(1.0, 1.0, 1.0);*/
           
-          glBegin(GL_LINE_LOOP);
+          /*glBegin(GL_LINE_LOOP);
           for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 16)
           {
             glVertex3f(cos(angle) * component.radius, sin(angle) * component.radius, 100.0);
           }
-          glEnd();
+          glEnd();*/
           
           // also draw AABB
-          glBegin(GL_LINE_LOOP);
+          /*glBegin(GL_LINE_LOOP);
             glVertex2f(component.aabb.lowerleft.x, component.aabb.lowerleft.y);
             glVertex2f(component.aabb.upperright.x, component.aabb.lowerleft.y);
             glVertex2f(component.aabb.upperright.x, component.aabb.upperright.y);
             glVertex2f(component.aabb.lowerleft.x, component.aabb.upperright.y);
-          glEnd();
+          glEnd();*/
         }
       }
 
-      glPopMatrix();
+      //glPopMatrix();
     }
     
     //writeln("drawn comps: " ~ to!string(drawnComponents));
     
-    glPopMatrix();
+    //glPopMatrix();
   }
   
   GraphicsComponent[] findComponentsPointedAt(vec2 p_pos)
@@ -608,19 +608,19 @@ private:
   {
     // TODO: make sure we don't create completely similar display lists
     
-    p_component.displayListId = glGenLists(1);
+    /*p_component.displayListId = glGenLists(1);
     
     enforce(p_component.displayListId > 0, "Could not create display list id");
     
     glNewList(p_component.displayListId, GL_COMPILE);
       drawComponent(p_component);
-    glEndList();
+    glEndList();*/
   }
 
 
   void drawComponent(GraphicsComponent p_component)
   {
-    if (p_component.drawSource == DrawSource.Invisible)
+    /*if (p_component.drawSource == DrawSource.Invisible)
     {
     }
     if (p_component.drawSource == DrawSource.Triangle)
@@ -743,13 +743,13 @@ private:
         }
         glVertex3f(cos(0.0) * p_component.radius, sin(0.0) * p_component.radius, 0.0);
       glEnd();
-    }
+    }*/
   }
   
   void drawRadar(GraphicsComponent radarComponent)
   {
     // draw radar circle
-    glPushMatrix();
+    /*glPushMatrix();
     
     glScalef(radarComponent.radius, radarComponent.radius, 1.0);
     
@@ -801,7 +801,7 @@ private:
         glVertex2f(pos.x, pos.y);
       glEnd();
     }
-    glPopMatrix();
+    glPopMatrix();*/
   }
   
   
@@ -810,7 +810,7 @@ private:
     // TODO: draw the entire scene, just make sure there's a proper AABB culling unnecessary stuff
     // drawing just the target entity won't work since it's probably a ship composite entity - only the module entities of the ship have actual graphics
     //if (m_targetEntity !is null)
-    glPushMatrix();
+    //glPushMatrix();
     {
       /*
       auto targetComponent = getComponent(m_targetEntity);
@@ -836,27 +836,27 @@ private:
       
       AABB!vec2 displayBox = AABB!vec2(p_displayComponent.position - vec2(4.0, 4.0), p_displayComponent.position + vec2(2.0, 2.0));
       
-      glPushMatrix();
+      /*glPushMatrix();
         glScalef(targetZoom, targetZoom, 1.0);
         glTranslatef(displayBox.lowerleft.x, displayBox.lowerleft.y, 0.0);
         
         //glTranslatef(0.0, component.radius*2, 0.0);
         //glColor4f(component.color.r, component.color.g, component.color.b, component.color.a);
         m_textRender.renderString(targetText);
-      glPopMatrix();
+      glPopMatrix();*/
       
       // stable sort sometimes randomly crashes, phobos bug or float fuckery with lots of similar floats?
       // haven't seen any crashes so far with dmd 2.058
       foreach (component; sort!((left, right) => left.depth < right.depth, SwapStrategy.stable)(components))
       //foreach (component; components)
       {
-        glPushMatrix();
+        //glPushMatrix();
         
         assert(component.position.ok);
         
         if (component.screenAbsolutePosition == false)
         {
-          glScalef(targetZoom, targetZoom, 1.0);
+          //glScalef(targetZoom, targetZoom, 1.0);
             
           // cull stuff that won't be shown on screen
           if ((component.position - targetComponent.position).x < displayBox.lowerleft.x - component.radius ||
@@ -864,7 +864,7 @@ private:
               (component.position - targetComponent.position).y < displayBox.lowerleft.y - component.radius ||
               (component.position - targetComponent.position).y > displayBox.upperright.y + component.radius)
           {
-            glPopMatrix();
+            //glPopMatrix();
             continue;
           }
           else
@@ -872,27 +872,27 @@ private:
             drawnComponents++;
           }
           
-          glTranslatef(-targetComponent.position.x, -targetComponent.position.y, 0.0);
+          //glTranslatef(-targetComponent.position.x, -targetComponent.position.y, 0.0);
           
           //glTranslatef(-p_targetComponent.position.x, -p_targetComponent.position.y, 0.0);
-          glTranslatef(component.position.x, component.position.y, component.depth * 0.001);
+          //glTranslatef(component.position.x, component.position.y, component.depth * 0.001);
                 
-          glDisable(GL_TEXTURE_2D);
+          //glDisable(GL_TEXTURE_2D);
           
-          glRotatef(component.angle * _180_PI, 0.0, 0.0, -1.0);
+          //glRotatef(component.angle * _180_PI, 0.0, 0.0, -1.0);
           
-          if (component.displayListId > 0)
+          /*if (component.displayListId > 0)
             glCallList(component.displayListId);
-          else
+          else*/
             drawComponent(component);
         }
         
-        glPopMatrix();
+        //glPopMatrix();
       }
       
       //writeln("targetdisplay drew " ~ to!string(drawnComponents) ~ " components, targetcomp is at " ~ to!string(p_targetComponent.position));
     }
-    glPopMatrix();
+    //glPopMatrix();
   }
   
     
@@ -907,11 +907,11 @@ private:
     int textureHeight = to!int(pow(2, ceil(log(imageSurface.h) / log(2)))); // round up to nearest power of 2
     
     // we don't support alpha channels yet, ensure the image is 100% opaque
-    SDL_SetAlpha(imageSurface, 0, 255);
+    //SDL_SetAlpha(imageSurface, 0, 255);
     
-    static if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+    /*static if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
       SDL_Surface* textureSurface = SDL_CreateRGBSurface(0, textureWidth, textureHeight, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
-    else
+    else*/
       SDL_Surface* textureSurface = SDL_CreateRGBSurface(0, textureWidth, textureHeight, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
     
     // copy the image surface into the middle of the texture surface
@@ -937,8 +937,8 @@ private:
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, textureSurface.format.BytesPerPixel, textureSurface.w, textureSurface.h, 0, format, GL_UNSIGNED_BYTE, textureSurface.pixels);
     
-    auto error = glGetError();
-    enforce(error == GL_NO_ERROR, "Error texturizing image " ~ imageFile ~ ": " ~ to!string(gluErrorString(error)) ~ " (errorcode " ~ to!string(error) ~ ")");
+    //auto error = glGetError();
+    //enforce(error == GL_NO_ERROR, "Error texturizing image " ~ imageFile ~ ": " ~ to!string(gluErrorString(error)) ~ " (errorcode " ~ to!string(error) ~ ")");
   }
   
   
