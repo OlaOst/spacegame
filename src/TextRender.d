@@ -31,7 +31,7 @@ import derelict.freetype.ft;
 import derelict.opengl3.gl3;
 import derelict.opengl3.glx;
 
-import Display;
+import glamour.texture;
 import gl3n.linalg;
 
 
@@ -47,9 +47,9 @@ unittest
   
   // assert derelict freetype is loaded? supposed to be internal stuff, not part of interface
   // NOPE just load gl here if this file is unittested in isolation
-  DerelictGL3.load();
+  //DerelictGL3.load();
   
-  initDisplay(640, 480);
+  //initDisplay(640, 480);
   
   textRender.renderChar('1', false);
   textRender.renderChar('1', false);

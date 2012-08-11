@@ -41,7 +41,6 @@ import derelict.sdl2.sdl;
 import gl3n.math;
 import gl3n.linalg;
 
-import Display;
 import Entity;
 import EntityLoader;
 import SubSystem.Base;
@@ -88,7 +87,7 @@ unittest
     graphics.update();
   }  
   
-  Entity another = new Entity(["drawsource":"Triangle","radius":"2.0","position":"1.0 0.0"]);
+  Entity another = new Entity(["drawsource":"Triangle", "radius":"2.0", "position":"[1.0, 0.0]"]);
   
   graphics.registerEntity(another);
   
@@ -101,10 +100,10 @@ unittest
   componentsPointedAt = graphics.findComponentsPointedAt(vec2(3.5, 0.0));
   assert(componentsPointedAt.length == 0, to!string(componentsPointedAt.length));
   
-  Entity text = new Entity(["drawsource":"Text","radius":"3.0","text":"hello spacegame"]);
+  Entity text = new Entity(["drawsource":"Text", "radius":"3.0", "text":"hello spacegame"]);
   
   graphics.registerEntity(text);
-    
+
   graphics.update();
 }
 
@@ -237,7 +236,7 @@ public:
   
   ~this()
   {
-    teardownDisplay();
+    //teardownDisplay();
   }
 
   void draw(vec2 center, float scale, AABB!vec2 drawBox)
@@ -453,7 +452,7 @@ protected:
   
   GraphicsComponent createComponent(Entity p_entity)
   {
-    //writeln("graphics creating component from values " ~ to!string(p_entity.values));
+    writeln("graphics creating component from values " ~ to!string(p_entity.values));
     
     //enforce(p_entity.getValue("radius").length > 0, "Couldn't find radius for graphics component");
     float radius = 1.0;
@@ -541,14 +540,15 @@ protected:
     {
       if (std.algorithm.startsWith(value, "connectpoint") > 0)
       {
-        component.connectPoints ~= vec2.fromString(p_entity.getValue(value)) * radius;
+        //component.connectPoints ~= vec2.fromString(p_entity.getValue(value)) * radius;
+        component.connectPoints ~= vec2(p_entity.getValue(value).to!(float[])) * radius;
       }
     }
     
     if ("position" in p_entity.values)
     {
       assert(p_entity.getValue("position").length > 0);
-      component.position = vec2.fromString(p_entity.getValue("position"));
+      component.position = vec2(p_entity.getValue("position").to!(float[]));
     }
     
     component.depth = to!float(p_entity.id);
@@ -940,9 +940,56 @@ private:
     //auto error = glGetError();
     //enforce(error == GL_NO_ERROR, "Error texturizing image " ~ imageFile ~ ": " ~ to!string(gluErrorString(error)) ~ " (errorcode " ~ to!string(error) ~ ")");
   }
+
+
+  void initDisplay(int screenWidth, int screenHeight)
+  {
+    DerelictSDL2.load();
+    DerelictGL3.load();
+   
+    enforce(SDL_Init(SDL_INIT_VIDEO) == 0, "Failed to initialize SDL: " ~ to!string(SDL_GetError()));
+    
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    
+    window = SDL_CreateWindow("spacegame", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenWidth, screenHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+    enforce(window !is null, "Error creating window");
+    
+    auto context = SDL_GL_CreateContext(window);
+    SDL_GL_SetSwapInterval(1);
+    
+    setupGL(screenWidth, screenHeight);
+  }
+
+
+  void setupGL(int p_screenWidth, int p_screenHeight)
+  {  
+    glClearColor(0.0, 0.0, 0.5, 1.0);
+    
+    float widthHeightRatio = cast(float)p_screenWidth / cast(float)p_screenHeight;
+    
+    glViewport(0, 0, p_screenWidth, p_screenHeight);
+    
+    glEnable(GL_DEPTH_TEST);
+    
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  }
+
+
+  void swapBuffers()
+  {
+    SDL_GL_SwapWindow(window);
+    
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  }
   
   
 private:
+  SDL_Window* window;
+
   TextRender m_textRender;
   
   uint[string] m_imageToTextureId;

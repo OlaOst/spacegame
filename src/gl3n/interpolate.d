@@ -19,6 +19,7 @@ private {
     }
 }
 
+@safe pure nothrow:
 
 /// Interpolates linear between two points, also known as lerp.
 T interp(T)(T a, T b, float t) {

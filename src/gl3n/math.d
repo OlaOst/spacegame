@@ -22,7 +22,7 @@ public {
                       abs, floor, trunc, round, ceil, modf;
     alias round roundEven;
     alias floor fract;
-    import core.stdc.math : fmodf;
+    //import core.stdc.math : fmodf;
     import std.algorithm : min, max;
 }
 
@@ -35,6 +35,14 @@ public enum real PI_180 = PI / 180;
 /// 180 / PI at compiletime, used for degrees/radians conversion.
 public enum real _180_PI = 180 / PI;
 
+/// Modulus. Returns x - y * floor(x/y).
+T mod(T)(T x, T y) { // std.math.floor is not pure
+    return x - y * floor(x/y);
+}
+
+@safe pure nothrow:
+
+extern (C) { float fmodf(float x, float y); }
 
 /// Returns 1/sqrt(x), results are undefined if x <= 0.
 real inversesqrt(real x) {
@@ -52,15 +60,10 @@ float sign(T)(T x) {
     }
 }
 
-/// Modulus. Returns x - y * floor(x/y).
-T mod(T)(T x, T y) {
-    return x - y * floor(x/y);
-}
-
 unittest {
-    assert(inversesqrt(1) == 1.0);
-    assert(inversesqrt(10) == (1/sqrt(10.0)));
-    assert(inversesqrt(2342342) == (1/sqrt(2342342.0)));
+    assert(inversesqrt(1.0f) == 1.0);
+    assert(inversesqrt(10.0f) == (1/sqrt(10.0f)));
+    assert(inversesqrt(2342342.0f) == (1/sqrt(2342342.0f)));
     
     assert(sign(-1) == -1.0f);
     assert(sign(0) == 0.0f);
@@ -95,9 +98,19 @@ real radians(real degrees) {
     return PI_180 * degrees;
 }
 
+/// Compiletime version of $(I radians).
+real cradians(real degrees)() {
+    return radians(degrees);
+}
+
 /// Converts radians to degrees.
 real degrees(real radians) {
     return _180_PI * radians;
+}
+
+/// Compiletime version of $(I degrees).
+real cdegrees(real radians)() {
+    return degrees(radians);
 }
 
 unittest {
@@ -115,6 +128,9 @@ unittest {
     assert(degrees(radians(to!(real)(100))) == 100);
     assert(degrees(radians(to!(real)(213))) == 213);
     assert(degrees(radians(to!(real)(399))) == 399);
+    
+    /+static+/ assert(almost_equal(cdegrees!PI, 180));
+    /+static+/ assert(almost_equal(cradians!180, PI));
 }
 
 /// Returns min(max(x, min_val), max_val), Results are undefined if min_val > max_val.
