@@ -9,7 +9,7 @@ reloadTime = 1.0
 
 
 spawn.missile.source = missile.txt
-spawn.missile.spawnPoint = 0.0 0.0 -100.0
+spawn.missile.spawnPoint = [0.0, 0.0, -100.0]
 spawn.missile.spawnForce = 20.0
 
 #spawn.sound.soundFile = mgshot1.wav or mgshot2.wav or mgshot3.wav or mgshot4.wav

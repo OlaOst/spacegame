@@ -144,7 +144,7 @@ public:
           if ("position" in spawnValues)
             spawnValues["position"] = to!string(spawnValues["position"]);
           else if ("spawnPoint" in spawnValues)
-            spawnValues["position"] = to!string(component.position + vec2(spawnValues["spawnPoint"].to!(float[])));
+            spawnValues["position"] = to!string(component.position + vec2(spawnValues["spawnPoint"].to!(float[])[0..2]));
           else
             spawnValues["position"] = to!string(component.position);
           

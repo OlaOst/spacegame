@@ -3,8 +3,8 @@
 #startupSound.soundFile = gasturbinestartup.ogg
 
 # background music
-backgroundMusic.soundFile = orbitalelevator.ogg
-backgroundMusic.streaming = true
+#backgroundMusic.soundFile = orbitalelevator.ogg
+#backgroundMusic.streaming = true
 
 
 # backdrop picture

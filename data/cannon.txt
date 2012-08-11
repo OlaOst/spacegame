@@ -9,7 +9,7 @@ reloadTime = 0.2
 
 
 spawn.bullet.source = bullet.txt
-spawn.bullet.spawnPoint = 0.0 0.0 -100.0
+spawn.bullet.spawnPoint = [0.0, 0.0, -100.0]
 spawn.bullet.spawnForce = 50.0
 
 #spawn.sound.soundFile = mgshot1.wav or mgshot2.wav or mgshot3.wav or mgshot4.wav
