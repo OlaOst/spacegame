@@ -65,7 +65,7 @@ public:
       //vec2 desiredVelocity = relativeTargetPosition + targetVelocity * 2.0;
       vec2 desiredVelocity = relativeTargetPosition + relativeTargetVelocity * sqrt(relativeTargetPosition.length) * 0.1;
       
-      vec2 currentDirection = vec2.fromAngle(p_sourceComponent.angle);
+      vec2 currentDirection = mat2.rotation(p_sourceComponent.angle) * vec2(0.0, 1.0);
       vec2 desiredDirection = desiredVelocity.normalized;
       
       auto angle = atan2(currentDirection.y, currentDirection.x) - atan2(desiredDirection.y, desiredDirection.x);

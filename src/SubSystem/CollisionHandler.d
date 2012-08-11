@@ -23,6 +23,7 @@
 module SubSystem.CollisionHandler;
 
 import std.algorithm;
+import std.array;
 import std.conv;
 import std.exception;
 import std.random;
@@ -205,7 +206,7 @@ public:
   
   Entity[] getNoHealthEntities()
   {
-    return filter!(entity => getComponent(entity).health <= 0.0)(entities).array;
+    return filter!(entity => getComponent(entity).health <= 0.0)(entities).array();
   }
   
 
@@ -242,7 +243,7 @@ protected:
       colliderComponent.spawnedFromOwner = to!int(p_entity.getValue("spawnedFromOwner"));
     
     if ("position" in p_entity.values)
-      colliderComponent.position = vec2.fromString(p_entity.getValue("position"));
+      colliderComponent.position = vec2(p_entity.getValue("position").to!(float[])[0..2]);
     
     //if ("lifetime" in p_entity.values)
       //colliderComponent.lifetime = to!float(p_entity.getValue("lifetime"));
@@ -343,7 +344,7 @@ private:
           
           particleValues["position"] = to!string(collisionPosition);
           particleValues["rotation"] = to!string(uniform(-3600, 3600));
-          particleValues["velocity"] = to!string((collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * -0.1 + vec2.fromAngle(uniform(-PI, PI)) * 5.0);
+          particleValues["velocity"] = to!string((collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * -0.1 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 5.0);
           particleValues["drawsource"] = "Star";
           particleValues["radius"] = to!string(uniform(0.15, 0.25));
           particleValues["mass"] = to!string(uniform(0.2, 1.0));
@@ -359,10 +360,11 @@ private:
         {
           string[string] particleValues;
           
-          vec2 collisionVelocity = (collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * -0.5 + vec2.fromAngle(uniform(-PI, PI)) * 10.0;
+          vec2 collisionVelocity = (collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * 
+                                   -0.5 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 10.0;
           
           particleValues["position"] = to!string(collisionPosition);
-          particleValues["angle"] = to!string(collisionVelocity.angle * _180_PI);
+          particleValues["angle"] = to!string(atan2(collisionVelocity.x, collisionVelocity.y) * _180_PI);
           particleValues["velocity"] = to!string(collisionVelocity);
           particleValues["drawsource"] = "Vertices";
           particleValues["vertices"] = to!string(["0.0 0.25 1.0 1.0 1.0 0.0", 

@@ -221,19 +221,19 @@ protected:
     auto newComponent = new PhysicsComponent();
     
     if (p_entity.getValue("position").length > 0)
-      newComponent.position = vec2.fromString(p_entity.getValue("position"));
+      newComponent.position = vec2(p_entity.getValue("position").to!(float[])[0..2]);
     
     if (p_entity.getValue("angle").length > 0)
       newComponent.angle = to!float(p_entity.getValue("angle")) * PI_180;
     
     if (p_entity.getValue("velocity").length > 0)
-      newComponent.velocity = vec2.fromString(p_entity.getValue("velocity"));
+      newComponent.velocity = vec2(p_entity.getValue("velocity").to!(float[])[0..2]);
     
     if (p_entity.getValue("rotation").length > 0)
       newComponent.rotation = to!float(p_entity.getValue("rotation")) * PI_180;
     
     if (p_entity.getValue("force").length > 0)
-      newComponent.force = vec2.fromString(p_entity.getValue("force"));
+      newComponent.force = vec2(p_entity.getValue("force").to!(float[])[0..2]);
       
     if (p_entity.getValue("mass").length > 0)
       newComponent.mass = to!float(p_entity.getValue("mass"));

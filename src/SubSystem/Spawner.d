@@ -125,7 +125,7 @@ public:
           
           vec2 spawnForce = vec2(0.0, 0.0);
           if ("spawnForce" in spawnValues)
-            spawnForce = vec2.fromAngle(spawnAngle) * to!float(spawnValues["spawnForce"]);
+            spawnForce = mat2.rotation(spawnAngle) * vec2(0.0, 1.0) * to!float(spawnValues["spawnForce"]);
             
           auto spawnVelocity = component.velocity + spawnForce;
           
@@ -144,7 +144,7 @@ public:
           if ("position" in spawnValues)
             spawnValues["position"] = to!string(spawnValues["position"]);
           else if ("spawnPoint" in spawnValues)
-            spawnValues["position"] = to!string(component.position + vec2.fromString(spawnValues["spawnPoint"]));
+            spawnValues["position"] = to!string(component.position + vec2(spawnValues["spawnPoint"].to!(float[])));
           else
             spawnValues["position"] = to!string(component.position);
           

@@ -934,6 +934,22 @@ struct Matrix(type, int rows_, int cols_) if((rows_ > 0) && (cols_ > 0)) {
             
             return mat;
         }
+        
+        /// Returns an identity matrix with an applied rotation
+        static Matrix rotation(real alpha) {
+            Matrix mult = Matrix.identity;
+            
+            mt cosamt = to!mt(cos(alpha));
+            mt sinamt = to!mt(sin(alpha));
+            
+            mult.matrix[0][0] = cosamt;
+            mult.matrix[0][1] = -sinamt;
+            mult.matrix[1][0] = sinamt;
+            mult.matrix[1][1] = cosamt;
+            
+            return mult;
+        }
+        
     } else static if((rows == 3) && (cols == 3)) {
         @property mt det() const {
             return (matrix[0][0] * matrix[1][1] * matrix[2][2]

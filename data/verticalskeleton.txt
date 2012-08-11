@@ -6,5 +6,5 @@ health = 50.0
 drawsource = images/verticalskeleton.png
 draggable = true
 
-connectpoint.lower.position = 0.0 -0.8
-connectpoint.upper.position = 0.0 0.8
+connectpoint.lower.position = [0.0, -0.8]
+connectpoint.upper.position = [0.0, 0.8]

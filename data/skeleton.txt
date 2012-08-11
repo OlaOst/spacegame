@@ -3,7 +3,7 @@ mass = 4.0
 
 drawsource = skeletonshape.txt
 
-connectpoint.lowerleft.position = -0.95 -1.0 -1
-connectpoint.lowerright.position = -0.95 1.0 -1
-connectpoint.upperleft.position = 0.85 -0.85 1
-connectpoint.upperright.position = 0.85 0.85 1
+connectpoint.lowerleft.position = [-0.95, -1.0, -1]
+connectpoint.lowerright.position = [-0.95, 1.0, -1]
+connectpoint.upperleft.position = [0.85, -0.85, 1]
+connectpoint.upperright.position = [0.85, 0.85, 1]

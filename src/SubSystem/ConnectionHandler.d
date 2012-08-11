@@ -319,7 +319,7 @@ protected:
         connectPoint.connectedEntity = null;
         connectPoint.owner = p_entity;
         if (connectPointAttribute == "position")
-          connectPoint.position = vec2.fromString(p_entity.getValue(value));
+          connectPoint.position = vec2(p_entity.getValue(value).to!(float[])[0..2]);
         
         if ("radius" in p_entity.values)
           connectPoint.position *= to!float(p_entity.getValue("radius"));
@@ -409,7 +409,7 @@ protected:
     
     if (p_entity.getValue("relativePosition").length > 0)
     {
-      newComponent.relativePosition = vec2.fromString(p_entity.getValue("relativePosition"));
+      newComponent.relativePosition = vec2(p_entity.getValue("relativePosition").to!(float[])[0..2]);
     }
     
     if (p_entity.getValue("relativeAngle").length > 0)

@@ -23,6 +23,7 @@
 module SubSystem.Sound;
 
 import std.algorithm;
+import std.array;
 import std.conv;
 import std.exception;
 import std.stdio;
@@ -209,7 +210,7 @@ public:
   
   Entity[] getFinishedPlayingEntities()
   {
-    return filter!(entity => entity != m_centerEntity && getComponent(entity).finishedPlaying)(entities).array;
+    return filter!(entity => entity != m_centerEntity && getComponent(entity).finishedPlaying)(entities).array();
   }
   
 
@@ -275,9 +276,9 @@ protected:
     auto component = new SoundComponent(m_fileToBuffer[soundFile]);
     
     if ("position" in p_entity.values)
-      component.position = vec2.fromString(p_entity.getValue("position"));
+      component.position = vec2(p_entity.getValue("position").to!(float[])[0..2]);
     if ("velocity" in p_entity.values)
-      component.velocity = vec2.fromString(p_entity.getValue("velocity"));
+      component.velocity = vec2(p_entity.getValue("velocity").to!(float[])[0..2]);
     if ("angle" in p_entity.values)
       component.angle = to!float(p_entity.getValue("angle")) * PI_180;
     

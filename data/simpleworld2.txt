@@ -1,13 +1,13 @@
 # backdrop picture
 #backdrop.drawsource = images/galaxiesbackdrop.jpg
-#backdrop.position = 0 0 -200
+#backdrop.position = [0, 0, -200]
 #backdrop.depth = bottom
 #backdrop.radius = 10.0
 #backdrop.screenAbsolutePosition = true
 
 # greeting text
 greeting.text = Welcome!\nPage Up/Down zooms in/out\nArrow keys accelerates and rotates your ship\nX brakes, Z and C for strafing
-greeting.position = -9 -5
+greeting.position = [-9, -5]
 #greeting.depth = top
 
 gun.source = cannon.txt
@@ -17,30 +17,30 @@ gun.spawnAngle = 0 to 360
 gun.spawnForce = 50
 gun.spawn.radius = 0.2
 gun.reloadTime = 0.05
-gun.position = 0 0
+gun.position = [0, 0]
 
 #gun2.source = cannon.txt
 #gun2.control = playerLauncher
 #gun2.collisionType = PlayerModule
-#gun2.position = 0 0
+#gun2.position = [0, 0]
 #gun2.spawnAngle = 10
 #gun2.spawnForce = 20
 
 target.source = stationplate.txt
 target.collisionType = NpcModule
-target.position = 12 8
+target.position = [12, 8]
 target.radius = 5
 
 #target2.source = stationplate.txt
 #target2.collisionType = NpcModule
-#target2.position = -12 8
+#target2.position = [-12, 8]
 #target2.radius = 1
 
 
 # debug display is shown in a fixed position on the screen, and shows various debug stuff
 debugDisplay.text = here we should see debug info
 debugDisplay.screenAbsolutePosition = true
-debugDisplay.position = -1.2 0.9
+debugDisplay.position = [-1.2, 0.9]
 debugDisplay.depth = top
 debugDisplay.color = 1.0 1.0 1.0 1.0
 debugDisplay.name = Debug display

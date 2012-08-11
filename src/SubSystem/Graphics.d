@@ -41,6 +41,8 @@ import derelict.sdl2.sdl;
 import gl3n.math;
 import gl3n.linalg;
 
+import glamour.texture;
+
 import Entity;
 import EntityLoader;
 import SubSystem.Base;
@@ -452,7 +454,7 @@ protected:
   
   GraphicsComponent createComponent(Entity p_entity)
   {
-    writeln("graphics creating component from values " ~ to!string(p_entity.values));
+    //writeln("graphics creating component from values " ~ to!string(p_entity.values));
     
     //enforce(p_entity.getValue("radius").length > 0, "Couldn't find radius for graphics component");
     float radius = 1.0;
@@ -503,8 +505,13 @@ protected:
       
       if (imageFile !in m_imageToTextureId)
       {
-        loadTexture(imageFile);
+        //loadTexture(imageFile);
+        auto texture = Texture2D.from_image(imageFile);
+        
+        m_imageToTextureId[imageFile] = texture;
       }
+      
+      assert(imageFile in m_imageToTextureId, "Problem with imageToTexture cache");
       component.textureId = m_imageToTextureId[imageFile];
     }
     else
@@ -541,14 +548,14 @@ protected:
       if (std.algorithm.startsWith(value, "connectpoint") > 0)
       {
         //component.connectPoints ~= vec2.fromString(p_entity.getValue(value)) * radius;
-        component.connectPoints ~= vec2(p_entity.getValue(value).to!(float[])) * radius;
+        component.connectPoints ~= vec2(p_entity.getValue(value).to!(float[])[0..2]) * radius;
       }
     }
     
     if ("position" in p_entity.values)
     {
       assert(p_entity.getValue("position").length > 0);
-      component.position = vec2(p_entity.getValue("position").to!(float[]));
+      component.position = vec2(p_entity.getValue("position").to!(float[])[0..2]);
     }
     
     component.depth = to!float(p_entity.id);
@@ -896,7 +903,7 @@ private:
   }
   
     
-  void loadTexture(string imageFile)
+  /+void loadTexture(string imageFile)
   {
     SDL_Surface* imageSurface = IMG_Load(imageFile.toStringz);
     
@@ -939,12 +946,13 @@ private:
     
     //auto error = glGetError();
     //enforce(error == GL_NO_ERROR, "Error texturizing image " ~ imageFile ~ ": " ~ to!string(gluErrorString(error)) ~ " (errorcode " ~ to!string(error) ~ ")");
-  }
+  }+/
 
 
   void initDisplay(int screenWidth, int screenHeight)
   {
     DerelictSDL2.load();
+    DerelictSDL2Image.load();
     DerelictGL3.load();
    
     enforce(SDL_Init(SDL_INIT_VIDEO) == 0, "Failed to initialize SDL: " ~ to!string(SDL_GetError()));

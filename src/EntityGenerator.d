@@ -36,7 +36,7 @@ string[] createStation()
 {
   string[] values;
   
-  values ~= "position = -1 -1";
+  values ~= "position = [-1, -1]";
   
   values ~= "root.source = stationplate.txt";
   

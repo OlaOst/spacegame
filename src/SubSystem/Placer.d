@@ -86,9 +86,9 @@ protected:
     auto component = new PlacerComponent();
     
     if (p_entity.getValue("position").length > 0)
-      component.position = vec2.fromString(p_entity.getValue("position"));
+      component.position = vec2(p_entity.getValue("position").to!(float[])[0..2]);
     if (p_entity.getValue("velocity").length > 0)
-      component.velocity = vec2.fromString(p_entity.getValue("velocity"));
+      component.velocity = vec2(p_entity.getValue("velocity").to!(float[])[0..2]);
       
     if (p_entity.getValue("angle").length > 0)
       component.angle = to!float(p_entity.getValue("angle")) * PI_180;

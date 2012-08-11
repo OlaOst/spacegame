@@ -60,8 +60,10 @@ public:
     {
       auto targetPosition = p_sourceComponent.targetPosition;
      
-      auto targetDistance = (targetPosition - p_sourceComponent.position).length;
-      auto targetAngle = (targetPosition - p_sourceComponent.position).angle;
+      auto relativePosition = targetPosition - p_sourceComponent.position;
+     
+      auto targetDistance = relativePosition.length;
+      auto targetAngle = atan2(relativePosition.x, relativePosition.y);
       
       //writeln("sourcecomp pos is " ~ to!string(p_sourceComponent.position))
       //writeln("targetangle is " ~ to!string(targetAngle));
