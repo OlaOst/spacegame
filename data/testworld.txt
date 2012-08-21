@@ -1,0 +1,1 @@
+image.drawsource = images/bugship.png

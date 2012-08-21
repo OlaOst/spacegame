@@ -93,7 +93,7 @@ public:
   
   void renderChar(char p_char, bool p_translate)
   {
-    glEnable(GL_TEXTURE_2D);
+    //glEnable(GL_TEXTURE_2D);
     
     auto glyph = loadGlyph(p_char);
     
@@ -174,7 +174,7 @@ private:
     enum int glyphWidth = 32;
     enum int glyphHeight = 32;
     
-    glEnable(GL_TEXTURE_2D);
+    //glEnable(GL_TEXTURE_2D);
     
     auto glyphIndex = FT_Get_Char_Index(m_face, p_char);
     

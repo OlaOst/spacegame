@@ -27,6 +27,7 @@ import std.algorithm;
 import std.array;
 import std.conv;
 import std.exception;
+import std.file;
 import std.format;
 import std.math;
 import std.stdio;
@@ -41,10 +42,13 @@ import derelict.sdl2.sdl;
 import gl3n.math;
 import gl3n.linalg;
 
+import glamour.shader;
 import glamour.texture;
+import glamour.vbo;
 
 import Entity;
 import EntityLoader;
+import sprite;
 import SubSystem.Base;
 import TextRender;
 import Utils;
@@ -126,54 +130,27 @@ enum DrawSource
 }
 
 
-struct Vertex
-{
-  //float x = 0.0, y = 0.0;
-  //float r = 1.0, g = 1.0, b = 1.0, a = 1.0;
-  vec2 position = vec2(0.0, 0.0);
-  vec4 color = vec4(1.0, 1.0, 1.0, 1.0);
-  
-  static Vertex fromString(string p_data)
-  {
-    auto comps = std.string.split(p_data, " ");
-    
-    assert(comps.length == 6, "should have 6 values in vertex data, got " ~ p_data ~ " instead");
-    
-    return Vertex(vec2(to!float(comps[0]), to!float(comps[1])), vec4(to!float(comps[2]), to!float(comps[3]), to!float(comps[4]), to!float(comps[5])));
-  }
-}
-
 struct GraphicsComponent 
 {
 invariant()
 {
-  assert(position.ok);
+  assert(sprite.position.ok);
   assert(velocity.ok);
   
-  assert(isFinite(angle));
+  assert(isFinite(sprite.angle));
+  assert(isFinite(sprite.scale));
   assert(isFinite(rotation));
   
-  assert(color.ok);
+  assert(color.ok, color.to!string);
   
   assert(isFinite(drawSource));
   assert(radius >= 0.0);
 }
 
 public:
-  this(float p_radius)
-  {
-    position = velocity = vec2(0.0, 0.0);
-    angle = rotation = 0.0;
-    
-    drawSource = DrawSource.Unknown;
-    radius = p_radius;
-    
-    color = vec4(1, 1, 1, 1);
-  }
-  
   bool isPointedAt(vec2 p_pos)
   {
-    return ((position - p_pos).length < radius);
+    return (position - p_pos).length < radius;
   }
   
   bool isOverlapping(GraphicsComponent p_other)
@@ -181,21 +158,27 @@ public:
     return ((position - p_other.position).length < (radius + p_other.radius));
   }
   
-  DrawSource drawSource;
-  float radius;
+  DrawSource drawSource = DrawSource.Unknown;
+  float radius = 1.0;
   AABB!vec2 aabb;
   
-  Vertex[] vertices;
   vec2[] connectPoints;
-  vec4 color;
+  vec4 color = vec4(1, 1, 1, 1);;
   
   int displayListId = -1;
-  uint textureId = -1;
+  Texture2D texture;
+  string textureName;
   
-  vec2 position = vec2(0.0, 0.0);
+  Sprite sprite;
+  
+  @property vec2 position() { return vec2(sprite.position.xy); }
+  @property void position(vec2 pos) { sprite.position.x = pos.x; sprite.position.y = pos.y; }
+  
+  @property float angle() { return sprite.angle; }
+  @property void angle(float newAngle) { sprite.angle = newAngle; }
+  
   vec2 velocity = vec2(0.0, 0.0);
   
-  float angle = 0.0;
   float rotation = 0.0;
   
   float depth = 0.0;
@@ -220,15 +203,28 @@ invariant()
 public:
   this(ref string[][string] cache, int p_screenWidth, int p_screenHeight)
   {
+    initDisplay(p_screenWidth, p_screenHeight);
+  
     this.cache = cache;
     
     m_textRender = new TextRender();
     
+    assert(DerelictGL3.loadedVersion != GLVersion.None);
+    
+    assert("shaders/texture.shader".exists);
+    textureShader = new Shader("shaders/texture.shader");
+    
+    vec3[] dummyVerts;
+    dummyVerts.length = 1000 * 6;
+    verticesVBO = new Buffer(dummyVerts);
+    
+    vec2[] dummyTex;
+    dummyTex.length = 1000 * 6;
+    texVBO = new Buffer(dummyTex);
+    
     m_zoom = 0.1;
     
     m_mouseWorldPos = vec2(0.0, 0.0);
-    
-    initDisplay(p_screenWidth, p_screenHeight);
     
     m_widthHeightRatio = cast(float)p_screenWidth / cast(float)p_screenHeight;
     
@@ -247,18 +243,74 @@ public:
     
     glTranslatef(-center.x, -center.y, 0.0);
     
-    
-    
     glPopMatrix();*/
+    
+    //vec3[] vertices;
+    //vertices = verts.reduce!((arr, component) => arr ~ component.sprite.vertices[0..3] ~ component.sprite.vertices[0..1] ~ component.sprite.vertices[2..4])(components);
+    //verticesVBO.update(vertices, 0);
+    
+    glClear(GL_COLOR_BUFFER_BIT);
+    
+    textureShader.bind();
+    
+    GraphicsComponent[][string] componentsForTexture;
+    foreach (component; components)
+      componentsForTexture[component.textureName] ~= component;
+    
+    foreach (textureName; m_imageToTexture.keys)
+    {
+      auto texture = m_imageToTexture[textureName];
+      
+      auto componentsWithSameTexture = componentsForTexture[textureName];
+      
+      vec3[] verts;
+      verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles)(componentsWithSameTexture);
+      verticesVBO.update(verts, 0);
+      
+      vec2[] texs;
+      texs = texs.reduce!((arr, component) => arr ~ component.sprite.texCoordsForQuadTriangles)(componentsWithSameTexture);
+      texVBO.update(texs, 0);
+      
+      verticesVBO.bind(0, GL_FLOAT, 3);
+      texVBO.bind(1, GL_FLOAT, 2);
+      texture.bind_and_activate();
+      
+      //writeln("drawing " ~ componentsWithSameTexture.length.to!string ~ " comps with " ~ verts.length.to!string ~ " vertices and texture " ~ textureName);
+      
+      glDrawArrays(GL_TRIANGLES, 0, verts.length);
+      
+      texture.unbind();
+      texVBO.unbind();
+      verticesVBO.unbind();
+    }
+    
+    //foreach (component; components)
+      //component.draw();
+      
+    //verticesVBO.bind(0, GL_FLOAT, 3);
+    //texVBO.bind(1, GL_FLOAT, 2);
+    
+    //texture.bind_and_activate();
+    
+    //glDrawArrays(GL_TRIANGLES, 0, verts.length);
+    
+    //texture.unbind();
+    //texVBO.unbind();
+    //verticesVBO.unbind();
+    textureShader.unbind();
   }
   
   void update() 
   {
+    draw(vec2(0.0, 0.0), 1.0, AABB!vec2(vec2(-1.0, -1.0), vec2(1.0, 1.0)));
+    
     swapBuffers();
+  
+    return;
   
     //glPushMatrix();
     
-    glDisable(GL_TEXTURE_2D);
+    //glDisable(GL_TEXTURE_2D);
     
     //glTranslatef(0.0, 0.0, -32768.0);
     
@@ -312,7 +364,7 @@ public:
           m_textRender.renderString(component.text);
         glPopMatrix();*/
       }
-      glDisable(GL_TEXTURE_2D);
+      //glDisable(GL_TEXTURE_2D);
       
       //glRotatef(component.angle * _180_PI, 0.0, 0.0, -1.0);
       
@@ -334,7 +386,7 @@ public:
       // draw circle indicating radius in debug mode
       debug
       {
-        glDisable(GL_TEXTURE_2D);
+        //glDisable(GL_TEXTURE_2D);
       
         if (component.screenAbsolutePosition == false && component.drawSource != DrawSource.Text)
         {
@@ -461,7 +513,7 @@ protected:
     if ("radius" in p_entity.values)
       radius = to!float(p_entity.getValue("radius"));
     
-    GraphicsComponent component = GraphicsComponent(radius);
+    GraphicsComponent component; // = GraphicsComponent(radius);
     
     float width = 0.0;
     float height = 0.0;
@@ -492,8 +544,8 @@ protected:
       
       foreach (vertexName, vertexData; drawfile.values)
       {
-        if (vertexName.startsWith("vertex"))
-          component.vertices ~= Vertex.fromString(vertexData);
+        //if (vertexName.startsWith("vertex"))
+          //component.vertices ~= Vertex.fromString(vertexData);
       }
     }
     else if (p_entity.getValue("drawsource").endsWith(".png") || 
@@ -503,16 +555,19 @@ protected:
       
       auto imageFile = "data/" ~ p_entity.getValue("drawsource");
       
-      if (imageFile !in m_imageToTextureId)
+      if (imageFile !in m_imageToTexture)
       {
         //loadTexture(imageFile);
         auto texture = Texture2D.from_image(imageFile);
         
-        m_imageToTextureId[imageFile] = texture;
+        m_imageToTexture[imageFile] = texture;
       }
       
-      assert(imageFile in m_imageToTextureId, "Problem with imageToTexture cache");
-      component.textureId = m_imageToTextureId[imageFile];
+      assert(imageFile in m_imageToTexture, "Problem with imageToTexture cache");
+      component.texture = m_imageToTexture[imageFile];
+      
+      component.textureName = imageFile;
+      //m_componentsForTexture[imageFile] ~= component;
     }
     else
     {
@@ -536,8 +591,8 @@ protected:
       {
         string[] verticesData = to!(string[])(p_entity.getValue("vertices"));
         
-        foreach (vertexData; verticesData)
-          component.vertices ~= Vertex.fromString(vertexData);
+        /*foreach (vertexData; verticesData)
+          component.vertices ~= Vertex.fromString(vertexData);*/
           
         //writeln("comp vertices is " ~ to!string(component.vertices));
       }
@@ -593,7 +648,7 @@ protected:
       if (colorComponents.length == 3)
         colorComponents ~= "1"; // default alpha is 1
         
-      component.color = vec4(map!(to!float)(colorComponents).array);
+      component.color = vec4(map!(to!float)(colorComponents).array());
     }
     
     if (component.drawSource != DrawSource.Text && 
@@ -706,7 +761,7 @@ private:
       glRotatef(90.0, 0.0, 0.0, 1.0);
       glScalef(-1.0, 1.0, 1.0);
   
-      assert(p_component.textureId > 0);
+      assert(p_component.texture > 0);
       
       glEnable(GL_TEXTURE_2D);
       glEnable(GL_BLEND);
@@ -716,7 +771,7 @@ private:
       
       glColor4f(1.0, 1.0, 1.0, 1.0);
       
-      glBindTexture(GL_TEXTURE_2D, p_component.textureId);
+      glBindTexture(GL_TEXTURE_2D, p_component.texture);
       glBegin(GL_QUADS);
         glNormal3f(0.0, 0.0, 1.0);
         glTexCoord2f(0.0, 0.0); glVertex3f(-size, -size, 0.0);
@@ -900,53 +955,7 @@ private:
       //writeln("targetdisplay drew " ~ to!string(drawnComponents) ~ " components, targetcomp is at " ~ to!string(p_targetComponent.position));
     }
     //glPopMatrix();
-  }
-  
-    
-  /+void loadTexture(string imageFile)
-  {
-    SDL_Surface* imageSurface = IMG_Load(imageFile.toStringz);
-    
-    enforce(imageSurface !is null, "Error loading image " ~ imageFile ~ ": " ~ to!string(IMG_GetError()));
-    enforce(imageSurface.pixels !is null);
-    
-    int textureWidth = to!int(pow(2, ceil(log(imageSurface.w) / log(2)))); // round up to nearest power of 2
-    int textureHeight = to!int(pow(2, ceil(log(imageSurface.h) / log(2)))); // round up to nearest power of 2
-    
-    // we don't support alpha channels yet, ensure the image is 100% opaque
-    //SDL_SetAlpha(imageSurface, 0, 255);
-    
-    /*static if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-      SDL_Surface* textureSurface = SDL_CreateRGBSurface(0, textureWidth, textureHeight, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
-    else*/
-      SDL_Surface* textureSurface = SDL_CreateRGBSurface(0, textureWidth, textureHeight, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
-    
-    // copy the image surface into the middle of the texture surface
-    auto rect = SDL_Rect(to!short((textureWidth-imageSurface.w)/2), to!short((textureHeight-imageSurface.h)/2), 0, 0);
-    SDL_BlitSurface(imageSurface, null, textureSurface, &rect);
-    
-    enforce(textureSurface !is null, "Error creating texture surface: " ~ to!string(IMG_GetError()));
-    enforce(textureSurface.pixels !is null, "Texture surface pixels are NULL!");
-    
-    auto format = (textureSurface.format.BytesPerPixel == 4 ? GL_RGBA : GL_RGB);
-    
-    uint textureId;
-    
-    glGenTextures(1, &textureId);
-    enforce(textureId > 0, "Failed to generate texture id: " ~ to!string(glGetError()));
-    
-    m_imageToTextureId[imageFile] = textureId;
-    
-    glBindTexture(GL_TEXTURE_2D, textureId);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, textureSurface.format.BytesPerPixel, textureSurface.w, textureSurface.h, 0, format, GL_UNSIGNED_BYTE, textureSurface.pixels);
-    
-    //auto error = glGetError();
-    //enforce(error == GL_NO_ERROR, "Error texturizing image " ~ imageFile ~ ": " ~ to!string(gluErrorString(error)) ~ " (errorcode " ~ to!string(error) ~ ")");
-  }+/
+  }  
 
 
   void initDisplay(int screenWidth, int screenHeight)
@@ -969,6 +978,8 @@ private:
     SDL_GL_SetSwapInterval(1);
     
     setupGL(screenWidth, screenHeight);
+    
+    DerelictGL3.reload();
   }
 
 
@@ -980,7 +991,7 @@ private:
     
     glViewport(0, 0, p_screenWidth, p_screenHeight);
     
-    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_DEPTH_TEST);
     
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -998,9 +1009,14 @@ private:
 private:
   SDL_Window* window;
 
+  Shader textureShader;
+  
   TextRender m_textRender;
   
-  uint[string] m_imageToTextureId;
+  Texture2D[string] m_imageToTexture;
+  
+  Buffer verticesVBO;
+  Buffer texVBO;
   
   float m_widthHeightRatio;
   AABB!vec2 m_screenBox;

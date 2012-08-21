@@ -1,5 +1,5 @@
 greeting.text = Hello?
-greeting.position = 0 0
+greeting.position = [0, 0]
 
 # playership controllable by player
 #playership.source = playership.txt
@@ -14,14 +14,14 @@ playership.rightGun.control = playerLauncher
 #playership.rightGun.reloadTime = 0.02
 playership.*.collisionType = PlayerModule
 playership.*.spawn.*.target = closestEnemy
-playership.position = 0 0
+playership.position = [0, 0]
 playership.angle = 0
 playership.name = playership
 playership.keepInCenter = true
 
 
 target.source = simpleship.txt
-target.position = 0 5
+target.position = [0, 5]
 target.*.collisionType = NpcModule
 target.*.health = 10000
 
