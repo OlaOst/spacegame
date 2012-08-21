@@ -144,7 +144,7 @@ invariant()
   assert(color.ok, color.to!string);
   
   assert(isFinite(drawSource));
-  assert(radius >= 0.0);
+  //assert(radius >= 0.0);
 }
 
 public:
@@ -159,7 +159,6 @@ public:
   }
   
   DrawSource drawSource = DrawSource.Unknown;
-  float radius = 1.0;
   AABB!vec2 aabb;
   
   vec2[] connectPoints;
@@ -176,6 +175,9 @@ public:
   
   @property float angle() { return sprite.angle; }
   @property void angle(float newAngle) { sprite.angle = newAngle; }
+  
+  @property float radius() { return sprite.scale; }
+  @property void radius(float newRadius) { sprite.scale = newRadius; }
   
   vec2 velocity = vec2(0.0, 0.0);
   
@@ -262,6 +264,8 @@ public:
       auto texture = m_imageToTexture[textureName];
       
       auto componentsWithSameTexture = componentsForTexture[textureName];
+      
+      //writeln(componentsWithSameTexture[0].radius);
       
       vec3[] verts;
       verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles)(componentsWithSameTexture);
@@ -609,8 +613,14 @@ protected:
     
     if ("position" in p_entity.values)
     {
-      assert(p_entity.getValue("position").length > 0);
-      component.position = vec2(p_entity.getValue("position").to!(float[])[0..2]);
+      assert(p_entity["position"].length > 0);
+      component.position = vec2(p_entity["position"].to!(float[])[0..2]);
+    }
+    
+    if ("radius" in p_entity.values)
+    {
+      assert(p_entity["radius"].length > 0);
+      component.radius = p_entity["radius"].to!float;
     }
     
     component.depth = to!float(p_entity.id);

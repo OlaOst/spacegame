@@ -1,1 +1,2 @@
 image.drawsource = images/bugship.png
+image.radius = 0.5

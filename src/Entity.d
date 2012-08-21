@@ -93,6 +93,8 @@ public:
     return id - (cast(Entity)other).id;
   }
   
+  alias values this;
+  
 public:
   immutable int id;
   
