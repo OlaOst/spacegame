@@ -503,48 +503,48 @@ public:
 protected:
   bool canCreateComponent(Entity p_entity)
   {
-    return (p_entity.getValue("drawsource").length > 0 ||
-            p_entity.getValue("keepInCenter").length > 0 ||
-            p_entity.getValue("text").length > 0);
+    return (p_entity["drawsource"].length > 0 ||
+            p_entity["keepInCenter"].length > 0 ||
+            p_entity["text"].length > 0);
   }
   
   GraphicsComponent createComponent(Entity p_entity)
   {
     //writeln("graphics creating component from values " ~ to!string(p_entity.values));
     
-    //enforce(p_entity.getValue("radius").length > 0, "Couldn't find radius for graphics component");
+    //enforce(p_entity.["radius"].length > 0, "Couldn't find radius for graphics component");
     float radius = 1.0;
-    if ("radius" in p_entity.values)
-      radius = to!float(p_entity.getValue("radius"));
+    if ("radius" in p_entity)
+      radius = to!float(p_entity["radius"]);
     
     GraphicsComponent component; // = GraphicsComponent(radius);
     
     float width = 0.0;
     float height = 0.0;
-    if ("width" in p_entity.values)
-      width = to!float(p_entity.getValue("width"));
-    if ("height" in p_entity.values)
-      height = to!float(p_entity.getValue("height"));
+    if ("width" in p_entity)
+      width = to!float(p_entity["width"]);
+    if ("height" in p_entity)
+      height = to!float(p_entity["height"]);
     
     component.aabb.lowerleft = vec2(-width/2.0, -height/2.0);
     component.aabb.upperright = vec2(width/2.0, height/2.0);
     
-    if (p_entity.getValue("keepInCenter") == "true")
+    if ("keepInCenter" in p_entity && p_entity["keepInCenter"] == "true")
     {
       m_centerEntity = p_entity;
     }
     
-    if (p_entity.getValue("hideFromRadar") == "true")
+    if ("hideFromRadar" in p_entity && p_entity["hideFromRadar"] == "true")
     {
       component.hideFromRadar = true;
     }
     
-    if (looksLikeATextFile(p_entity.getValue("drawsource")))
+    if (p_entity["drawsource"].looksLikeATextFile())
     {
       component.drawSource = DrawSource.Vertices;
       
       // (ab)use entity to just get out data here, since it has loading and caching capabilities
-      Entity drawfile = new Entity(loadValues(cache, "data/" ~ p_entity.getValue("drawsource")));
+      Entity drawfile = new Entity(loadValues(cache, "data/" ~ p_entity["drawsource"]));
       
       foreach (vertexName, vertexData; drawfile.values)
       {
@@ -552,12 +552,12 @@ protected:
           //component.vertices ~= Vertex.fromString(vertexData);
       }
     }
-    else if (p_entity.getValue("drawsource").endsWith(".png") || 
-             p_entity.getValue("drawsource").endsWith(".jpg"))
+    else if (p_entity["drawsource"].endsWith(".png") || 
+             p_entity["drawsource"].endsWith(".jpg"))
     {
       component.drawSource = DrawSource.Texture;
       
-      auto imageFile = "data/" ~ p_entity.getValue("drawsource");
+      auto imageFile = "data/" ~ p_entity["drawsource"];
       
       if (imageFile !in m_imageToTexture)
       {
@@ -575,11 +575,11 @@ protected:
     }
     else
     {
-      if ("drawsource" in p_entity.values)
+      if ("drawsource" in p_entity)
       {
-        component.drawSource = to!DrawSource(p_entity.getValue("drawsource"));
+        component.drawSource = to!DrawSource(p_entity["drawsource"]);
       }
-      else if ("text" in p_entity.values)
+      else if ("text" in p_entity)
       {
         component.drawSource = DrawSource.Text;
       }
@@ -593,63 +593,65 @@ protected:
       
       if (component.drawSource == DrawSource.Vertices && "vertices" in p_entity.values)
       {
-        string[] verticesData = to!(string[])(p_entity.getValue("vertices"));
+        string[] verticesData = p_entity["vertices"].to!(string[]);
         
         /*foreach (vertexData; verticesData)
           component.vertices ~= Vertex.fromString(vertexData);*/
           
-        //writeln("comp vertices is " ~ to!string(component.vertices));
+        //writeln("comp vertices is " ~ component.vertices.to!string);
       }
     }
     
-    foreach (value; p_entity.values.keys)
+    foreach (value; p_entity.keys)
     {
-      if (std.algorithm.startsWith(value, "connectpoint") > 0)
+      //if (std.algorithm.startsWith(value, "connectpoint") > 0)
+      if (value.startsWith("connectpoint") > 0)
       {
         //component.connectPoints ~= vec2.fromString(p_entity.getValue(value)) * radius;
-        component.connectPoints ~= vec2(p_entity.getValue(value).to!(float[])[0..2]) * radius;
+        //component.connectPoints ~= vec2(p_entity[value].to!(float[])[0..2]) * radius;
+        component.connectPoints ~= p_entity[value].to!(float[])[0..2].vec2 * radius;
       }
     }
     
-    if ("position" in p_entity.values)
+    if ("position" in p_entity)
     {
       assert(p_entity["position"].length > 0);
-      component.position = vec2(p_entity["position"].to!(float[])[0..2]);
+      component.position = p_entity["position"].to!(float[])[0..2].vec2;
     }
     
-    if ("radius" in p_entity.values)
+    if ("radius" in p_entity)
     {
       assert(p_entity["radius"].length > 0);
       component.radius = p_entity["radius"].to!float;
     }
     
-    component.depth = to!float(p_entity.id);
-    if ("depth" in p_entity.values)
+    component.depth = p_entity.id.to!float;
+    if ("depth" in p_entity)
     {
-      if (p_entity.getValue("depth") == "bottom")
+      if (p_entity["depth"] == "bottom")
         component.depth -= 100;
-      else if (p_entity.getValue("depth") == "top")
+      else if (p_entity["depth"] == "top")
         component.depth += 200;
       else
-        component.depth = to!float(p_entity.getValue("depth"));
+        component.depth = p_entity["depth"].to!float;
     }
     
-    if ("angle" in p_entity.values)
-      component.angle = to!float(p_entity.getValue("angle")) * PI_180;
+    if ("angle" in p_entity)
+      component.angle = p_entity["angle"].to!float * PI_180;
     
-    if ("screenAbsolutePosition" in p_entity.values)
+    if ("screenAbsolutePosition" in p_entity)
     {
       component.screenAbsolutePosition = true;
     }
     
-    if ("text" in p_entity.values)
+    if ("text" in p_entity)
     {
-      component.text = p_entity.getValue("text");
+      component.text = p_entity["text"];
     }
     
-    if ("color" in p_entity.values)
+    if ("color" in p_entity)
     {
-      string colorString = p_entity.getValue("color");
+      string colorString = p_entity["color"];
       
       assert(colorString.split(" ").length >= 3);
       
@@ -657,39 +659,19 @@ protected:
       
       if (colorComponents.length == 3)
         colorComponents ~= "1"; // default alpha is 1
-        
-      component.color = vec4(map!(to!float)(colorComponents).array());
+
+      component.color = colorComponents.map!(to!float).array().vec4;
     }
     
-    if (component.drawSource != DrawSource.Text && 
+    /*if (component.drawSource != DrawSource.Text && 
         component.drawSource != DrawSource.RadarDisplay &&
         component.drawSource != DrawSource.TargetDisplay)
-      createDisplayList(component);
+      component.createDisplayList;*/
     
     return component;
   }
 
 private:
-  bool looksLikeATextFile(string p_txt)
-  {
-    return endsWith(p_txt, ".txt") > 0;
-  }
-  
-  
-  void createDisplayList(ref GraphicsComponent p_component)
-  {
-    // TODO: make sure we don't create completely similar display lists
-    
-    /*p_component.displayListId = glGenLists(1);
-    
-    enforce(p_component.displayListId > 0, "Could not create display list id");
-    
-    glNewList(p_component.displayListId, GL_COMPILE);
-      drawComponent(p_component);
-    glEndList();*/
-  }
-
-
   void drawComponent(GraphicsComponent p_component)
   {
     /*if (p_component.drawSource == DrawSource.Invisible)
@@ -1040,3 +1022,10 @@ private:
   
   string[][string] cache;
 }
+
+
+private:
+  bool looksLikeATextFile(string p_txt)
+  {
+    return endsWith(p_txt, ".txt") > 0;
+  }
