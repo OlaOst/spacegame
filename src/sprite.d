@@ -120,7 +120,10 @@ struct Sprite
   }
   void transformVertices()
   {
-    auto transform = mat4.translation(position.x, position.y, position.z).rotatez(angle).scale(scale, scale, 1.0);
+    //auto transform = mat4.translation(position.x, position.y, position.z).rotatez(-angle).scale(scale, scale, 1.0);
+    auto transform = mat4.identity;//.rotatez(-angle).translate(position.x, position.y, position.z).scale(scale, scale, 1.0);
+    //transform = transform.rotatez(-angle).translate(position.x, position.y, position.z).scale(scale, scale, 1.0);
+    transform = transform.scale(scale, scale, 1.0).rotatez(-angle).translate(position.x, position.y, position.z);
     
     _vertices = origo.dup;
     

@@ -13,13 +13,10 @@ vertex:
   
 fragment:
   uniform sampler2D colorMap;
-  uniform float timer;
-
   in vec2 coords;
-
   out vec4 color;
 
   void main(void)
-  {
+  {  
     color = texture2D(colorMap, coords.st).rgba;
   }

@@ -1,2 +1,12 @@
-image.drawsource = images/bugship.png
-image.radius = 0.5
+test.drawsource = images/bugship.png
+
+test.radius = 0.1
+test.angle = 45.0
+
+test.mass = 0.5
+test.position = [0.0, -0.5]
+test.velocity = [0.0, 0.2]
+
+test.control = playerEngine
+test.thrustForce = 0.5
+test.torqueForce = 5.0

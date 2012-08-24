@@ -1,5 +1,4 @@
 ﻿/*
-/*
  Copyright (c) 2010 Ola Østtveit
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -215,6 +214,7 @@ public:
     
     assert("shaders/texture.shader".exists);
     textureShader = new Shader("shaders/texture.shader");
+    radiusShader = new Shader("shaders/radius.shader");
     
     vec3[] dummyVerts;
     dummyVerts.length = 1000 * 6;
@@ -287,21 +287,64 @@ public:
       texVBO.unbind();
       verticesVBO.unbind();
     }
-    
-    //foreach (component; components)
-      //component.draw();
-      
-    //verticesVBO.bind(0, GL_FLOAT, 3);
-    //texVBO.bind(1, GL_FLOAT, 2);
-    
-    //texture.bind_and_activate();
-    
-    //glDrawArrays(GL_TRIANGLES, 0, verts.length);
-    
-    //texture.unbind();
-    //texVBO.unbind();
-    //verticesVBO.unbind();
     textureShader.unbind();
+    
+    // draw circle around stuff in debug mode
+    debug
+    {
+      drawDebugCircles();
+    }
+  }
+  
+  void drawDebugCircles()
+  {
+      static vec3[] fullScreenVecs = [vec3(-1.0, -1.0, 0.0),
+                                      vec3( 1.0, -1.0, 0.0),
+                                      vec3( 1.0,  1.0, 0.0),
+                                      vec3(-1.0, -1.0, 0.0),
+                                      vec3( 1.0,  1.0, 0.0),
+                                      vec3(-1.0,  1.0, 0.0)];
+      
+      static vec2[] fullScreenTexs = [vec2(-1.0, -1.0),
+                                      vec2( 1.0, -1.0),
+                                      vec2( 1.0,  1.0),
+                                      vec2(-1.0, -1.0),
+                                      vec2( 1.0,  1.0),
+                                      vec2(-1.0,  1.0)];
+
+      static Buffer fullScreenVBO;// = new Buffer(fullScreenVecs);
+      static Buffer fullScreenTexVBO;// = new Buffer(fullScreenTexs);
+                              
+      if (fullScreenVBO is null)
+        fullScreenVBO = new Buffer(fullScreenVecs);
+      if (fullScreenTexVBO is null)
+        fullScreenTexVBO = new Buffer(fullScreenTexs);
+          
+                              
+      radiusShader.bind();
+      //radiusShader.uniform2f("position", components[0].position.x, components[0].position.y);
+      radiusShader.uniform("position", components[0].position);
+      radiusShader.uniform1f("radius", components[0].radius);
+      
+      writeln(components[0].position);
+      
+      fullScreenVBO.bind(0, GL_FLOAT, 3);
+      fullScreenTexVBO.bind(1, GL_FLOAT, 2);
+      
+      glDrawArrays(GL_TRIANGLES, 0, fullScreenVecs.length);
+      
+      /*foreach (component; components)
+      {
+        verts ~= component.position;
+        for (double angle = 0.0; angle < PI*2.0; angle += (PI*2.0) / 32.0)
+        {
+          verts ~= component.position;
+        }
+      }*/
+      
+      fullScreenTexVBO.unbind();
+      fullScreenVBO.unbind();
+      radiusShader.unbind();
   }
   
   void update() 
@@ -1002,6 +1045,7 @@ private:
   SDL_Window* window;
 
   Shader textureShader;
+  Shader radiusShader;
   
   TextRender m_textRender;
   
