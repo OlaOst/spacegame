@@ -326,8 +326,6 @@ public:
       radiusShader.uniform("position", components[0].position);
       radiusShader.uniform1f("radius", components[0].radius);
       
-      writeln(components[0].position);
-      
       fullScreenVBO.bind(0, GL_FLOAT, 3);
       fullScreenTexVBO.bind(1, GL_FLOAT, 2);
       

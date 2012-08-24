@@ -71,7 +71,8 @@ public:
       return;
   
     //auto dir = vec2.fromAngle(p_sourceComponent.angle);
-    auto dir = vec2(0.0, 1.0); // default direction is up
+    auto dir = mat2.rotation(-p_sourceComponent.angle) * vec2(0.0, 1.0);
+    //auto dir = vec2(0.0, 1.0); // default direction is up
     
     auto force = p_sourceComponent.force;
     auto torque = p_sourceComponent.torque;
