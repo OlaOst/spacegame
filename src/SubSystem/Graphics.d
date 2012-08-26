@@ -298,51 +298,25 @@ public:
   
   void drawDebugCircles()
   {
-      static vec3[] fullScreenVecs = [vec3(-1.0, -1.0, 0.0),
-                                      vec3( 1.0, -1.0, 0.0),
-                                      vec3( 1.0,  1.0, 0.0),
-                                      vec3(-1.0, -1.0, 0.0),
-                                      vec3( 1.0,  1.0, 0.0),
-                                      vec3(-1.0,  1.0, 0.0)];
-      
-      static vec2[] fullScreenTexs = [vec2(-1.0, -1.0),
-                                      vec2( 1.0, -1.0),
-                                      vec2( 1.0,  1.0),
-                                      vec2(-1.0, -1.0),
-                                      vec2( 1.0,  1.0),
-                                      vec2(-1.0,  1.0)];
-
-      static Buffer fullScreenVBO;// = new Buffer(fullScreenVecs);
-      static Buffer fullScreenTexVBO;// = new Buffer(fullScreenTexs);
-                              
-      if (fullScreenVBO is null)
-        fullScreenVBO = new Buffer(fullScreenVecs);
-      if (fullScreenTexVBO is null)
-        fullScreenTexVBO = new Buffer(fullScreenTexs);
-          
-                              
-      radiusShader.bind();
-      //radiusShader.uniform2f("position", components[0].position.x, components[0].position.y);
-      radiusShader.uniform("position", components[0].position);
-      radiusShader.uniform1f("radius", components[0].radius);
-      
-      fullScreenVBO.bind(0, GL_FLOAT, 3);
-      fullScreenTexVBO.bind(1, GL_FLOAT, 2);
-      
-      glDrawArrays(GL_TRIANGLES, 0, fullScreenVecs.length);
-      
-      /*foreach (component; components)
-      {
-        verts ~= component.position;
-        for (double angle = 0.0; angle < PI*2.0; angle += (PI*2.0) / 32.0)
-        {
-          verts ~= component.position;
-        }
-      }*/
-      
-      fullScreenTexVBO.unbind();
-      fullScreenVBO.unbind();
-      radiusShader.unbind();
+    radiusShader.bind();
+    
+    vec3[] verts;
+    verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles)(components);
+    verticesVBO.update(verts, 0);
+    
+    vec2[] texs;
+    texs = texs.reduce!((arr, component) => arr ~ component.sprite.texCoordsForQuadTriangles)(components);
+    texVBO.update(texs, 0);
+    
+    verticesVBO.bind(0, GL_FLOAT, 3);
+    texVBO.bind(1, GL_FLOAT, 2);
+    
+    glDrawArrays(GL_TRIANGLES, 0, verts.length);
+    
+    texVBO.unbind();
+    verticesVBO.unbind();
+    
+    radiusShader.unbind();
   }
   
   void update() 

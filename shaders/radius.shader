@@ -14,28 +14,17 @@ vertex:
 fragment:
   uniform sampler2D colorMap;
   
-  uniform vec2 position;
-  uniform float radius;
-  
   in vec2 coords;
-
+  
   out vec4 color;
-
-  float distance(vec2 one, vec2 two)
-  {
-    vec2 relative = one - two;
-    
-    return sqrt(relative.x * relative.x + relative.y * relative.y);
-  }
   
   void main(void)
   {
-    if (distance(coords, position) < radius)
-    {
-      float c = distance(coords, position) / radius;
-      
-      color = vec4(c, c, c, pow(c, 8));
-    }
+    vec2 center = coords - vec2(0.5, 0.5);
+    float d = sqrt(center.x*center.x + center.y*center.y) * 2.0;
+    
+    if (d < 1.0)
+      color = vec4(d, d, d, pow(d, 8));
     else
       discard;
   }

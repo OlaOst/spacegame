@@ -9,4 +9,9 @@ test.velocity = [0.0, 0.2]
 
 test.control = playerEngine
 test.thrustForce = 0.5
+test.slideForce = 0.5
 test.torqueForce = 5.0
+
+
+other.drawsource = images/engine.png
+other.radius = 0.2
