@@ -88,6 +88,13 @@ public:
       return null;
   }
   
+  
+  string opIndex(string key)
+  {
+    return ((key in values) ? values[key] : null);
+  }
+  
+  
   override int opCmp(Object other)
   {
     return id - (cast(Entity)other).id;

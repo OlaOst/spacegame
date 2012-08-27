@@ -214,7 +214,7 @@ public:
     
     assert("shaders/texture.shader".exists);
     textureShader = new Shader("shaders/texture.shader");
-    radiusShader = new Shader("shaders/radius.shader");
+    borderShader = new Shader("shaders/border.shader");
     
     vec3[] dummyVerts;
     dummyVerts.length = 1000 * 6;
@@ -241,16 +241,6 @@ public:
 
   void draw(vec2 center, float scale, AABB!vec2 drawBox)
   {
-    /*glPushMatrix();
-    
-    glTranslatef(-center.x, -center.y, 0.0);
-    
-    glPopMatrix();*/
-    
-    //vec3[] vertices;
-    //vertices = verts.reduce!((arr, component) => arr ~ component.sprite.vertices[0..3] ~ component.sprite.vertices[0..1] ~ component.sprite.vertices[2..4])(components);
-    //verticesVBO.update(vertices, 0);
-    
     glClear(GL_COLOR_BUFFER_BIT);
     
     textureShader.bind();
@@ -261,6 +251,12 @@ public:
     
     foreach (textureName; m_imageToTexture.keys)
     {
+      if (textureName !in componentsForTexture)
+        continue;
+      
+      assert(textureName in m_imageToTexture, "Could not find texture " ~ textureName ~ " in imageToTexture");
+      assert(textureName in componentsForTexture, "Could not find texture " ~ textureName ~ " in componentsForTexture");
+      
       auto texture = m_imageToTexture[textureName];
       
       auto componentsWithSameTexture = componentsForTexture[textureName];
@@ -298,7 +294,7 @@ public:
   
   void drawDebugCircles()
   {
-    radiusShader.bind();
+    borderShader.bind();
     
     vec3[] verts;
     verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles)(components);
@@ -316,7 +312,7 @@ public:
     texVBO.unbind();
     verticesVBO.unbind();
     
-    radiusShader.unbind();
+    borderShader.unbind();
   }
   
   void update() 
@@ -518,9 +514,11 @@ public:
 protected:
   bool canCreateComponent(Entity p_entity)
   {
-    return (p_entity["drawsource"].length > 0 ||
+    return "drawsource" in p_entity || "keepInCenter" in p_entity || "text" in p_entity;
+  
+    /*return (p_entity["drawsource"].length > 0 ||
             p_entity["keepInCenter"].length > 0 ||
-            p_entity["text"].length > 0);
+            p_entity["text"].length > 0);*/
   }
   
   GraphicsComponent createComponent(Entity p_entity)
@@ -554,7 +552,7 @@ protected:
       component.hideFromRadar = true;
     }
     
-    if (p_entity["drawsource"].looksLikeATextFile())
+    if ("drawsource" in p_entity && p_entity["drawsource"].looksLikeATextFile())
     {
       component.drawSource = DrawSource.Vertices;
       
@@ -996,8 +994,11 @@ private:
     
     float widthHeightRatio = cast(float)p_screenWidth / cast(float)p_screenHeight;
     
-    glViewport(0, 0, p_screenWidth, p_screenHeight);
-    
+    if (p_screenWidth > p_screenHeight)
+      glViewport(0, -(p_screenWidth - p_screenHeight) / 2, p_screenWidth, p_screenWidth);
+    else
+      glViewport(-(p_screenHeight - p_screenWidth) / 2, 0, p_screenHeight, p_screenHeight);
+      
     //glEnable(GL_DEPTH_TEST);
     
     glEnable(GL_BLEND);
@@ -1017,7 +1018,7 @@ private:
   SDL_Window* window;
 
   Shader textureShader;
-  Shader radiusShader;
+  Shader borderShader;
   
   TextRender m_textRender;
   

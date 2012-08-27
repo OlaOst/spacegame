@@ -13,5 +13,5 @@ test.slideForce = 0.5
 test.torqueForce = 5.0
 
 
-other.drawsource = images/engine.png
-other.radius = 0.2
+other.drawsource = images/bullet.png
+other.radius = 1.0
