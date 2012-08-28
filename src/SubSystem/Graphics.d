@@ -264,11 +264,11 @@ public:
       //writeln(componentsWithSameTexture[0].radius);
       
       vec3[] verts;
-      verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles)(componentsWithSameTexture);
+      verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles(component.texture))(componentsWithSameTexture);
       verticesVBO.update(verts, 0);
       
       vec2[] texs;
-      texs = texs.reduce!((arr, component) => arr ~ component.sprite.texCoordsForQuadTriangles)(componentsWithSameTexture);
+      texs = texs.reduce!((arr, component) => arr ~ component.sprite.texCoordsForQuadTriangles(component.texture))(componentsWithSameTexture);
       texVBO.update(texs, 0);
       
       verticesVBO.bind(0, GL_FLOAT, 3);
@@ -297,11 +297,11 @@ public:
     borderShader.bind();
     
     vec3[] verts;
-    verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles)(components);
+    verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles(component.texture))(components);
     verticesVBO.update(verts, 0);
     
     vec2[] texs;
-    texs = texs.reduce!((arr, component) => arr ~ component.sprite.texCoordsForQuadTriangles)(components);
+    texs = texs.reduce!((arr, component) => arr ~ component.sprite.texCoordsForQuadTriangles(component.texture))(components);
     texVBO.update(texs, 0);
     
     verticesVBO.bind(0, GL_FLOAT, 3);

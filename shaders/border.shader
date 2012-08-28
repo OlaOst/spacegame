@@ -23,8 +23,12 @@ fragment:
     vec2 center = coords - vec2(0.5, 0.5);
     float d = sqrt(center.x*center.x + center.y*center.y) * 2.0;
     
+    float b = max(abs(center.x), abs(center.y)) * 2.0;
+    
     if (d < 1.0)
       color = vec4(d, d, d, pow(d, 8));
+    else if (b > 0.8)
+      color = vec4(d, d, d, pow(b, 16));
     else
       discard;
   }

@@ -2,7 +2,9 @@ module sprite;
 
 import std.algorithm;
 import std.array;
+import std.math;
 
+import glamour.texture;
 import gl3n.linalg;
 
 
@@ -14,9 +16,9 @@ struct Sprite
                                        vec2(1.0, 0.0)];
                               
   static immutable vec3[] origo = [vec3(-1.0, -1.0, 0.0),
-                                    vec3(-1.0,  1.0, 0.0),
-                                    vec3( 1.0,  1.0, 0.0),
-                                    vec3( 1.0, -1.0, 0.0)];
+                                   vec3(-1.0,  1.0, 0.0),
+                                   vec3( 1.0,  1.0, 0.0),
+                                   vec3( 1.0, -1.0, 0.0)];
                                     
   vec3 position = vec3(0.0, 0.0, 0.0);
   float angle = 0.0;
@@ -24,21 +26,70 @@ struct Sprite
   
   vec3[] _vertices;
   
-  @property vec3[] vertices()
+  /*@property vec3[] vertices()
   {
-    transformVertices();
+    transformVertices(origo.dup);
     return _vertices;
-  }
+  }*/
   
-  @property vec3[] verticesForQuadTriangles()
+  @property vec3[] verticesForQuadTriangles(Texture2D texture)
   {
-    auto verts = vertices;
+    auto source = origo.dup;
+    
+    if (texture !is null)
+    {
+      if (texture.width > texture.height)
+      {
+        auto ratio = cast(float)texture.height / texture.width;
+        
+        source = [vec3(-1.0, -ratio, 0.0),
+                  vec3(-1.0,  ratio, 0.0),
+                  vec3( 1.0,  ratio, 0.0),
+                  vec3( 1.0, -ratio, 0.0)];
+      }
+      else
+      {
+        auto ratio = cast(float)texture.width / texture.height;
+        
+        source = [vec3(-ratio, -1.0, 0.0),
+                  vec3(-ratio,  1.0, 0.0),
+                  vec3( ratio,  1.0, 0.0),
+                  vec3( ratio, -1.0, 0.0)];
+      }
+    }
+    
+    auto verts = transformVertices(source);
+
     return verts[0..3] ~ verts[0..1] ~ verts[2..4];
   }
   
-  @property vec2[] texCoordsForQuadTriangles()
+  @property vec2[] texCoordsForQuadTriangles(Texture2D texture)
   {
-    return (texCoords[0..3] ~ texCoords[0..1] ~ texCoords[2..4]).dup;
+    auto coords = texCoords.dup;
+    
+    /*if (texture !is null)
+    {
+      if (texture.width > texture.height)
+      {
+        auto ratio = cast(float)texture.width / texture.height;
+        
+        coords = [vec2(0.0, 0.0),
+                  vec2(0.0, ratio),
+                  vec2(1.0, ratio),
+                  vec2(1.0, 0.0)];
+      }
+      else
+      {
+        auto ratio = cast(float)texture.height / texture.width;
+        
+        coords = [vec2(1.0-ratio+ratio/2, 0.0),
+                  vec2(1.0-ratio+ratio/2, 1.0),
+                  vec2(ratio/2, 1.0),
+                  vec2(ratio/2, 0.0)];
+      }
+    }*/
+                      
+    return (coords[0..3] ~ coords[0..1] ~ coords[2..4]);
   }
   
   vec2[] frameCoordsForQuadTriangles(int frame, int size)
@@ -72,7 +123,7 @@ struct Sprite
     
     vec3[] translationExpected = translateTest.origo.dup.map!(vector => vector + translateTest.position).array();
     
-    auto translationResult = translateTest.vertices;
+    auto translationResult = translateTest.transformVertices(origo.dup);
     
     assert(equal!(vecApproxEqual)(translationResult, translationExpected), "expected " ~ translationExpected.to!string ~ ", got " ~ translationResult.to!string);
     
@@ -84,7 +135,7 @@ struct Sprite
                                                                      sin(rotateTest.angle) * vector.x + cos(rotateTest.angle) * vector.y, 
                                                                      vector.z)).array();
     
-    auto rotateResult = rotateTest.vertices;
+    auto rotateResult = rotateTest.transformVertices(origo.dup);
     
     assert(equal!(vecApproxEqual)(rotateResult, rotateExpected), "expected " ~ rotateExpected.to!string ~ ", got " ~ rotateResult.to!string);
     
@@ -98,7 +149,7 @@ struct Sprite
                                                                                                vector.z))
                                                                       .map!(vector => vector + translateAndRotateTest.position).array();
     
-    auto translateAndRotateResult = translateAndRotateTest.vertices;
+    auto translateAndRotateResult = translateAndRotateTest.transformVertices(origo.dup);
    
     assert(equal!(vecApproxEqual)(translateAndRotateResult, translateAndRotateExpected), "expected " ~ translateAndRotateExpected.to!string ~ ", got " ~ translateAndRotateResult.to!string);
     
@@ -114,21 +165,27 @@ struct Sprite
                                                                                 .map!(vector => vec3(vector.x * translateRotateAndScaleTest.scale, vector.y * translateRotateAndScaleTest.scale, vector.z))
                                                                                 .map!(vector => vector + translateRotateAndScaleTest.position).array();
     
-    auto translateRotateAndScaleResult = translateRotateAndScaleTest.vertices;
+    auto translateRotateAndScaleResult = translateRotateAndScaleTest.transformVertices(origo.dup);
    
     assert(equal!(vecApproxEqual)(translateRotateAndScaleResult, translateRotateAndScaleExpected), "expected " ~ translateRotateAndScaleExpected.to!string ~ ", got " ~ translateRotateAndScaleResult.to!string);
   }
-  void transformVertices()
+  vec3[] transformVertices(vec3[] vertices)
   {
     //auto transform = mat4.translation(position.x, position.y, position.z).rotatez(-angle).scale(scale, scale, 1.0);
     auto transform = mat4.identity;//.rotatez(-angle).translate(position.x, position.y, position.z).scale(scale, scale, 1.0);
     //transform = transform.rotatez(-angle).translate(position.x, position.y, position.z).scale(scale, scale, 1.0);
     transform = transform.scale(scale, scale, 1.0).rotatez(-angle).translate(position.x, position.y, position.z);
     
-    _vertices = origo.dup;
+    //_vertices = origo.dup;
     
-    foreach (ref vertex; _vertices)
+    //return verts.map!(vert => vec3(vec4(vert, 1.0) * transform)).array();
+    
+    vec3[] verts = vertices.dup;
+    
+    foreach (ref vertex; verts)
       vertex = vec3((vec4(vertex, 1.0) * transform));
+      
+    return verts;
       
     //for (int index = 0; index < origo.length; index++)
     //{

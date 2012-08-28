@@ -1,17 +1,23 @@
-test.drawsource = images/bugship.png
+test.drawsource = images/engine.png
 
 test.radius = 0.1
-test.angle = 45.0
+#test.angle = 45.0
 
 test.mass = 0.5
 test.position = [0.0, -0.5]
-test.velocity = [0.0, 0.2]
+#test.velocity = [0.0, 0.2]
 
-test.control = playerEngine
+#test.control = playerEngine
 test.thrustForce = 0.5
 test.slideForce = 0.5
 test.torqueForce = 5.0
 
 
-other.drawsource = images/bullet.png
-other.radius = 1.0
+engine.source = engine.txt
+engine.control = playerEngine
+engine.radius = 0.1
+#engine.position = [0.5, 0.0]
+#engine.velocity = [-0.1, 0.0]
+
+#other.drawsource = images/bullet.png
+#other.radius = 1.0
