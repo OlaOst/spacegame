@@ -1096,6 +1096,8 @@ private:
     foreach (extraKey, extraValue; p_extraParams)
       values[extraKey] = extraValue;
       
+    values = parseRandomizedValues(values);
+      
     registerEntity(new Entity(values));
   }
   

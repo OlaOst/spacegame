@@ -51,7 +51,6 @@ struct SpawnerComponent
 {
   //Entity spawnBlueprint;
   string[string][string] spawnValuesNames; // we can have multiple spawns, each with a name : spawnName[spawnKey] = spawnValue
-  
   float[string] timeSinceLastSpawn;
   
   vec2 position = vec2(0.0, 0.0);
@@ -154,11 +153,12 @@ public:
           if ("position" in spawnValues)
             spawnValues["position"] = to!string(spawnValues["position"]);
           else if ("spawnPoint" in spawnValues)
-            spawnValues["position"] = to!string(component.position + vec2(spawnValues["spawnPoint"].to!(float[])[0..2]));
+            spawnValues["position"] = (component.position + mat2.rotation(-component.angle) * vec2(spawnValues["spawnPoint"].to!(float[])[0..2])).to!string;
           else
             spawnValues["position"] = to!string(component.position);
           
-          spawnValues["angle"] = to!string(spawnAngle * _180_PI);
+          if ("angle" !in spawnValues)
+            spawnValues["angle"] = to!string(spawnAngle * _180_PI);
           
           spawnValues["velocity"] = spawnVelocity.toString();
           spawnValues["force"] = spawnForce.toString();
@@ -218,6 +218,7 @@ protected:
         enforce(key.skipOver(spawnName ~ "."), "Could not parse spawn value for " ~ originalKey ~ ", spawn values must be on the form spawn.<spawnname>.<spawnkey>");
         
         component.spawnValuesNames[spawnName][key] = value;
+        component.timeSinceLastSpawn[spawnName] = float.infinity;
         
         //writeln("spawnname " ~ spawnName ~ " setting key " ~ key ~ " to value " ~ value);
       }

@@ -12,12 +12,16 @@ test.thrustForce = 0.5
 test.slideForce = 0.5
 test.torqueForce = 5.0
 
-test.spawn.sound.soundFile = 59__fectoper__nostromo.wav
-#test.spawn.sound.soundFile = engine4.wav
-test.spawn.sound.spawnsPerSecond = 1
-test.spawn.sound.lifetime = 2.0
+#test.spawn.sound.soundFile = 59__fectoper__nostromo.wav
+#test.spawn.sound.soundFile = gasturbinestartup.ogg
+test.spawn.sound.soundFile = engine4.wav
+test.spawn.sound.spawnsPerSecond = 20
+#test.spawn.sound.lifetime = 2.0
+
+test.spawn.exhaust.spawnPoint = [0.0, -0.1]
 
 test.spawn.exhaust.radius = 0.05
+test.spawn.exhaust.angle = 0 to 360
 test.spawn.exhaust.lifetime = 0.5
 test.spawn.exhaust.spawnForce = -0.5
 test.spawn.exhaust.drawsource = images\explosionSpriteSheet.png
