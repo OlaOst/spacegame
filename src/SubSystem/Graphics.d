@@ -269,7 +269,18 @@ public:
       //writeln(componentsWithSameTexture[0].radius);
       
       vec3[] verts;
-      verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles(component.texture))(componentsWithSameTexture);
+      //verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles(component.texture).map!(vertex => vertex - vec3(center, 0.0)).array())(componentsWithSameTexture);
+      
+      foreach (component; componentsWithSameTexture)
+      {
+        auto componentVerts = component.sprite.verticesForQuadTriangles(component.texture);
+        
+        foreach (ref vert; componentVerts)
+          vert -= vec3(center, 0.0);
+        
+        verts ~= componentVerts;
+      }
+      
       verticesVBO.update(verts, 0);
       
       vec2[] texs;        
@@ -294,16 +305,25 @@ public:
     // draw circle around stuff in debug mode
     debug
     {
-      drawDebugCircles();
+      drawDebugCircles(center, scale, drawBox);
     }
   }
   
-  void drawDebugCircles()
+  void drawDebugCircles(vec2 center, float scale, AABB!vec2 drawBox)
   {
     borderShader.bind();
     
     vec3[] verts;
-    verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles(component.texture))(components.filter!(component => component.frames == 0));
+    //verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles(component.texture))(components.filter!(component => component.frames == 0));
+    foreach (component; components.filter!(component => component.frames == 0))
+    {
+      auto componentVerts = component.sprite.verticesForQuadTriangles(component.texture);
+      
+      foreach (ref vert; componentVerts)
+        vert -= vec3(center, 0.0);
+      
+      verts ~= componentVerts;
+    }
     verticesVBO.update(verts, 0);
     
     vec2[] texs;
@@ -334,7 +354,7 @@ public:
       }
     }
   
-    draw(vec2(0.0, 0.0), 1.0, AABB!vec2(vec2(-1.0, -1.0), vec2(1.0, 1.0)));
+    draw(getCenterEntityPosition(), 1.0, AABB!vec2(vec2(-1.0, -1.0), vec2(1.0, 1.0)));
     
     swapBuffers();
   
