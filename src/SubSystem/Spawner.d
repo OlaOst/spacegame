@@ -52,6 +52,8 @@ struct SpawnerComponent
   //Entity spawnBlueprint;
   string[string][string] spawnValuesNames; // we can have multiple spawns, each with a name : spawnName[spawnKey] = spawnValue
   
+  float[string] timeSinceLastSpawn;
+  
   vec2 position = vec2(0.0, 0.0);
   vec2 velocity = vec2(0.0, 0.0);
   vec2 force = vec2(0.0, 0.0);
@@ -86,16 +88,24 @@ public:
   {
     m_spawnValues.length = 0;
     
-    foreach (ref component; components)
+    //foreach (ref component; components)
+    foreach (ref component; entityToComponent.byValue())
     {
       //writeln("spawner.update: " ~ to!string(component.entityId) ~ ": " ~ to!string(component.isSpawning));
       
       foreach (spawnName, spawnValuesOriginal; component.spawnValuesNames)
       {
+        component.timeSinceLastSpawn[spawnName] += m_timeStep;
+        
         if ((component.isSpawning && ("trigger" !in spawnValuesOriginal || spawnValuesOriginal["trigger"] == "isSpawning")) ||
             (component.startSpawning && "trigger" in spawnValuesOriginal && spawnValuesOriginal["trigger"] == "startSpawning") ||
             (component.stopSpawning && "trigger" in spawnValuesOriginal && spawnValuesOriginal["trigger"] == "stopSpawning"))
         {
+          if ("spawnsPerSecond" in spawnValuesOriginal && component.timeSinceLastSpawn[spawnName] < 1.0 / spawnValuesOriginal["spawnsPerSecond"].to!float)
+            continue;
+        
+          component.timeSinceLastSpawn[spawnName] = 0.0;
+        
           string[string] spawnValues = spawnValuesOriginal.dup;
 
           float spawnAngle = component.angle;
@@ -173,7 +183,11 @@ public:
     
     return tmp;
   }
-  
+
+  void setTimeStep(float p_timeStep)
+  {
+    m_timeStep = p_timeStep;
+  }  
   
 protected:
   bool canCreateComponent(Entity p_entity)
@@ -227,4 +241,6 @@ private:
   
 private:
   string[string][] m_spawnValues;
+  
+  float m_timeStep = 0.0;
 }

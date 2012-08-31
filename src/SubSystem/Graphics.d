@@ -169,6 +169,11 @@ public:
   
   Sprite sprite;
   
+  int frames;
+  int currentFrame;
+  float lifeTime = float.infinity;
+  float timeLived = 0.0;
+  
   @property vec2 position() { return vec2(sprite.position.xy); }
   @property void position(vec2 pos) { sprite.position.x = pos.x; sprite.position.y = pos.y; }
   
@@ -246,7 +251,7 @@ public:
     textureShader.bind();
     
     GraphicsComponent[][string] componentsForTexture;
-    foreach (component; components)
+    foreach (ref component; components)
       componentsForTexture[component.textureName] ~= component;
     
     foreach (textureName; m_imageToTexture.keys)
@@ -267,8 +272,9 @@ public:
       verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles(component.texture))(componentsWithSameTexture);
       verticesVBO.update(verts, 0);
       
-      vec2[] texs;
-      texs = texs.reduce!((arr, component) => arr ~ component.sprite.texCoordsForQuadTriangles(component.texture))(componentsWithSameTexture);
+      vec2[] texs;        
+      texs = texs.reduce!((arr, component) => arr ~ ((component.frames > 0) ? component.sprite.frameCoordsForQuadTriangles(component.currentFrame, sqrt(component.frames.to!float).to!int) : 
+                                                                              component.sprite.texCoordsForQuadTriangles))(componentsWithSameTexture);
       texVBO.update(texs, 0);
       
       verticesVBO.bind(0, GL_FLOAT, 3);
@@ -297,11 +303,11 @@ public:
     borderShader.bind();
     
     vec3[] verts;
-    verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles(component.texture))(components);
+    verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles(component.texture))(components.filter!(component => component.frames == 0));
     verticesVBO.update(verts, 0);
     
     vec2[] texs;
-    texs = texs.reduce!((arr, component) => arr ~ component.sprite.texCoordsForQuadTriangles(component.texture))(components);
+    texs = texs.reduce!((arr, component) => arr ~ component.sprite.texCoordsForQuadTriangles)(components.filter!(component => component.frames == 0));
     texVBO.update(texs, 0);
     
     verticesVBO.bind(0, GL_FLOAT, 3);
@@ -317,6 +323,17 @@ public:
   
   void update() 
   {
+    foreach (ref component; entityToComponent.byValue())
+    {
+      component.timeLived += m_timeStep;
+      
+      if (component.frames > 0)
+      {
+        //component.currentFrame++;
+        component.currentFrame = (((component.lifeTime - component.timeLived) / component.lifeTime) * component.frames).to!int;
+      }
+    }
+  
     draw(vec2(0.0, 0.0), 1.0, AABB!vec2(vec2(-1.0, -1.0), vec2(1.0, 1.0)));
     
     swapBuffers();
@@ -510,6 +527,10 @@ public:
     m_textRender.renderString(text);
   }
   
+  void setTimeStep(float p_timeStep)
+  {
+    m_timeStep = p_timeStep;
+  }
   
 protected:
   bool canCreateComponent(Entity p_entity)
@@ -674,6 +695,16 @@ protected:
         colorComponents ~= "1"; // default alpha is 1
 
       component.color = colorComponents.map!(to!float).array().vec4;
+    }
+    
+    if ("frames" in p_entity)
+    {
+      component.frames = p_entity["frames"].to!int;
+    }
+    
+    if ("lifetime" in p_entity)
+    {
+      component.lifeTime = p_entity["lifetime"].to!float;
     }
     
     /*if (component.drawSource != DrawSource.Text && 
@@ -1013,7 +1044,6 @@ private:
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
   
-  
 private:
   SDL_Window* window;
 
@@ -1038,6 +1068,8 @@ private:
   Entity m_targetEntity;
   
   string[][string] cache;
+  
+  float m_timeStep = 0.0;
 }
 
 

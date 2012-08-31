@@ -562,6 +562,8 @@ private:
       m_placer.setTimeStep(m_timer.elapsedTime);
       m_physics.setTimeStep(m_timer.elapsedTime);
       m_controller.setTimeStep(m_timer.elapsedTime);
+      m_graphics.setTimeStep(m_timer.elapsedTime);
+      m_spawner.setTimeStep(m_timer.elapsedTime);
       
       CommsCentral.setPlacerFromPhysics(m_physics, m_placer);
       CommsCentral.setPlacerFromConnector(m_connector, m_placer);

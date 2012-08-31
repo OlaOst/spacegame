@@ -63,7 +63,7 @@ struct Sprite
     return verts[0..3] ~ verts[0..1] ~ verts[2..4];
   }
   
-  @property vec2[] texCoordsForQuadTriangles(Texture2D texture)
+  @property vec2[] texCoordsForQuadTriangles()
   {
     auto coords = texCoords.dup;
     
@@ -97,6 +97,8 @@ struct Sprite
     frame = (size*size - frame) % (size*size);
     int row = (frame / size) % size;
     int col = (size-frame-1) % size;
+    
+    //std.stdio.writeln("framecoords showing frame number " ~ frame.to!string ~ " at " ~ row.to!string ~ "x" ~ col.to!string);
     
     auto frameCoords = [vec2(1.0/size * col, 1.0/size * row),
                         vec2(1.0/size * col, 1.0/size * (row+1)),

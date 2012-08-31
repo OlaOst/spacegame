@@ -170,6 +170,11 @@ public:
   {
     return m_entityToComponent.keys;
   }
+  
+  ComponentType[Entity] entityToComponent()
+  {
+    return m_entityToComponent;
+  }
 
   @property final string name()
   {
