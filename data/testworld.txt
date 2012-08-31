@@ -1,23 +1,18 @@
 test.drawsource = images/bugship.png
 test.keepInCenter = true
 
-test.radius = 0.1
-#test.angle = 45.0
-
-test.mass = 0.5
 test.position = [0.0, -0.5]
-#test.velocity = [0.0, 0.2]
+test.radius = 0.1
+test.mass = 0.5
+
 
 test.control = playerEngine
 test.thrustForce = 0.5
 test.slideForce = 0.5
 test.torqueForce = 5.0
 
-#test.spawn.sound.soundFile = 59__fectoper__nostromo.wav
-#test.spawn.sound.soundFile = gasturbinestartup.ogg
 test.spawn.sound.soundFile = engine4.wav
 test.spawn.sound.spawnsPerSecond = 20
-#test.spawn.sound.lifetime = 2.0
 
 test.spawn.exhaust.spawnPoint = [0.0, -0.1]
 test.spawn.exhaust.radius = 0.05
@@ -27,14 +22,34 @@ test.spawn.exhaust.spawnForce = -0.5
 test.spawn.exhaust.drawsource = images\explosionSpriteSheet.png
 test.spawn.exhaust.frames = 25
 test.spawn.exhaust.spawnsPerSecond = 30
-#test.spawn.exhaust.drawsource = Vertices
 
+test.connectpoint.upper.position = [0.0, 0.1]
 
-engine.source = engine.txt
-#engine.control = playerEngine
-engine.radius = 0.1
-#engine.position = [0.5, 0.0]
-#engine.velocity = [-0.1, 0.0]
+gun.connection = test.upper
+gun.drawsource = images/cannon.png
+gun.radius = 0.05
 
-#other.drawsource = images/bullet.png
-#other.radius = 1.0
+gun.control = playerLauncher
+
+#gun.spawn.*.spawnsPerSecond = 5 # this wildcard does not work for spawns yet
+
+gun.spawn.bullet.radius = 0.02
+gun.spawn.bullet.spawnPoint = [0.0, 0.05]
+gun.spawn.bullet.spawnForce = 2.0
+gun.spawn.bullet.drawsource = images\bullet.png
+gun.spawn.bullet.lifetime = 1.0
+gun.spawn.bullet.spawnsPerSecond = 5
+
+gun.spawn.flash.radius = 0.05
+gun.spawn.flash.spawnPoint = [0.0, 0.05]
+gun.spawn.flash.spawnForce = 0.75
+gun.spawn.flash.drawsource = images\explosionSpriteSheet.png
+gun.spawn.flash.lifetime = 0.1
+gun.spawn.flash.frames = 25
+gun.spawn.flash.spawnsPerSecond = 5
+
+gun.spawn.sound.soundFile = cannon3.wav
+gun.spawn.sound.spawnsPerSecond = 5
+
+#center.drawsource = images/stationplate.png
+#center.radius = 0.2

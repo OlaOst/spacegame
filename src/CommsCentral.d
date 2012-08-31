@@ -157,6 +157,8 @@ void setConnectorFromPlacer(Placer placer, ConnectionHandler connection)
     connectionComponent.position = placerComponent.position;
     connectionComponent.angle = placerComponent.angle;
     
+    //writeln("connector from placer, pos is " ~ connectionComponent.position.to!string);
+    
     return connectionComponent;
   });
 }
