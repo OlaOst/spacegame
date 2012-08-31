@@ -584,7 +584,7 @@ private:
       CommsCentral.setSpawnerFromController(m_controller, m_spawner);
       
       CommsCentral.setPhysicsFromConnector(m_connector, m_physics);
-      CommsCentral.setPhysicsFromSpawner(m_spawner, m_physics);
+      //CommsCentral.setPhysicsFromSpawner(m_spawner, m_physics);
       
       updateSubSystems();
       

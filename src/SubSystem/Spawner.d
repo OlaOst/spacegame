@@ -125,7 +125,7 @@ public:
           
           vec2 spawnForce = vec2(0.0, 0.0);
           if ("spawnForce" in spawnValues)
-            spawnForce = mat2.rotation(spawnAngle) * vec2(0.0, 1.0) * to!float(spawnValues["spawnForce"]);
+            spawnForce = mat2.rotation(-spawnAngle) * vec2(0.0, 1.0) * to!float(spawnValues["spawnForce"]);
             
           auto spawnVelocity = component.velocity + spawnForce;
           
