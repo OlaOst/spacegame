@@ -114,7 +114,7 @@ public:
     relativePosition = vec2(0.0, 0.0);
     relativePositionToCenterOfMass = vec2(0.0, 0.0);
     relativeAngle = 0.0;
-  } 
+  }
   
   
 public:
@@ -333,8 +333,10 @@ protected:
     
     vec2 relativePosition = vec2(0.0, 0.0);
     vec2 relativePositionToCenterOfMass = vec2(0.0, 0.0);
-    if (p_entity.getValue("connection").length > 0)
+    //if (p_entity.getValue("connection").length > 0)
+    if ("connection" in p_entity)
     {
+      writeln("connection: " ~ p_entity["connection"]);
       auto entityIdAndConnectPointName = extractEntityIdAndConnectPointName(p_entity.getValue("connection"));
       
       auto connectEntityId = -1;
@@ -373,6 +375,8 @@ protected:
     
     if (p_entity.getValue("owner").length > 0)
     {
+      debug writeln("owner is " ~ p_entity["owner"]);
+      
       int ownerId = to!int(p_entity.getValue("owner"));
       
       if (ownerId == p_entity.id)
@@ -406,6 +410,8 @@ protected:
     newComponent.relativePosition = relativePosition;
     newComponent.relativePositionToCenterOfMass = relativePosition; // calculate actual center of mass position later on
     newComponent.connectPoints = connectPoints;
+    
+    writeln("Entity " ~ p_entity["name"] ~ " setting relativePosition to " ~ newComponent.relativePosition.to!string);
     
     if (p_entity.getValue("relativePosition").length > 0)
     {

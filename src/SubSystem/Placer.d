@@ -77,7 +77,8 @@ public:
 protected:
   bool canCreateComponent(Entity p_entity)
   {
-    return p_entity.getValue("position").length > 0;
+    return "position" in p_entity || 
+           "connection" in p_entity;
   }
   
   

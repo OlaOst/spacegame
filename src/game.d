@@ -229,6 +229,9 @@ public:
     {
       auto spawnName = orderedEntityName;
       
+      if ("name" !in spawnNameWithValues[spawnName])
+        spawnNameWithValues[spawnName]["name"] = spawnName;
+      
       int spawnCount = 1;
       if ("spawnCount" in spawnNameWithValues[spawnName])
         spawnCount = to!int(spawnNameWithValues[spawnName]["spawnCount"]);
@@ -237,7 +240,7 @@ public:
       {
         auto extraValues = spawnNameWithValues[spawnName].dup;
         
-        extraValues = parseRandomizedValues(extraValues);      
+        extraValues = parseRandomizedValues(extraValues);
         
         Entity spawn;
 
@@ -247,6 +250,26 @@ public:
           loadEntityCollection(worldEntity.getValue(spawnName ~ ".collectionSource"), extraValues);
         else
           spawn = loadShip(worldEntity.getValue(spawnName ~ ".source"), extraValues);
+      }
+    }
+    
+    // make sure entities are connected properly if they haven't resolved owner id and stuff yet
+    foreach (entity; m_entities)
+    {
+      if ("connection" in entity && "owner" !in entity)
+      {
+        string connectionName = entity["connection"].until(".").to!string;
+        auto candidate = m_entities.values.find!(candidate => candidate["name"] == connectionName);
+        
+        if (!candidate.empty)
+        {
+          writeln("setting owner on " ~ entity["name"].to!string ~ " to " ~ candidate[0]["name"].to!string ~ " with id " ~ candidate[0].id.to!string);
+          entity.setValue("owner", candidate[0].id.to!string);
+          
+          entity.setValue("connection", entity["connection"].replace(connectionName, candidate[0].id.to!string));
+          
+          m_connector.registerEntity(entity);
+        }
       }
     }
   }

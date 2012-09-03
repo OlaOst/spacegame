@@ -24,7 +24,7 @@ test.spawn.exhaust.drawsource = images\explosionSpriteSheet.png
 test.spawn.exhaust.frames = 25
 test.spawn.exhaust.spawnsPerSecond = 30
 
-test.connectpoint.upper.position = [0.0, 0.1]
+test.connectpoint.upper.position = [0.0, 1.0]
 
 
 gun.connection = test.upper
