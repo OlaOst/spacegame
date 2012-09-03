@@ -343,6 +343,8 @@ public:
   
   void update() 
   {
+    int index = 0;
+    
     foreach (ref component; entityToComponent.byValue())
     {
       component.timeLived += m_timeStep;
@@ -352,6 +354,8 @@ public:
         //component.currentFrame++;
         component.currentFrame = (((component.lifeTime - component.timeLived) / component.lifeTime) * component.frames).to!int;
       }
+      
+      //writeln("comp " ~ index++.to!string ~ " pos is " ~ component.position.to!string);
     }
   
     draw(getCenterEntityPosition(), 1.0, AABB!vec2(vec2(-1.0, -1.0), vec2(1.0, 1.0)));

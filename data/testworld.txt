@@ -19,11 +19,13 @@ test.spawn.exhaust.radius = 0.05
 test.spawn.exhaust.angle = 0 to 360
 test.spawn.exhaust.lifetime = 0.5
 test.spawn.exhaust.spawnForce = -0.5
+#test.spawn.exhaust.spawnAngle = -60 to 60
 test.spawn.exhaust.drawsource = images\explosionSpriteSheet.png
 test.spawn.exhaust.frames = 25
 test.spawn.exhaust.spawnsPerSecond = 30
 
 test.connectpoint.upper.position = [0.0, 0.1]
+
 
 gun.connection = test.upper
 gun.drawsource = images/cannon.png
@@ -31,25 +33,19 @@ gun.radius = 0.05
 
 gun.control = playerLauncher
 
-#gun.spawn.*.spawnsPerSecond = 5 # this wildcard does not work for spawns yet
+gun.spawn.*.spawnsPerSecond = 5
+gun.spawn.*.spawnPoint = [0.0, 0.07]
 
 gun.spawn.bullet.radius = 0.02
-gun.spawn.bullet.spawnPoint = [0.0, 0.05]
 gun.spawn.bullet.spawnForce = 2.0
 gun.spawn.bullet.drawsource = images\bullet.png
 gun.spawn.bullet.lifetime = 1.0
-gun.spawn.bullet.spawnsPerSecond = 5
 
-gun.spawn.flash.radius = 0.05
-gun.spawn.flash.spawnPoint = [0.0, 0.05]
-gun.spawn.flash.spawnForce = 0.75
-gun.spawn.flash.drawsource = images\explosionSpriteSheet.png
-gun.spawn.flash.lifetime = 0.1
-gun.spawn.flash.frames = 25
-gun.spawn.flash.spawnsPerSecond = 5
+gun.spawn.muzzleflash.radius = 0.05
+gun.spawn.muzzleflash.angle = 0 to 360
+gun.spawn.muzzleflash.spawnForce = 0.75
+gun.spawn.muzzleflash.drawsource = images\explosionSpriteSheet.png
+gun.spawn.muzzleflash.frames = 25
+gun.spawn.muzzleflash.lifetime = 0.1
 
 gun.spawn.sound.soundFile = cannon3.wav
-gun.spawn.sound.spawnsPerSecond = 5
-
-#center.drawsource = images/stationplate.png
-#center.radius = 0.2

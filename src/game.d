@@ -183,11 +183,6 @@ public:
     
     //SDL_EnableUNICODE(1);
     
-    //loadWorldFromFile("data/simpleworld2.txt");
-    //loadWorldFromFile("data/world.txt");
-    
-    //Entity station = loadShip("", getValues(cache, EntityGenerator.createStation()));
-    
     //m_starfield = new Starfield(m_graphics, 1000.0);
 
     m_inputHandler.setScreenResolution(xres, yres);
@@ -585,7 +580,7 @@ private:
       CommsCentral.setPhysicsFromController(m_controller, m_physics);
       CommsCentral.setSpawnerFromController(m_controller, m_spawner);
       
-      CommsCentral.setPhysicsFromConnector(m_connector, m_physics);
+      //CommsCentral.setPhysicsFromConnector(m_connector, m_physics);
       //CommsCentral.setPhysicsFromSpawner(m_spawner, m_physics);
       
       updateSubSystems();

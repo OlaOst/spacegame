@@ -212,8 +212,8 @@ protected:
         
         string spawnName = to!string(key.until("."));
         
-        if (spawnName == "*")
-          continue;
+        //if (spawnName == "*")
+          //continue;
         
         enforce(key.skipOver(spawnName ~ "."), "Could not parse spawn value for " ~ originalKey ~ ", spawn values must be on the form spawn.<spawnname>.<spawnkey>");
         
@@ -222,6 +222,23 @@ protected:
         
         //writeln("spawnname " ~ spawnName ~ " setting key " ~ key ~ " to value " ~ value);
       }
+    }
+    
+    if ("*" in component.spawnValuesNames)
+    {
+      foreach (spawnName; component.spawnValuesNames.keys.filter!(name => name != "*"))
+      {
+        foreach (wildcardKey, wildcardValue; component.spawnValuesNames["*"])
+        {
+          if (wildcardKey !in component.spawnValuesNames[spawnName])
+          {
+            //debug writeln("setting " ~ wildcardKey ~ " to " ~ wildcardValue ~ " in " ~ spawnName);
+            component.spawnValuesNames[spawnName][wildcardKey] = wildcardValue;
+          }
+        }
+      }
+      
+      component.spawnValuesNames.remove("*");
     }
     
     component.entityId = p_entity.id;

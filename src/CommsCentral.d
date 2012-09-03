@@ -144,7 +144,7 @@ void setPlacerFromConnector(ConnectionHandler connection, Placer placer)
     placerComponent.velocity = ownerComponent.velocity;
     placerComponent.rotation = ownerComponent.rotation;
     
-    //writeln("placer from connector, pos is " ~ placerComponent.position.toString());
+    //writeln("placer from connector, pos is " ~ placerComponent.position.toString() ~ ", owner is " ~ connectionComponent.owner.id.to!string);
     
     return placerComponent;
   });
