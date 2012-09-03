@@ -119,7 +119,7 @@ public:
       assert(centerComponent.position.ok);
     }
     
-    alListener3f(AL_POSITION, centerComponent.position.x, centerComponent.position.y, 0.0);
+    alListener3f(AL_POSITION, centerComponent.position.x, centerComponent.position.y, 1.0);
     alListener3f(AL_VELOCITY, centerComponent.velocity.x, centerComponent.velocity.y, 0.0);
     
     //writeln("shouldstartplaying: " ~ to!string(filter!(c => c.shouldStartPlaying)(components).array.length));
