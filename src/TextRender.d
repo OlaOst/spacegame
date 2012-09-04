@@ -279,7 +279,7 @@ private:
   void setupAtlas(string font)
   {
     GLubyte[] data;
-    data.length = ((16 * 32) ^^ 2) * 4;
+    data.length = ((16 * 32) ^^ 2) * 4 + (16*32*4*4);
     
     foreach (index; iota(0, 256))
     {
@@ -297,13 +297,18 @@ private:
           data[(col*32 + row*32*16*32 + x + y*32*16)*4 + 2] = glyph.data[((31-y) * 32 + x)*4 + 2];
           data[(col*32 + row*32*16*32 + x + y*32*16)*4 + 3] = glyph.data[((31-y) * 32 + x)*4 + 3];*/
           
-          data[(col*32 + row*32*16*32 + x + y*32*16)*4 + 0] = glyph.data[(y * 32 + x)*4 + 0];
-          data[(col*32 + row*32*16*32 + x + y*32*16)*4 + 1] = glyph.data[(y * 32 + x)*4 + 1];
-          data[(col*32 + row*32*16*32 + x + y*32*16)*4 + 2] = glyph.data[(y * 32 + x)*4 + 2];
-          data[(col*32 + row*32*16*32 + x + y*32*16)*4 + 3] = glyph.data[(y * 32 + x)*4 + 3];
+          data[4 + (4*16*32) + (col*32 + row*32*16*32 + x + y*32*16)*4 + 0] = glyph.data[(y * 32 + x)*4 + 0];
+          data[4 + (4*16*32) + (col*32 + row*32*16*32 + x + y*32*16)*4 + 1] = glyph.data[(y * 32 + x)*4 + 1];
+          data[4 + (4*16*32) + (col*32 + row*32*16*32 + x + y*32*16)*4 + 2] = glyph.data[(y * 32 + x)*4 + 2];
+          data[4 + (4*16*32) + (col*32 + row*32*16*32 + x + y*32*16)*4 + 3] = glyph.data[(y * 32 + x)*4 + 3];
         }
       }
     }
+    
+    //glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, [1.0f, 0.0f, 0.0f, 0.0f].ptr);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     
     m_atlas[font] = new Texture2D();
     m_atlas[font].set_data(data, GL_RGBA, 16*32, 16*32, GL_RGBA, GL_UNSIGNED_BYTE);

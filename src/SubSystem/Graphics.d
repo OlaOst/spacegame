@@ -284,7 +284,7 @@ public:
       verticesVBO.update(verts, 0);
       
       vec2[] texs;        
-      texs = texs.reduce!((arr, component) => arr ~ ((component.frames > 0) ? component.sprite.frameCoordsForQuadTriangles(component.currentFrame, sqrt(component.frames.to!float).to!int) : 
+      texs = texs.reduce!((arr, component) => arr ~ ((component.frames > 0) ? component.sprite.frameCoordsForQuadTriangles(component.currentFrame, sqrt(component.frames.to!float).to!int, true) : 
                                                                               component.sprite.texCoordsForQuadTriangles))(componentsWithSameTexture);
       texVBO.update(texs, 0);
       
@@ -317,7 +317,7 @@ public:
           
         verts ~= spriteVerts;
         
-        texs ~= sprite.frameCoordsForQuadTriangles(component.text[index].to!int, 16);
+        texs ~= sprite.frameCoordsForQuadTriangles(component.text[index].to!int, 16, false);
       }
       
       verticesVBO.update(verts, 0);

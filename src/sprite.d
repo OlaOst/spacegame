@@ -92,7 +92,7 @@ struct Sprite
     return (coords[0..3] ~ coords[0..1] ~ coords[2..4]);
   }
   
-  vec2[] frameCoordsForQuadTriangles(int frame, int size)
+  vec2[] frameCoordsForQuadTriangles(int frame, int size, bool flipped)
   {
     //frame = (size*size - frame) % (size*size);
     //int row = (frame / size) % size;
@@ -101,6 +101,13 @@ struct Sprite
     //frame = (size*size - frame) % (size*size);
     int row = (frame / size) % size;
     int col = (frame) % size;
+    
+    if (flipped)
+    {
+      frame = (size*size - frame) % (size*size);
+      row = (frame / size) % size;
+      col = (size-frame-1) % size;
+    }
     
     //std.stdio.writeln("framecoords with size " ~ size.to!string ~ " showing frame number " ~ frame.to!string ~ " at " ~ row.to!string ~ "x" ~ col.to!string);
     
