@@ -229,7 +229,7 @@ public:
     dummyTex.length = 1000 * 6;
     texVBO = new Buffer(dummyTex);
     
-    m_zoom = 0.5;
+    m_zoom = 0.1;
     
     m_mouseWorldPos = vec2(0.0, 0.0);
     

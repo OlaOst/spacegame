@@ -184,7 +184,7 @@ public:
       Sprite sprite;
       
       sprite.scale = scale;
-      sprite.position = cursor + vec3(glyph.offset.x * sprite.scale, glyph.offset.y * sprite.scale, 0.0);
+      sprite.position = cursor + vec3(glyph.offset.x * sprite.scale * 2, glyph.offset.y * sprite.scale * 2, 0.0);
       
       stringSprites ~= sprite;
       
