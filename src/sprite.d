@@ -26,12 +26,6 @@ struct Sprite
   
   vec3[] _vertices;
   
-  /*@property vec3[] vertices()
-  {
-    transformVertices(origo.dup);
-    return _vertices;
-  }*/
-  
   @property vec3[] verticesForQuadTriangles(Texture2D texture)
   {
     auto source = origo.dup;
@@ -66,39 +60,12 @@ struct Sprite
   @property vec2[] texCoordsForQuadTriangles()
   {
     auto coords = texCoords.dup;
-    
-    /*if (texture !is null)
-    {
-      if (texture.width > texture.height)
-      {
-        auto ratio = cast(float)texture.width / texture.height;
-        
-        coords = [vec2(0.0, 0.0),
-                  vec2(0.0, ratio),
-                  vec2(1.0, ratio),
-                  vec2(1.0, 0.0)];
-      }
-      else
-      {
-        auto ratio = cast(float)texture.height / texture.width;
-        
-        coords = [vec2(1.0-ratio+ratio/2, 0.0),
-                  vec2(1.0-ratio+ratio/2, 1.0),
-                  vec2(ratio/2, 1.0),
-                  vec2(ratio/2, 0.0)];
-      }
-    }*/
                       
     return (coords[0..3] ~ coords[0..1] ~ coords[2..4]);
   }
   
   vec2[] frameCoordsForQuadTriangles(int frame, int size, bool flipped)
   {
-    //frame = (size*size - frame) % (size*size);
-    //int row = (frame / size) % size;
-    //int col = (size-frame-1) % size;
-    
-    //frame = (size*size - frame) % (size*size);
     int row = (frame / size) % size;
     int col = (frame) % size;
     
@@ -115,12 +82,6 @@ struct Sprite
                         vec2(1.0/size * col, 1.0/size * (row+1)),
                         vec2(1.0/size * (col+1), 1.0/size * (row+1)),
                         vec2(1.0/size * (col+1), 1.0/size * row)];
-    
-    /*auto frameCoords = [vec2(1.0/size * (col+0), 1.0/size * (row+1)),
-                        vec2(1.0/size * (col+0), 1.0/size * (row+0)),
-                        vec2(1.0/size * (col+1), 1.0/size * (row+0)),
-                        vec2(1.0/size * (col+1), 1.0/size * (row+1)),
-                        ];*/
     
     return (frameCoords[0..3] ~ frameCoords[0..1] ~ frameCoords[2..4]);
   }
@@ -190,14 +151,9 @@ struct Sprite
   }
   vec3[] transformVertices(vec3[] vertices)
   {
-    //auto transform = mat4.translation(position.x, position.y, position.z).rotatez(-angle).scale(scale, scale, 1.0);
-    auto transform = mat4.identity;//.rotatez(-angle).translate(position.x, position.y, position.z).scale(scale, scale, 1.0);
-    //transform = transform.rotatez(-angle).translate(position.x, position.y, position.z).scale(scale, scale, 1.0);
+    auto transform = mat4.identity;
+    
     transform = transform.scale(scale, scale, 1.0).rotatez(-angle).translate(position.x, position.y, position.z);
-    
-    //_vertices = origo.dup;
-    
-    //return verts.map!(vert => vec3(vec4(vert, 1.0) * transform)).array();
     
     vec3[] verts = vertices.dup;
     
@@ -205,12 +161,5 @@ struct Sprite
       vertex = vec3((vec4(vertex, 1.0) * transform));
       
     return verts;
-      
-    //for (int index = 0; index < origo.length; index++)
-    //{
-      //_vertices[index] = (vec4(vector, 1.0) * transform).xyz;
-    //}
-    
-    //_vertices = origo.dup.map!(vector => (vec4(vector, 1.0) * transform).xyz).array().to!(Vector!(float,3)[]);
   }
 }
