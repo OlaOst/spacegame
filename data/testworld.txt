@@ -1,6 +1,6 @@
 greeting.position = [0.0, 0.0]
 greeting.radius = 0.05
-greeting.text = Hello world
+greeting.text = Hello,\n world
 
 test.drawsource = images/bugship.png
 test.keepInCenter = true

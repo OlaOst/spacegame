@@ -172,7 +172,9 @@ public:
     
     vec3 cursor = vec3(position.xy, 0.0);
     
-    foreach (character; text)
+    bool nextCharacterIsControlCharacter = false;
+    
+    void addCharacter(ref Sprite[] stringSprites, char character, ref vec3 cursor)
     {
       auto glyph = loadGlyph(character);
       
@@ -187,6 +189,50 @@ public:
       stringSprites ~= sprite;
       
       cursor += vec3(glyph.advance.x * sprite.scale * 2, glyph.advance.y * sprite.scale * 2, 0.0);
+    }
+    
+    foreach (character; text)
+    {
+      if (character == '\\')
+      {
+        nextCharacterIsControlCharacter = true;
+      }
+      else
+      {
+        if (nextCharacterIsControlCharacter)
+        {
+          if (character == 'n')
+          {
+            cursor = vec3(position.x, cursor.y - 1.0 * scale * 2, 0.0);
+          }
+          if (character == '\\')
+          {
+            addCharacter(stringSprites, character, cursor);
+          }
+            
+          nextCharacterIsControlCharacter = false;
+        }
+        else
+        {
+          addCharacter(stringSprites, character, cursor);
+        }
+      }
+      
+      //addCharacter(stringSprites, character, cursor);
+      
+      /*auto glyph = loadGlyph(character);
+      
+      auto xCoord = cast(float)glyph.bitmap.width / 32.0;
+      auto yCoord = cast(float)glyph.bitmap.rows / 32.0;
+    
+      Sprite sprite;
+      
+      sprite.scale = scale;
+      sprite.position = cursor + vec3(glyph.offset.x * sprite.scale, glyph.offset.y * sprite.scale, 0.0);
+      
+      stringSprites ~= sprite;
+      
+      cursor += vec3(glyph.advance.x * sprite.scale * 2, glyph.advance.y * sprite.scale * 2, 0.0);*/
     }
     
     return stringSprites;

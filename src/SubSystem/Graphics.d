@@ -229,7 +229,7 @@ public:
     dummyTex.length = 1000 * 6;
     texVBO = new Buffer(dummyTex);
     
-    m_zoom = 0.1;
+    m_zoom = 0.5;
     
     m_mouseWorldPos = vec2(0.0, 0.0);
     
@@ -276,7 +276,11 @@ public:
         auto componentVerts = component.sprite.verticesForQuadTriangles(component.texture);
         
         foreach (ref vert; componentVerts)
+        {
           vert -= vec3(center, 0.0);
+          
+          vert *= scale;
+        }
         
         verts ~= componentVerts;
       }
@@ -308,16 +312,22 @@ public:
       vec3[] verts;
       vec2[] texs;
       
+      auto text = component.text.replace("\\n", "");
+      
       foreach (int index, Sprite sprite; stringSprites)
       {
         auto spriteVerts = sprite.verticesForQuadTriangles(m_textRender.atlas);
         
         foreach (ref vert; spriteVerts)
+        {
           vert -= vec3(center, 0.0);
+          
+          vert *= scale;
+        }
           
         verts ~= spriteVerts;
         
-        texs ~= sprite.frameCoordsForQuadTriangles(component.text[index].to!int, 16, false);
+        texs ~= sprite.frameCoordsForQuadTriangles(text[index].to!int, 16, false);
       }
       
       verticesVBO.update(verts, 0);
@@ -356,7 +366,11 @@ public:
       auto componentVerts = component.sprite.verticesForQuadTriangles(component.texture);
       
       foreach (ref vert; componentVerts)
+      {
         vert -= vec3(center, 0.0);
+        
+        vert *= scale;
+      }
       
       verts ~= componentVerts;
     }
@@ -394,7 +408,7 @@ public:
       //writeln("comp " ~ index++.to!string ~ " pos is " ~ component.position.to!string);
     }
   
-    draw(getCenterEntityPosition(), 1.0, AABB!vec2(vec2(-1.0, -1.0), vec2(1.0, 1.0)));
+    draw(getCenterEntityPosition(), m_zoom, AABB!vec2(vec2(-1.0, -1.0), vec2(1.0, 1.0)));
     
     swapBuffers();
   
