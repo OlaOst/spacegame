@@ -275,11 +275,14 @@ public:
       {
         auto componentVerts = component.sprite.verticesForQuadTriangles(component.texture);
         
-        foreach (ref vert; componentVerts)
+        if (component.screenAbsolutePosition == false)
         {
-          vert -= vec3(center, 0.0);
-          
-          vert *= scale;
+          foreach (ref vert; componentVerts)
+          {
+            vert -= vec3(center, 0.0);
+            
+            vert *= scale;
+          }
         }
         
         verts ~= componentVerts;
@@ -318,13 +321,23 @@ public:
       {
         auto spriteVerts = sprite.verticesForQuadTriangles(m_textRender.atlas);
         
-        foreach (ref vert; spriteVerts)
+        if (component.screenAbsolutePosition == false)
+        {        
+          foreach (ref vert; spriteVerts)
+          {
+            vert -= vec3(center, 0.0);
+            
+            vert *= scale;
+          }
+        } 
+        else
         {
-          vert -= vec3(center, 0.0);
-          
-          vert *= scale;
+          foreach (ref vert; spriteVerts)
+          {
+            vert += vec3(component.position.x / 0.03, component.position.y / 0.03, 0.0);
+            vert *= 0.02;
+          }
         }
-          
         verts ~= spriteVerts;
         
         texs ~= sprite.frameCoordsForQuadTriangles(text[index].to!int, 16, false);
@@ -361,7 +374,7 @@ public:
     
     vec3[] verts;
     //verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles(component.texture))(components.filter!(component => component.frames == 0));
-    foreach (component; components.filter!(component => component.frames == 0 && component.drawSource != DrawSource.Text))
+    foreach (component; components.filter!(component => component.frames == 0 && component.drawSource != DrawSource.Text && component.screenAbsolutePosition == false))
     {
       auto componentVerts = component.sprite.verticesForQuadTriangles(component.texture);
       
