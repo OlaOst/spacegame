@@ -300,6 +300,42 @@ public:
       texVBO.unbind();
       verticesVBO.unbind();
     }
+    
+    foreach (component; components.filter!(component => component.drawSource == DrawSource.Text))
+    {
+      auto stringSprites = m_textRender.getStringSprites(component.text, component.position, component.radius);
+      
+      vec3[] verts;
+      vec2[] texs;
+      
+      foreach (int index, Sprite sprite; stringSprites)
+      {
+        auto spriteVerts = sprite.verticesForQuadTriangles(m_textRender.atlas);
+        
+        foreach (ref vert; spriteVerts)
+          vert -= vec3(center, 0.0);
+          
+        verts ~= spriteVerts;
+        
+        texs ~= sprite.frameCoordsForQuadTriangles(component.text[index].to!int, 16);
+      }
+      
+      verticesVBO.update(verts, 0);
+      texVBO.update(texs, 0);
+      
+      verticesVBO.bind(0, GL_FLOAT, 3);
+      texVBO.bind(1, GL_FLOAT, 2);
+      m_textRender.atlas.bind_and_activate();
+      
+      glDrawArrays(GL_TRIANGLES, 0, verts.length);
+      
+      m_textRender.atlas.unbind();
+      texVBO.unbind();
+      verticesVBO.unbind();
+      
+      //writeln("got " ~ stringSprites.to!string ~ " stringsprites for text " ~ component.text);
+    }
+    
     textureShader.unbind();
     
     // draw circle around stuff in debug mode
@@ -315,7 +351,7 @@ public:
     
     vec3[] verts;
     //verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles(component.texture))(components.filter!(component => component.frames == 0));
-    foreach (component; components.filter!(component => component.frames == 0))
+    foreach (component; components.filter!(component => component.frames == 0 && component.drawSource != DrawSource.Text))
     {
       auto componentVerts = component.sprite.verticesForQuadTriangles(component.texture);
       

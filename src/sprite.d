@@ -94,16 +94,26 @@ struct Sprite
   
   vec2[] frameCoordsForQuadTriangles(int frame, int size)
   {
-    frame = (size*size - frame) % (size*size);
-    int row = (frame / size) % size;
-    int col = (size-frame-1) % size;
+    //frame = (size*size - frame) % (size*size);
+    //int row = (frame / size) % size;
+    //int col = (size-frame-1) % size;
     
-    //std.stdio.writeln("framecoords showing frame number " ~ frame.to!string ~ " at " ~ row.to!string ~ "x" ~ col.to!string);
+    //frame = (size*size - frame) % (size*size);
+    int row = (frame / size) % size;
+    int col = (frame) % size;
+    
+    //std.stdio.writeln("framecoords with size " ~ size.to!string ~ " showing frame number " ~ frame.to!string ~ " at " ~ row.to!string ~ "x" ~ col.to!string);
     
     auto frameCoords = [vec2(1.0/size * col, 1.0/size * row),
                         vec2(1.0/size * col, 1.0/size * (row+1)),
                         vec2(1.0/size * (col+1), 1.0/size * (row+1)),
                         vec2(1.0/size * (col+1), 1.0/size * row)];
+    
+    /*auto frameCoords = [vec2(1.0/size * (col+0), 1.0/size * (row+1)),
+                        vec2(1.0/size * (col+0), 1.0/size * (row+0)),
+                        vec2(1.0/size * (col+1), 1.0/size * (row+0)),
+                        vec2(1.0/size * (col+1), 1.0/size * (row+1)),
+                        ];*/
     
     return (frameCoords[0..3] ~ frameCoords[0..1] ~ frameCoords[2..4]);
   }

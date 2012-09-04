@@ -336,7 +336,6 @@ protected:
     //if (p_entity.getValue("connection").length > 0)
     if ("connection" in p_entity)
     {
-      writeln("connection: " ~ p_entity["connection"]);
       auto entityIdAndConnectPointName = extractEntityIdAndConnectPointName(p_entity.getValue("connection"));
       
       auto connectEntityId = -1;
@@ -375,8 +374,6 @@ protected:
     
     if (p_entity.getValue("owner").length > 0)
     {
-      debug writeln("owner is " ~ p_entity["owner"]);
-      
       int ownerId = to!int(p_entity.getValue("owner"));
       
       if (ownerId == p_entity.id)
@@ -411,7 +408,7 @@ protected:
     newComponent.relativePositionToCenterOfMass = relativePosition; // calculate actual center of mass position later on
     newComponent.connectPoints = connectPoints;
     
-    writeln("Entity " ~ p_entity["name"] ~ " setting relativePosition to " ~ newComponent.relativePosition.to!string);
+    //writeln("Entity " ~ p_entity["name"] ~ " setting relativePosition to " ~ newComponent.relativePosition.to!string);
     
     if (p_entity.getValue("relativePosition").length > 0)
     {
@@ -421,6 +418,10 @@ protected:
     if (p_entity.getValue("relativeAngle").length > 0)
     {
       newComponent.relativeAngle = to!float(p_entity.getValue("relativeAngle")) * PI_180;
+    }
+    else if ("angle" in p_entity)
+    {
+      newComponent.relativeAngle = p_entity["angle"].to!float * PI_180;
     }
     
     if (p_entity.getValue("mass").length > 0)

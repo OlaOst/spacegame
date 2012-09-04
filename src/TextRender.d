@@ -22,6 +22,7 @@
 
 module TextRender;
 
+import std.algorithm;
 import std.conv;
 import std.exception;
 import std.range;
@@ -33,6 +34,8 @@ import derelict.opengl3.glx;
 
 import glamour.texture;
 import gl3n.linalg;
+
+import sprite;
 
 
 unittest
@@ -83,11 +86,16 @@ public:
     
     enforce(FT_Init_FreeType(&lib) == false, "Error initializing FreeType");
     
-    auto fontError = FT_New_Face(lib, "./freesansbold.ttf", 0, &m_face);
+    defaultFont = "freesansbold.ttf";
+    
+    auto fontError = FT_New_Face(lib, ("./" ~ defaultFont).toStringz(), 0, &m_face);
     enforce(fontError != FT_Err_Unknown_File_Format, "Error, font format unsupported");
     enforce(fontError == false, "Error loading font file");
     
     FT_Set_Pixel_Sizes(m_face, 32, 32);
+    
+    
+    setupAtlas(defaultFont);
   }
   
   
@@ -100,7 +108,7 @@ public:
     auto xCoord = cast(float)glyph.bitmap.width / 32.0;
     auto yCoord = cast(float)glyph.bitmap.rows / 32.0;
     
-    glBindTexture(GL_TEXTURE_2D, glyph.textureId);
+    //glBindTexture(GL_TEXTURE_2D, glyph.textureId);
 
     // translate the glyph so that its 'origin' matches the pen position
     /*glPushMatrix();
@@ -155,7 +163,38 @@ public:
       
     //glPopMatrix();
     
-    glDisable(GL_TEXTURE_2D);
+    //glDisable(GL_TEXTURE_2D);
+  }
+    
+  Sprite[] getStringSprites(string text, vec2 position, float scale)
+  {
+    Sprite[] stringSprites;
+    
+    vec3 cursor = vec3(position.xy, 0.0);
+    
+    foreach (character; text)
+    {
+      auto glyph = loadGlyph(character);
+      
+      auto xCoord = cast(float)glyph.bitmap.width / 32.0;
+      auto yCoord = cast(float)glyph.bitmap.rows / 32.0;
+    
+      Sprite sprite;
+      
+      sprite.scale = scale;
+      sprite.position = cursor + vec3(glyph.offset.x * sprite.scale, glyph.offset.y * sprite.scale, 0.0);
+      
+      stringSprites ~= sprite;
+      
+      cursor += vec3(glyph.advance.x * sprite.scale * 2, glyph.advance.y * sprite.scale * 2, 0.0);
+    }
+    
+    return stringSprites;
+  }
+  
+  @property Texture2D atlas()
+  {
+    return m_atlas[defaultFont];
   }
   
   
@@ -208,10 +247,10 @@ private:
       {
         int coord = 4 * (x + y*glyphWidth);
         
-        glyph.data[coord+0] = unalignedGlyph[x + y*m_face.glyph.bitmap.width];
-        glyph.data[coord+1] = unalignedGlyph[x + y*m_face.glyph.bitmap.width];
-        glyph.data[coord+2] = unalignedGlyph[x + y*m_face.glyph.bitmap.width];
-        glyph.data[coord+3] = unalignedGlyph[x + y*m_face.glyph.bitmap.width];
+        glyph.data[coord+0] = unalignedGlyph[x + (m_face.glyph.bitmap.rows-1-y)*m_face.glyph.bitmap.width];
+        glyph.data[coord+1] = unalignedGlyph[x + (m_face.glyph.bitmap.rows-1-y)*m_face.glyph.bitmap.width];
+        glyph.data[coord+2] = unalignedGlyph[x + (m_face.glyph.bitmap.rows-1-y)*m_face.glyph.bitmap.width];
+        glyph.data[coord+3] = unalignedGlyph[x + (m_face.glyph.bitmap.rows-1-y)*m_face.glyph.bitmap.width];
         
         //debug write(glyph.data[coord]>0?(to!string(glyph.data[coord]/26)):".");
       }
@@ -219,25 +258,63 @@ private:
     }
     //debug writeln("");
 
-    glGenTextures(1, &glyph.textureId);
+    /*glGenTextures(1, &glyph.textureId);
     assert(glyph.textureId > 0, "Failed to generate texture id: " ~ to!string(glGetError()));
     
     glBindTexture(GL_TEXTURE_2D, glyph.textureId);
     
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, glyphWidth, glyphHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, glyph.data.ptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, glyphWidth, glyphHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, glyph.data.ptr);*/
+    
+    //glyph.texture = new Texture2D();
+    //glyph.texture.set_data(glyph.data, GL_RGBA, glyphWidth, glyphHeight, GL_RGBA, GL_UNSIGNED_BYTE);
     
     assert(glyph.data.length > 0, "Failed to fill glyph texture");
     
     return glyph;
   }
   
+  
+  void setupAtlas(string font)
+  {
+    GLubyte[] data;
+    data.length = ((16 * 32) ^^ 2) * 4;
+    
+    foreach (index; iota(0, 256))
+    {
+      auto glyph = loadGlyph(index.to!char);
+      
+      int row = index / 16;
+      int col = index % 16;
+      
+      foreach (y; iota(0, 32))
+      {
+        foreach (x; iota(0, 32))
+        {
+          /*data[(col*32 + row*32*16*32 + x + y*32*16)*4 + 0] = glyph.data[((31-y) * 32 + x)*4 + 0];
+          data[(col*32 + row*32*16*32 + x + y*32*16)*4 + 1] = glyph.data[((31-y) * 32 + x)*4 + 1];
+          data[(col*32 + row*32*16*32 + x + y*32*16)*4 + 2] = glyph.data[((31-y) * 32 + x)*4 + 2];
+          data[(col*32 + row*32*16*32 + x + y*32*16)*4 + 3] = glyph.data[((31-y) * 32 + x)*4 + 3];*/
+          
+          data[(col*32 + row*32*16*32 + x + y*32*16)*4 + 0] = glyph.data[(y * 32 + x)*4 + 0];
+          data[(col*32 + row*32*16*32 + x + y*32*16)*4 + 1] = glyph.data[(y * 32 + x)*4 + 1];
+          data[(col*32 + row*32*16*32 + x + y*32*16)*4 + 2] = glyph.data[(y * 32 + x)*4 + 2];
+          data[(col*32 + row*32*16*32 + x + y*32*16)*4 + 3] = glyph.data[(y * 32 + x)*4 + 3];
+        }
+      }
+    }
+    
+    m_atlas[font] = new Texture2D();
+    m_atlas[font].set_data(data, GL_RGBA, 16*32, 16*32, GL_RGBA, GL_UNSIGNED_BYTE);
+  }
 
 private:
   struct GlyphTexture
   {
-    uint textureId;
+    //uint textureId;
+    //Texture2D texture;
+    
     FT_Bitmap bitmap;
     
     vec2 offset; // offset for this glyph, so for example lowercase 'g' will be drawn slightly lower
@@ -251,5 +328,8 @@ private:
   FT_Face m_face;
   
   GlyphTexture[char] m_glyphs;
+  
+  string defaultFont;
+  
+  Texture2D[string] m_atlas;
 };
-
