@@ -198,8 +198,7 @@ public:
 
     string[] orderedEntityNames;
     
-    auto file = File(p_fileName);
-    foreach (string line; lines(file))
+    foreach (string line; p_fileName.File.lines)
     {
       line = line.strip;
       
@@ -236,6 +235,8 @@ public:
       if ("spawnCount" in spawnNameWithValues[spawnName])
         spawnCount = to!int(spawnNameWithValues[spawnName]["spawnCount"]);
 
+      enforce(spawnCount >= 0, "Cannot have negative spawncount for entity " ~ spawnName ~ " in " ~ p_fileName);
+        
       for (int count = 0; count < spawnCount; count++)
       {
         auto extraValues = spawnNameWithValues[spawnName].dup;
@@ -244,7 +245,7 @@ public:
         
         Entity spawn;
 
-        //writeln("loadworld, loading from source " ~ to!string(worldEntity.getValue(spawnName ~ ".source")) ~ " with extravalues " ~ to!string(extraValues));
+        //writeln("load world, loading from source " ~ to!string(worldEntity.getValue(spawnName ~ ".source")) ~ " with extravalues " ~ to!string(extraValues));
         
         if (spawnName ~ ".collectionSource" in worldEntity.values)
           loadEntityCollection(worldEntity.getValue(spawnName ~ ".collectionSource"), extraValues);
@@ -788,7 +789,7 @@ private:
     
     handleInput(m_timer.elapsedTime);
     
-    SDL_Delay(10);
+    SDL_Delay(5);
   }
   
   
@@ -1008,12 +1009,13 @@ private:
                                    (m_placer.getComponent(entity).position - m_graphics.mouseWorldPos).length < to!float(entity.getValue("radius")) &&
                                    m_connector.hasComponent(entity))(m_entities.values);*/
     
-      auto clickedEntities = find!(entity => entity.getValue("ScreenAbsolutePosition") != "true" &&
+      auto clickedEntities = find!(entity => entity.getValue("screenAbsolutePosition") != "true" &&
                                              entity.getValue("radius").length > 0 &&
                                              m_placer.hasComponent(entity) && 
-                                             (m_placer.getComponent(entity).position - m_graphics.mouseWorldPos).length < to!float(entity.getValue("radius")))
+                                             (m_placer.getComponent(entity).position - m_graphics.mouseWorldPos).length < entity.getValue("radius").to!float)
                                   (m_entities.values);
-
+                                  
+      //writeln(clickedEntities.length);
                                   
       if (!clickedEntities.empty)
       {
@@ -1413,17 +1415,24 @@ private:
     
     if ("position" in inValues && inValues["position"].find("to").length > 0)
     {
-      auto positionData = inValues["position"].split(" ");
+      /*auto positionData = inValues["position"].split(" ");      
       
-      assert(positionData.length == 5, "Problem parsing position data with from/to values: " ~ to!string(positionData));
+      assert(positionData.length == 5, "Problem parsing position data with from/to values: " ~ to!string(positionData));*/
       
-      auto fromX = to!float(positionData[0]);
-      auto fromY = to!float(positionData[1]);
-      auto toX = to!float(positionData[3]);
-      auto toY = to!float(positionData[4]);
+      //auto fromX = to!float(positionData[0]);
+      //auto fromY = to!float(positionData[1]);
+      //auto toX = to!float(positionData[3]);
+      //auto toY = to!float(positionData[4]);
       
-      auto x = (fromX == toX) ? fromX : uniform(fromX, toX);
-      auto y = (fromY == toY) ? fromY : uniform(fromY, toY);
+      //auto x = (fromX == toX) ? fromX : uniform(fromX, toX);
+      //auto y = (fromY == toY) ? fromY : uniform(fromY, toY);
+      
+      auto fromToData = inValues["position"].split("to");
+      auto from = fromToData[0].strip.to!(float[]);
+      auto to = fromToData[1].strip.to!(float[]);
+      
+      auto x = (from[0] == to[0]) ? from[0] : uniform(from[0], to[0]);
+      auto y = (from[1] == to[1]) ? from[1] : uniform(from[1], to[1]);
       
       auto position = vec2(x, y);
       

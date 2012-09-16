@@ -161,7 +161,7 @@ public:
   AABB!vec2 aabb;
   
   vec2[] connectPoints;
-  vec4 color = vec4(1, 1, 1, 1);;
+  vec4 color = vec4(1, 1, 1, 1);
   
   int displayListId = -1;
   Texture2D texture;
@@ -229,6 +229,11 @@ public:
     dummyTex.length = 1000 * 6;
     texVBO = new Buffer(dummyTex);
     
+    vec3[] dummyCols;
+    dummyCols.length = 1000 * 6;
+    dummyCols[] = vec3(0.0, 1.0, 1.0);
+    colorVBO = new Buffer(dummyCols);
+    
     m_zoom = 0.1;
     
     m_mouseWorldPos = vec2(0.0, 0.0);
@@ -280,7 +285,6 @@ public:
           foreach (ref vert; componentVerts)
           {
             vert -= vec3(center, 0.0);
-            
             vert *= scale;
           }
         }
@@ -373,6 +377,7 @@ public:
     borderShader.bind();
     
     vec3[] verts;
+    vec3[] colors;
     //verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles(component.texture))(components.filter!(component => component.frames == 0));
     foreach (component; components.filter!(component => component.frames == 0 && component.drawSource != DrawSource.Text && component.screenAbsolutePosition == false))
     {
@@ -383,11 +388,17 @@ public:
         vert -= vec3(center, 0.0);
         
         vert *= scale;
+        
+        if (component.isPointedAt(m_mouseWorldPos))
+          colors ~= vec3(1.0, 1.0, 0.0);
+        else
+          colors ~= vec3(1.0, 1.0, 1.0);
       }
       
       verts ~= componentVerts;
     }
     verticesVBO.update(verts, 0);
+    colorVBO.update(colors, 0);
     
     vec2[] texs;
     texs = texs.reduce!((arr, component) => arr ~ component.sprite.texCoordsForQuadTriangles)(components.filter!(component => component.frames == 0));
@@ -395,11 +406,13 @@ public:
     
     verticesVBO.bind(0, GL_FLOAT, 3);
     texVBO.bind(1, GL_FLOAT, 2);
+    colorVBO.bind(2, GL_FLOAT, 3);
     
     glDrawArrays(GL_TRIANGLES, 0, verts.length);
     
     texVBO.unbind();
     verticesVBO.unbind();
+    colorVBO.unbind();
     
     borderShader.unbind();
   }
@@ -583,6 +596,8 @@ public:
       
     assert(centerComponent.position.ok, "Invalid center component position: " ~ centerComponent.position.toString());
     m_mouseWorldPos = p_mouseScreenPos * (1.0 / m_zoom) + centerComponent.position;
+    
+    writeln("scale: " ~ m_zoom.to!string ~ ", screenpos: " ~ p_mouseScreenPos.to!string ~ ", worldpos: " ~ m_mouseWorldPos.to!string);
   }
   
   vec2 mouseWorldPos()
@@ -1144,6 +1159,7 @@ private:
   
   Buffer verticesVBO;
   Buffer texVBO;
+  Buffer colorVBO;
   
   float m_widthHeightRatio;
   AABB!vec2 m_screenBox;

@@ -122,9 +122,7 @@ body
   if (fixedFilename.startsWith("data/") == false)
     fixedFilename = "data/" ~ filename;
   
-  auto file = File(fixedFilename);
-  
-  foreach (string line; lines(file))
+  foreach (string line; fixedFilename.File.lines)
     cache[filename] ~= line;
 }
 

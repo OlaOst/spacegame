@@ -105,29 +105,19 @@ public:
   this(Entity p_owner)
   {
     owner = p_owner;
-    
-    position = vec2(0.0, 0.0);
-    angle = 0.0;
-    
-    mass = 0.0;
-    
-    relativePosition = vec2(0.0, 0.0);
-    relativePositionToCenterOfMass = vec2(0.0, 0.0);
-    relativeAngle = 0.0;
   }
-  
   
 public:
   Entity owner;
   
-  vec2 position;
-  float angle;
+  vec2 position = vec2(0.0, 0.0);
+  float angle = 0.0;
   
-  float mass;
+  float mass = 0.0;
   
-  vec2 relativePosition;
-  vec2 relativePositionToCenterOfMass;
-  float relativeAngle;
+  vec2 relativePosition = vec2(0.0, 0.0);
+  vec2 relativePositionToCenterOfMass = vec2(0.0, 0.0);
+  float relativeAngle = 0.0;
   
   ConnectPoint[string] connectPoints;
 }
@@ -292,6 +282,8 @@ protected:
     // we might want to check for owner OR connection value
     // but with only connection value we need to figure out owner in createComponent
     return p_entity.getValue("owner").length > 0;
+    //return "owner" in p_entity;
+    //return "connection" in p_entity;
   }
 
   
@@ -336,10 +328,10 @@ protected:
     //if (p_entity.getValue("connection").length > 0)
     if ("connection" in p_entity)
     {
-      auto entityIdAndConnectPointName = extractEntityIdAndConnectPointName(p_entity.getValue("connection"));
+      auto entityIdAndConnectPointName = p_entity.getValue("connection").extractEntityIdAndConnectPointName();
       
       auto connectEntityId = -1;
-      try { connectEntityId = to!int(entityIdAndConnectPointName[0]); } catch (ConvException) {}
+      try { connectEntityId = entityIdAndConnectPointName[0].to!int; } catch (ConvException) {}
       
       auto connectPointName = entityIdAndConnectPointName[1];
       
@@ -374,7 +366,7 @@ protected:
     
     if (p_entity.getValue("owner").length > 0)
     {
-      int ownerId = to!int(p_entity.getValue("owner"));
+      int ownerId = p_entity.getValue("owner").to!int;
       
       if (ownerId == p_entity.id)
       {
@@ -440,7 +432,8 @@ string[2] extractEntityIdAndConnectPointName(string p_data)
   // p_data looks like 'entityname.connectpointname'
   // entityname may contain '.' characters, so everything until the last '.' is entityname, rest is connectpointname
   // so we split into entity and connectpoint name by reversing and splitting by first '.' (which will be the last) and reversing again to get out names
-  auto connectionData = findSplit(retro(p_data), ".");
+  auto connectionData = p_data.retro.findSplit(".");
 
-  return [to!string(retro(to!string((connectionData[2])))), to!string(retro(to!string((connectionData[0]))))];
+  //return [to!string(retro(to!string((connectionData[2])))), to!string(retro(to!string((connectionData[0]))))];
+  return [connectionData[2].to!string.retro.to!string, connectionData[0].to!string.retro.to!string];
 }
