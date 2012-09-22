@@ -282,7 +282,6 @@ public:
     textureShader.bind();
     
     GraphicsComponent[][string] componentsForTexture;
-    //foreach (ref component; components)
     foreach (ref component; getComponentsInBox(center, scale, drawBox))
       componentsForTexture[component.textureName] ~= component;
     
@@ -339,6 +338,19 @@ public:
       verticesVBO.unbind();
     }
     
+    drawText(center, scale, drawBox);
+    
+    textureShader.unbind();
+    
+    // draw circle around stuff in debug mode
+    debug
+    {
+      drawDebugCircles(center, scale, drawBox);
+    }
+  }
+  
+  void drawText(vec2 center, float scale, AABB!vec2 drawBox)
+  {
     foreach (component; components.filter!(component => component.drawSource == DrawSource.Text))
     {
       auto stringSprites = m_textRender.getStringSprites(component.text, component.position, component.radius);
@@ -388,15 +400,7 @@ public:
       verticesVBO.unbind();
       
       //writeln("got " ~ stringSprites.to!string ~ " stringsprites for text " ~ component.text);
-    }
-    
-    textureShader.unbind();
-    
-    // draw circle around stuff in debug mode
-    debug
-    {
-      drawDebugCircles(center, scale, drawBox);
-    }
+    }  
   }
   
   void drawDebugCircles(vec2 center, float scale, AABB!vec2 drawBox)
@@ -454,129 +458,13 @@ public:
       
       if (component.frames > 0)
       {
-        //component.currentFrame++;
         component.currentFrame = (((component.lifeTime - component.timeLived) / component.lifeTime) * component.frames).to!int;
       }
-      
-      //writeln("comp " ~ index++.to!string ~ " pos is " ~ component.position.to!string);
     }
   
     draw(getCenterEntityPosition(), m_zoom, m_screenBox);
     
     swapBuffers();
-  
-    return;
-  
-    //glPushMatrix();
-    
-    //glDisable(GL_TEXTURE_2D);
-    
-    //glTranslatef(0.0, 0.0, -32768.0);
-    
-    int drawnComponents = 0;
-    
-    // stable sort sometimes randomly crashes, phobos bug or float fuckery with lots of similar floats?
-    // haven't seen any crashes so far with dmd 2.058
-    foreach (component; sort!((left, right) => left.depth < right.depth, SwapStrategy.stable)(components))
-    //foreach (component; components)
-    {
-      //glPushMatrix();
-      
-      assert(component.position.ok);
-      
-      if (component.screenAbsolutePosition == false)
-      {
-        //glScalef(m_zoom, m_zoom, 1.0);
-      
-        auto centerComponent = GraphicsComponent();
-        assert(centerComponent.position.ok);
-        if (hasComponent(m_centerEntity))
-        {
-          centerComponent = getComponent(m_centerEntity);
-          assert(centerComponent.position.ok);
-          
-          // cull stuff that won't be shown on screen
-          if ((component.position - centerComponent.position).x < m_screenBox.lowerleft.x - component.radius ||
-              (component.position - centerComponent.position).x > m_screenBox.upperright.x + component.radius ||
-              (component.position - centerComponent.position).y < m_screenBox.lowerleft.y - component.radius ||
-              (component.position - centerComponent.position).y > m_screenBox.upperright.y + component.radius)
-          {
-            //glPopMatrix();
-            continue;
-          }
-          else
-          {
-            drawnComponents++;
-          }
-        
-          //glTranslatef(-centerComponent.position.x, -centerComponent.position.y, 0.0);
-        }
-      }
-      
-      //glTranslatef(component.position.x, component.position.y, component.depth * 0.001);
-      
-      if (component.drawSource == DrawSource.Text && component.text.length > 0 && component.screenAbsolutePosition == false)
-      {
-        /*glPushMatrix();
-          glTranslatef(0.0, component.radius*2, 0.0);
-          glColor4f(component.color.r, component.color.g, component.color.b, component.color.a);
-          m_textRender.renderString(component.text);
-        glPopMatrix();*/
-      }
-      //glDisable(GL_TEXTURE_2D);
-      
-      //glRotatef(component.angle * _180_PI, 0.0, 0.0, -1.0);
-      
-      // draw connectpoints
-      foreach (connectPoint; component.connectPoints)
-      {
-        /*glPointSize(4.0);
-        glColor3f(1.0, 1.0, 1.0);
-        glBegin(GL_POINTS);
-          glVertex3f(connectPoint.x, connectPoint.y, component.depth + 1);
-        glEnd();*/
-      }
-      
-      /*if (component.displayListId > 0 && component.drawSource != DrawSource.TargetDisplay)
-        glCallList(component.displayListId);
-      else*/
-        drawComponent(component);
-
-      // draw circle indicating radius in debug mode
-      debug
-      {
-        //glDisable(GL_TEXTURE_2D);
-      
-        if (component.screenAbsolutePosition == false && component.drawSource != DrawSource.Text)
-        {
-          /*if (component.isPointedAt(m_mouseWorldPos))
-            glColor3f(1.0, 0.0, 0.0);
-          else
-            glColor3f(1.0, 1.0, 1.0);*/
-          
-          /*glBegin(GL_LINE_LOOP);
-          for (float angle = 0.0; angle < (PI*2); angle += (PI*2) / 16)
-          {
-            glVertex3f(cos(angle) * component.radius, sin(angle) * component.radius, 100.0);
-          }
-          glEnd();*/
-          
-          // also draw AABB
-          /*glBegin(GL_LINE_LOOP);
-            glVertex2f(component.aabb.lowerleft.x, component.aabb.lowerleft.y);
-            glVertex2f(component.aabb.upperright.x, component.aabb.lowerleft.y);
-            glVertex2f(component.aabb.upperright.x, component.aabb.upperright.y);
-            glVertex2f(component.aabb.lowerleft.x, component.aabb.upperright.y);
-          glEnd();*/
-        }
-      }
-
-      //glPopMatrix();
-    }
-    
-    //writeln("drawn comps: " ~ to!string(drawnComponents));
-    
-    //glPopMatrix();
   }
   
   GraphicsComponent[] findComponentsPointedAt(vec2 p_pos)
