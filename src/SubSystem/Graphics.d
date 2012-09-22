@@ -234,7 +234,7 @@ public:
     dummyCols[] = vec3(0.0, 1.0, 1.0);
     colorVBO = new Buffer(dummyCols);
     
-    m_zoom = 0.1;
+    m_zoom = 0.5;
     
     m_mouseWorldPos = vec2(0.0, 0.0);
     
@@ -249,6 +249,32 @@ public:
     //teardownDisplay();
   }
 
+  GraphicsComponent[] getComponentsInBox(vec2 center, float scale, AABB!vec2 drawBox)
+  {
+    GraphicsComponent[] componentsInBox;
+    
+    // this filter code gives an internal compiler error on 2.060 :(
+    /*return components.filter!(component => !component.screenAbsolutePosition && 
+                                          !(component.position - center).x < m_screenBox.lowerleft.x - component.radius ||
+                                           (component.position - center).x > m_screenBox.upperright.x + component.radius ||
+                                           (component.position - center).y < m_screenBox.lowerleft.y - component.radius ||
+                                           (component.position - center).y > m_screenBox.upperright.y + component.radius).array();*/
+    
+    foreach (ref component; components)
+    {
+      if (component.screenAbsolutePosition || 
+          !((component.position - center).x < drawBox.lowerleft.x  - component.radius ||
+            (component.position - center).x > drawBox.upperright.x + component.radius ||
+            (component.position - center).y < drawBox.lowerleft.y  - component.radius ||
+            (component.position - center).y > drawBox.upperright.y + component.radius))
+      {
+        componentsInBox ~= component;
+      }
+    }
+    
+    return componentsInBox;
+  }
+  
   void draw(vec2 center, float scale, AABB!vec2 drawBox)
   {
     glClear(GL_COLOR_BUFFER_BIT);
@@ -256,7 +282,8 @@ public:
     textureShader.bind();
     
     GraphicsComponent[][string] componentsForTexture;
-    foreach (ref component; components)
+    //foreach (ref component; components)
+    foreach (ref component; getComponentsInBox(center, scale, drawBox))
       componentsForTexture[component.textureName] ~= component;
     
     foreach (textureName; m_imageToTexture.keys)
@@ -434,7 +461,7 @@ public:
       //writeln("comp " ~ index++.to!string ~ " pos is " ~ component.position.to!string);
     }
   
-    draw(getCenterEntityPosition(), m_zoom, AABB!vec2(vec2(-1.0, -1.0), vec2(1.0, 1.0)));
+    draw(getCenterEntityPosition(), m_zoom, m_screenBox);
     
     swapBuffers();
   
@@ -789,14 +816,21 @@ protected:
     {
       string colorString = p_entity["color"];
       
-      assert(colorString.split(" ").length >= 3);
-      
-      auto colorComponents = colorString.split(" ");
-      
-      if (colorComponents.length == 3)
-        colorComponents ~= "1"; // default alpha is 1
+      if (colorString.strip.startsWith("["))
+      {
+        component.color = colorString.to!(float[])[0..4].vec4;
+      }
+      else
+      {      
+        assert(colorString.split(" ").length >= 3);
+        
+        auto colorComponents = colorString.split(" ");
+        
+        if (colorComponents.length == 3)
+          colorComponents ~= "1"; // default alpha is 1
 
-      component.color = colorComponents.map!(to!float).array().vec4;
+        component.color = colorComponents.map!(to!float).array().vec4;
+      }
     }
     
     if ("frames" in p_entity)
