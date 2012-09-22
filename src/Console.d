@@ -35,7 +35,7 @@ import SubSystem.Graphics;
 
 unittest
 {
-  // a console is a command-like tool that can parse and execute debug commands, and display debug information
+  // a console is a commandline-like tool that can parse and execute debug commands, and display debug information
   
   // it needs to show the latest output
   

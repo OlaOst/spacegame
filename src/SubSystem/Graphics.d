@@ -390,7 +390,7 @@ public:
         vert *= scale;
         
         if (component.isPointedAt(m_mouseWorldPos))
-          colors ~= vec3(1.0, 1.0, 0.0);
+          colors ~= vec3(1.0, 0.5, 0.0);
         else
           colors ~= vec3(1.0, 1.0, 1.0);
       }
@@ -595,9 +595,9 @@ public:
       centerComponent = getComponent(m_centerEntity);
       
     assert(centerComponent.position.ok, "Invalid center component position: " ~ centerComponent.position.toString());
-    m_mouseWorldPos = p_mouseScreenPos * (1.0 / m_zoom) + centerComponent.position;
+    m_mouseWorldPos = p_mouseScreenPos * (1.0 / m_zoom) * 0.75 + centerComponent.position;
     
-    writeln("scale: " ~ m_zoom.to!string ~ ", screenpos: " ~ p_mouseScreenPos.to!string ~ ", worldpos: " ~ m_mouseWorldPos.to!string);
+    //writeln("scale: " ~ m_zoom.to!string ~ ", screenpos: " ~ p_mouseScreenPos.to!string ~ ", worldpos: " ~ m_mouseWorldPos.to!string);
   }
   
   vec2 mouseWorldPos()

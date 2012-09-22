@@ -636,10 +636,13 @@ private:
         
         if (elements.find("FPS") != [])
         {
-          int fpsValue = cast(int)(reduce!"a+b"(m_fpsBuffer)/m_fpsBuffer.length);
-      
-          if (fpsValue > 0)
-            m_debugInfo ~= "FPS: " ~ to!string(fpsValue);
+          int avgFps = cast(int)(reduce!"a+b"(m_fpsBuffer)/m_fpsBuffer.length);
+          int maxFps = cast(int)(m_fpsBuffer[].minCount!"a > b"[0]);
+          int minFps = cast(int)(m_fpsBuffer[].minCount!"a < b"[0]);
+          
+          if (avgFps > 0)
+            m_debugInfo ~= "FPS: " ~ avgFps.to!string ~ ", min/max: " ~ minFps.to!string ~ "/" ~ maxFps.to!string;
+            //m_debugInfo ~= "FPS: " ~ avgFps.to!string ~ ", buffer: " ~ m_fpsBuffer.to!string;
         }
         
         if (elements.find("entityCount") != [])
@@ -784,8 +787,8 @@ private:
       }
     }
     
-    m_entityConsole.display(m_graphics, m_timer.totalTime);
-    m_gameConsole.display(m_graphics, m_timer.totalTime);
+    //m_entityConsole.display(m_graphics, m_timer.totalTime);
+    //m_gameConsole.display(m_graphics, m_timer.totalTime);
     
     handleInput(m_timer.elapsedTime);
     
@@ -1009,6 +1012,10 @@ private:
                                    (m_placer.getComponent(entity).position - m_graphics.mouseWorldPos).length < to!float(entity.getValue("radius")) &&
                                    m_connector.hasComponent(entity))(m_entities.values);*/
     
+      auto infoEntity = m_entities.values.find!(entity => "isinfoentity" in entity);
+      if (!infoEntity.empty)
+        removeEntity(infoEntity[0]);
+    
       auto clickedEntities = find!(entity => entity.getValue("screenAbsolutePosition") != "true" &&
                                              entity.getValue("radius").length > 0 &&
                                              m_placer.hasComponent(entity) && 
@@ -1016,17 +1023,32 @@ private:
                                   (m_entities.values);
                                   
       //writeln(clickedEntities.length);
-                                  
+      
       if (!clickedEntities.empty)
       {
         auto entity = clickedEntities[0];
         
-        m_entityConsole.setEntity(entity);
+        //m_entityConsole.setEntity(entity);
+        
+        string[string] info;
+        //info["owner"] = entity.id.to!string;
+        //info["relativePosition"] = vec2(0.5, 0.0).to!string;
+        info["isinfoentity"] = "true";
+        
+        if ("position" in entity)
+          info["position"] = (vec2(entity.getValue("position").to!(float[])[0..2]) + vec2(0.1, -0.1)).to!string;
+        info["radius"] = 0.05.to!string;
+        //info["lifetime"] = 2.0.to!string;
+        info["text"] = "";
+        foreach (key, value; entity.values)
+          info["text"] ~= key ~ ": " ~ value ~ "\\n";
+        
+        registerEntity(new Entity(info));
       }
-      else
+      /*else
       {
         m_entityConsole.setEntity(null);
-      }
+      }*/
     
       /*foreach (entity; filter!(entity => entity != m_playerShip && 
                                          entity.getValue("radius").length > 0 &&

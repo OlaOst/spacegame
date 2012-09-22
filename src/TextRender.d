@@ -27,6 +27,7 @@ import std.conv;
 import std.exception;
 import std.range;
 import std.stdio;
+import std.string;
 
 import derelict.freetype.ft;
 import derelict.opengl3.gl3;
@@ -174,6 +175,7 @@ public:
     
     bool nextCharacterIsControlCharacter = false;
     
+    
     void addCharacter(ref Sprite[] stringSprites, char character, ref vec3 cursor)
     {
       auto glyph = loadGlyph(character);
@@ -191,6 +193,19 @@ public:
       cursor += vec3(glyph.advance.x * sprite.scale * 2, glyph.advance.y * sprite.scale * 2, 0.0);
     }
     
+    
+    auto lines = text.split("\\n");
+    
+    foreach (line; lines)
+    {
+      foreach (character; line)
+      {
+        addCharacter(stringSprites, character, cursor);
+      }
+      cursor = vec3(position.x, cursor.y - 1.0 * scale * 2, 0.0);
+    }
+    
+    /+
     foreach (character; text)
     {
       if (character == '\\')
@@ -205,9 +220,13 @@ public:
           {
             cursor = vec3(position.x, cursor.y - 1.0 * scale * 2, 0.0);
           }
-          if (character == '\\')
+          else if (character == '\\')
           {
             addCharacter(stringSprites, character, cursor);
+          }
+          else
+          {
+            //addCharacter(stringSprites, '\\', cursor);
           }
             
           nextCharacterIsControlCharacter = false;
@@ -234,6 +253,7 @@ public:
       
       cursor += vec3(glyph.advance.x * sprite.scale * 2, glyph.advance.y * sprite.scale * 2, 0.0);*/
     }
+    +/
     
     return stringSprites;
   }

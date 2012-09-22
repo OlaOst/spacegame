@@ -143,6 +143,23 @@ public:
     return [OutputLine("?? " ~ command, vec3(1, 0, 0))];
   }
   
+  /*string output(float elapsedTime)
+  {
+    string[] output;
+    
+    if (to!int(elapsedTime*2) % 2 == 0)
+      output ~= inputLine;
+    else
+      output ~= inputLine ~ "_";
+      
+    foreach (outputLine; take(outputBuffer.retro, 12))
+    {
+      //glTranslatef(0.0, 1.0, 0.0);
+      //glColor3f(outputLine.color.r, outputLine.color.g, outputLine.color.b);
+      output ~= outputLine.text;
+    }
+  }*/
+  
   override void display(Graphics graphics, float elapsedTime)
   {
     if (!isActive() || entity is null)

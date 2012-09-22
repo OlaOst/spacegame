@@ -32,7 +32,7 @@ hud.collectionSource = hud.txt
 
 # the trashbin deletes modules that are dragged onto it
 trashbin.name = trashbin
-trashbin.position = [0, 4]
+trashbin.position = [-5, 5]
 trashbin.drawsource = Unknown
 trashbin.radius = 2.0
 
