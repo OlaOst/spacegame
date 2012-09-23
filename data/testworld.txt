@@ -4,9 +4,9 @@ greeting.text = Hello,\n world\nLet's test slashes: \slash\slash\slash
 
 transparentbox.position = [1.0, 0.0]
 #transparentbox.text = test
-transparentbox.radius = 0.1
+transparentbox.radius = 0.4
 transparentbox.drawsource = Quad
-transparentbox.color = [1.0, 1.0, 1.0, 0.5]
+transparentbox.color = [0.0, 1.0, 0.0, 0.5]
 
 test.drawsource = images/bugship.png
 test.keepInCenter = true

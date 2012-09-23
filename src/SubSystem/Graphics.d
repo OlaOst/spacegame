@@ -220,6 +220,7 @@ public:
     assert("shaders/texture.shader".exists);
     textureShader = new Shader("shaders/texture.shader");
     borderShader = new Shader("shaders/border.shader");
+    quadShader = new Shader("shaders/quad.shader");
     
     vec3[] dummyVerts;
     dummyVerts.length = 1000 * 6;
@@ -279,8 +280,23 @@ public:
   {
     glClear(GL_COLOR_BUFFER_BIT);
     
-    textureShader.bind();
+    drawTextures(center, scale, drawBox);
     
+    drawQuads(center, scale, drawBox);
+    
+    drawText(center, scale, drawBox);
+    
+    // draw circle around stuff in debug mode
+    debug
+    {
+      drawDebugCircles(center, scale, drawBox);
+    }
+  }
+  
+  void drawTextures(vec2 center, float scale, AABB!vec2 drawBox)
+  {
+    textureShader.bind();
+  
     GraphicsComponent[][string] componentsForTexture;
     foreach (ref component; getComponentsInBox(center, scale, drawBox))
       componentsForTexture[component.textureName] ~= component;
@@ -338,20 +354,63 @@ public:
       verticesVBO.unbind();
     }
     
-    drawText(center, scale, drawBox);
-    
     textureShader.unbind();
-    
-    // draw circle around stuff in debug mode
-    debug
-    {
-      drawDebugCircles(center, scale, drawBox);
-    }
   }
+  
+  
+  void drawQuads(vec2 center, float scale, AABB!vec2 drawBox)
+  {
+    quadShader.bind();
+      
+    vec3[] verts;
+    vec4[] colors;
+      
+    foreach (component; getComponentsInBox(center, scale, drawBox).filter!(component => component.drawSource == DrawSource.Quad))
+    {
+      //verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles(component.texture))(components.filter!(component => component.frames == 0));
+      //foreach (component; components.filter!(component => component.frames == 0 && component.drawSource != DrawSource.Text && component.screenAbsolutePosition == false))
+      {
+        auto componentVerts = component.sprite.verticesForQuadTriangles(component.texture);
+        
+        foreach (ref vert; componentVerts)
+        {
+          vert -= vec3(center, 0.0);
+          
+          vert *= scale;
+          
+          colors ~= component.color;
+        }
+        
+        verts ~= componentVerts;
+      }
+    }
+    
+    verticesVBO.update(verts, 0);
+    colorVBO.update(colors, 0);
+    
+    //vec2[] texs;
+    //texs = texs.reduce!((arr, component) => arr ~ component.sprite.texCoordsForQuadTriangles)(components.filter!(component => component.frames == 0));
+    //texVBO.update(texs, 0);
+    
+    verticesVBO.bind(0, GL_FLOAT, 3);
+    //texVBO.bind(1, GL_FLOAT, 2);
+    colorVBO.bind(2, GL_FLOAT, 4);
+    
+    glDrawArrays(GL_TRIANGLES, 0, verts.length);
+    
+    texVBO.unbind();
+    verticesVBO.unbind();
+    colorVBO.unbind();
+    
+    quadShader.unbind();
+  }
+  
   
   void drawText(vec2 center, float scale, AABB!vec2 drawBox)
   {
-    foreach (component; components.filter!(component => component.drawSource == DrawSource.Text))
+    textureShader.bind();
+    
+    foreach (component; getComponentsInBox(center, scale, drawBox).filter!(component => component.drawSource == DrawSource.Text))
     {
       auto stringSprites = m_textRender.getStringSprites(component.text, component.position, component.radius);
       
@@ -401,6 +460,8 @@ public:
       
       //writeln("got " ~ stringSprites.to!string ~ " stringsprites for text " ~ component.text);
     }  
+    
+    textureShader.unbind();
   }
   
   void drawDebugCircles(vec2 center, float scale, AABB!vec2 drawBox)
@@ -410,7 +471,10 @@ public:
     vec3[] verts;
     vec3[] colors;
     //verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles(component.texture))(components.filter!(component => component.frames == 0));
-    foreach (component; components.filter!(component => component.frames == 0 && component.drawSource != DrawSource.Text && component.screenAbsolutePosition == false))
+    foreach (component; components.filter!(component => component.frames == 0 && 
+                                           component.drawSource != DrawSource.Text && 
+                                           component.drawSource != DrawSource.Quad && 
+                                           component.screenAbsolutePosition == false))
     {
       auto componentVerts = component.sprite.verticesForQuadTriangles(component.texture);
       
@@ -1074,6 +1138,7 @@ private:
 
   Shader textureShader;
   Shader borderShader;
+  Shader quadShader;
   
   TextRender m_textRender;
   
