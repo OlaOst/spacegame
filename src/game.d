@@ -325,6 +325,7 @@ public:
       m_debugDisplay = null;
       m_closestShipDisplay = null;
       m_dashboard = null;
+      m_mouseCursor = null;
       
       m_entities = null;
       
@@ -806,6 +807,12 @@ private:
       control.consoleActive = m_gameConsole.isActive() || m_entityConsole.isActive();
     }
   
+    if (m_mouseCursor !is null)
+    {
+      m_mouseCursor.values["position"] = m_graphics.mouseWorldPos.to!string;
+      registerEntity(m_mouseCursor);
+    }
+  
     if (m_inputHandler.isPressed(Event.LeftButton))
     {
       // TODO: if we have a dragentity we must ensure it stops getting dragged before it's destroyed or removed by something - lifetime expiration for bullets for example
@@ -1012,17 +1019,15 @@ private:
                                    (m_placer.getComponent(entity).position - m_graphics.mouseWorldPos).length < to!float(entity.getValue("radius")) &&
                                    m_connector.hasComponent(entity))(m_entities.values);*/
     
-      auto infoEntity = m_entities.values.find!(entity => "isinfoentity" in entity);
-      if (!infoEntity.empty)
-        removeEntity(infoEntity[0]);
+      auto infoEntities = m_entities.values.filter!(entity => "isinfoentity" in entity && entity["isinfoentity"] == "true");
+      foreach (infoEntity; infoEntities)
+        removeEntity(infoEntity);
     
       auto clickedEntities = find!(entity => entity.getValue("screenAbsolutePosition") != "true" &&
                                              entity.getValue("radius").length > 0 &&
                                              m_placer.hasComponent(entity) && 
                                              (m_placer.getComponent(entity).position - m_graphics.mouseWorldPos).length < entity.getValue("radius").to!float)
                                   (m_entities.values);
-                                  
-      //writeln(clickedEntities.length);
       
       if (!clickedEntities.empty)
       {
@@ -1030,20 +1035,36 @@ private:
         
         //m_entityConsole.setEntity(entity);
         
-        string[string] info;
-        //info["owner"] = entity.id.to!string;
-        //info["relativePosition"] = vec2(0.5, 0.0).to!string;
-        info["isinfoentity"] = "true";
+        string[string] infotext;
+        infotext["isinfoentity"] = "true";
         
-        if ("position" in entity)
-          info["position"] = (vec2(entity.getValue("position").to!(float[])[0..2]) + vec2(0.1, -0.1)).to!string;
-        info["radius"] = 0.05.to!string;
-        //info["lifetime"] = 2.0.to!string;
-        info["text"] = "";
+        infotext["position"] = m_graphics.mouseWorldPos.to!string;
+        
+        infotext["radius"] = 0.05.to!string;
+        infotext["text"] = "";
         foreach (key, value; entity.values)
-          info["text"] ~= key ~ ": " ~ value ~ "\\n";
+          infotext["text"] ~= key ~ ": " ~ value ~ "\\n";
         
-        registerEntity(new Entity(info));
+        
+        string[string] infobox;
+        infobox["isinfoentity"] = "true";
+        
+        auto textboxsize = 0.05;
+        infobox["color"] = vec4(0.0, 0.0, 0.0, 0.75).to!string;
+        infobox["drawsource"] = "Rectangle";
+        auto textBox = m_graphics.getStringBox(infotext["text"], infotext["radius"].to!float);
+        infobox["lowerleft"] = textBox.lowerleft.to!string;
+        infobox["upperright"] = textBox.upperright.to!string;
+        infobox["position"] = (m_graphics.mouseWorldPos + (textBox.upperright - textBox.lowerleft)*0.5 + vec2(-textboxsize, textboxsize)).to!string;
+        //infobox["radius"] = textboxsize.to!string;
+        
+        writeln(textBox.to!string);
+        
+        auto infoBoxEntity = new Entity(infobox);
+        auto infoTextEntity = new Entity(infotext);
+        
+        registerEntity(infoBoxEntity);
+        registerEntity(infoTextEntity);
       }
       /*else
       {
@@ -1283,6 +1304,8 @@ private:
   {
     //assert(p_entity.id !in m_entities, "Tried registering entity " ~ to!string(p_entity.id) ~ " that was already registered");
     
+    //writeln("registering entity " ~ p_entity.id.to!string ~ " with values " ~ p_entity.values.to!string);
+    
     m_entities[p_entity.id] = p_entity;
     
     //debug writeln("registering entity " ~ to!string(p_entity.id) ~ " with name " ~ p_entity.getValue("name"));
@@ -1302,6 +1325,9 @@ private:
       
     if (p_entity.getValue("name") == "Dashboard")
       m_dashboard = p_entity;
+    
+    if (p_entity.getValue("name") == "Mouse cursor")
+      m_mouseCursor = p_entity;
     
     foreach (subSystem; m_subSystems)
       subSystem.registerEntity(p_entity);
@@ -1546,6 +1572,7 @@ private:
   Entity m_debugDisplay;
   Entity m_closestShipDisplay;
   Entity m_dashboard;
+  Entity m_mouseCursor;
   
   float[60] m_fpsBuffer;
   

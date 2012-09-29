@@ -37,7 +37,7 @@ import glamour.texture;
 import gl3n.linalg;
 
 import sprite;
-
+import Utils;
 
 unittest
 {
@@ -58,7 +58,7 @@ unittest
   textRender.renderChar('1', false);
   textRender.renderChar('1', false);
   
-  textRender.renderString("hello world");
+  //textRender.renderString("hello world");
   
   /*FT_vec2 kerningvec2;
   
@@ -99,74 +99,6 @@ public:
     setupAtlas(defaultFont);
   }
   
-  
-  void renderChar(char p_char, bool p_translate)
-  {
-    //glEnable(GL_TEXTURE_2D);
-    
-    auto glyph = loadGlyph(p_char);
-    
-    auto xCoord = cast(float)glyph.bitmap.width / 32.0;
-    auto yCoord = cast(float)glyph.bitmap.rows / 32.0;
-    
-    //glBindTexture(GL_TEXTURE_2D, glyph.textureId);
-
-    // translate the glyph so that its 'origin' matches the pen position
-    /*glPushMatrix();
-    glTranslatef(glyph.offset.x, glyph.offset.y, 0.0);
-    
-    glBegin(GL_QUADS);
-      glNormal3f(0.0, 0.0, 1.0);
-      
-      glTexCoord2f(0.0,    yCoord); glVertex3f(0.0,    0.0,    0.0);
-      glTexCoord2f(xCoord, yCoord); glVertex3f(xCoord, 0.0,    0.0);
-      glTexCoord2f(xCoord, 0.0);    glVertex3f(xCoord, yCoord, 0.0);
-      glTexCoord2f(0.0,    0.0);    glVertex3f(0.0,    yCoord, 0.0);
-    glEnd();
-    
-    glPopMatrix();
-    
-    // here we increment the pen position by the glyph's advance, when drawing strings
-    if (p_translate)
-      glTranslatef(glyph.advance.x, glyph.advance.y, 0.0);*/
-  }
-
-  
-  void renderString(string p_string)
-  {
-    //glPushMatrix();
-    
-    bool nextLetterIsControlCharacter = false;
-    
-    foreach (letter; p_string)
-    {
-      if (letter == '\\')
-        nextLetterIsControlCharacter = true;
-      else
-      {
-        if (nextLetterIsControlCharacter)
-        {
-          if (letter == 'n')
-          {
-            //glPopMatrix(); // simulates carriage return
-            //glTranslatef(0.0, -1.0, 0.0); // simulates newline
-            //glPushMatrix(); // ready to write on new line
-          }
-          if (letter == '\\')
-            renderChar(letter, true);
-            
-          nextLetterIsControlCharacter = false;
-        }
-        else
-          renderChar(letter, true);
-      }
-    }
-      
-    //glPopMatrix();
-    
-    //glDisable(GL_TEXTURE_2D);
-  }
-    
   Sprite[] getStringSprites(string text, vec2 position, float scale)
   {
     Sprite[] stringSprites;
@@ -197,6 +129,56 @@ public:
     }
     
     return stringSprites;
+  }
+  
+  AABB!vec2 getStringBox(string text, float scale)
+  {
+    AABB!vec2 box;
+    
+    vec2 cursor = vec2(0.0, 0.0);
+    
+    auto lines = text.split("\\n");
+    
+    float width = 0.0;
+    
+    foreach (line; lines)
+    {
+      foreach (character; line)
+      {
+        auto glyph = loadGlyph(character);
+      
+        auto xCoord = cast(float)glyph.bitmap.width / 32.0;
+        auto yCoord = cast(float)glyph.bitmap.rows / 32.0;
+      
+        /*Sprite sprite;
+        
+        sprite.scale = scale;
+        sprite.position = cursor + vec3(glyph.offset.x * sprite.scale * 2, glyph.offset.y * sprite.scale * 2, 0.0);
+        
+        stringSprites ~= sprite;*/
+        
+        cursor += vec2(glyph.advance.x * scale * 2, glyph.advance.y * scale * 2);
+        
+        width = max(width, cursor.x);
+      }
+      cursor = vec2(0.0, cursor.y - 1.0 * scale * 2);
+    }
+    
+    cursor.x = width;
+    
+    box.lowerleft = cursor * -0.5;
+    box.upperright = cursor * 0.5;
+    
+    /*
+    auto lines = text.split("\\n");
+    
+    auto width = lines.map!(line => line.length).minPos!("a > b")[0];
+    auto height = lines.length;
+    
+    box.lowerleft = vec2(-(width*scale), -(height*scale));
+    box.upperright = vec2((width*scale), (height*scale));
+    */
+    return box;
   }
   
   @property Texture2D atlas()

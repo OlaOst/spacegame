@@ -134,7 +134,7 @@ void setPlacerFromConnector(ConnectionHandler connection, Placer placer)
     
     //enforce(connectionComponent.owner !is null, "Owner entity was null for connection component with entity " ~ to!string(entity.id));
     assert(connectionComponent.owner !is null, "Owner entity was null for connection component");
-    assert(placer.hasComponent(connectionComponent.owner), "owner entity " ~ to!string(connectionComponent.owner.id) ~ " did not have placer component");
+    assert(placer.hasComponent(connectionComponent.owner), "Owner entity " ~ to!string(connectionComponent.owner.id) ~ " did not have placer component");
     auto ownerComponent = placer.getComponent(connectionComponent.owner);
     
     // need to rotate around middle of mass point

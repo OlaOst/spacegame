@@ -119,6 +119,7 @@ enum DrawSource
   Invisible,
   Triangle,
   Quad,
+  Rectangle,
   Star,
   Bullet,
   Vertices,
@@ -365,12 +366,15 @@ public:
     vec3[] verts;
     vec4[] colors;
       
-    foreach (component; getComponentsInBox(center, scale, drawBox).filter!(component => component.drawSource == DrawSource.Quad))
+    foreach (component; getComponentsInBox(center, scale, drawBox).filter!(component => component.drawSource == DrawSource.Quad || component.drawSource == DrawSource.Rectangle))
     {
       //verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles(component.texture))(components.filter!(component => component.frames == 0));
       //foreach (component; components.filter!(component => component.frames == 0 && component.drawSource != DrawSource.Text && component.screenAbsolutePosition == false))
       {
         auto componentVerts = component.sprite.verticesForQuadTriangles(component.texture);
+        
+        if (component.drawSource == DrawSource.Rectangle)
+          componentVerts = component.sprite.verticesForQuadTriangles(component.aabb);
         
         foreach (ref vert; componentVerts)
         {
@@ -472,8 +476,9 @@ public:
     vec3[] colors;
     //verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles(component.texture))(components.filter!(component => component.frames == 0));
     foreach (component; components.filter!(component => component.frames == 0 && 
-                                           component.drawSource != DrawSource.Text && 
+                                           //component.drawSource != DrawSource.Text && 
                                            component.drawSource != DrawSource.Quad && 
+                                           component.drawSource != DrawSource.Rectangle && 
                                            component.screenAbsolutePosition == false))
     {
       auto componentVerts = component.sprite.verticesForQuadTriangles(component.texture);
@@ -603,14 +608,14 @@ public:
       return vec2(0,0);
   }
   
-  void renderString(string text)
-  {
-    m_textRender.renderString(text);
-  }
-  
   void setTimeStep(float p_timeStep)
   {
     m_timeStep = p_timeStep;
+  }
+  
+  AABB!vec2 getStringBox(string text, float scale)
+  {
+    return m_textRender.getStringBox(text, scale);
   }
   
 protected:
@@ -643,6 +648,11 @@ protected:
     
     component.aabb.lowerleft = vec2(-width/2.0, -height/2.0);
     component.aabb.upperright = vec2(width/2.0, height/2.0);
+    
+    if ("lowerleft" in p_entity)
+      component.aabb.lowerleft = p_entity["lowerleft"].to!(float[])[0..2].vec2;
+    if ("upperright" in p_entity)
+      component.aabb.upperright = p_entity["upperright"].to!(float[])[0..2].vec2;
     
     if ("keepInCenter" in p_entity && p_entity["keepInCenter"] == "true")
     {

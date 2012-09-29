@@ -6,7 +6,13 @@ transparentbox.position = [1.0, 0.0]
 #transparentbox.text = test
 transparentbox.radius = 0.4
 transparentbox.drawsource = Quad
-transparentbox.color = [0.0, 1.0, 0.0, 0.5]
+transparentbox.color = [0.0, 1.0, 0.0, 0.4]
+
+cursor.name = Mouse cursor
+cursor.drawsource = Quad
+cursor.radius = 0.05
+cursor.color = [0.0, 1.0, 1.0, 0.5]
+cursor.screenAbsolutePosition = true
 
 test.drawsource = images/bugship.png
 test.keepInCenter = true
