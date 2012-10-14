@@ -24,6 +24,7 @@ module Entity;
 
 import std.algorithm;
 import std.conv;
+import std.datetime;
 import std.exception;
 import std.math;
 import std.stdio;
@@ -63,6 +64,7 @@ public:
   this(string[string] p_extraParams)
   {
     id = m_idCounter++;
+    createdAt = Clock.currTime;
     
     foreach (extraParam; p_extraParams.keys)
     {
@@ -104,6 +106,7 @@ public:
   
 public:
   immutable int id;
+  SysTime createdAt;
   
   string[string] values;
   

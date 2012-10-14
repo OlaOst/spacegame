@@ -1,6 +1,19 @@
 greeting.position = [0.0, 0.0]
 greeting.radius = 0.05
-greeting.text = Hello,\n world\nLet's test slashes: \slash\slash\slash
+greeting.text = Hello,\n world
+
+debugDisplay.text = here we should see debug info
+debugDisplay.screenAbsolutePosition = true
+debugDisplay.position = [-1.2, 0.9]
+debugDisplay.depth = top
+debugDisplay.color = 1.0 1.0 1.0 1.0
+debugDisplay.name = Debug display
+debugDisplay.elements = FPS,entityCount,subsystemTimings
+
+entityMatrix.text = here we should see a matrix listing all entities and which subsystems they are registered in
+entityMatrix.screenAbsolutePosition = true
+entityMatrix.position = [0.4, 0.9]
+entityMatrix.name = Entity matrix
 
 cursor.name = Mouse cursor
 cursor.drawsource = Quad

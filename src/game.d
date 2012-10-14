@@ -323,6 +323,7 @@ public:
       m_trashBin = null;
       m_dragEntity = null;
       m_debugDisplay = null;
+      m_entityMatrix = null;
       m_closestShipDisplay = null;
       m_dashboard = null;
       m_mouseCursor = null;
@@ -633,7 +634,7 @@ private:
       {
         string elements = m_debugDisplay.getValue("elements");
         
-        m_debugInfo = "";
+        string debugInfo = "";
         
         if (elements.find("FPS") != [])
         {
@@ -642,24 +643,68 @@ private:
           int minFps = cast(int)(m_fpsBuffer[].minCount!"a < b"[0]);
           
           if (avgFps > 0)
-            m_debugInfo ~= "FPS: " ~ avgFps.to!string ~ ", min/max: " ~ minFps.to!string ~ "/" ~ maxFps.to!string;
+            debugInfo ~= "FPS: " ~ avgFps.to!string ~ ", min/max: " ~ minFps.to!string ~ "/" ~ maxFps.to!string;
             //m_debugInfo ~= "FPS: " ~ avgFps.to!string ~ ", buffer: " ~ m_fpsBuffer.to!string;
         }
         
         if (elements.find("entityCount") != [])
         {
-          m_debugInfo ~= "\\nEntities: " ~ to!string(m_entities.length);
+          debugInfo ~= "\\nEntities: " ~ to!string(m_entities.length);
         }
         
         if (elements.find("subsystemTimings") != [])
         {
-          m_debugInfo ~= m_timingInfo;
+          debugInfo ~= m_timingInfo;
         }
         
-        debugDisplayComponent.text = m_debugInfo;
+        debugDisplayComponent.text = debugInfo;
       }
         
       m_graphics.setComponent(m_debugDisplay, debugDisplayComponent);
+    }
+    
+    if (m_graphics.hasComponent(m_entityMatrix))
+    {
+      auto entityMatrixComponent = m_graphics.getComponent(m_entityMatrix);
+      
+      string text;
+      
+      foreach (subSystem; m_subSystems)
+      {
+        auto name = subSystem.name;
+        
+        while (name.findSkip(".")) {}
+        
+        text ~= name[0..1] ~ " ";
+      }
+      
+      text ~= "\\n";
+      
+      foreach (entity; sort!((left, right) => left.id > right.id)(m_entities.values))
+      {
+        foreach (subSystem; m_subSystems)
+        {
+          if (subSystem.hasComponent(entity))
+            text ~= "X ";
+          else
+            text ~= "_ ";
+        }
+          
+        text ~= " - ";
+          
+        if ("name" in entity)
+          text ~= entity["name"];
+        else
+          text ~= entity.id.to!string();
+          
+        text ~= "\\n";
+      }
+      
+      writeln("text length: " ~ text.length.to!string);
+      
+      entityMatrixComponent.text = text[0..min(text.length, 1000)];
+      
+      m_graphics.setComponent(m_entityMatrix, entityMatrixComponent);
     }
     
     if (m_graphics.hasComponent(m_closestShipDisplay))
@@ -1314,6 +1359,9 @@ private:
     if (p_entity.getValue("name") == "Debug display")
       m_debugDisplay = p_entity;
       
+    if (p_entity.getValue("name") == "Entity matrix")
+      m_entityMatrix = p_entity;
+      
     if (p_entity.getValue("name") == "trashbin")
       m_trashBin = p_entity;
     
@@ -1570,13 +1618,14 @@ private:
   Entity m_trashBin;
   Entity m_dragEntity;
   Entity m_debugDisplay;
+  Entity m_entityMatrix;
   Entity m_closestShipDisplay;
   Entity m_dashboard;
   Entity m_mouseCursor;
   
   float[60] m_fpsBuffer;
   
-  string m_debugInfo;
+  //string m_debugInfo;
   string m_timingInfo;
   
   Dispenser m_dispenser;
