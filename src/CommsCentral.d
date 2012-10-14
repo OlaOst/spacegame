@@ -168,6 +168,7 @@ void setPhysicsFromConnector(ConnectionHandler connection, Physics physics)
 {
   foreach (entity; connection.entities)
   {
+    //writeln("checking entity " ~ entity.id.to!string ~ ", in physics: " ~ physics.hasComponent(entity).to!string ~ ", in connection: " ~ connection.hasComponent(entity).to!string);
     if (physics.hasComponent(entity) && connection.hasComponent(entity))
     {
       auto connectionComponent = connection.getComponent(entity);
@@ -190,6 +191,8 @@ void setPhysicsFromConnector(ConnectionHandler connection, Physics physics)
       ownerComponent.angularImpulse += physicsComponent.angularImpulse;
       ownerComponent.torque += physicsComponent.torque;
       
+      //writeln("physicsfromconnector, ownercomp force: " ~ ownerComponent.force.to!string ~ ", physicscomp force:  "~ physicsComponent.force.to!string);
+      
       physics.setComponent(connectionComponent.owner, ownerComponent);
     }
   }
@@ -206,6 +209,8 @@ void setPhysicsFromController(Controller controller, Physics physics)
     
     physicsComponent.impulse += controllerComponent.impulse;
     physicsComponent.angularImpulse += controllerComponent.angularImpulse;
+    
+    //writeln("physicsfromcontroller, force is " ~ physicsComponent.force.to!string ~ ", control comp id is " ~ controllerComponent.id.to!string);
     
     return physicsComponent;
   });

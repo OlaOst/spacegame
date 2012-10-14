@@ -264,7 +264,7 @@ public:
         
         if (!candidate.empty)
         {
-          //writeln("setting owner on " ~ entity["name"].to!string ~ " to " ~ candidate[0]["name"].to!string ~ " with id " ~ candidate[0].id.to!string);
+          writeln("setting owner on " ~ entity["name"].to!string ~ " with id " ~ entity.id.to!string ~ " to " ~ candidate[0]["name"].to!string ~ " with id " ~ candidate[0].id.to!string);
           entity.setValue("owner", candidate[0].id.to!string);
           
           entity.setValue("connection", entity["connection"].replace(connectionName, candidate[0].id.to!string));
