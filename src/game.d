@@ -700,7 +700,7 @@ private:
         text ~= "\\n";
       }
       
-      writeln("text length: " ~ text.length.to!string);
+      //writeln("text length: " ~ text.length.to!string);
       
       entityMatrixComponent.text = text[0..min(text.length, 1000)];
       
@@ -854,7 +854,9 @@ private:
   
     if (m_mouseCursor !is null)
     {
-      m_mouseCursor.values["position"] = m_graphics.mouseWorldPos.to!string;
+      //m_mouseCursor.values["position"] = m_graphics.mouseWorldPos.to!string;
+      m_mouseCursor.values["position"] = m_inputHandler.mousePos.to!string;
+      
       registerEntity(m_mouseCursor);
     }
   

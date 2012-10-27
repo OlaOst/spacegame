@@ -323,12 +323,16 @@ public:
       {
         auto componentVerts = component.sprite.verticesForQuadTriangles(component.texture);
         
-        if (component.screenAbsolutePosition == false)
+        foreach (ref vert; componentVerts)
         {
-          foreach (ref vert; componentVerts)
+          if (component.screenAbsolutePosition == false)
           {
             vert -= vec3(center, 0.0);
             vert *= scale;
+          }
+          else
+          {
+            vert *= 0.75;
           }
         }
         
@@ -378,9 +382,16 @@ public:
         
         foreach (ref vert; componentVerts)
         {
-          vert -= vec3(center, 0.0);
-          
-          vert *= scale;
+          if (component.screenAbsolutePosition == false)
+          {
+            vert -= vec3(center, 0.0);
+            
+            vert *= scale;
+          }
+          else
+          {
+            vert *= 0.75;
+          }
           
           colors ~= component.color;
         }
@@ -427,18 +438,14 @@ public:
       {
         auto spriteVerts = sprite.verticesForQuadTriangles(m_textRender.atlas);
         
-        if (component.screenAbsolutePosition == false)
-        {        
-          foreach (ref vert; spriteVerts)
+        foreach (ref vert; spriteVerts)
+        {
+          if (component.screenAbsolutePosition == false)
           {
             vert -= vec3(center, 0.0);
-            
             vert *= scale;
           }
-        } 
-        else
-        {
-          foreach (ref vert; spriteVerts)
+          else
           {
             vert += vec3(component.position.x / 0.03, component.position.y / 0.03, 0.0);
             vert *= 0.02;
@@ -580,6 +587,7 @@ public:
       
     assert(centerComponent.position.ok, "Invalid center component position: " ~ centerComponent.position.toString());
     m_mouseWorldPos = p_mouseScreenPos * (1.0 / m_zoom) * 0.75 + centerComponent.position;
+    //m_mouseWorldPos = p_mouseScreenPos * (1.0 / m_zoom) + centerComponent.position;
     
     //writeln("scale: " ~ m_zoom.to!string ~ ", screenpos: " ~ p_mouseScreenPos.to!string ~ ", worldpos: " ~ m_mouseWorldPos.to!string);
   }

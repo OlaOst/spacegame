@@ -5,7 +5,6 @@ greeting.text = Hello,\n world
 debugDisplay.text = here we should see debug info
 debugDisplay.screenAbsolutePosition = true
 debugDisplay.position = [-1.2, 0.9]
-debugDisplay.depth = top
 debugDisplay.color = 1.0 1.0 1.0 1.0
 debugDisplay.name = Debug display
 debugDisplay.elements = FPS,entityCount,subsystemTimings
@@ -17,9 +16,9 @@ entityMatrix.name = Entity matrix
 
 cursor.name = Mouse cursor
 cursor.drawsource = Quad
+cursor.screenAbsolutePosition = true
 cursor.radius = 0.05
 cursor.color = [0.0, 1.0, 1.0, 0.5]
-cursor.screenAbsolutePosition = true
 
 test.drawsource = images/bugship.png
 test.keepInCenter = true

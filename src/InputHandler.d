@@ -477,8 +477,8 @@ private:
     assert((cast(float)(m_screenWidth - extraWidth) - 0.5) > 0, "div by 0, m_screenWidth: " ~ to!string(m_screenWidth) ~ ", extraWidth: " ~ to!string(extraWidth));
     assert((cast(float)(m_screenHeight - extraHeight) - 0.5) > 0, "div by 0, m_screenHeight: " ~ to!string(m_screenHeight) ~ ", extraHeight: " ~ to!string(extraHeight));
     
-    return vec2((cast(float)(p_x - extraWidth/2) / cast(float)(m_screenWidth-extraWidth) - 0.5) * 2.0,
-                 -(cast(float)(p_y - extraHeight/2) / cast(float)(m_screenHeight-extraHeight) - 0.5) * 2.0);
+    return vec2((cast(float)(p_x - extraWidth/2)  / cast(float)(m_screenWidth-extraWidth)   - 0.5) * 2.0,
+               -(cast(float)(p_y - extraHeight/2) / cast(float)(m_screenHeight-extraHeight) - 0.5) * 2.0);
   }    
   
   
