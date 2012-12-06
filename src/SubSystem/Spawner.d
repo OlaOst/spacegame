@@ -163,6 +163,8 @@ public:
           spawnValues["velocity"] = spawnVelocity.toString();
           spawnValues["force"] = spawnForce.toString();
           
+          spawnValues["name"] = spawnName;
+          
           m_spawnValues ~= spawnValues;
         }
       }

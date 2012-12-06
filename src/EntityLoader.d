@@ -25,15 +25,19 @@ module EntityLoader;
 import std.algorithm;
 import std.array;
 import std.conv;
+import std.exception;
+import std.random;
 import std.stdio;
 import std.string;
+
+import gl3n.linalg;
 
 import Entity;
 
 
 unittest
 {
-  scope(success) writeln(__FILE__ ~ " unittests succeeded");
+  //scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
   
   string[][string] cache;
@@ -96,7 +100,7 @@ unittest
   auto actualValues = loadValues(cache, "data/simpleship.txt");
   auto actualChildrenValues = findChildrenValues(cache, actualValues);
   assert(actualChildrenValues["mainSkeleton"]["source"] == "verticalskeleton.txt");
-  assert(actualChildrenValues["mainSkeleton"]["connectpoint.lower.position"] == "0.0 -0.8");
+  assert(actualChildrenValues["mainSkeleton"]["connectpoint.lower.position"] == "[0.0, -0.8]");
 }
 
 
@@ -215,4 +219,348 @@ string[string][string] findChildrenValues(ref string[][string] cache, string[str
   }
   
   return childValues;
+}
+
+
+unittest
+{
+  string[] lines = ["basevalue = test", 
+                    "first.position = [1, 2]", 
+                    "random.angle = 0 to 10",
+                    "random.position = [0, -1] to [1, 0]",
+                    "parent.foo = bar", 
+                    "child.owner = parent",
+                    "connectBase.connectpoint.one.position = [0.0, 1.0]",
+                    "connectChild.connection = connectBase.one",
+                    "image.drawsource = image.png",
+                    "external.source = cannon.txt",
+                    "external.spawn.foo = bar"];
+  
+  string[] orderedEntityNames;
+  auto entities = loadEntityCollection("test", lines, orderedEntityNames);
+  
+  assert(entities.length > 0);
+  
+  //writeln(orderedEntityNames);
+  assert(orderedEntityNames == ["test", 
+                                "test.first", 
+                                "test.random", 
+                                "test.parent", 
+                                "test.child", 
+                                "test.connectBase", 
+                                "test.connectChild", 
+                                "test.image", 
+                                "test.external"]);
+  
+  assert("test" in entities);
+  assert(entities["test"]["name"] == "test");
+  assert(entities["test"]["basevalue"] == "test");
+  
+  assert("test.random" in entities);
+  assert(entities["test.random"]["name"] == "random", "Expected entity name \"random\", got \"" ~ entities["test.random"]["name"] ~ "\"");
+  assert(entities["test.random"]["angle"].length > 0);
+  assert(entities["test.random"]["angle"].to!float >= 0.0);
+  assert(entities["test.random"]["angle"].to!float < 10.0);
+  assert(entities["test.random"]["position"].to!(float[])[0..2].vec2.x >= 0.0);
+  assert(entities["test.random"]["position"].to!(float[])[0..2].vec2.y >= -1.0);
+  assert(entities["test.random"]["position"].to!(float[])[0..2].vec2.x < 1.0);
+  assert(entities["test.random"]["position"].to!(float[])[0..2].vec2.y < 0.0);
+  
+  assert("test.first" in entities, "Expected entity \"test.first\"");
+  assert(entities["test.first"]["position"] == "[1, 2]");
+  
+  assert("test.parent" in entities);
+  assert("test.child" in entities);
+  assert(entities["test.parent"]["foo"] == "bar");
+  assert(entities["test.child"]["owner"] != "parent", "test.child.owner did not get translated from name \"" ~ entities["test.child"]["owner"] ~ "\" to id");
+  assert(entities["test.child"]["owner"] == entities["test.parent"].id.to!string, "Expected test.child.owner to be " ~ entities["test.parent"].id.to!string ~ ", got " ~ entities["test.child"]["owner"]);
+  
+  //foreach (name, entity; entities)
+    //writeln(name ~ ": " ~ entity.values.to!string);
+    
+  assert("test.connectBase" in entities);
+  assert("test.connectChild" in entities);
+  assert(entities["test.connectBase"]["connectpoint.one.position"] == "[0.0, 1.0]", "test.connectBase connectpoint.one.position was " ~ entities["test.connectBase"]["connectpoint.one.position"] ~ ", expected [0.0, 1.0]");
+  assert(entities["test.connectChild"]["connection"] == entities["test.connectBase"].id.to!string ~ ".one");
+  assert(entities["test.connectChild"]["owner"] == entities["test.connectBase"].id.to!string);
+  
+  assert("test.image" in entities);
+  assert(entities["test.image"]["drawsource"] == "image.png");
+  
+  assert("test.external" in entities);
+  assert(entities["test.external"]["source"] == "cannon.txt");
+  //assert(entities["test.external"]["drawsource"] == "images/cannon.txt");
+  writeln(entities["test.external"].values.to!string);
+}
+
+unittest
+{
+  string[string] values;
+  values["source"] = "cannon.txt";
+  values["foo"] = "bar";
+  
+  auto expandedValues = expandValues(values);
+ 
+  writeln("expanded values: " ~ expandedValues.to!string);
+ 
+  assert(expandedValues["source"] == "cannon.txt");
+  assert(expandedValues["foo"] == "bar");
+  assert(expandedValues["drawsource"] == "images/cannon.png");
+}
+string[string] expandValues(ref string[string] p_values)
+{
+  foreach (key, value; p_values)
+  {
+    auto fixedKey = key;
+    while (fixedKey.findSkip(".")) {}
+    
+    if (fixedKey == "source")
+    {
+      auto fileName = p_values[key];
+      
+      auto fixedFileName = fileName;
+      if (fixedFileName.startsWith("data/") == false)
+        fixedFileName = "data/" ~ fileName;
+      
+      string[string] keyValues;
+      foreach (string line; fixedFileName.File.lines)
+      {
+        line = line.strip;
+        
+        if (line.length > 0 && line.startsWith("#") == false)
+        {
+          auto keyAndValue = line.split("=");
+        
+          enforce(keyAndValue.length == 2, "Could not parse <key> = <value> from line " ~ line);
+          
+          auto key = keyAndValue[0].strip;
+          auto value = keyAndValue[1].strip;
+          
+          keyValues[key] = value;
+        }
+      }
+      
+      auto expandedValues = expandValues(keyValues);
+    
+      foreach (key, value; expandedValues)
+      {
+        if (key !in p_values)
+          p_values[key] = value;
+      }
+    }
+  }
+  
+  return p_values;
+}
+
+Entity[string] loadEntityCollection(string collectionName, string[string] p_values, ref string[] orderedEntityNames = [])
+{
+  string[] lines;
+  foreach (key, value; p_values)
+  {
+    lines ~= key ~ " = " ~ value;
+  }
+  
+  return loadEntityCollection(collectionName, lines, orderedEntityNames);
+}
+
+Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref string[] orderedEntityNames = [])
+{
+  //writeln("loadentitycollection, name: " ~ collectionName ~ ", lines: " ~ p_lines.to!string);
+  Entity[string] entities;
+
+  // split lines into entity sections, each with unique name
+  string[string][string] namedValues;
+    
+  foreach (string line; p_lines)
+  {
+    line = line.strip;
+    
+    if (line.length > 0 && line.startsWith("#") == false)
+    {
+      auto keyAndValue = line.split("=");
+      
+      enforce(keyAndValue.length == 2);
+      
+      auto key = keyAndValue[0].strip;
+      auto value = keyAndValue[1].strip;
+      
+      auto nameAndRest = key.findSplit(".");
+      
+      auto name = collectionName;
+      
+      if (!nameAndRest[1].empty)
+        name ~=  "." ~ nameAndRest[0];
+        
+      namedValues[name][key] = value;
+      
+      bool reservedName = false;
+      string fixedName = name;
+      while (fixedName.findSkip(".")) {}
+      if (fixedName == "connectpoint" || fixedName == "spawn" || fixedName == "*")
+        reservedName = true;
+      
+      if (orderedEntityNames.find(name).empty && !reservedName)
+        orderedEntityNames ~= name;
+    }
+  }
+  
+  // recursively expand entity collections
+  // or not, assume they are already expanded
+  /*foreach (name, keyValues; namedValues)
+  {
+    string fixedName = name;
+    while (fixedName.findSkip(".")) {}
+    
+    if (fixedName ~ ".source" in keyValues)
+    {
+      auto fileName = keyValues[fixedName ~ ".source"];
+      
+      auto fixedFileName = fileName;
+      if (fixedFileName.startsWith("data/") == false)
+        fixedFileName = "data/" ~ fileName;
+      
+      string[] fileLines;
+      foreach (string line; fixedFileName.File.lines)
+        fileLines ~= line;
+        
+      writeln(fileLines.to!string);
+        
+      foreach (entityName, entity; loadEntityCollection(name, fileLines, orderedEntityNames))
+      {
+        writeln("entity from source: " ~ entityName ~ " vs ownername: " ~ name);
+        
+        if (entityName == name)
+        {
+          
+        }
+        
+        string fixedEntityName = entityName;
+        while (fixedEntityName.findSkip(".")) {}
+        if (fixedEntityName == "connectpoint" || fixedEntityName == "spawn" || fixedEntityName == "*")
+          continue;
+
+        entities[entityName] = entity;
+      }
+    }
+  }
+  */
+  
+  // replace values like "0 to 10" with randomized values
+  foreach (name, keyValues; namedValues)
+  {
+    namedValues[name] = parseRandomizedValues(keyValues);
+  }
+  
+  
+  // create entities out of values
+  int[string] nameIdMapping;
+  foreach (name, keyValues; namedValues)
+  {
+    string[string] fixedKeyValues;
+    
+    foreach (key, value; keyValues)
+    {
+      auto fixedKey = key;
+      
+      // TODO: better way to keep track of reserved values
+      if (!fixedKey.find("connectpoint").empty)
+        fixedKey = fixedKey.find("connectpoint");
+      else if (!fixedKey.find("spawn").empty)
+        fixedKey = fixedKey.find("spawn");
+      else if (!fixedKey.find("*").empty)
+        fixedKey = fixedKey.find("*");
+      else
+        while (fixedKey.findSkip(".")) {}
+      
+      fixedKeyValues[fixedKey] = value;
+    }
+  
+    auto entity = new Entity(fixedKeyValues);
+    
+    string fixedName = name;
+    while (fixedName.findSkip(".")) {}
+    if ("name" !in entity)
+      entity.setValue("name", fixedName);
+    
+    nameIdMapping[name] = entity.id;
+    
+    entities[name] = entity;
+  }
+    
+  
+  // replace certain values referring to names with ids, so that subsystems can properly register them
+  foreach (name, ref keyValues; namedValues)
+  {
+    foreach (key, value; keyValues)
+    {
+      auto fixedKey = key;
+      while (fixedKey.findSkip(".")) {}
+            
+      if (fixedKey == "connection")
+      {
+        auto connectionData = value.split(".");
+        
+        auto fullName = collectionName ~ "." ~ connectionData[0];
+        
+        enforce(fullName in nameIdMapping, "Entity " ~ name ~ " tried to connect to " ~ fullName ~ " which is not found in the given entity names: " ~ nameIdMapping.keys.to!string);
+        
+        entities[name].setValue(fixedKey, nameIdMapping[fullName].to!string ~ "." ~ connectionData[1]);
+        entities[name].setValue("owner", nameIdMapping[fullName].to!string);
+      }
+      
+      if (fixedKey == "owner")
+      {
+        auto fullName = collectionName ~ "." ~ value;
+        
+        enforce(fullName in nameIdMapping, "Could not find " ~ fullName ~ " in nameIdMapping, " ~ nameIdMapping.to!string);
+        
+        entities[name].setValue(fixedKey, nameIdMapping[fullName].to!string);
+      }
+    }
+  }
+  
+  return entities;
+}
+
+
+string[string] parseRandomizedValues(string[string] inValues)
+{
+  string[string] outValues = inValues.dup;
+  
+  foreach (key, value; inValues)
+  {  
+    auto foundPosition = key.find("position");
+    auto foundAngle = key.find("angle");
+    
+    if (!foundPosition.empty && !value.find("to").empty)
+    {
+      auto fromToData = value.split("to");
+      auto from = fromToData[0].strip.to!(float[]);
+      auto to = fromToData[1].strip.to!(float[]);
+      
+      auto x = (from[0] == to[0]) ? from[0] : uniform(from[0], to[0]);
+      auto y = (from[1] == to[1]) ? from[1] : uniform(from[1], to[1]);
+      
+      auto position = vec2(x, y);
+      
+      outValues[key] = position.toString();
+    }
+    
+    if (!foundAngle.empty && !value.find("to").empty)
+    {
+      auto angleData = inValues[key].findSplit("to");
+      
+      enforce(!angleData[0].empty && !angleData[1].empty && !angleData[2].empty, "Problem parsing angle data with from/to values: " ~ angleData.to!string);
+      
+      auto fromAngle = to!float(angleData[0].strip);
+      auto toAngle = to!float(angleData[2].strip);
+      
+      auto angle = uniform(fromAngle, toAngle);
+      
+      outValues[key] = to!string(angle);
+    }
+  }
+  
+  return outValues;
 }

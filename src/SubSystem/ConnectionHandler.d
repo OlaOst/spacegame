@@ -275,6 +275,16 @@ protected:
 
   bool canCreateComponent(Entity p_entity)
   {
+    // since all entities can potentially be connected to, all entities are registered
+    // NOPE just put em in the possibleOwners collection
+    
+    // (this is a hack)
+    
+    possibleOwners[p_entity.id] = p_entity;
+    
+    //return true;
+    
+    
     foreach (value; p_entity.values.keys)
       if (value.startsWith("connectpoint"))
         return true;
@@ -287,12 +297,8 @@ protected:
   }
 
   
-  ConnectionComponent createComponent(Entity p_entity)
+  private ConnectPoint[string] createConnectPoints(Entity p_entity)
   {
-    //enforce("position" in p_entity.values, "Could not find position value when registering entity to connection subsystem");
-  
-    Entity owner = null;
-    
     ConnectPoint[string] connectPoints;
     
     foreach (value; p_entity.values.keys)
@@ -317,15 +323,29 @@ protected:
           connectPoint.position *= to!float(p_entity.getValue("radius"));
 
         connectPoints[connectPointName] = connectPoint;
-        
-        // entities with connectpoints are their own owners to begin with
-        owner = p_entity;
       }
     }
     
+    return connectPoints;
+  }
+  
+  ConnectionComponent createComponent(Entity p_entity)
+  {
+    // to create a connectioncomponent from an entity:
+    // 1. create connectpoints from entity values (could be none)
+    // 2. if we have a connection value, figure out which entity we will connect to (this entity should already have been registered - the correct ordering here is up to the game class or whatever is registering these entities)
+    // 3. set the owner entity (connection value implies 
+  
+    //enforce("position" in p_entity.values, "Could not find position value when registering entity to connection subsystem");
+  
+    // all entities are their own owners to begin with
+    Entity owner = p_entity;
+    
+    auto connectPoints = createConnectPoints(p_entity);
+    
     vec2 relativePosition = vec2(0.0, 0.0);
     vec2 relativePositionToCenterOfMass = vec2(0.0, 0.0);
-    //if (p_entity.getValue("connection").length > 0)
+    
     if ("connection" in p_entity)
     {
       auto entityIdAndConnectPointName = p_entity.getValue("connection").extractEntityIdAndConnectPointName();
@@ -335,27 +355,19 @@ protected:
       
       auto connectPointName = entityIdAndConnectPointName[1];
       
-      Entity connectToEntity;
-      
-      foreach (cand; entities)
-      {
-        if (cand.id == connectEntityId)
-        {
-          connectToEntity = cand;
-          break;
-        }
-      }
-      
-      enforce(connectToEntity !is null, "Could not find connect-to entity with id " ~ to!string(connectEntityId));
+      enforce(connectEntityId in possibleOwners, "Could not find connect-to entity with id " ~ to!string(connectEntityId));
+      Entity connectToEntity = possibleOwners[connectEntityId];
       enforce(hasComponent(connectToEntity), "Could not find connectcomponent for connect-to entity with id " ~ to!string(connectEntityId));
       
       auto connectComponent = getComponent(connectToEntity);
       
+      enforce(connectPointName in connectComponent.connectPoints, "Could not find connectpoint " ~ connectPointName ~ " in connect-to entity with id " ~ connectEntityId.to!string);
       auto connectPoint = connectPointName in connectComponent.connectPoints;
       
       if (connectPoint && connectPoint.connectedEntity is null)
       {
         connectPoint.connectedEntity = p_entity;
+        // TODO: is it really ok to update another component while creating this one?
         setComponent(connectToEntity, connectComponent);
         
         assert(getComponent(connectToEntity).connectPoints[connectPointName].connectedEntity == p_entity);
@@ -368,13 +380,13 @@ protected:
     {
       int ownerId = p_entity.getValue("owner").to!int;
       
-      if (ownerId == p_entity.id)
+      if (ownerId != p_entity.id && ownerId in possibleOwners)
       {
-        owner = p_entity;
+        owner = possibleOwners[ownerId];
       }
-      else
-      {
       
+      /*if (ownerId != p_entity.id)
+      {
         foreach (entity; entities)
         {
           if (entity.id == ownerId)
@@ -389,10 +401,8 @@ protected:
             break;
           }
         }
-      }
+      }*/
     }
-    
-    assert(owner !is null, "Could not find owner with id " ~ p_entity.getValue("owner"));
     
     auto newComponent = new ConnectionComponent(owner);
     
@@ -400,12 +410,13 @@ protected:
     newComponent.relativePositionToCenterOfMass = relativePosition; // calculate actual center of mass position later on
     newComponent.connectPoints = connectPoints;
     
-    //writeln("Entity " ~ p_entity["name"] ~ " setting relativePosition to " ~ newComponent.relativePosition.to!string);
-    
     if (p_entity.getValue("relativePosition").length > 0)
     {
       newComponent.relativePosition = vec2(p_entity.getValue("relativePosition").to!(float[])[0..2]);
     }
+    
+    if (p_entity["name"] != "Mouse cursor" && p_entity["name"] != "infotext")
+      writeln("Entity " ~ p_entity["name"] ~ " setting relativePosition to " ~ newComponent.relativePosition.to!string);
     
     if (p_entity.getValue("relativeAngle").length > 0)
     {
@@ -420,9 +431,10 @@ protected:
       newComponent.mass = to!float(p_entity.getValue("mass"));
     
     return newComponent;
-  }  
+  }
   
 private:
+  Entity[int] possibleOwners;
 }
 
 

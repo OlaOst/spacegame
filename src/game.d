@@ -188,90 +188,22 @@ public:
     m_inputHandler.setScreenResolution(xres, yres);
   }
  
- 
   void loadWorldFromFile(string p_fileName)
   {
-    if (p_fileName.startsWith("data/") == false)
-      p_fileName = "data/" ~ p_fileName;
-
-    Entity worldEntity = new Entity(loadValues(cache, p_fileName));
-
+    auto fixedFileName = p_fileName;
+    if (fixedFileName.startsWith("data/") == false)
+      fixedFileName = "data/" ~ p_fileName;
+    
+    string[] fileLines;
+    foreach (string line; fixedFileName.File.lines)
+      fileLines ~= line;
+    
     string[] orderedEntityNames;
-    
-    foreach (string line; p_fileName.File.lines)
-    {
-      line = line.strip;
-      
-      if (line.length > 0 && line.startsWith("#") == false)
-        if (orderedEntityNames.find(line.split(".")[0]) == [])
-          orderedEntityNames ~= line.split(".")[0];
-    }
-    
-    // go through world entity values, put values for child entities in this AA
-    string[string][string] spawnNameWithValues;
-    
-    // we go only 1 level deep - child entities inside child entities are not registered here
-    foreach (key; worldEntity.values.keys)
-    {
-      auto sourceAndKey = key.split(".");
-      
-      if (sourceAndKey.length >= 2)
-      {
-        auto sourceName = sourceAndKey[0];
-        auto sourceKey = join(sourceAndKey[1..$], ".");
-        
-        spawnNameWithValues[sourceName][sourceKey] = worldEntity.getValue(key);
-      }
-    }
-    
-    foreach (orderedEntityName; orderedEntityNames)
-    {
-      auto spawnName = orderedEntityName;
-      
-      if ("name" !in spawnNameWithValues[spawnName])
-        spawnNameWithValues[spawnName]["name"] = spawnName;
-      
-      int spawnCount = 1;
-      if ("spawnCount" in spawnNameWithValues[spawnName])
-        spawnCount = to!int(spawnNameWithValues[spawnName]["spawnCount"]);
+    auto entities = EntityLoader.loadEntityCollection("world", fileLines, orderedEntityNames);
 
-      enforce(spawnCount >= 0, "Cannot have negative spawncount for entity " ~ spawnName ~ " in " ~ p_fileName);
-        
-      for (int count = 0; count < spawnCount; count++)
-      {
-        auto extraValues = spawnNameWithValues[spawnName].dup;
-        
-        extraValues = parseRandomizedValues(extraValues);
-        
-        Entity spawn;
-
-        //writeln("load world, loading from source " ~ to!string(worldEntity.getValue(spawnName ~ ".source")) ~ " with extravalues " ~ to!string(extraValues));
-        
-        if (spawnName ~ ".collectionSource" in worldEntity.values)
-          loadEntityCollection(worldEntity.getValue(spawnName ~ ".collectionSource"), extraValues);
-        else
-          spawn = loadShip(worldEntity.getValue(spawnName ~ ".source"), extraValues);
-      }
-    }
-    
-    // make sure entities are connected properly if they haven't resolved owner id and stuff yet
-    foreach (entity; m_entities)
+    foreach (name; orderedEntityNames)
     {
-      if ("connection" in entity && "owner" !in entity)
-      {
-        string connectionName = entity["connection"].until(".").to!string;
-        auto candidate = m_entities.values.find!(candidate => candidate["name"] == connectionName);
-        
-        if (!candidate.empty)
-        {
-          writeln("setting owner on " ~ entity["name"].to!string ~ " with id " ~ entity.id.to!string ~ " to " ~ candidate[0]["name"].to!string ~ " with id " ~ candidate[0].id.to!string);
-          entity.setValue("owner", candidate[0].id.to!string);
-          
-          entity.setValue("connection", entity["connection"].replace(connectionName, candidate[0].id.to!string));
-          
-          m_connector.registerEntity(entity);
-        }
-      }
+      registerEntity(entities[name]);
     }
   }
  
@@ -770,13 +702,27 @@ private:
     {
       //assert("source" in spawnValues, "Could not find source value in spawnvalues: " ~ to!string(spawnValues));
       
-      if ("source" in spawnValues)
+      /*if ("source" in spawnValues)
         loadShip(spawnValues["source"], spawnValues);
       else
       {
         //writeln("loading values " ~ to!string(spawnValues));
         //loadEntityCollection("", spawnValues);
         loadEntity("", spawnValues);
+      }*/
+      
+      string[] orderedEntityNames;
+      
+      //writeln("spawnvalues: " ~ spawnValues.to!string);
+      
+      auto entities = loadEntityCollection("spawnstuff", spawnValues, orderedEntityNames);
+      
+      foreach (name; orderedEntityNames)
+      {
+        if (name == "spawnstuff.*") continue;
+        
+        writeln("spawning " ~ name ~ " with values " ~ entities[name].values.to!string);
+        registerEntity(entities[name]);
       }
     }
     
@@ -858,6 +804,17 @@ private:
       m_mouseCursor.values["position"] = m_inputHandler.mousePos.to!string;
       
       registerEntity(m_mouseCursor);
+    }
+    
+    auto infoEntitiesToMove = m_entities.values.filter!(entity => "infoentity" in entity && entity["infoentity"] == "text");
+    if (!infoEntitiesToMove.empty)
+    {
+      foreach (infoEntity; infoEntitiesToMove)
+      {
+        infoEntity.values["position"] = m_inputHandler.mousePos.to!string;
+      
+        registerEntity(infoEntity);
+      }
     }
   
     if (m_inputHandler.isPressed(Event.LeftButton))
@@ -1066,7 +1023,7 @@ private:
                                    (m_placer.getComponent(entity).position - m_graphics.mouseWorldPos).length < to!float(entity.getValue("radius")) &&
                                    m_connector.hasComponent(entity))(m_entities.values);*/
     
-      auto infoEntities = m_entities.values.filter!(entity => "isinfoentity" in entity && entity["isinfoentity"] == "true");
+      auto infoEntities = m_entities.values.filter!(entity => "infoentity" in entity);
       foreach (infoEntity; infoEntities)
         removeEntity(infoEntity);
     
@@ -1082,33 +1039,38 @@ private:
         
         //m_entityConsole.setEntity(entity);
         
-        string[string] infotext;
-        infotext["isinfoentity"] = "true";
+        string[string] infoText;
+        infoText["name"] = "infotext";
+        infoText["infoentity"] = "text";
         
-        infotext["position"] = m_graphics.mouseWorldPos.to!string;
+        infoText["position"] = m_graphics.mouseWorldPos.to!string;
         
-        infotext["radius"] = 0.05.to!string;
-        infotext["text"] = "";
+        infoText["radius"] = 0.05.to!string;
+        infoText["text"] = "";
         foreach (key, value; entity.values)
-          infotext["text"] ~= key ~ ": " ~ value ~ "\\n";
+          infoText["text"] ~= key ~ ": " ~ value ~ "\\n";
         
+        auto infoTextEntity = new Entity(infoText);
         
-        string[string] infobox;
-        infobox["isinfoentity"] = "true";
+        string[string] infoBox;
+        infoBox["name"] = "infobox";
+        infoBox["infoentity"] = "box";
         
         auto textboxsize = 0.05;
-        infobox["color"] = vec4(0.0, 0.0, 0.0, 0.75).to!string;
-        infobox["drawsource"] = "Rectangle";
-        auto textBox = m_graphics.getStringBox(infotext["text"], infotext["radius"].to!float);
-        infobox["lowerleft"] = textBox.lowerleft.to!string;
-        infobox["upperright"] = textBox.upperright.to!string;
-        infobox["position"] = (m_graphics.mouseWorldPos + (textBox.upperright - textBox.lowerleft)*0.5 + vec2(-textboxsize, textboxsize)).to!string;
-        //infobox["radius"] = textboxsize.to!string;
+        infoBox["color"] = vec4(0.0, 0.0, 0.0, 0.75).to!string;
+        infoBox["drawsource"] = "Rectangle";
+        auto textBox = m_graphics.getStringBox(infoText["text"], infoText["radius"].to!float);
+        infoBox["lowerleft"] = textBox.lowerleft.to!string;
+        infoBox["upperright"] = textBox.upperright.to!string;
+        infoBox["position"] = (m_graphics.mouseWorldPos + (textBox.upperright - textBox.lowerleft)*0.5 + vec2(-textboxsize, textboxsize)).to!string;
+        infoBox["owner"] = infoTextEntity.id.to!string;
+        infoBox["relativePosition"] = ((textBox.upperright - textBox.lowerleft)*0.5 + vec2(-textboxsize, textboxsize)).to!string;
+        writeln("infobox relative pos: " ~ infoBox["relativePosition"]);
+        //infoBox["radius"] = textboxsize.to!string;
         
         writeln(textBox.to!string);
         
-        auto infoBoxEntity = new Entity(infobox);
-        auto infoTextEntity = new Entity(infotext);
+        auto infoBoxEntity = new Entity(infoBox);
         
         registerEntity(infoBoxEntity);
         registerEntity(infoTextEntity);
@@ -1196,7 +1158,7 @@ private:
     }
   }
   
-  void loadEntity(string p_fileName, string[string] p_extraParams = null)
+  /+void loadEntity(string p_fileName, string[string] p_extraParams = null)
   {
     string[string] values;
     
@@ -1234,6 +1196,8 @@ private:
     foreach (childName, childValues; childrenValues)
     {
       childValues = parseRandomizedValues(childValues);
+      
+      writeln("registering entity " ~ childValues.to!string);
       
       registerEntity(new Entity(childValues));
     }
@@ -1345,13 +1309,14 @@ private:
     
     return mainEntity;    
   }
-  
+  +/
 
   public void registerEntity(Entity p_entity)
   {
     //assert(p_entity.id !in m_entities, "Tried registering entity " ~ to!string(p_entity.id) ~ " that was already registered");
     
-    //writeln("registering entity " ~ p_entity.id.to!string ~ " with values " ~ p_entity.values.to!string);
+    //if (p_entity["name"] != "Mouse cursor")
+      //writeln("registering entity " ~ p_entity["name"] ~ " with values " ~ p_entity.values.to!string);
     
     m_entities[p_entity.id] = p_entity;
     
@@ -1386,6 +1351,8 @@ private:
   
   void removeEntity(Entity p_entity)
   {
+    //writeln("removing entity " ~ p_entity["name"]);
+    
     foreach (subSystem; m_subSystems)
       subSystem.removeEntity(p_entity);
     

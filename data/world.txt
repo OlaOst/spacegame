@@ -28,7 +28,7 @@ greeting.position = [-9, -5]
 #dragdrophelp.text = blabla
 #dragdrophelp.position = [15, -7]
 
-hud.collectionSource = hud.txt
+hud.source = hud.txt
 
 # the trashbin deletes modules that are dragged onto it
 trashbin.name = trashbin

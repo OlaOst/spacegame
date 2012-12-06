@@ -99,6 +99,8 @@ protected:
     if (p_entity.getValue("lifetime").length > 0)
       component.lifetime = to!float(p_entity.getValue("lifetime"));
       
+    //writeln("timer registered " ~ p_entity["name"] ~ " with lifetime " ~ component.lifetime.to!string);
+      
     return component;
   }
   

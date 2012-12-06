@@ -26,4 +26,4 @@ target.*.collisionType = NpcModule
 target.*.health = 10000
 
 
-hud.collectionSource = hud.txt
+hud.source = hud.txt

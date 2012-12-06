@@ -124,7 +124,8 @@ public:
         
       m_entityToComponent[p_entity] = component;
       
-      //writeln("registering entity " ~ to!string(p_entity.id) ~ " on " ~ name());
+      //if (p_entity["name"] != "Mouse cursor")
+        //writeln("registering " ~ p_entity["name"] ~ " on " ~ name());
     }
     
     //assert(m_componentArray == map!((entity) { return m_entityToComponent[entity]; })(sort!((left, right) { return left.id < right.id; })(m_entityToComponent.keys)).array);
@@ -178,7 +179,11 @@ public:
 
   @property final string name()
   {
-    return this.classinfo.name;
+    string fixedName = this.classinfo.name;
+    
+    while (fixedName.findSkip(".")) {}
+    
+    return fixedName;
   }
   
   void updateWithTiming()
