@@ -57,7 +57,6 @@ import InputHandler;
 import Starfield;
 
 import SubSystem.CollisionHandler;
-import SubSystem.ConnectionHandler;
 import SubSystem.Controller;
 import SubSystem.Graphics;
 import SubSystem.Physics;
@@ -139,9 +138,6 @@ unittest
   game.registerEntity(owner);
   game.registerEntity(parent);
   game.registerEntity(child);
-  
-  assert(game.m_connector.hasComponent(parent));
-  assert(game.m_connector.hasComponent(child));
 }
 
 
@@ -165,7 +161,6 @@ public:
     m_subSystems["physics"] = m_physics = new Physics();
     m_subSystems["controller"] = m_controller = new Controller();
     m_subSystems["collider"] = m_collider = new CollisionHandler();
-    m_subSystems["connector"] = m_connector = new ConnectionHandler();
     m_subSystems["sound"] = m_sound = new Sound(64);
     m_subSystems["spawner"] = m_spawner = new Spawner();
     m_subSystems["timer"] = m_timer = new Timer();
@@ -430,75 +425,6 @@ private:
     foreach (entity; filter!(entity => m_collider.hasComponent(entity))(m_entities.values))
     {
       auto colliderComponent = m_collider.getComponent(entity);
-
-      // disconnect if no health left
-      if (colliderComponent.health <= 0.0 && m_connector.hasComponent(entity))
-      {
-        writeln("no health left, disconnecting entity " ~ to!string(entity.id) ~ " with values " ~ to!string(entity.values));
-        
-        // de-control entity and all connected entities
-        entity.setValue("control", "nothing");
-        entity.setValue("collisionType", "FreeFloatingModule");
-        entity.setValue("position", m_placer.getComponent(entity).position.toString());
-        entity.setValue("angle", to!string(m_placer.getComponent(entity).angle));
-        //entity.setValue("velocity", vec2(0.0, 0.0).toString());
-        entity.setValue("force", vec2(0.0, 0.0).toString());
-        
-        m_controller.removeEntity(entity);
-        m_spawner.removeEntity(entity);
-        m_collider.registerEntity(entity);
-        
-        m_physics.registerEntity(entity);
-        
-        assert(m_collider.getComponent(entity).force.ok);
-        assert(m_physics.getComponent(entity).force.ok);
-        
-        // disconnect all connected entities
-        foreach (connectedEntity; m_connector.getConnectedEntities(entity))
-        {
-          connectedEntity.setValue("control", "nothing");
-          connectedEntity.setValue("collisionType", "FreeFloatingModule");
-          connectedEntity.setValue("owner", to!string(connectedEntity.id));
-          m_controller.removeEntity(connectedEntity);
-          m_spawner.removeEntity(entity);
-          m_connector.removeEntity(connectedEntity);
-          m_collider.registerEntity(connectedEntity);
-          
-          if (m_collider.hasComponent(connectedEntity))
-          {
-            auto connectedColliderComponent = m_collider.getComponent(connectedEntity);
-            connectedColliderComponent.health = to!float(connectedEntity.getValue("health"));
-            
-            if (m_physics.hasComponent(connectedEntity))
-            {
-              auto connectedPhysComp = m_physics.getComponent(connectedEntity);
-              connectedPhysComp.position = connectedColliderComponent.position;
-              connectedPhysComp.force = vec2(0.0, 0.0);
-              
-              m_physics.setComponent(connectedEntity, connectedPhysComp);
-            }
-          }
-        }
-      
-        // TODO: figure out why entity is getting reconnected later on
-        entity.setValue("owner", to!string(entity.id));
-        m_connector.removeEntity(entity);
-        
-        writeln("disconnecting entity " ~ to!string(entity.id) ~ " with position " ~ colliderComponent.position.toString());
-        if ("health" in entity.values)
-          colliderComponent.health = to!float(entity.getValue("health"));
-        
-        assert(m_connector.hasComponent(entity) == false);
-        
-        if (m_physics.hasComponent(entity))
-        {
-          auto physComp = m_physics.getComponent(entity);
-          physComp.position = colliderComponent.position;
-          physComp.force = vec2(0.0, 0.0);
-          
-          m_physics.setComponent(entity, physComp);
-        }
-      }
     }
     
     auto entitiesToRemove = m_timer.getTimeoutEntities() ~ 
@@ -519,7 +445,6 @@ private:
       m_spawner.setTimeStep(m_timer.elapsedTime);
       
       CommsCentral.setPlacerFromPhysics(m_physics, m_placer);
-      CommsCentral.setPlacerFromConnector(m_connector, m_placer);
       
       // this block should be handled in DragDropHandler
       if (m_dragEntity !is null)
@@ -538,7 +463,6 @@ private:
       CommsCentral.setPhysicsFromController(m_controller, m_physics);
       CommsCentral.setSpawnerFromController(m_controller, m_spawner);
       
-      CommsCentral.setPhysicsFromConnector(m_connector, m_physics);
       CommsCentral.setPhysicsFromSpawner(m_spawner, m_physics);
       
       updateSubSystems();
@@ -546,7 +470,6 @@ private:
       CommsCentral.setControllerFromPlacer(m_placer, m_controller);
       CommsCentral.setCollidersFromPlacer(m_placer, m_collider);
       CommsCentral.setSpawnerFromPlacer(m_placer, m_spawner);
-      CommsCentral.setConnectorFromPlacer(m_placer, m_connector);
       CommsCentral.setSoundFromPlacer(m_placer, m_sound);
       CommsCentral.setSoundFromSpawner(m_spawner, m_sound);
       //CommsCentral.setTimerFromCollider(m_collider, m_timer);
@@ -668,10 +591,10 @@ private:
           m_placer.setComponent(m_closestShipDisplay, poscomp);
           m_graphics.setComponent(m_closestShipDisplay, gfxcomp);
           
-          auto ownedEntitiesWithGraphics = m_connector.getOwnedEntities(closestEntity).filter!(e => m_graphics.hasComponent(e));
+          //auto ownedEntitiesWithGraphics = m_connector.getOwnedEntities(closestEntity).filter!(e => m_graphics.hasComponent(e));
           
-          if (ownedEntitiesWithGraphics.empty == false)
-            m_graphics.setTargetEntity(ownedEntitiesWithGraphics.front);
+          //if (ownedEntitiesWithGraphics.empty == false)
+            //m_graphics.setTargetEntity(ownedEntitiesWithGraphics.front);
         }
       }
     }
@@ -837,8 +760,8 @@ private:
             // we don't want to drag something if it has stuff connected to it, or owns something. 
             // if you want to drag a skeleton module, you should drag off all connected modules first
             // TODO: should be possible to drag stuff with connected stuff, but drag'n'drop needs to be more robust first            
-            if (m_connector.getConnectedEntities(draggable).length > 0 || m_connector.getOwnedEntities(draggable).length > 0)
-              continue;
+            //if (m_connector.getConnectedEntities(draggable).length > 0 || m_connector.getOwnedEntities(draggable).length > 0)
+              //continue;
 
             m_dragEntity = draggable;
             
@@ -849,45 +772,6 @@ private:
         // ok, we picked up an entity. now what do we do with it?
         if (m_dragEntity !is null)
         {
-          if (m_connector.hasComponent(m_dragEntity))
-          {
-            auto ownerEntity = m_connector.getComponent(m_dragEntity).owner;
-
-            // TODO: disconnectEntity sets the component owner to itself - might cause trouble if we assume it has a separate owner entity when floating around on its own
-            m_connector.disconnectEntity(m_dragEntity);
-            
-            updateOwnerEntity(ownerEntity);
-            
-            // double check connect point for disconnection
-            debug
-            {
-              assert(m_connector.hasComponent(m_dragEntity));
-              
-              if (m_dragEntity.getValue("connection").length > 0)
-              {
-                auto dragEntityConnection = extractEntityIdAndConnectPointName(m_dragEntity.getValue("connection"));
-                
-                Entity connectEntity;
-                
-                auto match = find!(entity => entity.id == to!int(dragEntityConnection[0]))(m_entities.values);
-                
-                if (match.empty == false)
-                {
-                  connectEntity = match.front;
-                }
-                
-                assert(connectEntity !is null);
-                assert(m_connector.hasComponent(connectEntity), "expected connection comp of entity with values " ~ to!string(connectEntity.values));
-                auto comp = m_connector.getComponent(connectEntity);
-                
-                assert(dragEntityConnection[1] in comp.connectPoints, "Couldn't find connectpoint " ~ dragEntityConnection[1] ~ " in component whose entity has values " ~ to!string(connectEntity.values));
-                assert(comp.connectPoints[dragEntityConnection[1]].connectedEntity is null, "Disconnected connectpoint still not empty: " ~ to!string(comp.connectPoints[dragEntityConnection[1]]));
-              }
-            }
-            
-            m_dragEntity.values.remove("connection");  
-          }
-          
           // we don't want dragged entities to be controlled
           if (m_controller.hasComponent(m_dragEntity) && m_dragEntity.getValue("control").length > 0)
           {
@@ -919,95 +803,6 @@ private:
         if (m_dragEntity != m_trashBin && (dragPos - trashBinPos).length < to!float(m_trashBin.getValue("radius")))
         {
           removeEntity(m_dragEntity);
-        }
-        else
-        {
-          // if drag entity is close to an empty skeleton contact point then connect to it
-          auto overlappingEmptyConnectPointsWithPosition = m_connector.findOverlappingEmptyConnectPointsWithPosition(m_dragEntity, dragPos);
-        
-          ConnectPoint closestConnectPoint;
-          auto closestPosition = vec2(float.infinity, float.infinity);
-        
-          // connect to the closest one
-          foreach (ConnectPoint connectPoint, vec2 position; overlappingEmptyConnectPointsWithPosition)
-          {
-            if (position.length < closestPosition.length)
-            {
-              closestConnectPoint = connectPoint;
-              closestPosition = position;
-            }
-          }
-          
-          if (closestPosition.length < float.infinity)
-          {
-            assert(closestConnectPoint.owner !is null);
-            assert(m_connector.hasComponent(closestConnectPoint.owner));
-            
-            auto connectEntity = closestConnectPoint.owner;
-            auto ownerEntity = m_connector.getComponent(connectEntity).owner;
-            
-            m_dragEntity.setValue("owner", to!string(ownerEntity.id));
-            m_dragEntity.setValue("connection", to!string(connectEntity.id) ~ "." ~ closestConnectPoint.name);
-            
-            if (ownerEntity == m_playerShip)
-            {
-              //if (m_dragEntity.getValue("source") == "data/engine.txt" || m_dragEntity.getValue("source") == "engine.txt")
-              if (m_dragEntity.getValue("thrustForce").length > 0)
-                m_dragEntity.setValue("control", "playerEngine");
-              
-              //if (m_dragEntity.getValue("source") == "data/cannon.txt" || m_dragEntity.getValue("source") == "cannon.txt")
-              if (m_dragEntity.getValue("spawn.source").length > 0)
-                m_dragEntity.setValue("control", "playerLauncher");
-                
-              // in case the module launches missiles, set target so that missiles will have a target to home in to
-              m_dragEntity.setValue("spawn.*.target", "closestEnemy");
-            }
-            registerEntity(m_dragEntity);
-            
-            assert(m_connector.hasComponent(connectEntity));
-            assert(m_connector.getComponent(connectEntity).connectPoints[closestConnectPoint.name].connectedEntity !is null, 
-                   "Connectpoint " ~ closestConnectPoint.name ~ 
-                   " on " ~ connectEntity.getValue("name") ~ 
-                   " with id " ~ to!string(connectEntity.id) ~ 
-                   " still empty after connecting entity " ~ m_dragEntity.getValue("name") ~ 
-                   " with values " ~ to!string(m_dragEntity.values));
-            
-            updateOwnerEntity(ownerEntity);
-          }
-        }
-        
-        // create a new owner entity if the dragentity owns itself
-        // the dragentity is a module, the owner is supposed to be like a ship entity aggregating the module entities making up the ship
-        if (m_connector.hasComponent(m_dragEntity))
-        {
-          auto dragConnectComp = m_connector.getComponent(m_dragEntity);
-          
-          if (dragConnectComp.owner == m_dragEntity)
-          {
-            //auto ownerEntity = new Entity();
-            string[string] ownerEntityValues;
-            
-            // TODO: set up values in ownerEntity so that it can recreate the ship with modules if it's saved and loaded again
-            // look in playership.txt for how values should be set up
-
-            if (m_placer.hasComponent(m_dragEntity))
-              ownerEntityValues["position"] = m_placer.getComponent(m_dragEntity).position.toString();
-              
-            if (m_placer.hasComponent(m_dragEntity))
-              ownerEntityValues["angle"] = to!string(m_placer.getComponent(m_dragEntity).angle * (_180_PI));
-              
-            if (m_physics.hasComponent(m_dragEntity))
-              ownerEntityValues["mass"] = to!string(m_physics.getComponent(m_dragEntity).mass);
-            
-            Entity ownerEntity = new Entity(ownerEntityValues);
-            
-            ownerEntity.setValue("owner", to!string(ownerEntity.id));
-            
-            m_dragEntity.setValue("owner", to!string(ownerEntity.id));
-            
-            registerEntity(ownerEntity);
-            registerEntity(m_dragEntity);
-          }
         }
         
         m_dragEntity = null;
@@ -1075,61 +870,6 @@ private:
         registerEntity(infoTextEntity);
         registerEntity(infoBoxEntity);
       }
-      /*else
-      {
-        m_entityConsole.setEntity(null);
-      }*/
-    
-      /*foreach (entity; filter!(entity => entity != m_playerShip && 
-                                         entity.getValue("radius").length > 0 &&
-                                         m_placer.hasComponent(entity) && 
-                                         (m_placer.getComponent(entity).position - m_graphics.mouseWorldPos).length < to!float(entity.getValue("radius")) &&
-                                         m_connector.hasComponent(entity))(m_entities.values))
-      {
-        /*auto entityOwner = m_connector.getComponent(entity).owner;
-        
-        // we don't want to control modules floating by themself not connected to anything... or do we?
-        if (entityOwner.id == entity.id)
-          continue;
-        
-        // remove control from eventual old playership so we don't end up controlling multiple ships at once
-        if (m_playerShip !is null && m_playerShip != entityOwner)
-        {
-          foreach (oldOwnedEntity; m_connector.getOwnedEntities(m_playerShip))
-          {
-            m_controller.removeEntity(oldOwnedEntity);
-          }
-        }
-        
-        m_playerShip = m_connector.getComponent(entity).owner;
-        
-        // disable eventual old center entity
-        auto oldCenterEntity = m_graphics.getCenterEntity();
-        
-        if (oldCenterEntity !is null)
-          oldCenterEntity.setValue("keepInCenter", "false");
-        
-        m_playerShip.setValue("keepInCenter", "true");
-        m_playerShip.setValue("drawsource", "Invisible");
-        
-        // also set as center
-        m_graphics.registerEntity(m_playerShip);
-        
-        // give player control to new playership
-        foreach (ownedEntity; m_connector.getOwnedEntities(m_playerShip))
-        {
-          if (ownedEntity.getValue("source").find("engine.txt").empty == false)
-            ownedEntity.setValue("control", "playerEngine");
-
-          if (ownedEntity.getValue("source").find("cannon.txt").empty == false || ownedEntity.getValue("source").find("launcher.txt").empty == false)
-            ownedEntity.setValue("control", "playerLauncher");
-
-          //registerEntity(ownedEntity);
-          m_controller.registerEntity(ownedEntity);
-        }
-        
-        break;
-      }*/
     }  
   
     if (m_inputHandler.isPressed(Event.PageUp))
@@ -1158,159 +898,6 @@ private:
     }
   }
   
-  /+void loadEntity(string p_fileName, string[string] p_extraParams = null)
-  {
-    string[string] values;
-    
-    if (p_fileName.length > 0)
-      values = loadValues(cache, p_fileName);
-      
-    foreach (extraKey, extraValue; p_extraParams)
-      values[extraKey] = extraValue;
-      
-    values = parseRandomizedValues(values);
-      
-    registerEntity(new Entity(values));
-  }
-  
-  void loadEntityCollection(string p_fileName, string[string] p_extraParams = null)
-  {
-    //writeln("loading entity collection from " ~ p_fileName ~ " with extravalues " ~ to!string(p_extraParams));
-    
-    Entity[] entities;
-    
-    string[string] values;
-    
-    if (p_fileName.length > 0)
-      values = loadValues(cache, p_fileName);
-      
-    foreach (extraKey, extraValue; p_extraParams)
-      values[extraKey] = extraValue;
-      
-    auto childrenValues = findChildrenValues(cache, values);
-    
-    values = parseRandomizedValues(values);
-    
-    // no need for mainentity, they should not be connected in this case
-    
-    foreach (childName, childValues; childrenValues)
-    {
-      childValues = parseRandomizedValues(childValues);
-      
-      writeln("registering entity " ~ childValues.to!string);
-      
-      registerEntity(new Entity(childValues));
-    }
-
-    //return entities;
-  }
-  
-  Entity loadShip(string p_fileName, string[string] p_extraParams = null)
-  {
-    //debug writeln("loading ship from file " ~ p_fileName ~ ", with extraparams " ~ to!string(p_extraParams));
-    
-    string[string] values;
-
-    if (p_fileName.length > 0)
-      values = loadValues(cache, p_fileName);
-    
-    //writeln("values after load: " ~ to!string(values));
-    
-    foreach (extraKey, extraValue; p_extraParams)
-      values[extraKey] = extraValue;
-    
-    auto childrenValues = findChildrenValues(cache, values);
-    
-    values = parseRandomizedValues(values);
-    
-    auto mainEntity = new Entity(values);
-    
-    float accumulatedMass = 0.0;
-    if ("mass" in mainEntity.values)
-      accumulatedMass += to!float(mainEntity.getValue("mass"));
-    
-    Entity[string] childEntities;
-    foreach (childName, childValues; childrenValues)
-    {
-      childValues = parseRandomizedValues(childValues);
-      
-      childEntities[childName] = new Entity(childValues);
-      
-      if ("mass" in childValues)
-        accumulatedMass += to!float(childValues["mass"]);
-      
-      childEntities[childName].setValue("owner", to!string(mainEntity.id));
-      
-      // position value is required for registering entities to connection subsystem
-      if ("position" !in childEntities[childName].values)
-        childEntities[childName].setValue("position", mainEntity.getValue("position"));
-    }
-    
-    assert(accumulatedMass >= 0.0);
-    
-    string[string] childDependency;
-    // replace connect entity names with ids, because names are not unique but ids are
-    foreach (childName, childValues; childrenValues)
-    {
-      foreach (childKey, childValue; childValues)
-      {
-        if (childKey == "connection")
-        {
-          auto connectEntityName = to!string(childValue.until("."));
-          auto connectPointName = childValue.find(".")[1..$];
-          
-          childDependency[childName] = connectEntityName;
-          
-          if (connectEntityName in childEntities)
-          {
-            childEntities[childName].setValue("connection", to!string(childEntities[connectEntityName].id) ~ "." ~ connectPointName);
-          }
-        }
-      }
-    }
-    
-    if (accumulatedMass > 0.0)
-      mainEntity.setValue("mass", to!string(accumulatedMass));
-    
-    if (childEntities.length > 0)
-      mainEntity.setValue("owner", to!string(mainEntity.id));
-    
-    registerEntity(mainEntity);
-    
-    foreach (childEntityName, childEntity; childEntities)
-    {
-      if (childEntityName !in childDependency)
-      {
-        registerEntity(childEntity);
-      }
-    }
-    
-    // loop over dependent entities until all are registered
-    while (childDependency.length > 0)
-    {
-      string[string] newChildDependency;
-      
-      foreach (childName; childDependency.keys)
-      {
-        assert(childName in childDependency);
-        assert(childDependency[childName] in childEntities, "Could not find entity " ~ to!string(childDependency[childName]) ~ " in " ~ to!string(childEntities));
-        
-        if (m_connector.hasComponent(childEntities[childDependency[childName]]))
-          registerEntity(childEntities[childName]);
-        else
-          newChildDependency[childName] = childDependency[childName];
-      }
-      
-      // if no entities were registered and all were put in newChildDependency, we have a cycle or something
-      enforce(newChildDependency.length < childDependency.length, "Could not resolve entity dependencies when loading " ~ p_fileName);
-      
-      childDependency = newChildDependency;
-    }
-    
-    return mainEntity;    
-  }
-  +/
-
   public void registerEntity(Entity p_entity)
   {
     //assert(p_entity.id !in m_entities, "Tried registering entity " ~ to!string(p_entity.id) ~ " that was already registered");
@@ -1356,77 +943,8 @@ private:
     foreach (subSystem; m_subSystems)
       subSystem.removeEntity(p_entity);
     
-    if (m_connector.hasComponent(p_entity))
-    {
-      auto owner = m_connector.getComponent(p_entity).owner;
-      auto ownedEntities = m_connector.getOwnedEntities(owner);
-      
-      // we don't want owner entities without owned entities hanging around
-      // so if the entity we remove is the last owned entity, we also remove the owner entity
-      if (ownedEntities.length == 1 && ownedEntities[0] == p_entity)
-      {
-        writeln("removing owner entity " ~ to!string(owner.id));
-        removeEntity(owner);
-      }
-    }
-    
     m_entities.remove(p_entity.id);
   }
-  
-  
-  // update mass, center of mass etc
-  // called when entities are added or removed to a owner entity, which means the owner entity must update its accumulated stuff
-  // TODO: ConnectionHandler should handle this
-  void updateOwnerEntity(Entity p_ownerEntity)
-  {
-    float accumulatedMass = 0.0;
-    foreach (ownedEntity; m_connector.getOwnedEntities(p_ownerEntity))
-    {
-      if (m_physics.hasComponent(ownedEntity))
-      {
-        auto physComp = m_physics.getComponent(ownedEntity);
-        accumulatedMass += physComp.mass;
-      }
-    }
-    if (accumulatedMass <= 0.0)
-      return;
-      
-    auto physComp = m_physics.getComponent(p_ownerEntity);
-    physComp.mass = accumulatedMass;
-    //writeln("setting accumulated mass to " ~ to!string(accumulatedMass));
-    assert(isFinite(physComp.mass));
-    m_physics.setComponent(p_ownerEntity, physComp);
-    
-    auto ownerConnectComp = m_connector.getComponent(p_ownerEntity);
-    auto originalCenterOfMass = ownerConnectComp.relativePositionToCenterOfMass;
-    
-    // recalculate relative position to center of mass for all owned entities
-    vec2 centerOfMass = vec2(0.0, 0.0);
-    float totalMass = 0.0;
-    foreach (ownedEntity; m_connector.getOwnedEntities(p_ownerEntity))
-    {
-      auto ownedComponent = m_connector.getComponent(ownedEntity);
-      centerOfMass += ownedComponent.relativePosition * ownedComponent.mass;
-      totalMass += ownedComponent.mass;
-    }
-    centerOfMass *= (1.0/totalMass);
-    
-    foreach (ownedEntity; m_connector.getOwnedEntities(p_ownerEntity))
-    {
-      auto ownedComponent = m_connector.getComponent(ownedEntity);
-      ownedComponent.relativePositionToCenterOfMass = ownedComponent.relativePosition - centerOfMass;
-    }
-    
-    writeln("centerofmass: " ~ to!string(centerOfMass) ~ ", original com: " ~ to!string(originalCenterOfMass) ~ ", physcomp position: " ~ to!string(physComp.position));
-    
-    //ownerConnectComp.relativePositionToCenterOfMass = ownerConnectComp.position - centerOfMass;
-    //m_placer.getComponent(p_ownerEntity).position = ownerConnectComp.position + (centerOfMass - originalCenterOfMass);
-    //physComp.position += (centerOfMass - originalCenterOfMass);
-    //physComp.position -= originalCenterOfMass;
-    
-    //ownerConnectComp.relativePositionToCenterOfMass = centerOfMass;
-  }
-  
   
 private:
   void updateSubSystems()
@@ -1548,8 +1066,8 @@ private:
       return null;
       
     Entity closestEntity = reduce!((closestSoFar, entity) =>
-      ((m_connector.getComponent(closestSoFar).position - entityPosition).length < 
-       (m_connector.getComponent(entity).position - entityPosition).length) ? closestSoFar : entity)
+      ((m_placer.getComponent(closestSoFar).position - entityPosition).length < 
+       (m_placer.getComponent(entity).position - entityPosition).length) ? closestSoFar : entity)
     (candidates);
 
     return closestEntity;
@@ -1572,7 +1090,6 @@ private:
   Physics m_physics;
   Graphics m_graphics;
   Controller m_controller;
-  ConnectionHandler m_connector;
   CollisionHandler m_collider;
   Spawner m_spawner;
   Sound m_sound;

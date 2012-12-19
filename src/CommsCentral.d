@@ -32,7 +32,6 @@ import SubSystem.Physics;
 import SubSystem.Graphics;
 import SubSystem.Placer;
 import SubSystem.Controller;
-import SubSystem.ConnectionHandler;
 import SubSystem.CollisionHandler;
 import SubSystem.Sound;
 import SubSystem.Spawner;
@@ -117,88 +116,6 @@ void setSoundFromPlacer(Placer placer, Sound sound)
     return soundComponent;
   });
 }
-
-// update position of connected entities so they don't fly off on their own
-void setPlacerFromConnector(ConnectionHandler connection, Placer placer)
-{
-//return;
-  subSystemCommunication!(ConnectionComponent, PlacerComponent)(connection, placer, (ConnectionComponent connectionComponent, PlacerComponent placerComponent)
-  {
-    // we don't need to do anything for connection targets/owners
-    //if (connectionComponent.owner == entity)
-      //continue;
-    
-    //writeln("setting placercomp from connectioncomp with " ~ connectionComponent.connectPoints.length.to!string ~ " and relative position " ~ to!string(connectionComponent.relativePosition) ~ " and owner " ~ to!string(connectionComponent.owner.id));
-    
-    assert(connectionComponent.relativePosition.ok);
-    assert(connectionComponent.relativeAngle == connectionComponent.relativeAngle);
-    
-    //enforce(connectionComponent.owner !is null, "Owner entity was null for connection component with entity " ~ to!string(entity.id));
-    assert(connectionComponent.owner !is null, "Owner entity was null for connection component");
-    assert(placer.hasComponent(connectionComponent.owner), "Owner entity " ~ to!string(connectionComponent.owner.id) ~ " did not have placer component");
-    auto ownerComponent = placer.getComponent(connectionComponent.owner);
-    
-    // need to rotate around middle of mass point
-    placerComponent.position = ownerComponent.position + mat2.rotation(-ownerComponent.angle) * connectionComponent.relativePositionToCenterOfMass;
-    placerComponent.angle = ownerComponent.angle + connectionComponent.relativeAngle;
-    
-    placerComponent.velocity = ownerComponent.velocity;
-    placerComponent.rotation = ownerComponent.rotation;
-    
-    //writeln("placer from connector, pos is " ~ placerComponent.position.toString() ~ ", owner is " ~ connectionComponent.owner.id.to!string ~ " ownerpos is " ~ ownerComponent.position.toString());
-    
-    return placerComponent;
-  });
-}
-
-void setConnectorFromPlacer(Placer placer, ConnectionHandler connection)
-{
-  subSystemCommunication!(PlacerComponent, ConnectionComponent)(placer, connection, (PlacerComponent placerComponent, ConnectionComponent connectionComponent)
-  {
-    connectionComponent.position = placerComponent.position;
-    connectionComponent.angle = placerComponent.angle;
-    
-    //writeln("connector from placer, ownerid " ~ connectionComponent.owner.id.to!string ~ ", pos is " ~ connectionComponent.position.to!string);
-    
-    return connectionComponent;
-  });
-}
-
-// engines etc needs to transfer force and torque correctly to the owner ship entity
-void setPhysicsFromConnector(ConnectionHandler connection, Physics physics)
-{
-  foreach (entity; connection.entities)
-  {
-    //writeln("checking entity " ~ entity.id.to!string ~ ", in physics: " ~ physics.hasComponent(entity).to!string ~ ", in connection: " ~ connection.hasComponent(entity).to!string);
-    if (physics.hasComponent(entity) && connection.hasComponent(entity))
-    {
-      auto connectionComponent = connection.getComponent(entity);
-      auto physicsComponent = physics.getComponent(entity);
-      
-      // we don't need to do anything for connection targets
-      if (connectionComponent.owner == entity)
-        continue;
-      
-      assert(connectionComponent.relativePosition.ok);
-      assert(connectionComponent.relativeAngle == connectionComponent.relativeAngle);
-      
-      enforce(connectionComponent.owner !is null, "Owner entity was null for connection component with entity " ~ to!string(entity.id));      
-      enforce(physics.hasComponent(connectionComponent.owner), "owner entity " ~ to!string(connectionComponent.owner.id) ~ " did not have physics component");
-      auto ownerComponent = physics.getComponent(connectionComponent.owner);
-      
-      //ownerComponent.force += physicsComponent.force.rotate(ownerComponent.angle);
-      ownerComponent.force += mat2.rotation(-ownerComponent.angle) * physicsComponent.force;
-      ownerComponent.impulse += physicsComponent.impulse;
-      ownerComponent.angularImpulse += physicsComponent.angularImpulse;
-      ownerComponent.torque += physicsComponent.torque;
-      
-      //writeln("physicsfromconnector, ownercomp force: " ~ ownerComponent.force.to!string ~ ", physicscomp force:  "~ physicsComponent.force.to!string);
-      
-      physics.setComponent(connectionComponent.owner, ownerComponent);
-    }
-  }
-}
-
 
 // controllers can add forces, for example engine exhaust or gun recoil
 void setPhysicsFromController(Controller controller, Physics physics)
