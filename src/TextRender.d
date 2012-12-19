@@ -55,8 +55,8 @@ unittest
   
   //initDisplay(640, 480);
   
-  textRender.renderChar('1', false);
-  textRender.renderChar('1', false);
+  //textRender.renderChar('1', false);
+  //textRender.renderChar('1', false);
   
   //textRender.renderString("hello world");
   
@@ -87,13 +87,16 @@ public:
     
     enforce(FT_Init_FreeType(&lib) == false, "Error initializing FreeType");
     
-    defaultFont = "freesansbold.ttf";
+    //defaultFont = "freesansbold.ttf";
+    //defaultFont = "Inconsolata.otf";
+    //defaultFont = "OxygenMono-Regular.otf";
+    defaultFont = "telegrama_render_osn.otf";
     
     auto fontError = FT_New_Face(lib, ("./" ~ defaultFont).toStringz(), 0, &m_face);
     enforce(fontError != FT_Err_Unknown_File_Format, "Error, font format unsupported");
     enforce(fontError == false, "Error loading font file");
     
-    FT_Set_Pixel_Sizes(m_face, 32, 32);
+    FT_Set_Pixel_Sizes(m_face, glyphSize, glyphSize);
     
     
     setupAtlas(defaultFont);
@@ -113,8 +116,8 @@ public:
       {
         auto glyph = loadGlyph(character);
       
-        auto xCoord = cast(float)glyph.bitmap.width / 32.0;
-        auto yCoord = cast(float)glyph.bitmap.rows / 32.0;
+        auto xCoord = cast(float)glyph.bitmap.width / cast(float)glyphSize;
+        auto yCoord = cast(float)glyph.bitmap.rows / cast(float)glyphSize;
       
         Sprite sprite;
         
@@ -147,8 +150,8 @@ public:
       {
         auto glyph = loadGlyph(character);
       
-        auto xCoord = cast(float)glyph.bitmap.width / 32.0;
-        auto yCoord = cast(float)glyph.bitmap.rows / 32.0;
+        auto xCoord = cast(float)glyph.bitmap.width / cast(float)glyphSize;
+        auto yCoord = cast(float)glyph.bitmap.rows / cast(float)glyphSize;
       
         /*Sprite sprite;
         
@@ -199,8 +202,9 @@ private:
   
   GlyphTexture createGlyphTexture(char p_char)
   {
-    enum int glyphWidth = 32;
-    enum int glyphHeight = 32;
+    // TODO: what to do if these aren't large enough? glyph width and rows MUST fit inside these
+    enum int glyphWidth = glyphSize;
+    enum int glyphHeight = glyphSize;
     
     //glEnable(GL_TEXTURE_2D);
     
@@ -214,8 +218,8 @@ private:
     glyph.data = new GLubyte[4 * glyphWidth * glyphHeight];
     glyph.bitmap = m_face.glyph.bitmap;
     
-    glyph.advance = vec2(m_face.glyph.advance.x / (64.0 * 32.0), m_face.glyph.advance.y / (64.0 * 32.0));
-    glyph.offset = vec2(m_face.glyph.bitmap_left / 32.0, -(m_face.glyph.bitmap.rows - m_face.glyph.bitmap_top) / 32.0);
+    glyph.advance = vec2(m_face.glyph.advance.x / (64.0 * cast(float)glyphSize), m_face.glyph.advance.y / (64.0 * cast(float)glyphSize));
+    glyph.offset = vec2(m_face.glyph.bitmap_left / cast(float)glyphSize, -(m_face.glyph.bitmap.rows - m_face.glyph.bitmap_top) / cast(float)glyphSize);
     
     auto unalignedGlyph = m_face.glyph.bitmap.buffer;
     
@@ -229,12 +233,20 @@ private:
     auto widthOffset = (glyphWidth - m_face.glyph.bitmap.width) / 2;
     auto heightOffset = (glyphHeight - m_face.glyph.bitmap.rows) / 2;
     
-    //debug writeln("bitmap for " ~ p_char);
+    //debug writeln("bitmap for " ~ p_char ~ " with " ~ m_face.glyph.bitmap.rows.to!string ~ " rows and " ~ m_face.glyph.bitmap.width.to!string ~ " width");
     for (int y = 0; y < m_face.glyph.bitmap.rows; y++)
     {
       for (int x = 0; x < m_face.glyph.bitmap.width; x++)
       {
         int coord = 4 * (x + y*glyphWidth);
+        
+        if (glyph.data.length <= coord+3)
+        {
+          writeln("Out of bounds error when creating glyph texture for character " ~ p_char);
+          break;
+        }
+          
+        assert(glyph.data.length > coord+3, "Coord " ~ coord.to!string ~ " is out of bounds issues with " ~ p_char ~ ". x is " ~ x.to!string ~ ", y is " ~ y.to!string ~ ", glyphWidth is " ~ glyphWidth.to!string);
         
         glyph.data[coord+0] = unalignedGlyph[x + (m_face.glyph.bitmap.rows-1-y)*m_face.glyph.bitmap.width];
         glyph.data[coord+1] = unalignedGlyph[x + (m_face.glyph.bitmap.rows-1-y)*m_face.glyph.bitmap.width];
@@ -268,7 +280,7 @@ private:
   void setupAtlas(string font)
   {
     GLubyte[] data;
-    data.length = ((16 * 32) ^^ 2) * 4 + (16*32*4*4);
+    data.length = ((16 * glyphSize) ^^ 2) * 4 + (16*glyphSize*4*4);
     
     foreach (index; iota(0, 256))
     {
@@ -277,19 +289,19 @@ private:
       int row = index / 16;
       int col = index % 16;
       
-      foreach (y; iota(0, 32))
+      foreach (y; iota(0, glyphSize))
       {
-        foreach (x; iota(0, 32))
+        foreach (x; iota(0, glyphSize))
         {
           /*data[(col*32 + row*32*16*32 + x + y*32*16)*4 + 0] = glyph.data[((31-y) * 32 + x)*4 + 0];
           data[(col*32 + row*32*16*32 + x + y*32*16)*4 + 1] = glyph.data[((31-y) * 32 + x)*4 + 1];
           data[(col*32 + row*32*16*32 + x + y*32*16)*4 + 2] = glyph.data[((31-y) * 32 + x)*4 + 2];
           data[(col*32 + row*32*16*32 + x + y*32*16)*4 + 3] = glyph.data[((31-y) * 32 + x)*4 + 3];*/
           
-          data[4 + (4*16*32) + (col*32 + row*32*16*32 + x + y*32*16)*4 + 0] = glyph.data[(y * 32 + x)*4 + 0];
-          data[4 + (4*16*32) + (col*32 + row*32*16*32 + x + y*32*16)*4 + 1] = glyph.data[(y * 32 + x)*4 + 1];
-          data[4 + (4*16*32) + (col*32 + row*32*16*32 + x + y*32*16)*4 + 2] = glyph.data[(y * 32 + x)*4 + 2];
-          data[4 + (4*16*32) + (col*32 + row*32*16*32 + x + y*32*16)*4 + 3] = glyph.data[(y * 32 + x)*4 + 3];
+          data[4 + (4*16*glyphSize) + (col*glyphSize + row*glyphSize*16*glyphSize + x + y*glyphSize*16)*4 + 0] = glyph.data[(y * glyphSize + x)*4 + 0];
+          data[4 + (4*16*glyphSize) + (col*glyphSize + row*glyphSize*16*glyphSize + x + y*glyphSize*16)*4 + 1] = glyph.data[(y * glyphSize + x)*4 + 1];
+          data[4 + (4*16*glyphSize) + (col*glyphSize + row*glyphSize*16*glyphSize + x + y*glyphSize*16)*4 + 2] = glyph.data[(y * glyphSize + x)*4 + 2];
+          data[4 + (4*16*glyphSize) + (col*glyphSize + row*glyphSize*16*glyphSize + x + y*glyphSize*16)*4 + 3] = glyph.data[(y * glyphSize + x)*4 + 3];
         }
       }
     }
@@ -300,7 +312,7 @@ private:
     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     
     m_atlas[font] = new Texture2D();
-    m_atlas[font].set_data(data, GL_RGBA, 16*32, 16*32, GL_RGBA, GL_UNSIGNED_BYTE);
+    m_atlas[font].set_data(data, GL_RGBA, 16*glyphSize, 16*glyphSize, GL_RGBA, GL_UNSIGNED_BYTE);
   }
 
 private:
@@ -326,4 +338,6 @@ private:
   string defaultFont;
   
   Texture2D[string] m_atlas;
+  
+  static enum glyphSize = 32;
 };
