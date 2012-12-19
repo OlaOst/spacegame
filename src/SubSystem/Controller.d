@@ -169,23 +169,23 @@ protected:
     {
       switch (p_entity.getValue("control"))
       {
-        case "playerEngine":
-          component.control = controls["playerengine"];
+        case "PlayerEngine":
+          component.control = controls["PlayerEngine"];
           break;
         
-        case "playerLauncher":
-          component.control = controls["playerlauncher"];
+        case "PlayerLauncher":
+          component.control = controls["PlayerLauncher"];
           break;
         
-        case "chaser":
-          component.control = controls["chaser"];
+        case "Chaser":
+          component.control = controls["Chaser"];
           break;
         
-        case "aigunner":        
-          component.control = controls["aigunner"];
+        case "AiGunner":        
+          component.control = controls["AiGunner"];
           break;
         
-        case "alwaysfire":
+        case "AlwaysFire":
           component.control = new class() ControlBase
           { 
             override void update(ref ControlComponent p_sourceComponent) 
@@ -201,7 +201,7 @@ protected:
           };
           break;
         
-        case "alwaysaccelerate":
+        case "AlwaysAccelerate":
           component.control = new class() ControlBase
           { 
             override void update(ref ControlComponent p_sourceComponent) 
@@ -211,8 +211,8 @@ protected:
           };
           break;
 
-        case "dispenser":
-          component.control = controls["dispenser"];
+        case "Dispenser":
+          component.control = controls["Dispenser"];
           break;
           
         case "nothing":

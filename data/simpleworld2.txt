@@ -11,7 +11,7 @@ greeting.position = [-9, -5]
 #greeting.depth = top
 
 gun.source = cannon.txt
-gun.control = playerLauncher
+gun.control = PlayerLauncher
 #gun.collisionType = PlayerModule
 gun.spawnAngle = 0 to 360
 gun.spawnForce = 50
@@ -20,7 +20,7 @@ gun.reloadTime = 0.05
 gun.position = [0, 0]
 
 #gun2.source = cannon.txt
-#gun2.control = playerLauncher
+#gun2.control = PlayerLauncher
 #gun2.collisionType = PlayerModule
 #gun2.position = [0, 0]
 #gun2.spawnAngle = 10

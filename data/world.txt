@@ -42,9 +42,9 @@ trashbin.radius = 2.0
 playership.source = simpleship.txt
 playership.leftEngine.control = playerEngine
 playership.rightEngine.control = playerEngine
-playership.leftGun.control = playerLauncher
+playership.leftGun.control = PlayerLauncher
 playership.leftGun.reloadTime = 0.1
-playership.rightGun.control = playerLauncher
+playership.rightGun.control = PlayerLauncher
 playership.rightGun.source = launcher.txt
 playership.rightGun.spawn.missile.*.target = closestEnemy
 
@@ -61,10 +61,10 @@ playership.keepInCenter = true
 npcship.source = simpleship.txt
 npcship.*.collisionType = NpcModule
 npcship.*.target = player
-npcship.leftEngine.control = chaser
-npcship.rightEngine.control = chaser
-npcship.leftGun.control = aigunner
-npcship.rightGun.control = aigunner
+npcship.leftEngine.control = Chaser
+npcship.rightEngine.control = Chaser
+npcship.leftGun.control = AiGunner
+npcship.rightGun.control = AiGunner
 npcship.type = enemy ship
 npcship.position = [25, 25] to [50, 50]
 #npcship.position = [5, 5]
@@ -77,15 +77,15 @@ npcDispenser.spawn.ship.*.collisionType = NpcModule
 #npcDispenser.spawn.ship.team = 1
 npcDispenser.spawn.ship.*.target = player
 #npcDispenser.spawn.ship.*.target = closestTeam.1
-npcDispenser.spawn.ship.leftEngine.control = chaser
-npcDispenser.spawn.ship.rightEngine.control = chaser
-#npcDispenser.spawn.ship.leftGun.control = aigunner
-#npcDispenser.spawn.ship.rightGun.control = aigunner
+npcDispenser.spawn.ship.leftEngine.control = Chaser
+npcDispenser.spawn.ship.rightEngine.control = Chaser
+#npcDispenser.spawn.ship.leftGun.control = AiGunner
+#npcDispenser.spawn.ship.rightGun.control = AiGunner
 npcDispenser.spawn.ship.type = enemy ship
 npcDispenser.spawn.ship.angle = 0 to 360
 npcDispenser.spawn.ship.position = [-100, -100] to [100, 100]
 npcDispenser.reloadTime = 5
-npcDispenser.control = alwaysfire
+npcDispenser.control = AlwaysFire
 
 # [npcDispenser: spawn: [source: simpleship.txt, team: 1]]
 
@@ -94,37 +94,37 @@ engineDispenser.drawsource = images/engine2.png
 engineDispenser.position = [5, 5]
 engineDispenser.spawn.engine.source = engine.txt
 engineDispenser.spawn.engine.draggable = true
-engineDispenser.control = dispenser
+engineDispenser.control = Dispenser
 
 cannonDispenser.drawsource = images/cannon.png
 cannonDispenser.position = [7, 5]
 cannonDispenser.spawn.cannon.source = cannon.txt
 cannonDispenser.spawn.cannon.draggable = true
-cannonDispenser.control = dispenser
+cannonDispenser.control = Dispenser
 
 launcherDispenser.drawsource = images/cannon.png
 launcherDispenser.position = [9, 5]
 launcherDispenser.spawn.launcher.source = launcher.txt
 launcherDispenser.spawn.launcher.draggable = true
-launcherDispenser.control = dispenser
+launcherDispenser.control = Dispenser
 
 horizontalSkeletonDispenser.drawsource = images/horizontalskeleton.png
 horizontalSkeletonDispenser.position = [11, 5]
 horizontalSkeletonDispenser.spawn.horizontalskeleton.source = horizontalskeleton.txt
 horizontalSkeletonDispenser.spawn.horizontalskeleton.draggable = true
-horizontalSkeletonDispenser.control = dispenser
+horizontalSkeletonDispenser.control = Dispenser
 
 verticalSkeletonDispenser.drawsource = images/verticalskeleton.png
 verticalSkeletonDispenser.position = [13, 5]
 verticalSkeletonDispenser.spawn.verticalskeleton.source = verticalskeleton.txt
 verticalSkeletonDispenser.spawn.verticalskeleton.draggable = true
-verticalSkeletonDispenser.control = dispenser
+verticalSkeletonDispenser.control = Dispenser
 
 stationPlateDispenser.drawsource = images/stationplate.png
 stationPlateDispenser.position = [15, 5]
 stationPlateDispenser.spawn.stationplate.source = stationplate.txt
 stationPlateDispenser.spawn.stationplate.draggable = true
-stationPlateDispenser.control = dispenser
+stationPlateDispenser.control = Dispenser
 
 
 # description text for dispensers

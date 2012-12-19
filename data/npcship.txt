@@ -7,12 +7,12 @@ skeleton.collisionType = NpcModule
 
 mainEngine.source = engine.txt
 mainEngine.connection = skeleton.lower
-mainEngine.control = flocker
+mainEngine.control = Flocker
 mainEngine.collisionType = NpcModule
 mainEngine.health = 5.0
 
 gun.source = cannon.txt
 gun.connection = skeleton.upper
-gun.control = aigunner
+gun.control = AiGunner
 gun.collisionType = NpcModule
 gun.health = 5.0

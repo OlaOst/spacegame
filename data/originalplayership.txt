@@ -12,8 +12,8 @@ rightEngine.connection = skeleton.lowerright
 leftCannon.connection = skeleton.upperleft
 rightCannon.connection = skeleton.upperright
 
-leftEngine.control = playerEngine
-rightEngine.control = playerEngine
+leftEngine.control = PlayerEngine
+rightEngine.control = PlayerEngine
 
-leftCannon.control = playerLauncher
-rightCannon.control = playerLauncher
+leftCannon.control = PlayerLauncher
+rightCannon.control = PlayerLauncher

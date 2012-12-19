@@ -4,10 +4,10 @@ greeting.position = [0, 0]
 # playership controllable by player
 #playership.source = playership.txt
 playership.source = simpleship.txt
-playership.leftEngine.control = playerEngine
-playership.rightEngine.control = playerEngine
-playership.leftGun.control = playerLauncher
-playership.rightGun.control = playerLauncher
+playership.leftEngine.control = PlayerEngine
+playership.rightEngine.control = PlayerEngine
+playership.leftGun.control = PlayerLauncher
+playership.rightGun.control = PlayerLauncher
 #playership.leftGun.source = launcher.txt
 #playership.rightGun.source = launcher.txt
 #playership.leftGun.reloadTime = 0.02

@@ -170,11 +170,11 @@ public:
     
     assert(m_controller !is null);
     
-    m_controller.controls["aigunner"] = new AiGunner();
-    m_controller.controls["chaser"] = new AiChaser();
-    m_controller.controls["dispenser"] = m_dispenser = new Dispenser(m_inputHandler);
-    m_controller.controls["playerlauncher"] = new PlayerLauncher(m_inputHandler);
-    m_controller.controls["playerengine"] = new PlayerEngine(m_inputHandler);
+    m_controller.controls["AiGunner"] = new AiGunner();
+    m_controller.controls["Chaser"] = new AiChaser();
+    m_controller.controls["Dispenser"] = m_dispenser = new Dispenser(m_inputHandler);
+    m_controller.controls["PlayerLauncher"] = new PlayerLauncher(m_inputHandler);
+    m_controller.controls["PlayerEngine"] = new PlayerEngine(m_inputHandler);
     
     //SDL_EnableUNICODE(1);
     

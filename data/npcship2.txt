@@ -18,24 +18,24 @@ gunSkeleton.health = 10.0
 
 leftEngine.source = engine.txt
 leftEngine.connection = engineSkeleton.upper
-leftEngine.control = chaser
+leftEngine.control = Chaser
 leftEngine.collisionType = NpcModule
 leftEngine.health = 5.0
 
 rightEngine.source = engine.txt
 rightEngine.connection = engineSkeleton.lower
-rightEngine.control = chaser
+rightEngine.control = Chaser
 rightEngine.collisionType = NpcModule
 rightEngine.health = 5.0
 
 leftGun.source = cannon.txt
 leftGun.connection = gunSkeleton.upper
-leftGun.control = aigunner
+leftGun.control = AiGunner
 leftGun.collisionType = NpcModule
 leftGun.health = 5.0
 
 rightGun.source = cannon.txt
 rightGun.connection = gunSkeleton.lower
-rightGun.control = aigunner
+rightGun.control = AiGunner
 rightGun.collisionType = NpcModule
 rightGun.health = 5.0

@@ -35,7 +35,7 @@ engine.mass = 0.5
 engine.drawsource = images/engine2.png
 engine.radius = 0.05
 engine.connection = test.lower
-engine.control = playerEngine
+engine.control = PlayerEngine
 engine.thrustForce = 0.5
 engine.slideForce = 0.5
 engine.torqueForce = 5.0
@@ -56,7 +56,7 @@ engine.spawn.exhaust.spawnsPerSecond = 30
 
 gun.source = cannon.txt
 gun.connection = test.upper
-gun.control = playerLauncher
+gun.control = PlayerLauncher
 
 gun.radius = 0.05
 gun.spawn.*.radius = 0.02

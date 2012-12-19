@@ -18,5 +18,5 @@ rightEngine.connection = engineSkeleton.right
 leftCannon.connection = cannonSkeleton.left
 rightCannon.connection = cannonSkeleton.right
 
-#leftEngine.control = flocker
-#rightEngine.control = flocker
+#leftEngine.control = Flocker
+#rightEngine.control = Flocker

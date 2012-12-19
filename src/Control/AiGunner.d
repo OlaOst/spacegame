@@ -37,7 +37,7 @@ unittest
   scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
 
-  AiGunner aigunner = new AiGunner();
+  AiGunner aiGunner = new AiGunner();
   
   
 }

@@ -15,10 +15,10 @@ rightEngine.connection = skeleton.lowerright
 leftCannon.connection = skeleton.upperleft
 rightCannon.connection = skeleton.upperright
 
-leftEngine.control = playerEngine
-rightEngine.control = playerEngine
-leftCannon.control = playerLauncher
-rightCannon.control = playerLauncher
+leftEngine.control = PlayerEngine
+rightEngine.control = PlayerEngine
+leftCannon.control = PlayerLauncher
+rightCannon.control = PlayerLauncher
 
 leftEngine.collisionType = PlayerModule
 rightEngine.collisionType = PlayerModule
