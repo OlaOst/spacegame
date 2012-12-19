@@ -128,6 +128,25 @@ class ConnectionHandler : Base!(ConnectionComponent)
 public:
   void update() 
   {
+    return;
+    foreach (component; components)
+    {
+      writeln("checking component with owner " ~ component.owner.id.to!string ~ ", has component: " ~ hasComponent(component.owner).to!string);
+      
+      if (component.owner !is null && hasComponent(component.owner))
+      {
+        auto ownerComponent = getComponent(component.owner);
+        
+        //writeln("got owner component with owner " ~ ownerComponent.owner.id.to!string ~ " from component with owner " ~ component.owner.id.to!string ~ ", component differs: " ~ (ownerComponent != component).to!string);
+        
+        writeln("updating connection position from " ~ component.position.toString() ~ " to " ~ (ownerComponent.position + component.relativePosition).toString());
+        
+        //if (ownerComponent != component)
+        {
+          component.position = ownerComponent.position + component.relativePosition;
+        }
+      }
+    }
   }
   
   
@@ -276,14 +295,10 @@ protected:
   bool canCreateComponent(Entity p_entity)
   {
     // since all entities can potentially be connected to, all entities are registered
-    // NOPE just put em in the possibleOwners collection
-    
-    // (this is a hack)
-    
-    possibleOwners[p_entity.id] = p_entity;
-    
+    // NOPE just put em in the possibleOwners collection (this is a hack)
     //return true;
     
+    possibleOwners[p_entity.id] = p_entity;
     
     foreach (value; p_entity.values.keys)
       if (value.startsWith("connectpoint"))
@@ -292,49 +307,21 @@ protected:
     // we might want to check for owner OR connection value
     // but with only connection value we need to figure out owner in createComponent
     return p_entity.getValue("owner").length > 0;
-    //return "owner" in p_entity;
-    //return "connection" in p_entity;
   }
-
   
-  private ConnectPoint[string] createConnectPoints(Entity p_entity)
-  {
-    ConnectPoint[string] connectPoints;
-    
-    foreach (value; p_entity.values.keys)
-    {
-      if (value.startsWith("connectpoint"))
-      {
-        auto connectPointData = value.split(".");
-        
-        assert(connectPointData.length == 3);
-        
-        auto connectPointName = connectPointData[1];
-        auto connectPointAttribute = connectPointData[2];
-        
-        ConnectPoint connectPoint;
-        connectPoint.name = connectPointName;
-        connectPoint.connectedEntity = null;
-        connectPoint.owner = p_entity;
-        if (connectPointAttribute == "position")
-          connectPoint.position = vec2(p_entity.getValue(value).to!(float[])[0..2]);
-        
-        if ("radius" in p_entity.values)
-          connectPoint.position *= to!float(p_entity.getValue("radius"));
-
-        connectPoints[connectPointName] = connectPoint;
-      }
-    }
-    
-    return connectPoints;
-  }
   
   ConnectionComponent createComponent(Entity p_entity)
   {
+    // a connection component can be two things (TODO: this is bad and should be refactored so it is only one thing)
+    // 1. when an entity is connected to another with connectpoints and connections
+    // 2. when an entity has a relative position to another owner entity and keeps the position relative to that one when updating (the owner entity does not need to specify connectpoints)
+    
+    // in a better world, somebody would already have figured out all the values with connectpoint stuff and replaced that with owner and relativePosition values
+  
     // to create a connectioncomponent from an entity:
     // 1. create connectpoints from entity values (could be none)
     // 2. if we have a connection value, figure out which entity we will connect to (this entity should already have been registered - the correct ordering here is up to the game class or whatever is registering these entities)
-    // 3. set the owner entity (connection value implies 
+    // 3. set the owner entity
   
     //enforce("position" in p_entity.values, "Could not find position value when registering entity to connection subsystem");
   
@@ -380,6 +367,8 @@ protected:
     {
       int ownerId = p_entity.getValue("owner").to!int;
       
+      //writeln("checking ownerid " ~ ownerId.to!string ~ " against possibleowners: " ~ possibleOwners.keys.to!string);
+      
       if (ownerId != p_entity.id && ownerId in possibleOwners)
       {
         owner = possibleOwners[ownerId];
@@ -403,6 +392,8 @@ protected:
         }
       }*/
     }
+    
+    //writeln("creating connectioncomponent for " ~ p_entity.values.to!string ~ " with owner " ~ owner.id.to!string);
     
     auto newComponent = new ConnectionComponent(owner);
     
@@ -433,8 +424,45 @@ protected:
     return newComponent;
   }
   
+  
+private:
+  private ConnectPoint[string] createConnectPoints(Entity p_entity)
+  {
+    ConnectPoint[string] connectPoints;
+    
+    foreach (value; p_entity.values.keys)
+    {
+      if (value.startsWith("connectpoint"))
+      {
+        auto connectPointData = value.split(".");
+        
+        assert(connectPointData.length == 3);
+        
+        auto connectPointName = connectPointData[1];
+        auto connectPointAttribute = connectPointData[2];
+        
+        ConnectPoint connectPoint;
+        connectPoint.name = connectPointName;
+        connectPoint.connectedEntity = null;
+        connectPoint.owner = p_entity;
+        if (connectPointAttribute == "position")
+          connectPoint.position = vec2(p_entity.getValue(value).to!(float[])[0..2]);
+        
+        if ("radius" in p_entity.values)
+          connectPoint.position *= to!float(p_entity.getValue("radius"));
+
+        connectPoints[connectPointName] = connectPoint;
+      }
+    }
+    
+    return connectPoints;
+  }
+  
+  
 private:
   Entity[int] possibleOwners;
+  
+  ConnectionComponent[Entity] componentToOwner;
 }
 
 

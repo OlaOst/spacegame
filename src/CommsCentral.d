@@ -121,6 +121,7 @@ void setSoundFromPlacer(Placer placer, Sound sound)
 // update position of connected entities so they don't fly off on their own
 void setPlacerFromConnector(ConnectionHandler connection, Placer placer)
 {
+//return;
   subSystemCommunication!(ConnectionComponent, PlacerComponent)(connection, placer, (ConnectionComponent connectionComponent, PlacerComponent placerComponent)
   {
     // we don't need to do anything for connection targets/owners
@@ -144,7 +145,7 @@ void setPlacerFromConnector(ConnectionHandler connection, Placer placer)
     placerComponent.velocity = ownerComponent.velocity;
     placerComponent.rotation = ownerComponent.rotation;
     
-    writeln("placer from connector, pos is " ~ placerComponent.position.toString() ~ ", owner is " ~ connectionComponent.owner.id.to!string);
+    //writeln("placer from connector, pos is " ~ placerComponent.position.toString() ~ ", owner is " ~ connectionComponent.owner.id.to!string ~ " ownerpos is " ~ ownerComponent.position.toString());
     
     return placerComponent;
   });
@@ -157,7 +158,7 @@ void setConnectorFromPlacer(Placer placer, ConnectionHandler connection)
     connectionComponent.position = placerComponent.position;
     connectionComponent.angle = placerComponent.angle;
     
-    //writeln("connector from placer, pos is " ~ connectionComponent.position.to!string);
+    //writeln("connector from placer, ownerid " ~ connectionComponent.owner.id.to!string ~ ", pos is " ~ connectionComponent.position.to!string);
     
     return connectionComponent;
   });

@@ -1,3 +1,4 @@
+How subsystems works today:
 CollisionHandler    - Handles collision detection and response between entities
 ConnectionHandler   - Holds together entities like those making up a ship, and aggregates values like mass and forces
 Controller          - Players and AI/NPCs control entities via this subsystem
@@ -7,3 +8,36 @@ Placer              - Keeps track of entity positions and wraparound
 Sound               - Plays sounds and music
 Spawner             - Handles entities that can spawn other entities, and values of the spawned entities
 Timer               - Keeps track of time for entities that need it
+
+
+
+How subsystems would work in a better world:
+Placer            - for entities that need a position (could be gameworld position or hud position or menu position or some other position)
+Physics           - for entities that are affected by forces and follow newtons laws of motion
+Spawner           - for entities that can create other entities (needs trigger to know when to spawn something)
+Collision         - for entities that should affect each other when overlapping. response depends on the collision type (cursor should change color/symbol according to what it is pointing at, physical entities should push each other apart and not overlap)
+Input             - for entities that are affected by external input (could be user input, could be AI)
+Relation          - for entities that affect other entities (like keeping the position of one entity locked relative to another entity)
+Sound             - for entities that can be heard (audible clicks from menu buttons, gunfire from cannons, etc)
+Graphics          - for entities that should be shown on screen
+Timer             - for entities that need to keep track of time (usually a countdown, for reloading guns or controlling the lifetime of bullets)
+
+after subsystems have finished updating, they need to update each other values in the correct order to avoid looking at stale values the next update:
+
+Timer updates (something?) in Control (because guns should only be able to fire when they have finished reloading - how to abstract this nicely?)
+
+Control updates triggers in Spawner
+
+Control updates triggers in Sound
+Spawner updates triggers in Sound
+Collision updates triggers in Sound
+
+Control updates forces in Physics
+Spawner updates forces in Physics (recoil forces)
+Collision updates forces in Physics
+
+Physics updates position in Placer
+Collision updates position in Placer
+Relation updates position in Placer
+
+Placer updates position in all other subsystems having position values

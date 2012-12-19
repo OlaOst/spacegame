@@ -1072,8 +1072,8 @@ private:
         
         auto infoBoxEntity = new Entity(infoBox);
         
-        registerEntity(infoBoxEntity);
         registerEntity(infoTextEntity);
+        registerEntity(infoBoxEntity);
       }
       /*else
       {
