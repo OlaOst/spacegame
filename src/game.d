@@ -61,6 +61,7 @@ import SubSystem.Controller;
 import SubSystem.Graphics;
 import SubSystem.Physics;
 import SubSystem.Placer;
+import SubSystem.RelationHandler;
 import SubSystem.Sound;
 import SubSystem.Spawner;
 import SubSystem.Timer;
@@ -156,14 +157,15 @@ public:
     int yres = 768;
 
     
-    m_subSystems["placer"] = m_placer = new Placer();
-    m_subSystems["graphics"] = m_graphics = new Graphics(cache, xres, yres);
-    m_subSystems["physics"] = m_physics = new Physics();
-    m_subSystems["controller"] = m_controller = new Controller();
-    m_subSystems["collider"] = m_collider = new CollisionHandler();
-    m_subSystems["sound"] = m_sound = new Sound(64);
-    m_subSystems["spawner"] = m_spawner = new Spawner();
-    m_subSystems["timer"] = m_timer = new Timer();
+    m_subSystems["Placer"] = m_placer = new Placer();
+    m_subSystems["Graphics"] = m_graphics = new Graphics(cache, xres, yres);
+    m_subSystems["Physics"] = m_physics = new Physics();
+    m_subSystems["Controller"] = m_controller = new Controller();
+    m_subSystems["CollisionHandler"] = m_collisionHandler = new CollisionHandler();
+    m_subSystems["Sound"] = m_sound = new Sound(64);
+    m_subSystems["Spawner"] = m_spawner = new Spawner();
+    m_subSystems["Timer"] = m_timer = new Timer();
+    m_subSystems["RelationHandler"] = m_relationHandler = new RelationHandler();
 
     m_gameConsole = new GameConsole(this);
     m_entityConsole = new EntityConsole(this);
@@ -422,14 +424,14 @@ private:
     
     // TODO: make subsystem dedicated to removing entities. it should be responsible for values like lifetime and health 
     // TODO: ideally all this code should be handled by just setting values on the entity and then re-register it
-    foreach (entity; filter!(entity => m_collider.hasComponent(entity))(m_entities.values))
+    foreach (entity; filter!(entity => m_collisionHandler.hasComponent(entity))(m_entities.values))
     {
-      auto colliderComponent = m_collider.getComponent(entity);
+      auto colliderComponent = m_collisionHandler.getComponent(entity);
     }
     
     auto entitiesToRemove = m_timer.getTimeoutEntities() ~ 
                             m_sound.getFinishedPlayingEntities() ~ 
-                            m_collider.getNoHealthEntities();
+                            m_collisionHandler.getNoHealthEntities();
     
     foreach (entityToRemove; entitiesToRemove)
       removeEntity(entityToRemove);
@@ -468,7 +470,7 @@ private:
       updateSubSystems();
       
       CommsCentral.setControllerFromPlacer(m_placer, m_controller);
-      CommsCentral.setCollidersFromPlacer(m_placer, m_collider);
+      CommsCentral.setCollidersFromPlacer(m_placer, m_collisionHandler);
       CommsCentral.setSpawnerFromPlacer(m_placer, m_spawner);
       CommsCentral.setSoundFromPlacer(m_placer, m_sound);
       CommsCentral.setSoundFromSpawner(m_spawner, m_sound);
@@ -649,7 +651,7 @@ private:
       }
     }
     
-    foreach (spawnParticleValues; m_collider.getAndClearSpawnParticleValues())
+    foreach (spawnParticleValues; m_collisionHandler.getAndClearSpawnParticleValues())
     {
       Entity particle = new Entity(spawnParticleValues);
       
@@ -859,6 +861,7 @@ private:
         infoBox["upperright"] = textBox.upperright.to!string;
         infoBox["position"] = (m_graphics.mouseWorldPos + (textBox.upperright - textBox.lowerleft)*0.5 + vec2(-textboxsize, textboxsize)).to!string;
         infoBox["owner"] = infoTextEntity.id.to!string;
+        infoBox["relationName"] = infoBox["name"];
         infoBox["relativePosition"] = ((textBox.upperright - textBox.lowerleft)*0.5 + vec2(-textboxsize, textboxsize)).to!string;
         writeln("infobox relative pos: " ~ infoBox["relativePosition"]);
         //infoBox["radius"] = textboxsize.to!string;
@@ -1090,10 +1093,11 @@ private:
   Physics m_physics;
   Graphics m_graphics;
   Controller m_controller;
-  CollisionHandler m_collider;
+  CollisionHandler m_collisionHandler;
   Spawner m_spawner;
   Sound m_sound;
   Timer m_timer;
+  RelationHandler m_relationHandler;
   
   Starfield m_starfield;
   
