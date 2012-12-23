@@ -41,10 +41,11 @@ import gl3n.math;
 
 import Control.AiChaser;
 import Control.AiGunner;
+import Control.Flocker;
 import Control.Dispenser;
+import Control.MouseFollower;
 import Control.PlayerEngine;
 import Control.PlayerLauncher;
-import Control.Flocker;
 
 import CommsCentral;
 import Console;
@@ -177,6 +178,7 @@ public:
     m_controller.controls["Dispenser"] = m_dispenser = new Dispenser(m_inputHandler);
     m_controller.controls["PlayerLauncher"] = new PlayerLauncher(m_inputHandler);
     m_controller.controls["PlayerEngine"] = new PlayerEngine(m_inputHandler);
+    m_controller.controls["MouseFollower"] = m_mouseFollower = new MouseFollower(m_inputHandler);
     
     //SDL_EnableUNICODE(1);
     
@@ -250,7 +252,6 @@ public:
     {
       m_playerShip = null;
       m_trashBin = null;
-      m_dragEntity = null;
       m_debugDisplay = null;
       m_entityMatrix = null;
       m_closestShipDisplay = null;
@@ -438,6 +439,8 @@ private:
     
     m_inputHandler.pollEvents();
 
+    //debug writeln("game update " ~ m_updateCount.to!string);
+    
     if (!m_paused)
     {
       m_placer.setTimeStep(m_timer.elapsedTime);
@@ -446,33 +449,26 @@ private:
       m_graphics.setTimeStep(m_timer.elapsedTime);
       m_spawner.setTimeStep(m_timer.elapsedTime);
       
-      CommsCentral.setPlacerFromPhysics(m_physics, m_placer);
       
-      // this block should be handled in DragDropHandler
-      if (m_dragEntity !is null)
-      {
-        assert(m_placer.hasComponent(m_dragEntity));
-        
-        if (m_placer.hasComponent(m_dragEntity))
-        {
-          auto dragPosComp = m_placer.getComponent(m_dragEntity);
-          dragPosComp.position = m_graphics.mouseWorldPos;
-          
-          m_placer.setComponent(m_dragEntity, dragPosComp);
-        }
-      }
+      updateSubSystems();
+      
+      CommsCentral.setPlacerFromPhysics(m_physics, m_placer);
+      CommsCentral.setPlacerFromRelation(m_relationHandler, m_placer);
+      CommsCentral.setPlacerFromController(m_controller, m_placer);
       
       CommsCentral.setPhysicsFromController(m_controller, m_physics);
       CommsCentral.setSpawnerFromController(m_controller, m_spawner);
       
       CommsCentral.setPhysicsFromSpawner(m_spawner, m_physics);
       
-      updateSubSystems();
+      //updateSubSystems();
       
       CommsCentral.setControllerFromPlacer(m_placer, m_controller);
       CommsCentral.setCollidersFromPlacer(m_placer, m_collisionHandler);
       CommsCentral.setSpawnerFromPlacer(m_placer, m_spawner);
       CommsCentral.setSoundFromPlacer(m_placer, m_sound);
+      CommsCentral.setRelationFromPlacer(m_placer, m_relationHandler);
+      
       CommsCentral.setSoundFromSpawner(m_spawner, m_sound);
       //CommsCentral.setTimerFromCollider(m_collider, m_timer);
       //CommsCentral.setTimerFromSound(m_sound, m_timer);
@@ -621,6 +617,8 @@ private:
     }
     
     m_graphics.calculateMouseWorldPos(m_inputHandler.mousePos);
+    
+    m_mouseFollower.setMouseWorldPos(m_graphics.mouseWorldPos);
     m_dispenser.setMouseWorldPos(m_graphics.mouseWorldPos);
     
     foreach (spawnValues; m_spawner.getAndClearSpawnValues())
@@ -646,7 +644,7 @@ private:
       {
         if (name == "spawnstuff.*") continue;
         
-        writeln("spawning " ~ name ~ " with values " ~ entities[name].values.to!string);
+        debug writeln("spawning " ~ name ~ " with values " ~ entities[name].values.to!string);
         registerEntity(entities[name]);
       }
     }
@@ -654,6 +652,8 @@ private:
     foreach (spawnParticleValues; m_collisionHandler.getAndClearSpawnParticleValues())
     {
       Entity particle = new Entity(spawnParticleValues);
+      
+      debug writeln("spawning particle with values " ~ particle.values.to!string);
       
       registerEntity(particle);
     }
@@ -731,86 +731,6 @@ private:
       registerEntity(m_mouseCursor);
     }
     
-    auto infoEntitiesToMove = m_entities.values.filter!(entity => "infoentity" in entity && entity["infoentity"] == "text");
-    if (!infoEntitiesToMove.empty)
-    {
-      foreach (infoEntity; infoEntitiesToMove)
-      {
-        infoEntity.values["position"] = m_inputHandler.mousePos.to!string;
-      
-        registerEntity(infoEntity);
-      }
-    }
-  
-    if (m_inputHandler.isPressed(Event.LeftButton))
-    {
-      // TODO: if we have a dragentity we must ensure it stops getting dragged before it's destroyed or removed by something - lifetime expiration for bullets for example
-      if (m_dragEntity is null)
-      {
-        foreach (draggable; filter!(entity => entity.getValue("draggable") == "true" && 
-                                    m_graphics.hasComponent(entity) &&
-                                    m_graphics.getComponent(entity).screenAbsolutePosition == false)(m_entities.values))
-        {
-          assert(m_graphics.hasComponent(draggable), "Couldn't find graphics component for draggable entity " ~ to!string(draggable.values) ~ " with id " ~ to!string(draggable.id));
-          
-          auto dragGfxComp = m_graphics.getComponent(draggable);
-          
-          if ((dragGfxComp.position - m_graphics.mouseWorldPos).length < dragGfxComp.radius)
-          {
-            //writeln("mouseover on draggable entity " ~ to!string(draggable.id) ~ " with " ~ to!string(m_connector.getConnectedEntities(draggable).length) ~ " connected entities and " ~ to!string(m_connector.getOwnedEntities(draggable).length) ~ " owned entities");
-            
-            // we don't want to drag something if it has stuff connected to it, or owns something. 
-            // if you want to drag a skeleton module, you should drag off all connected modules first
-            // TODO: should be possible to drag stuff with connected stuff, but drag'n'drop needs to be more robust first            
-            //if (m_connector.getConnectedEntities(draggable).length > 0 || m_connector.getOwnedEntities(draggable).length > 0)
-              //continue;
-
-            m_dragEntity = draggable;
-            
-            break;
-          }
-        }
-
-        // ok, we picked up an entity. now what do we do with it?
-        if (m_dragEntity !is null)
-        {
-          // we don't want dragged entities to be controlled
-          if (m_controller.hasComponent(m_dragEntity) && m_dragEntity.getValue("control").length > 0)
-          {
-            m_dragEntity.setValue("control", "nothing");
-            
-            m_controller.removeEntity(m_dragEntity);
-            
-            assert(m_controller.hasComponent(m_dragEntity) == false);
-          }
-
-          // TODO: reset physics forces, velocity and other stuff?
-        }
-      }
-    }
-    
-    if (m_inputHandler.eventState(Event.LeftButton) == EventState.Released)
-    {
-      if (m_dragEntity !is null)
-      {
-        assert(m_placer.hasComponent(m_dragEntity));
-        auto dragPos = m_placer.getComponent(m_dragEntity).position;
-        
-        assert(m_placer.hasComponent(m_trashBin));
-        auto trashBinPos = m_placer.getComponent(m_trashBin).position;
-        
-        assert(m_dragEntity.getValue("radius").length > 0, "Couldn't find radius for drag entity " ~ m_dragEntity.getValue("name"));
-        
-        // delete entities dropped in the trashbin, but don't delete the trashbin...
-        if (m_dragEntity != m_trashBin && (dragPos - trashBinPos).length < to!float(m_trashBin.getValue("radius")))
-        {
-          removeEntity(m_dragEntity);
-        }
-        
-        m_dragEntity = null;
-      }
-    }
-    
     if (m_inputHandler.eventState(Event.RightButton) == EventState.Released)
     {
       /*auto clickedEntities = find!(entity => entity != m_playerShip && 
@@ -839,9 +759,9 @@ private:
         string[string] infoText;
         infoText["name"] = "infotext";
         infoText["infoentity"] = "text";
-        
+        infoText["isRelation"] = "true";
         infoText["position"] = m_graphics.mouseWorldPos.to!string;
-        
+        infoText["control"] = "MouseFollower";
         infoText["radius"] = 0.05.to!string;
         infoText["text"] = "";
         foreach (key, value; entity.values)
@@ -861,12 +781,12 @@ private:
         infoBox["upperright"] = textBox.upperright.to!string;
         infoBox["position"] = (m_graphics.mouseWorldPos + (textBox.upperright - textBox.lowerleft)*0.5 + vec2(-textboxsize, textboxsize)).to!string;
         infoBox["owner"] = infoTextEntity.id.to!string;
-        infoBox["relationName"] = infoBox["name"];
+        infoBox["relationName"] = infoText["name"];
         infoBox["relativePosition"] = ((textBox.upperright - textBox.lowerleft)*0.5 + vec2(-textboxsize, textboxsize)).to!string;
-        writeln("infobox relative pos: " ~ infoBox["relativePosition"]);
         //infoBox["radius"] = textboxsize.to!string;
         
-        writeln(textBox.to!string);
+        //writeln("infobox relative pos: " ~ infoBox["relativePosition"]);
+        //writeln(textBox.to!string);
         
         auto infoBoxEntity = new Entity(infoBox);
         
@@ -1106,7 +1026,6 @@ private:
   // special entities.. do they really need to be hardcoded?
   Entity m_playerShip;
   Entity m_trashBin;
-  Entity m_dragEntity;
   Entity m_debugDisplay;
   Entity m_entityMatrix;
   Entity m_closestShipDisplay;
@@ -1119,6 +1038,7 @@ private:
   string m_timingInfo;
   
   Dispenser m_dispenser;
+  MouseFollower m_mouseFollower;
   
   string[][string] cache;
 }

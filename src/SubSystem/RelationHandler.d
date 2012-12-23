@@ -91,6 +91,8 @@ class PositionRelater : Relater
     
     override RelationComponent update(RelationComponent base, RelationComponent relation)
     {
+      //debug writeln("positionrelater position from " ~ base.position.to!string ~ " to " ~ (relation.position + relativePosition).to!string);
+    
       base.position = relation.position + relativePosition;
       
       return base;
@@ -139,7 +141,7 @@ public:
 protected:
   bool canCreateComponent(Entity p_entity)
   {
-    return ("relationTarget" in p_entity) !is null || ("isRelation" in p_entity) !is null;
+    return ("relationName" in p_entity) !is null || ("isRelation" in p_entity) !is null;
   }
   
   

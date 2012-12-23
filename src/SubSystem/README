@@ -39,5 +39,6 @@ Collision updates forces in Physics
 Physics updates position in Placer
 Collision updates position in Placer
 Relation updates position in Placer
+Control updates position in Placer
 
 Placer updates position in all other subsystems having position values

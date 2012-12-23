@@ -115,6 +115,8 @@ public:
       assert(component.control !is null, "Could not find control when updating controller component");
       
       component.control.update(component);
+      
+      writeln("updated controlcomp pos: " ~ component.position.to!string);
     }
   }    
   
@@ -167,61 +169,38 @@ protected:
     
     if ("control" in p_entity.values)
     {
-      switch (p_entity.getValue("control"))
-      {
-        case "PlayerEngine":
-          component.control = controls["PlayerEngine"];
-          break;
-        
-        case "PlayerLauncher":
-          component.control = controls["PlayerLauncher"];
-          break;
-        
-        case "Chaser":
-          component.control = controls["Chaser"];
-          break;
-        
-        case "AiGunner":        
-          component.control = controls["AiGunner"];
-          break;
-        
-        case "AlwaysFire":
-          component.control = new class() ControlBase
+      if (p_entity["control"] in controls)
+        component.control = controls[p_entity["control"]];      
+      
+      else if (p_entity["control"] == "AlwaysFire")
+        component.control = new class() ControlBase
+        { 
+          override void update(ref ControlComponent p_sourceComponent) 
           { 
-            override void update(ref ControlComponent p_sourceComponent) 
-            { 
-              p_sourceComponent.isFiring = false;
-    
-              if (p_sourceComponent.reloadTimeLeft <= 0.0)
-              {
-                p_sourceComponent.isFiring = true;
-                p_sourceComponent.reloadTimeLeft = p_sourceComponent.reload;
-              }
-            }
-          };
-          break;
-        
-        case "AlwaysAccelerate":
-          component.control = new class() ControlBase
-          { 
-            override void update(ref ControlComponent p_sourceComponent) 
+            p_sourceComponent.isFiring = false;
+  
+            if (p_sourceComponent.reloadTimeLeft <= 0.0)
             {
-              p_sourceComponent.force += vec2(0.0, 1.0 * p_sourceComponent.thrustForce);
+              p_sourceComponent.isFiring = true;
+              p_sourceComponent.reloadTimeLeft = p_sourceComponent.reload;
             }
-          };
-          break;
-
-        case "Dispenser":
-          component.control = controls["Dispenser"];
-          break;
-          
-        case "nothing":
-          component.control = new class () ControlBase { override void update(ref ControlComponent p_sourceComponent) {} };
-          break;
+          }
+        };
         
-        default:
-          enforce(false, "Error registering control component, " ~ p_entity.getValue("control") ~ " is an unknown control.");
-      }
+      else if (p_entity["control"] == "AlwaysAccelerate")
+        component.control = new class() ControlBase
+        { 
+          override void update(ref ControlComponent p_sourceComponent) 
+          {
+            p_sourceComponent.force += vec2(0.0, 1.0 * p_sourceComponent.thrustForce);
+          }
+        };
+        
+      else if (p_entity["control"] == "nothing")
+        component.control = new class () ControlBase { override void update(ref ControlComponent p_sourceComponent) {} };
+        
+      else
+        enforce(false, "Error registering control component, " ~ p_entity.getValue("control") ~ " is an unknown control.");
     }
     
     assert(component.position.ok);

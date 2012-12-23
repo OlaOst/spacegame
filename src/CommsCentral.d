@@ -36,6 +36,7 @@ import SubSystem.CollisionHandler;
 import SubSystem.Sound;
 import SubSystem.Spawner;
 import SubSystem.Timer;
+import SubSystem.RelationHandler;
 
 
 unittest
@@ -78,6 +79,27 @@ void setPlacerFromPhysics(Physics physics, Placer placer)
   });
 }
 
+void setPlacerFromController(Controller controller, Placer placer)
+{
+  subSystemCommunication!(ControlComponent, PlacerComponent)(controller, placer, (ControlComponent controlComponent, PlacerComponent placerComponent)
+  {
+    //debug writeln("setPlacerFromController updating " ~ controlComponent.id.to!string ~ " from " ~ placerComponent.position.to!string ~ " to " ~ controlComponent.position.to!string);
+  
+    placerComponent.position = controlComponent.position;
+
+    return placerComponent;
+  });
+}
+
+void setPlacerFromRelation(RelationHandler relation, Placer placer)
+{
+  subSystemCommunication!(RelationComponent, PlacerComponent)(relation, placer, (RelationComponent relationComponent, PlacerComponent placerComponent)
+  {
+    placerComponent.position = relationComponent.position;
+
+    return placerComponent;
+  });
+}
 
 void setGraphicsFromPlacer(Placer placer, Graphics graphics)
 {
@@ -139,6 +161,8 @@ void setControllerFromPlacer(Placer placer, Controller controller)
 {
   subSystemCommunication!(PlacerComponent, ControlComponent)(placer, controller, (PlacerComponent placerComponent, ControlComponent controllerComponent)
   {
+    //debug writeln("controllerfromplacer updating " ~ controllerComponent.id.to!string ~ " from " ~ controllerComponent.position.to!string ~ " to " ~ placerComponent.position.to!string);
+  
     controllerComponent.position = placerComponent.position;
     controllerComponent.velocity = placerComponent.velocity;
     controllerComponent.angle = placerComponent.angle;
@@ -158,6 +182,18 @@ void setCollidersFromPlacer(Placer placer, CollisionHandler collisionHandler)
     //ColliderComponent.angle = placerComponent.angle;
     
     return colliderComponent;
+  });
+}
+
+void setRelationFromPlacer(Placer placer, RelationHandler relationHandler)
+{
+  subSystemCommunication!(PlacerComponent, RelationComponent)(placer, relationHandler, (PlacerComponent placerComponent, RelationComponent relationComponent)
+  {
+    //debug writeln("relationfromplacer updating " ~ relationComponent.name ~ " from " ~ relationComponent.position.to!string ~ " to " ~ placerComponent.position.to!string);
+    
+    relationComponent.position = placerComponent.position;
+    
+    return relationComponent;
   });
 }
 
