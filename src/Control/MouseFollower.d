@@ -37,6 +37,7 @@ public:
   this(InputHandler p_inputHandler)
   {
     inputHandler = p_inputHandler;
+    mouseWorldPos = vec2(0.0, 0.0);
   }
   
   override void update(ref ControlComponent sourceComponent)

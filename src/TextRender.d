@@ -90,7 +90,7 @@ public:
     //defaultFont = "freesansbold.ttf";
     //defaultFont = "Inconsolata.otf";
     //defaultFont = "OxygenMono-Regular.otf";
-    defaultFont = "telegrama_render_osn.otf";
+    defaultFont = "telegrama_render.otf";
     
     auto fontError = FT_New_Face(lib, ("./" ~ defaultFont).toStringz(), 0, &m_face);
     enforce(fontError != FT_Err_Unknown_File_Format, "Error, font format unsupported");

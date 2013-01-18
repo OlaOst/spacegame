@@ -459,9 +459,7 @@ private:
       CommsCentral.setPhysicsFromController(m_controller, m_physics);
       CommsCentral.setSpawnerFromController(m_controller, m_spawner);
       
-      CommsCentral.setPhysicsFromSpawner(m_spawner, m_physics);
-      
-      //updateSubSystems();
+      CommsCentral.setPhysicsFromSpawner(m_spawner, m_physics);      
       
       CommsCentral.setControllerFromPlacer(m_placer, m_controller);
       CommsCentral.setCollidersFromPlacer(m_placer, m_collisionHandler);
@@ -723,13 +721,14 @@ private:
       control.consoleActive = m_gameConsole.isActive() || m_entityConsole.isActive();
     }
   
-    if (m_mouseCursor !is null)
+    // mousecursor entities should set control to MouseFollower, no need to do stuff here then
+    /*if (m_mouseCursor !is null)
     {
       //m_mouseCursor.values["position"] = m_graphics.mouseWorldPos.to!string;
       m_mouseCursor.values["position"] = m_inputHandler.mousePos.to!string;
       
       registerEntity(m_mouseCursor);
-    }
+    }*/
     
     if (m_inputHandler.eventState(Event.RightButton) == EventState.Released)
     {

@@ -116,7 +116,7 @@ public:
       
       component.control.update(component);
       
-      writeln("updated controlcomp pos: " ~ component.position.to!string);
+      //debug writeln("updated controlcomp pos: " ~ component.position.to!string);
     }
   }    
   

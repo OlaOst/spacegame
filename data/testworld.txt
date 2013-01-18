@@ -16,9 +16,10 @@ entityMatrix.name = Entity matrix
 
 cursor.name = Mouse cursor
 cursor.drawsource = Quad
-cursor.screenAbsolutePosition = true
+#cursor.screenAbsolutePosition = true
 cursor.radius = 0.05
 cursor.color = [0.0, 1.0, 1.0, 0.5]
+cursor.control = MouseFollower
 
 test.drawsource = images/bugship.png
 test.keepInCenter = true
@@ -29,49 +30,54 @@ test.mass = 0.5
 
 test.connectpoint.upper.position = [0.0, 1.0]
 test.connectpoint.lower.position = [0.0, -1.0]
+test.isRelation = true
 
 #engine.source = engine.txt
 engine.mass = 0.5
 engine.drawsource = images/engine2.png
 engine.radius = 0.05
-engine.connection = test.lower
-engine.control = PlayerEngine
-engine.thrustForce = 0.5
-engine.slideForce = 0.5
-engine.torqueForce = 5.0
+#engine.connection = test.lower
+engine.relationName = test
+engine.relativePosition = [0.0, -1.0]
+#engine.control = PlayerEngine
+#engine.thrustForce = 0.5
+#engine.slideForce = 0.5
+#engine.torqueForce = 5.0
 
-engine.spawn.sound.soundFile = engine4.wav
-engine.spawn.sound.spawnsPerSecond = 20
+#engine.spawn.sound.soundFile = engine4.wav
+#engine.spawn.sound.spawnsPerSecond = 20
 
-engine.spawn.exhaust.spawnPoint = [0.0, -0.05]
-engine.spawn.exhaust.radius = 0.05
-engine.spawn.exhaust.angle = 0 to 360
-engine.spawn.exhaust.lifetime = 0.5
-engine.spawn.exhaust.spawnForce = -0.5
+#engine.spawn.exhaust.spawnPoint = [0.0, -0.05]
+#engine.spawn.exhaust.radius = 0.05
+#engine.spawn.exhaust.angle = 0 to 360
+#engine.spawn.exhaust.lifetime = 0.5
+#engine.spawn.exhaust.spawnForce = -0.5
 #engine.spawn.exhaust.spawnAngle = -60 to 60
-engine.spawn.exhaust.drawsource = images\explosionSpriteSheet.png
-engine.spawn.exhaust.frames = 25
-engine.spawn.exhaust.spawnsPerSecond = 30
+#engine.spawn.exhaust.drawsource = images\explosionSpriteSheet.png
+#engine.spawn.exhaust.frames = 25
+#engine.spawn.exhaust.spawnsPerSecond = 30
 
 
-gun.source = cannon.txt
-gun.connection = test.upper
-gun.control = PlayerLauncher
+#gun.source = cannon.txt
+#gun.connection = test.upper
+#gun.relation = test
+#gun.relativePosition = [0.0, 1.0]
+#gun.control = PlayerLauncher
 
-gun.radius = 0.05
-gun.spawn.*.radius = 0.02
+#gun.radius = 0.05
+#gun.spawn.*.radius = 0.02
 
-gun.spawn.*.spawnsPerSecond = 5
-gun.spawn.*.spawnPoint = [0.0, 0.07]
+#gun.spawn.*.spawnsPerSecond = 5
+#gun.spawn.*.spawnPoint = [0.0, 0.07]
 
-gun.spawn.bullet.radius = 0.02
-gun.spawn.bullet.spawnForce = 2.0
-gun.spawn.bullet.drawsource = images\bullet.png
-gun.spawn.bullet.lifetime = 1.0
+#gun.spawn.bullet.radius = 0.02
+#gun.spawn.bullet.spawnForce = 2.0
+#gun.spawn.bullet.drawsource = images\bullet.png
+#gun.spawn.bullet.lifetime = 1.0
 
-gun.spawn.muzzleflash.radius = 0.05
-gun.spawn.muzzleflash.angle = 0 to 360
-gun.spawn.muzzleflash.spawnForce = 0.75
-gun.spawn.muzzleflash.drawsource = images\explosionSpriteSheet.png
-gun.spawn.muzzleflash.frames = 25
-gun.spawn.muzzleflash.lifetime = 0.1
+#gun.spawn.muzzleflash.radius = 0.05
+#gun.spawn.muzzleflash.angle = 0 to 360
+#gun.spawn.muzzleflash.spawnForce = 0.75
+#gun.spawn.muzzleflash.drawsource = images\explosionSpriteSheet.png
+#gun.spawn.muzzleflash.frames = 25
+#gun.spawn.muzzleflash.lifetime = 0.1

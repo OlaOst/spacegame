@@ -1,3 +1,37 @@
 greeting.position = [0.0, 0.0]
 greeting.radius = 0.05
 greeting.text = Hello,\n world
+
+hull.position = [1.0, 0.0]
+hull.drawsource = images\bugship.png
+hull.radius = 0.05
+hull.color = [0.0, 1.0, 1.0, 0.5]
+hull.control = MouseFollower
+hull.isRelation = true
+hull.name = hull
+
+thang.name = thang
+thang.position = [0.0, 0.0]
+thang.drawsource = Quad
+thang.radius = 0.03
+thang.color = [0.5, 1.0, 0.0, 0.5]
+thang.relationName = hull
+thang.relativePosition = [0.0, 0.05]
+
+
+theng.name = theng
+theng.position = [0.0, 0.0]
+theng.drawsource = Quad
+theng.relationName = thang
+theng.relativePosition = [0.0, 0.05]
+theng.radius = 0.02
+theng.color = [1.0, 0.0, 0.0, 0.5]
+
+#theng.control = PlayerLauncher
+
+#theng.spawn.foo.spawnsPerSecond = 2
+#theng.spawn.foo.drawsource = Quad
+#theng.spawn.foo.radius = 0.05
+#theng.spawn.foo.spawnForce = 1.0
+#theng.spawn.foo.mass = 0.5
+
