@@ -16,7 +16,7 @@ Placer            - for entities that need a position (could be gameworld positi
 Physics           - for entities that are affected by forces and follow newtons laws of motion
 Spawner           - for entities that can create other entities (needs trigger to know when to spawn something)
 Collision         - for entities that should affect each other when overlapping. response depends on the collision type (cursor should change color/symbol according to what it is pointing at, physical entities should push each other apart and not overlap)
-Input             - for entities that are affected by external input (could be user input, could be AI)
+Input (Control)   - for entities that are affected by external input (could be user input, could be AI)
 Relation          - for entities that affect other entities (like keeping the position of one entity locked relative to another entity)
 Sound             - for entities that can be heard (audible clicks from menu buttons, gunfire from cannons, etc)
 Graphics          - for entities that should be shown on screen
@@ -24,7 +24,7 @@ Timer             - for entities that need to keep track of time (usually a coun
 
 after subsystems have finished updating, they need to update each other values in the correct order to avoid looking at stale values the next update:
 
-Timer updates (something?) in Control (because guns should only be able to fire when they have finished reloading - how to abstract this nicely?)
+Timer updates (something? clock?) in Control (because guns should only be able to fire when they have finished reloading - how to abstract this nicely?)
 
 Control updates triggers in Spawner
 

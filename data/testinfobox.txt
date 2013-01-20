@@ -24,11 +24,10 @@ grandchild.color = [1.0, 0.0, 0.0, 0.5]
 grandchild.relationName = child
 grandchild.relativePosition = [0.0, 0.05]
 
-#grandchild.control = PlayerLauncher
+grandchild.control = PlayerLauncher
 
-#grandchild.spawn.foo.spawnsPerSecond = 2
-#grandchild.spawn.foo.drawsource = Quad
-#grandchild.spawn.foo.radius = 0.05
-#grandchild.spawn.foo.spawnForce = 1.0
-#grandchild.spawn.foo.mass = 0.5
-
+grandchild.spawn.bullet.spawnsPerSecond = 2
+grandchild.spawn.bullet.drawsource = Quad
+grandchild.spawn.bullet.radius = 0.01
+grandchild.spawn.bullet.spawnForce = 2.0
+grandchild.spawn.bullet.mass = 0.2

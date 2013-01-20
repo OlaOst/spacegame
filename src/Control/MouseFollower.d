@@ -46,6 +46,7 @@ public:
     
     sourceComponent.isFiring = false;
     
+    sourceComponent.updatedPosition = true;
     sourceComponent.position = mouseWorldPos;
   }
   

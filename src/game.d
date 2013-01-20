@@ -439,7 +439,7 @@ private:
     
     m_inputHandler.pollEvents();
 
-    //debug writeln("game update " ~ m_updateCount.to!string);
+    debug writeln("game update " ~ m_updateCount.to!string);
     
     if (!m_paused)
     {
@@ -449,17 +449,22 @@ private:
       m_graphics.setTimeStep(m_timer.elapsedTime);
       m_spawner.setTimeStep(m_timer.elapsedTime);
       
-      
       updateSubSystems();
       
-      CommsCentral.setPlacerFromPhysics(m_physics, m_placer);
-      CommsCentral.setPlacerFromRelation(m_relationHandler, m_placer);
-      CommsCentral.setPlacerFromController(m_controller, m_placer);
-      
-      CommsCentral.setPhysicsFromController(m_controller, m_physics);
       CommsCentral.setSpawnerFromController(m_controller, m_spawner);
       
+      //setSoundFromControl
+      CommsCentral.setSoundFromSpawner(m_spawner, m_sound);
+      //setSoundFromCollision
+      
+      CommsCentral.setPhysicsFromController(m_controller, m_physics);
       CommsCentral.setPhysicsFromSpawner(m_spawner, m_physics);      
+      //setPhysicsFromCollision
+      
+      CommsCentral.setPlacerFromPhysics(m_physics, m_placer);
+      //setPlacerFromCollision
+      CommsCentral.setPlacerFromRelation(m_relationHandler, m_placer);
+      CommsCentral.setPlacerFromController(m_controller, m_placer);
       
       CommsCentral.setControllerFromPlacer(m_placer, m_controller);
       CommsCentral.setCollidersFromPlacer(m_placer, m_collisionHandler);
@@ -467,7 +472,6 @@ private:
       CommsCentral.setSoundFromPlacer(m_placer, m_sound);
       CommsCentral.setRelationFromPlacer(m_placer, m_relationHandler);
       
-      CommsCentral.setSoundFromSpawner(m_spawner, m_sound);
       //CommsCentral.setTimerFromCollider(m_collider, m_timer);
       //CommsCentral.setTimerFromSound(m_sound, m_timer);
       

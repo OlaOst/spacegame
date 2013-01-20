@@ -43,6 +43,8 @@ class ControlComponent
     
   ControlBase control;
   
+  bool updatedPosition = false;
+  
   vec2 position = vec2(0.0, 0.0);
   float angle = 0.0;
   
@@ -106,6 +108,8 @@ public:
       component.impulse = vec2(0.0, 0.0);
       component.angularImpulse = 0.0;
       component.torque = 0.0;
+      
+      component.updatedPosition = false;
       
       component.isFiring = false;
       

@@ -83,9 +83,11 @@ void setPlacerFromController(Controller controller, Placer placer)
 {
   subSystemCommunication!(ControlComponent, PlacerComponent)(controller, placer, (ControlComponent controlComponent, PlacerComponent placerComponent)
   {
-    //debug writeln("setPlacerFromController updating " ~ controlComponent.id.to!string ~ " from " ~ placerComponent.position.to!string ~ " to " ~ controlComponent.position.to!string);
+    debug writeln("setPlacerFromController updating " ~ controlComponent.id.to!string ~ " from " ~ placerComponent.position.to!string ~ " to " ~ controlComponent.position.to!string);
   
-    placerComponent.position = controlComponent.position;
+    // what if the control component did not update its position? in that case we do not want to overwrite the existing position
+    if (controlComponent.updatedPosition)
+      placerComponent.position = controlComponent.position;
 
     return placerComponent;
   });
@@ -95,6 +97,8 @@ void setPlacerFromRelation(RelationHandler relation, Placer placer)
 {
   subSystemCommunication!(RelationComponent, PlacerComponent)(relation, placer, (RelationComponent relationComponent, PlacerComponent placerComponent)
   {
+    writeln("setPlacerFromRelation updating " ~ relationComponent.name ~ " from " ~ placerComponent.position.to!string ~ " to " ~ relationComponent.position.to!string);
+    
     placerComponent.position = relationComponent.position;
 
     return placerComponent;
@@ -161,12 +165,28 @@ void setControllerFromPlacer(Placer placer, Controller controller)
 {
   subSystemCommunication!(PlacerComponent, ControlComponent)(placer, controller, (PlacerComponent placerComponent, ControlComponent controllerComponent)
   {
-    //debug writeln("controllerfromplacer updating " ~ controllerComponent.id.to!string ~ " from " ~ controllerComponent.position.to!string ~ " to " ~ placerComponent.position.to!string);
+    debug writeln("setControllerFromPlacer updating " ~ controllerComponent.id.to!string ~ " from " ~ controllerComponent.position.to!string ~ " to " ~ placerComponent.position.to!string);
   
     controllerComponent.position = placerComponent.position;
     controllerComponent.velocity = placerComponent.velocity;
     controllerComponent.angle = placerComponent.angle;
     controllerComponent.rotation = placerComponent.rotation;
+    
+    return controllerComponent;
+  });
+}
+
+// controllers often need to know where they are, especially AI controllers
+void setControllerFromRelation(RelationHandler relationHandler, Controller controller)
+{
+  subSystemCommunication!(RelationComponent, ControlComponent)(relationHandler, controller, (RelationComponent relationComponent, ControlComponent controllerComponent)
+  {
+    debug writeln("setControllerFromRelation updating " ~ controllerComponent.id.to!string ~ " from " ~ controllerComponent.position.to!string ~ " to " ~ relationComponent.position.to!string);
+  
+    controllerComponent.position = relationComponent.position;
+    //controllerComponent.velocity = relationComponent.velocity;
+    //controllerComponent.angle = relationComponent.angle;
+    //controllerComponent.rotation = relationComponent.rotation;
     
     return controllerComponent;
   });
