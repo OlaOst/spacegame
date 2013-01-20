@@ -78,7 +78,7 @@ protected:
   bool canCreateComponent(Entity p_entity)
   {
     return "position" in p_entity || 
-           "connection" in p_entity;
+           "relativePosition" in p_entity;
   }
   
   

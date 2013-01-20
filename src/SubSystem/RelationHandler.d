@@ -124,7 +124,7 @@ public:
     foreach (component; components.filter!(component => component.relationName.length > 0))
     {
       assert(component.relationName in relationMapping);
-      assert(component.relater !is null);
+      assert(component.relater !is null, "Relater is null for component " ~ component.name);
       
       component = component.relater.update(component, relationMapping[component.relationName]);
     }
