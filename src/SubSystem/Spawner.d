@@ -149,19 +149,13 @@ public:
           
           spawnValues["*.spawnedFrom"] = to!string(component.entityId);
           spawnValues["*.spawnedFromOwner"] = to!string(component.ownerId);
-          
-          writeln("eh?");
-          
+
           if ("position" in spawnValues)
             spawnValues["position"] = to!string(spawnValues["position"]);
           else if ("spawnPoint" in spawnValues)
             spawnValues["position"] = (component.position + mat2.rotation(-component.angle) * vec2(spawnValues["spawnPoint"].to!(float[])[0..2])).to!string;
           else
-          {
-            assert(component.position.ok);
-            writeln(component.position);
             spawnValues["position"] = component.position.to!string;
-          }
           
           if ("angle" !in spawnValues)
             spawnValues["angle"] = to!string(spawnAngle * _180_PI);
