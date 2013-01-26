@@ -85,7 +85,7 @@ public:
   }
   
   
-  void update(ref ControlComponent p_sourceComponent)
+  override void update(ref ControlComponent p_sourceComponent)
   out
   {
     assert(p_sourceComponent.force.ok);

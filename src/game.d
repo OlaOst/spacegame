@@ -439,7 +439,7 @@ private:
     
     m_inputHandler.pollEvents();
 
-    debug writeln("game update " ~ m_updateCount.to!string);
+    //debug writeln("game update " ~ m_updateCount.to!string);
     
     if (!m_paused)
     {

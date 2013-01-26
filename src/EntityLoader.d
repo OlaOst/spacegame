@@ -353,7 +353,7 @@ string[string] expandValues(ref string[string] p_values)
   return p_values;
 }
 
-Entity[string] loadEntityCollection(string collectionName, string[string] p_values, ref string[] orderedEntityNames = [])
+Entity[string] loadEntityCollection(string collectionName, string[string] p_values, ref string[] orderedEntityNames)
 {
   string[] lines;
   foreach (key, value; p_values)
@@ -364,7 +364,7 @@ Entity[string] loadEntityCollection(string collectionName, string[string] p_valu
   return loadEntityCollection(collectionName, lines, orderedEntityNames);
 }
 
-Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref string[] orderedEntityNames = [])
+Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref string[] orderedEntityNames)
 {
   //writeln("loadentitycollection, name: " ~ collectionName ~ ", lines: " ~ p_lines.to!string);
   Entity[string] entities;

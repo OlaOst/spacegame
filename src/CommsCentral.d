@@ -83,7 +83,7 @@ void setPlacerFromController(Controller controller, Placer placer)
 {
   subSystemCommunication!(ControlComponent, PlacerComponent)(controller, placer, (ControlComponent controlComponent, PlacerComponent placerComponent)
   {
-    debug writeln("setPlacerFromController updating " ~ controlComponent.id.to!string ~ " from " ~ placerComponent.position.to!string ~ " to " ~ controlComponent.position.to!string);
+    //debug writeln("setPlacerFromController updating " ~ controlComponent.id.to!string ~ " from " ~ placerComponent.position.to!string ~ " to " ~ controlComponent.position.to!string);
   
     // what if the control component did not update its position? in that case we do not want to overwrite the existing position
     if (controlComponent.updatedPosition)
@@ -97,7 +97,7 @@ void setPlacerFromRelation(RelationHandler relation, Placer placer)
 {
   subSystemCommunication!(RelationComponent, PlacerComponent)(relation, placer, (RelationComponent relationComponent, PlacerComponent placerComponent)
   {
-    writeln("setPlacerFromRelation updating " ~ relationComponent.name ~ " from " ~ placerComponent.position.to!string ~ " to " ~ relationComponent.position.to!string);
+    //debug writeln("setPlacerFromRelation updating " ~ relationComponent.name ~ " from " ~ placerComponent.position.to!string ~ " to " ~ relationComponent.position.to!string);
     
     placerComponent.position = relationComponent.position;
 
@@ -118,7 +118,7 @@ void setGraphicsFromPlacer(Placer placer, Graphics graphics)
     graphicsComponent.angle = placerComponent.angle;
     graphicsComponent.rotation = placerComponent.rotation;
     
-    //writeln("graphics from placer, pos is " ~ graphicsComponent.position.toString());
+    //debug writeln("graphics from placer, pos is " ~ graphicsComponent.position.toString());
     
     return graphicsComponent;
   });
@@ -137,7 +137,7 @@ void setSoundFromPlacer(Placer placer, Sound sound)
     soundComponent.angle = placerComponent.angle;
     //soundComponent.rotation = placerComponent.rotation;
     
-    //writeln("sound from placer, pos is " ~ soundComponent.position.toString());
+    //debug writeln("sound from placer, pos is " ~ soundComponent.position.toString());
     
     return soundComponent;
   });
@@ -154,7 +154,7 @@ void setPhysicsFromController(Controller controller, Physics physics)
     physicsComponent.impulse += controllerComponent.impulse;
     physicsComponent.angularImpulse += controllerComponent.angularImpulse;
     
-    //writeln("physicsfromcontroller, force is " ~ physicsComponent.force.to!string ~ ", control comp id is " ~ controllerComponent.id.to!string);
+    //debug writeln("physicsfromcontroller, force is " ~ physicsComponent.force.to!string ~ ", control comp id is " ~ controllerComponent.id.to!string);
     
     return physicsComponent;
   });
@@ -165,7 +165,7 @@ void setControllerFromPlacer(Placer placer, Controller controller)
 {
   subSystemCommunication!(PlacerComponent, ControlComponent)(placer, controller, (PlacerComponent placerComponent, ControlComponent controllerComponent)
   {
-    debug writeln("setControllerFromPlacer updating " ~ controllerComponent.id.to!string ~ " from " ~ controllerComponent.position.to!string ~ " to " ~ placerComponent.position.to!string);
+    //debug writeln("setControllerFromPlacer updating " ~ controllerComponent.id.to!string ~ " from " ~ controllerComponent.position.to!string ~ " to " ~ placerComponent.position.to!string);
   
     controllerComponent.position = placerComponent.position;
     controllerComponent.velocity = placerComponent.velocity;
@@ -181,7 +181,7 @@ void setControllerFromRelation(RelationHandler relationHandler, Controller contr
 {
   subSystemCommunication!(RelationComponent, ControlComponent)(relationHandler, controller, (RelationComponent relationComponent, ControlComponent controllerComponent)
   {
-    debug writeln("setControllerFromRelation updating " ~ controllerComponent.id.to!string ~ " from " ~ controllerComponent.position.to!string ~ " to " ~ relationComponent.position.to!string);
+    //debug writeln("setControllerFromRelation updating " ~ controllerComponent.id.to!string ~ " from " ~ controllerComponent.position.to!string ~ " to " ~ relationComponent.position.to!string);
   
     controllerComponent.position = relationComponent.position;
     //controllerComponent.velocity = relationComponent.velocity;
@@ -226,16 +226,16 @@ void calculateCollisionResponse(CollisionHandler collisionHandler, Physics physi
   {
     if (collisionHandler.hasComponent(entity))
     {
-      //writeln("entity " ~ to!string(entity.id) ~ " has collision component " ~ to!string(collisionHandler.getComponent(entity).id));
+      //debug writeln("entity " ~ to!string(entity.id) ~ " has collision component " ~ to!string(collisionHandler.getComponent(entity).id));
       colliderToEntities[collisionHandler.getComponent(entity).id] = entity;
     }
   }
 
-  //writeln("collidertoentities: " ~ to!string(colliderToEntities.length));
+  //debug writeln("collidertoentities: " ~ to!string(colliderToEntities.length));
   
   foreach (collision; collisionHandler.collisions)
   {
-    //writeln("checking collision between collisioncomponent " ~ to!string(collision.first.id) ~ " and " ~ to!string(collision.second.id));
+    //debug writeln("checking collision between collisioncomponent " ~ to!string(collision.first.id) ~ " and " ~ to!string(collision.second.id));
     auto firstEntity = colliderToEntities[collision.first.id];
     auto secondEntity = colliderToEntities[collision.second.id];
     
@@ -286,7 +286,7 @@ void setSpawnerFromPlacer(Placer placer, Spawner spawner)
     spawnerComponent.velocity = placerComponent.velocity;
     spawnerComponent.angle = placerComponent.angle;
     
-    //writeln("setspawnerfromplacer, pos is " ~ to!string(spawnerComponent.pos));
+    //debug writeln("setspawnerfromplacer, pos is " ~ to!string(spawnerComponent.pos));
     
     return spawnerComponent;
   });

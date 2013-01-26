@@ -19,7 +19,7 @@ public {
     import std.math : PI, sin, cos, tan, asin, acos, atan, atan2,
                       sinh, cosh, tanh, asinh, acosh, atanh,
                       pow, exp, log, exp2, log2, sqrt,
-                      abs, floor, trunc, round, ceil, modf;
+                      floor, trunc, round, ceil, modf;
     alias round roundEven;
     alias floor fract;
     //import core.stdc.math : fmodf;
@@ -28,6 +28,17 @@ public {
 
 private {
     import std.conv : to;
+    import std.algorithm : all;
+    import std.array : zip;
+    import std.traits : CommonType;
+    import std.range : ElementType;
+    import smath = std.math;
+    
+    import gl3n.util : is_vector, is_quaternion, is_matrix;
+
+    version(unittest) {
+        import gl3n.linalg : vec2, vec2i, vec3, vec3i, quat;
+    }
 }
 
 /// PI / 180 at compiletime, used for degrees/radians conversion.
@@ -43,6 +54,49 @@ T mod(T)(T x, T y) { // std.math.floor is not pure
 @safe pure nothrow:
 
 extern (C) { float fmodf(float x, float y); }
+
+/// Calculates the absolute value.
+T abs(T)(T t) if(!is_vector!T && !is_quaternion!T && !is_matrix!T) {
+    return smath.abs(t);
+}
+
+/// Calculates the absolute value per component.
+T abs(T)(T vec) if(is_vector!T) {
+    T ret;
+
+    foreach(i, element; vec.vector) {
+        ret.vector[i] = abs(element);
+    }
+    
+    return ret;
+}
+
+/// ditto
+T abs(T)(T quat) if(is_quaternion!T) {
+    T ret;
+
+    ret.quaternion[0] = abs(quat.quaternion[0]);
+    ret.quaternion[1] = abs(quat.quaternion[1]);
+    ret.quaternion[2] = abs(quat.quaternion[2]);
+    ret.quaternion[3] = abs(quat.quaternion[3]);
+
+    return ret;
+}
+
+unittest {
+    assert(abs(0) == 0);
+    assert(abs(-1) == 1);
+    assert(abs(1) == 1);
+    assert(abs(0.0) == 0.0);
+    assert(abs(-1.0) == 1.0);
+    assert(abs(1.0) == 1.0);
+    
+    assert(abs(vec3i(-1, 0, -12)) == vec3(1, 0, 12));
+    assert(abs(vec3(-1, 0, -12)) == vec3(1, 0, 12));
+    assert(abs(vec3i(12, 12, 12)) == vec3(12, 12, 12));
+
+    assert(abs(quat(-1.0f, 0.0f, 1.0f, -12.0f)) == quat(1.0f, 0.0f, 1.0f, 12.0f));
+}
 
 /// Returns 1/sqrt(x), results are undefined if x <= 0.
 real inversesqrt(real x) {
@@ -61,7 +115,7 @@ float sign(T)(T x) {
 }
 
 unittest {
-    assert(inversesqrt(1.0f) == 1.0);
+    assert(inversesqrt(1.0f) == 1.0f);
     assert(inversesqrt(10.0f) == (1/sqrt(10.0f)));
     assert(inversesqrt(2342342.0f) == (1/sqrt(2342342.0f)));
     
@@ -77,11 +131,30 @@ unittest {
 }
 
 /// Compares to values and returns true if the difference is epsilon or smaller.
-bool almost_equal(T, S)(T a, S b, float epsilon = 0.000001f) {
+bool almost_equal(T, S)(T a, S b, float epsilon = 0.000001f) if(!is_vector!T && !is_quaternion!T) {
     if(abs(a-b) <= epsilon) {
         return true;
     }
     return abs(a-b) <= epsilon * abs(b);
+}
+
+/// ditto
+bool almost_equal(T, S)(T a, S b, float epsilon = 0.000001f) if(is_vector!T && is_vector!S && T.dimension == S.dimension) {
+    foreach(i; 0..T.dimension) {
+        if(!almost_equal(a.vector[i], b.vector[i], epsilon)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool almost_equal(T)(T a, T b, float epsilon = 0.000001f) if(is_quaternion!T) {
+    foreach(i; 0..4) {
+        if(!almost_equal(a.quaternion[i], b.quaternion[i], epsilon)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 unittest {
@@ -91,6 +164,13 @@ unittest {
     assert(almost_equal(0f, 0.000001f, 0.000001f));
     assert(almost_equal(1f, 1.1f, 0.1f));
     assert(!almost_equal(1f, 1.1f, 0.01f));
+
+    assert(almost_equal(vec2i(0, 0), vec2(0.0f, 0.0f)));
+    assert(almost_equal(vec2(0.0f, 0.0f), vec2(0.000001f, 0.000001f)));
+    assert(almost_equal(vec3(0.0f, 1.0f, 2.0f), vec3i(0, 1, 2)));
+
+    assert(almost_equal(quat(0.0f, 0.0f, 0.0f, 0.0f), quat(0.0f, 0.0f, 0.0f, 0.0f)));
+    assert(almost_equal(quat(0.0f, 0.0f, 0.0f, 0.0f), quat(0.000001f, 0.000001f, 0.000001f, 0.000001f)));
 }
 
 /// Converts degrees to radians.

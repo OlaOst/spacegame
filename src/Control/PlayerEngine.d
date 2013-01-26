@@ -55,7 +55,7 @@ public:
   }
   
   
-  void update(ref ControlComponent p_sourceComponent)
+  override void update(ref ControlComponent p_sourceComponent)
   /*out
   {
     writeln(p_sourceComponent.position.toString());

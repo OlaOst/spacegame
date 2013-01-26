@@ -98,7 +98,8 @@ enum CollisionType
   FreeFloatingModule,
   Asteroid,
   Bullet,
-  Particle
+  Particle,
+  Brick
 }
 
 
@@ -260,19 +261,31 @@ private:
   {
     m_collisions.length = 0;
     
-    index.clear();    
+    index.clear();
+    
+    foreach (CollisionType[2] typePair; typesThatCanCollide)
+    {
+      auto firstTypes = components.filter!(component => component.collisionType == typePair[0]);
+      auto secondTypes = components.filter!(component => component.collisionType == typePair[1]);
+      
+      foreach (component; firstTypes)
+      {
+        index.insert(component);
+      }
+    }
     
     // for now, only bullets can collide, so we only put bullets in the index first - and only if they haven't collided yet
-    foreach (component; filter!(component => component.collisionType == CollisionType.Bullet && component.hasCollided == false)(components))
+    /*foreach (component; filter!(component => component.collisionType == CollisionType.Bullet && component.hasCollided == false)(components))
     //foreach (component; components)
     {
       index.insert(component);
-    }
+    }*/
     
     // for now, bullets can't collide with freefloating modules or other bullets, so we filter them out
-    foreach (component; filter!(component => component.collisionType != CollisionType.FreeFloatingModule &&
+    /*foreach (component; filter!(component => component.collisionType != CollisionType.FreeFloatingModule &&
                                              component.collisionType != CollisionType.Particle &&
-                                             component.collisionType != CollisionType.Bullet)(components))
+                                             component.collisionType != CollisionType.Bullet)(components))*/
+    foreach (component; components.filter!(component => typesThatCanCollide.map!(typePair => typePair[1]).canFind(component.collisionType)))
     {
       auto candidates = index.findNearbyContent(component);
       
@@ -401,4 +414,9 @@ private:
   Index!ColliderComponent index;
   
   string[string][] m_spawnParticleValues;
+  
+  //alias void delegate (ColliderComponent first, ColliderComponent second) CollisionResponse;
+  //CollisionResponse[CollisionType[CollisionType]] collisionResponseMapping;
+  
+  CollisionType[2][] typesThatCanCollide;
 }

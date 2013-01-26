@@ -1,0 +1,40 @@
+greeting.position = [0.0, 0.0]
+greeting.radius = 0.05
+greeting.text = Hello,\n world
+
+ship.position = [1.0, 0.0]
+ship.control = MouseFollower
+ship.isRelation = true
+
+hull.drawsource = images\bugship.png
+hull.radius = 0.05
+hull.relationName = ship
+hull.relativePosition = [0.0, 0.0]
+
+child.drawsource = Quad
+child.radius = 0.03
+child.color = [0.5, 1.0, 0.0, 0.5]
+child.relationName = hull
+child.relativePosition = [0.0, 0.05]
+
+grandchild.drawsource = Quad
+grandchild.radius = 0.02
+grandchild.color = [1.0, 0.0, 0.0, 0.5]
+grandchild.relationName = child
+grandchild.relativePosition = [0.0, 0.05]
+
+grandchild.control = PlayerLauncher
+
+grandchild.spawn.bullet.spawnsPerSecond = 2
+grandchild.spawn.bullet.drawsource = Quad
+grandchild.spawn.bullet.radius = 0.01
+grandchild.spawn.bullet.spawnForce = 2.0
+grandchild.spawn.bullet.mass = 0.2
+
+
+
+brick.drawsource = Quad
+brick.position = [0.0, 1.0]
+brick.radius = 0.05
+brick.color = [0.5, 1.0, 0.0, 0.5]
+brick.collisionType = Brick

@@ -44,7 +44,7 @@ class AiChaser : ControlBase
 {
 public:
   
-  void update(ref ControlComponent p_sourceComponent)
+  override void update(ref ControlComponent p_sourceComponent)
   {
     // we want to match the targets velocity
     // we also want to get closer to the target

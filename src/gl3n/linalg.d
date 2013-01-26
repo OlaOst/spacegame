@@ -26,7 +26,7 @@ private {
     import std.string : format, rightJustify;
     import std.array : join;
     import std.algorithm : max, min, reduce;
-    import gl3n.math : clamp, PI, abs, sqrt, sin, cos, acos, tan, asin, atan2;
+    import gl3n.math : clamp, PI, sqrt, sin, cos, acos, tan, asin, atan2, almost_equal;
     import gl3n.util : is_vector, is_matrix, is_quaternion;
 }
 
@@ -57,7 +57,7 @@ struct Vector(type, int dimension_) if((dimension_ >= 2) && (dimension_ <= 4)) {
     
     /// Returns the current vector formatted as string, useful for printing the vector.
     @property string as_string() {
-        return format(isFloatingPoint!(vt) ? "%f":"%s", vector);
+        return format("%s", vector);
     }
     alias as_string toString; /// ditto
     
@@ -146,7 +146,13 @@ struct Vector(type, int dimension_) if((dimension_ >= 2) && (dimension_ <= 4)) {
     
     /// ditto
     this(T)(T vec) if(is_vector!T && is(T.vt : vt) && (T.dimension >= dimension)) {
-        vector = vec.vector[0..dimension];
+        static if(__traits(compiles, vector = vec.vector[0..dimension])) {
+            vector = vec.vector[0..dimension];
+        } else {
+            foreach(i; 0..dimension) {
+                vector[i] = vec.vector[i];
+            }
+        }
     }
    
     /// ditto
@@ -223,6 +229,9 @@ struct Vector(type, int dimension_) if((dimension_ >= 2) && (dimension_ <= 4)) {
         assert(vec4(1.0f, 2.0f, 3.0f, 4.0f).vector == vec4(f3, 4.0f).vector);
         assert(vec4(1.0f, 2.0f, 3.0f, 4.0f).vector == vec4(f2, 3.0f, 4.0f).vector);
         // useful for: "vec4 v4 = […]" or "vec4 v4 = other_vector.rgba"
+
+        assert(vec3(vec3i(1, 2, 3)) == vec3(1.0, 2.0, 3.0));
+        assert(vec3d(vec3(1.0, 2.0, 3.0)) == vec3d(1.0, 2.0, 3.0));
     }
 
     template coord_to_index(char c) {   
@@ -316,7 +325,7 @@ struct Vector(type, int dimension_) if((dimension_ >= 2) && (dimension_ <= 4)) {
 
     /// Implements dynamic swizzling.
     /// Returns: a static array of coordinates.
-    vt[s.length] opDispatch(string s)() const {
+    @property vt[s.length] opDispatch(string s)() const {
         vt[s.length] ret;
         dispatchImpl!(0, s)(ret);
         return ret;
@@ -493,7 +502,7 @@ struct Vector(type, int dimension_) if((dimension_ >= 2) && (dimension_ <= 4)) {
         assert(v2.length == sqrt(10.0f));
         assert(v2.length_squared == 10.0f);
         assert((v2.magnitude == v2.length) && (v2.magnitude_squared == v2.length_squared));
-        assert(v2.normalized == vec2(1.0f/sqrt(10.0f), 3.0f/sqrt(10.0f)));
+        assert(almost_equal(v2.normalized, vec2(1.0f/sqrt(10.0f), 3.0f/sqrt(10.0f))));
 
         vec3 v3 = vec3(1.0f, 3.0f, 5.0f);
         v3 *= 2.5f;
@@ -505,7 +514,7 @@ struct Vector(type, int dimension_) if((dimension_ >= 2) && (dimension_ <= 4)) {
         assert(v3.length == sqrt(35.0f));
         assert(v3.length_squared == 35.0f);
         assert((v3.magnitude == v3.length) && (v3.magnitude_squared == v3.length_squared));
-        assert(v3.normalized == vec3(1.0f/sqrt(35.0f), 3.0f/sqrt(35.0f), 5.0f/sqrt(35.0f)));
+        assert(almost_equal(v3.normalized, vec3(1.0f/sqrt(35.0f), 3.0f/sqrt(35.0f), 5.0f/sqrt(35.0f))));
             
         vec4 v4 = vec4(1.0f, 3.0f, 5.0f, 7.0f);
         v4 *= 2.5f;
@@ -517,7 +526,7 @@ struct Vector(type, int dimension_) if((dimension_ >= 2) && (dimension_ <= 4)) {
         assert(v4.length == sqrt(84.0f));
         assert(v4.length_squared == 84.0f);
         assert((v4.magnitude == v4.length) && (v4.magnitude_squared == v4.length_squared));
-        assert(v4.normalized == vec4(1.0f/sqrt(84.0f), 3.0f/sqrt(84.0f), 5.0f/sqrt(84.0f), 7.0f/sqrt(84.0f)));
+        assert(almost_equal(v4.normalized, vec4(1.0f/sqrt(84.0f), 3.0f/sqrt(84.0f), 5.0f/sqrt(84.0f), 7.0f/sqrt(84.0f))));
     }
        
     const bool opEquals(T)(T vec) if(T.dimension == dimension) {
@@ -675,13 +684,13 @@ struct Matrix(type, int rows_, int cols_) if((rows_ > 0) && (cols_ > 0)) {
     
     /// Returns the current matrix formatted as flat string.
     @property string as_string() {
-        return format(isFloatingPoint!(mt) ? "%f":"%s", matrix);
+        return format("%s", matrix);
     }
     alias as_string toString; /// ditto
     
     /// Returns the current matrix as pretty formatted string. 
     @property string as_pretty_string() {
-        string fmtr = isFloatingPoint!(mt) ? "%f":"%s";
+        string fmtr = "%s";
         
         size_t rjust = max(format(fmtr, reduce!(max)(matrix[])).length,
                            format(fmtr, reduce!(min)(matrix[])).length) - 1;
@@ -937,19 +946,19 @@ struct Matrix(type, int rows_, int cols_) if((rows_ > 0) && (cols_ > 0)) {
         
         /// Returns an identity matrix with an applied rotation
         static Matrix rotation(real alpha) {
-            Matrix mult = Matrix.identity;
-            
-            mt cosamt = to!mt(cos(alpha));
-            mt sinamt = to!mt(sin(alpha));
-            
-            mult.matrix[0][0] = cosamt;
-            mult.matrix[0][1] = -sinamt;
-            mult.matrix[1][0] = sinamt;
-            mult.matrix[1][1] = cosamt;
-            
-            return mult;
+          Matrix mult = Matrix.identity;
+
+          mt cosamt = to!mt(cos(alpha));
+          mt sinamt = to!mt(sin(alpha));
+
+          mult.matrix[0][0] = cosamt;
+          mult.matrix[0][1] = -sinamt;
+          mult.matrix[1][0] = sinamt;
+          mult.matrix[1][1] = cosamt;
+
+          return mult;
         }
-        
+
     } else static if((rows == 3) && (cols == 3)) {
         @property mt det() const {
             return (matrix[0][0] * matrix[1][1] * matrix[2][2]
@@ -1249,16 +1258,18 @@ struct Matrix(type, int rows_, int cols_) if((rows_ > 0) && (cols_ > 0)) {
                 vec3mt right_dir = cross(look_dir, up_dir).normalized;
                 vec3mt perp_up_dir = cross(right_dir, look_dir);
                 
-                Matrix rot = Matrix.identity;
-                rot.matrix[0][0..3] = right_dir.vector;
-                rot.matrix[1][0..3] = perp_up_dir.vector;
-                rot.matrix[2][0..3] = (-look_dir).vector;
+                Matrix ret = Matrix.identity;
+                ret.matrix[0][0..3] = right_dir.vector;
+                ret.matrix[1][0..3] = perp_up_dir.vector;
+                ret.matrix[2][0..3] = (-look_dir).vector;
                 
-                Matrix trans = Matrix.translation(-eye.x, -eye.y, -eye.z);
+                ret.matrix[0][3] = -dot(eye, right_dir);
+                ret.matrix[1][3] = -dot(eye, perp_up_dir);
+                ret.matrix[2][3] = dot(eye, look_dir);
                 
-                return rot * trans;
+                return ret;
             }
-        
+
             unittest {               
                 mt[6] cp = cperspective(600f, 900f, 60f, 1f, 100f);
                 assert(cp[4] == 1.0f);
@@ -1783,7 +1794,7 @@ struct Quaternion(type) {
     
     /// Returns the current vector formatted as string, useful for printing the quaternion.
     @property string as_string() {
-        return format(isFloatingPoint!(qt) ? "%f":"%s", quaternion);
+        return format("%s", quaternion);
     }
     alias as_string toString;
     
@@ -2012,9 +2023,9 @@ struct Quaternion(type) {
         
         quat q2 = quat.from_matrix(mat3(1.0f, 3.0f, 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f));
         assert(q2.x == 0.0f);
-        assert((q2.y > 0.7071066f) && (q2.y < 7071068f));
-        assert((q2.z > -1.060661f) && (q2.z < -1.060659));
-        assert((q2.w > 0.7071066f) && (q2.w < 7071068f));
+        assert(almost_equal(q2.y, 0.7071067f));
+        assert(almost_equal(q2.z, -1.060660));
+        assert(almost_equal(q2.w, 0.7071067f));
     }
     
     /// Normalizes the current quaternion.
@@ -2053,8 +2064,7 @@ struct Quaternion(type) {
         q1.normalize();
         assert(q1.quaternion == q2.normalized.quaternion);
         //assert(q1.quaternion == q1.normalized.quaternion);
-        assert(q1.magnitude > 0.9999999);
-        assert(q1.magnitude < 1.0000001);    
+        assert(almost_equal(q1.magnitude, 1.0));
     }
     
     /// Returns the yaw.
@@ -2071,7 +2081,7 @@ struct Quaternion(type) {
     @property real roll() const {
         return atan2(to!real(2 * (w*z + x*y)), to!real(w^^2 - x^^2 + y^^2 - z^^2));
     }
-    
+
     unittest {
         quat q1 = quat.identity;
         assert(q1.pitch == 0.0f);
@@ -2079,14 +2089,14 @@ struct Quaternion(type) {
         assert(q1.roll == 0.0f);
         
         quat q2 = quat(1.0f, 1.0f, 1.0f, 1.0f);
-        assert(q2.yaw == q2.roll);
-        assert((q2.yaw > 1.5707f) && (q2.yaw < 1.5709f));
+        assert(almost_equal(q2.yaw, q2.roll));
+        assert(almost_equal(q2.yaw, 1.570796f));
         assert(q2.pitch == 0.0f);
         
         quat q3 = quat(0.1f, 1.9f, 2.1f, 1.3f);
-        assert((q3.yaw > 2.4381f) && (q3.yaw < 2.4383f));
+        assert(almost_equal(q3.yaw, 2.4382f));
         assert(isNaN(q3.pitch));
-        assert((q3.roll > 1.67718f) && (q3.roll < 1.6772f));
+        assert(almost_equal(q3.roll, 1.67719f));
     }
     
     /// Returns a quaternion with applied rotation around the x-axis.
@@ -2308,10 +2318,10 @@ struct Quaternion(type) {
         assert((q2 * q3).quaternion != q4.quaternion);
         q3 *= q2;
         assert(q4.quaternion == q3.quaternion);
-        assert((q4.x > 0.399999f) && (q4.x < 0.400001f));
-        assert((q4.y > 6.799999f) && (q4.y < 6.800001f));
-        assert((q4.z > 13.799999f) && (q4.z < 13.800001f));
-        assert((q4.w > 4.399999f) && (q4.w < 4.400001f));
+        assert(almost_equal(q4.x, 0.4f));
+        assert(almost_equal(q4.y, 6.8f));
+        assert(almost_equal(q4.z, 13.8f));
+        assert(almost_equal(q4.w, 4.4f));
 
         quat q5 = quat(1.0f, 2.0f, 3.0f, 4.0f);
         quat q6 = quat(3.0f, 1.0f, 6.0f, 2.0f);
@@ -2337,7 +2347,7 @@ struct Quaternion(type) {
         assert((q2 * v1).vector == [-2.0f, 36.0f, 38.0f]);
     }
 
-    const bool opEquals(ref const Quaternion qu) {
+    bool opEquals(const Quaternion qu) const {
         return quaternion == qu.quaternion;
     }
     

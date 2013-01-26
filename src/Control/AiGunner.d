@@ -52,7 +52,7 @@ invariant()
 
 public:
   
-  void update(ref ControlComponent p_sourceComponent)
+  override void update(ref ControlComponent p_sourceComponent)
   {
     p_sourceComponent.isFiring = false;
     
