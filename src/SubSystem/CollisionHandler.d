@@ -88,6 +88,9 @@ unittest
 }
 
 
+alias void delegate (Collision collision) CollisionResponse;
+
+
 enum CollisionType
 {
   Unknown,
@@ -169,6 +172,8 @@ struct Collision
   ColliderComponent second;
   vec2 contactPoint;
   
+  CollisionResponse response;
+  
   bool hasSpawnedParticles = false;
 }
 
@@ -178,6 +183,10 @@ class CollisionHandler : Base!(ColliderComponent)
 public:
   this()
   {
+    CollisionResponse bulletHit = delegate (collision) { writeln("collision between " ~ collision.first.collisionType.to!string ~ " and " ~ collision.second.collisionType.to!string); };
+    //typesThatCanCollideAndWhatHappensThen[[CollisionType.Bullet, CollisionType.Brick]] = bulletHit;
+    
+    typesThatCanCollideAndWhatHappensThen[[CollisionType.Bullet, CollisionType.Brick]] = &bulletCollisionResponse;
   }
   
   Collision[] collisions()
@@ -188,7 +197,7 @@ public:
   void update()
   {
     determineCollisions();
-    calculateCollisionResponse();
+    executeCollisionResponses();
   }
   
   string[string][] getAndClearSpawnParticleValues()
@@ -263,31 +272,33 @@ private:
     
     index.clear();
     
-    foreach (CollisionType[2] typePair; typesThatCanCollide)
+    bool[CollisionType] addedTypes;
+    foreach (CollisionType[2] typePair; typesThatCanCollideAndWhatHappensThen.keys)
     {
-      auto firstTypes = components.filter!(component => component.collisionType == typePair[0]);
-      auto secondTypes = components.filter!(component => component.collisionType == typePair[1]);
+      auto firstType = typePair[0];
       
-      foreach (component; firstTypes)
+      if (firstType !in addedTypes)
       {
-        index.insert(component);
+        auto firstTypeComponents = components.filter!(component => component.collisionType == firstType);
+        
+        //debug writeln("putting " ~ firstTypeComponents.count.to!string ~ " components with CollisionType " ~ firstType.to!string ~ " in index");
+        
+        foreach (component; firstTypeComponents)
+          index.insert(component);
+        
+        //debug writeln("index length: " ~ index.indicesForContent.length.to!string ~ " / " ~ index.contentsInIndex.length.to!string);
+        
+        addedTypes[firstType] = true;
       }
     }
     
-    // for now, only bullets can collide, so we only put bullets in the index first - and only if they haven't collided yet
-    /*foreach (component; filter!(component => component.collisionType == CollisionType.Bullet && component.hasCollided == false)(components))
-    //foreach (component; components)
+    foreach (component; components.filter!(component => typesThatCanCollideAndWhatHappensThen.keys.map!(typePair => typePair[1]).canFind(component.collisionType)))
     {
-      index.insert(component);
-    }*/
-    
-    // for now, bullets can't collide with freefloating modules or other bullets, so we filter them out
-    /*foreach (component; filter!(component => component.collisionType != CollisionType.FreeFloatingModule &&
-                                             component.collisionType != CollisionType.Particle &&
-                                             component.collisionType != CollisionType.Bullet)(components))*/
-    foreach (component; components.filter!(component => typesThatCanCollide.map!(typePair => typePair[1]).canFind(component.collisionType)))
-    {
-      auto candidates = index.findNearbyContent(component);
+      auto candidates = index.findNearbyContent(component).uniq;
+      
+      //debug writeln("candidates: " ~ candidates.map!(candidate => candidate.id.to!string).to!string);
+      
+      //debug writeln("collisionchecking component with id " ~ component.id.to!string ~ " and CollisionType " ~ component.collisionType.to!string ~ " against " ~ candidates.length.to!string ~ " candidates");
       
       auto first = component;
       
@@ -303,6 +314,8 @@ private:
             (first.ownerId > 0 && second.spawnedFromOwner > 0 && first.ownerId == second.spawnedFromOwner))
           continue;
         
+        //debug writeln("distance to candidate " ~ candidate.id.to!string ~ ": " ~ (first.position - second.position).length.to!string);
+        
         if ((first.position - second.position).length < (first.radius + second.radius))
         {
           // determine contact point
@@ -315,95 +328,100 @@ private:
           if (second.collisionType == CollisionType.Bullet)
             second.hasCollided = true;*/
           
-          m_collisions ~= Collision(first, second, contactPoint);
+          //typesThatCanCollideAndWhatHappensThen[[candidate.collisionType, component.collisionType]](candidate, component);
+          
+          //assert([candidate.collisionType, component.collisionType] in typesThatCanCollideAndWhatHappensThen, "Could not find collision type pair " ~ [candidate.collisionType, component.collisionType].to!string ~ " in typesThatCanCollideAndWhatHappensThen, containing " ~ typesThatCanCollideAndWhatHappensThen.keys.to!string);
+          
+          m_collisions ~= Collision(first, second, contactPoint, typesThatCanCollideAndWhatHappensThen[[candidate.collisionType, component.collisionType]]);
         }
       }
     }
   }
   
-  void calculateCollisionResponse()
+  void bulletCollisionResponse(Collision collision)
   {
-    // physics response is handled in CommsCentral, since we don't know about other types of components here
+    // bullets should disappear on contact - set health to zero
+    if (collision.first.collisionType == CollisionType.Bullet)
+    {
+      collision.first.health = 0.0;
+      
+      collision.second.health -= 1.0;
+    }
+    if (collision.second.collisionType == CollisionType.Bullet)
+    {
+      collision.second.health = 0.0;
+      
+      collision.first.health -= 1.0;
+    }
+    
+    if (collision.hasSpawnedParticles == false && (collision.first.hasCollided == false && collision.second.hasCollided == false))
+    {
+      if (collision.first.collisionType == CollisionType.Bullet)
+        collision.first.hasCollided = true;
+      if (collision.second.collisionType == CollisionType.Bullet)
+        collision.second.hasCollided = true;
+    
+      vec2 collisionPosition = (collision.first.position + collision.second.position) * 0.5 + collision.contactPoint;
+    
+      int particles = 1;
+      for (int i = 0; i < particles; i++)
+      {
+        string[string] particleValues;
+        
+        particleValues["position"] = to!string(collisionPosition);
+        particleValues["rotation"] = to!string(uniform(-3600, 3600));
+        particleValues["velocity"] = to!string((collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * -0.1 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 5.0);
+        particleValues["drawsource"] = "Star";
+        particleValues["radius"] = to!string(uniform(0.15, 0.25));
+        particleValues["mass"] = to!string(uniform(0.2, 1.0));
+        particleValues["lifetime"] = to!string(uniform(0.5, 2.0));
+        //particleValues["collisionType"] = "Particle";
+        
+        m_spawnParticleValues ~= particleValues;
+        
+        collision.hasSpawnedParticles = true;
+      }
+      
+      for (int i = 0; i < particles; i++)
+      {
+        string[string] particleValues;
+        
+        vec2 collisionVelocity = (collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * 
+                                 -0.5 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 10.0;
+        
+        particleValues["position"] = to!string(collisionPosition);
+        particleValues["angle"] = to!string(atan2(collisionVelocity.x, collisionVelocity.y) * _180_PI);
+        particleValues["velocity"] = to!string(collisionVelocity);
+        particleValues["drawsource"] = "Vertices";
+        particleValues["vertices"] = to!string(["0.0 0.25 1.0 1.0 1.0 0.0", 
+                                                "-0.05 0.0 1.0 1.0 0.5 0.5", 
+                                                "0.0 -0.25 1.0 1.0 0.0 0.0",
+                                                "0.05 0.0 1.0 1.0 0.5 0.5"]);
+        particleValues["radius"] = to!string(uniform(0.15, 0.25));
+        particleValues["mass"] = to!string(uniform(0.2, 1.0));
+        particleValues["lifetime"] = to!string(uniform(0.5, 2.0));
+        //particleValues["collisionType"] = "Particle";
+        
+        m_spawnParticleValues ~= particleValues;
+        
+        collision.hasSpawnedParticles = true;
+      }
+      
+      string[string] collisionSound;
+      
+      collisionSound["soundFile"] = "collision1.wav";
+      collisionSound["position"] = to!string(collisionPosition);
+      collisionSound["velocity"] = to!string((collision.first.velocity + collision.second.velocity) * 0.5);
+      
+      m_spawnParticleValues ~= collisionSound;
+    }
+  }
   
+  void executeCollisionResponses()
+  {
     foreach (ref collision; m_collisions)
     {
-      // bullets should disappear on contact - set health to zero
-      if (collision.first.collisionType == CollisionType.Bullet)
-      {
-        collision.first.health = 0.0;
-        
-        collision.second.health -= 1.0;
-      }
-      if (collision.second.collisionType == CollisionType.Bullet)
-      {
-        collision.second.health = 0.0;
-        
-        collision.first.health -= 1.0;
-      }
-      
-      if (collision.hasSpawnedParticles == false && (collision.first.hasCollided == false && collision.second.hasCollided == false))
-      {
-        if (collision.first.collisionType == CollisionType.Bullet)
-          collision.first.hasCollided = true;
-        if (collision.second.collisionType == CollisionType.Bullet)
-          collision.second.hasCollided = true;
-      
-        vec2 collisionPosition = (collision.first.position + collision.second.position) * 0.5 + collision.contactPoint;
-      
-        int particles = 1;
-        for (int i = 0; i < particles; i++)
-        {
-          string[string] particleValues;
-          
-          particleValues["position"] = to!string(collisionPosition);
-          particleValues["rotation"] = to!string(uniform(-3600, 3600));
-          particleValues["velocity"] = to!string((collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * -0.1 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 5.0);
-          particleValues["drawsource"] = "Star";
-          particleValues["radius"] = to!string(uniform(0.15, 0.25));
-          particleValues["mass"] = to!string(uniform(0.2, 1.0));
-          particleValues["lifetime"] = to!string(uniform(0.5, 2.0));
-          //particleValues["collisionType"] = "Particle";
-          
-          m_spawnParticleValues ~= particleValues;
-          
-          collision.hasSpawnedParticles = true;
-        }
-        
-        for (int i = 0; i < particles; i++)
-        {
-          string[string] particleValues;
-          
-          vec2 collisionVelocity = (collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * 
-                                   -0.5 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 10.0;
-          
-          particleValues["position"] = to!string(collisionPosition);
-          particleValues["angle"] = to!string(atan2(collisionVelocity.x, collisionVelocity.y) * _180_PI);
-          particleValues["velocity"] = to!string(collisionVelocity);
-          particleValues["drawsource"] = "Vertices";
-          particleValues["vertices"] = to!string(["0.0 0.25 1.0 1.0 1.0 0.0", 
-                                                  "-0.05 0.0 1.0 1.0 0.5 0.5", 
-                                                  "0.0 -0.25 1.0 1.0 0.0 0.0",
-                                                  "0.05 0.0 1.0 1.0 0.5 0.5"]);
-          particleValues["radius"] = to!string(uniform(0.15, 0.25));
-          particleValues["mass"] = to!string(uniform(0.2, 1.0));
-          particleValues["lifetime"] = to!string(uniform(0.5, 2.0));
-          //particleValues["collisionType"] = "Particle";
-          
-          m_spawnParticleValues ~= particleValues;
-          
-          collision.hasSpawnedParticles = true;
-        }
-        
-        string[string] collisionSound;
-        
-        collisionSound["soundFile"] = "collision1.wav";
-        collisionSound["position"] = to!string(collisionPosition);
-        collisionSound["velocity"] = to!string((collision.first.velocity + collision.second.velocity) * 0.5);
-        
-        m_spawnParticleValues ~= collisionSound;
-      }
-      
-      //Entity collisionSound = new Entity(["soundFile":"mgshot3.wav"]);
+      collision.response(collision);
     }
   }
   
@@ -415,8 +433,5 @@ private:
   
   string[string][] m_spawnParticleValues;
   
-  //alias void delegate (ColliderComponent first, ColliderComponent second) CollisionResponse;
-  //CollisionResponse[CollisionType[CollisionType]] collisionResponseMapping;
-  
-  CollisionType[2][] typesThatCanCollide;
+  CollisionResponse[CollisionType[2]] typesThatCanCollideAndWhatHappensThen;
 }

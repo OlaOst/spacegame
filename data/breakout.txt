@@ -30,6 +30,7 @@ grandchild.spawn.bullet.drawsource = Quad
 grandchild.spawn.bullet.radius = 0.01
 grandchild.spawn.bullet.spawnForce = 2.0
 grandchild.spawn.bullet.mass = 0.2
+grandchild.spawn.bullet.collisionType = Bullet
 
 
 

@@ -218,7 +218,7 @@ void setRelationFromPlacer(Placer placer, RelationHandler relationHandler)
 }
 
 
-void calculateCollisionResponse(CollisionHandler collisionHandler, Physics physics)
+/*void calculateCollisionResponse(CollisionHandler collisionHandler, Physics physics)
 {
   Entity[int] colliderToEntities;
   
@@ -257,7 +257,7 @@ void calculateCollisionResponse(CollisionHandler collisionHandler, Physics physi
       physics.setComponent(secondEntity, secondPhysicsComponent);
     }
   }
-}
+}*/
 
 void setSpawnerFromController(Controller controller, Spawner spawner)
 {
