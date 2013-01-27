@@ -321,7 +321,10 @@ private:
           // determine contact point
           vec2 normalizedContactPoint = (second.position - first.position).normalized(); // / (first.radius + second.radius); // * first.radius;
 
-          vec2 contactPoint = normalizedContactPoint * (1.0/(first.radius + second.radius)) * first.radius;
+          //vec2 contactPoint = normalizedContactPoint * (1.0/(first.radius + second.radius)) * first.radius;
+          vec2 contactPoint = normalizedContactPoint * (first.radius^^2 / (first.radius + second.radius));
+          
+          //debug writeln("contactpoint: " ~ contactPoint.to!string ~ ", first radius: " ~ first.radius.to!string ~ ", second radius: " ~ second.radius.to!string);
           
           /*if (first.collisionType == CollisionType.Bullet)
             first.hasCollided = true;
@@ -362,18 +365,25 @@ private:
         collision.second.hasCollided = true;
     
       vec2 collisionPosition = (collision.first.position + collision.second.position) * 0.5 + collision.contactPoint;
+      //vec2 collisionPosition = collision.contactPoint;
     
-      int particles = 1;
+      //debug writeln("collision first pos: " ~ collision.first.position.to!string ~ ", second pos: " ~ collision.second.position.to!string ~ ", contact point: " ~ collision.contactPoint.to!string);
+      //debug writeln("calculated collisionpos: " ~ collisionPosition.to!string);
+    
+      int particles = 10;
       for (int i = 0; i < particles; i++)
       {
         string[string] particleValues;
         
+        vec2 collisionVelocity = (collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * 
+                                 -0.1 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 2.0;
+        
         particleValues["position"] = to!string(collisionPosition);
         particleValues["rotation"] = to!string(uniform(-3600, 3600));
         particleValues["velocity"] = to!string((collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * -0.1 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 5.0);
-        particleValues["drawsource"] = "Star";
-        particleValues["radius"] = to!string(uniform(0.15, 0.25));
-        particleValues["mass"] = to!string(uniform(0.2, 1.0));
+        particleValues["drawsource"] = "Quad";
+        particleValues["radius"] = ((collision.first.collisionType == CollisionType.Bullet) ? collision.first.radius : collision.second.radius).to!string; //to!string(uniform(0.15, 0.25));
+        particleValues["mass"] = to!string(uniform(0.02, 0.1));
         particleValues["lifetime"] = to!string(uniform(0.5, 2.0));
         //particleValues["collisionType"] = "Particle";
         
@@ -387,18 +397,18 @@ private:
         string[string] particleValues;
         
         vec2 collisionVelocity = (collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * 
-                                 -0.5 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 10.0;
+                                 -0.5 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 3.0;
         
         particleValues["position"] = to!string(collisionPosition);
         particleValues["angle"] = to!string(atan2(collisionVelocity.x, collisionVelocity.y) * _180_PI);
         particleValues["velocity"] = to!string(collisionVelocity);
-        particleValues["drawsource"] = "Vertices";
+        particleValues["drawsource"] = "Quad";
         particleValues["vertices"] = to!string(["0.0 0.25 1.0 1.0 1.0 0.0", 
                                                 "-0.05 0.0 1.0 1.0 0.5 0.5", 
                                                 "0.0 -0.25 1.0 1.0 0.0 0.0",
                                                 "0.05 0.0 1.0 1.0 0.5 0.5"]);
-        particleValues["radius"] = to!string(uniform(0.15, 0.25));
-        particleValues["mass"] = to!string(uniform(0.2, 1.0));
+        particleValues["radius"] = ((collision.first.collisionType == CollisionType.Bullet) ? collision.first.radius : collision.second.radius).to!string; //to!string(uniform(0.15, 0.25));
+        particleValues["mass"] = to!string(uniform(0.02, 0.1));
         particleValues["lifetime"] = to!string(uniform(0.5, 2.0));
         //particleValues["collisionType"] = "Particle";
         
@@ -410,8 +420,8 @@ private:
       string[string] collisionSound;
       
       collisionSound["soundFile"] = "collision1.wav";
-      collisionSound["position"] = to!string(collisionPosition);
-      collisionSound["velocity"] = to!string((collision.first.velocity + collision.second.velocity) * 0.5);
+      collisionSound["position"] = collisionPosition.to!string;
+      collisionSound["velocity"] = ((collision.first.velocity * collision.first.radius + collision.second.velocity * collision.second.radius) * (1.0/(collision.first.radius + collision.second.radius))).to!string;
       
       m_spawnParticleValues ~= collisionSound;
     }

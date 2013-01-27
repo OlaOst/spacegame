@@ -646,7 +646,7 @@ private:
       {
         if (name == "spawnstuff.*") continue;
         
-        debug writeln("spawning " ~ name ~ " with values " ~ entities[name].values.to!string);
+        //debug writeln("spawning " ~ name ~ " with values " ~ entities[name].values.to!string);
         registerEntity(entities[name]);
       }
     }
@@ -655,7 +655,7 @@ private:
     {
       Entity particle = new Entity(spawnParticleValues);
       
-      debug writeln("spawning particle with values " ~ particle.values.to!string);
+      //debug writeln("spawning particle with values " ~ particle.values.to!string);
       
       registerEntity(particle);
     }
