@@ -198,6 +198,7 @@ public:
     typesThatCanCollideAndWhatHappensThen[[CollisionType.Bullet, CollisionType.Brick]] = &bulletBrickCollisionResponse;
     typesThatCanCollideAndWhatHappensThen[[CollisionType.Ball, CollisionType.Wall]] = &ballCollisionResponse;
     typesThatCanCollideAndWhatHappensThen[[CollisionType.Ball, CollisionType.Bat]] = &ballCollisionResponse;
+    typesThatCanCollideAndWhatHappensThen[[CollisionType.Ball, CollisionType.Brick]] = &ballBrickCollisionResponse;
   }
   
   Collision[] collisions()
