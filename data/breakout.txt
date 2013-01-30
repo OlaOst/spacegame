@@ -31,11 +31,11 @@ grandchild.spawn.bullet.radius = 0.01
 grandchild.spawn.bullet.spawnForce = 2.0
 grandchild.spawn.bullet.mass = 0.2
 grandchild.spawn.bullet.collisionType = Bullet
+grandchild.spawn.bullet.lifetime = 2.5
 
 
+brick1.source = brick.txt
+brick1.position = [0.0, 1.0]
 
-brick.drawsource = Quad
-brick.position = [0.0, 1.0]
-brick.radius = 0.05
-brick.color = [0.5, 1.0, 0.0, 0.5]
-brick.collisionType = Brick
+brick2.source = brick.txt
+brick2.position = [0.11, 1.0]

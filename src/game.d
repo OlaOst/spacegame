@@ -202,6 +202,7 @@ public:
 
     foreach (name; orderedEntityNames)
     {
+      //debug writeln("registering entity " ~ name ~ " with values " ~ entities[name].values.to!string);
       registerEntity(entities[name]);
     }
   }
@@ -478,6 +479,7 @@ private:
       //CommsCentral.calculateCollisionResponse(m_collider, m_physics);
     }
     CommsCentral.setGraphicsFromPlacer(m_placer, m_graphics);
+    CommsCentral.setGraphicsFromCollisionHandler(m_collisionHandler, m_graphics);
     
     m_fpsBuffer[m_updateCount % m_fpsBuffer.length] = floor(1.0 / m_timer.elapsedTime);
     

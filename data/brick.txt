@@ -1,0 +1,5 @@
+brick.drawsource = Quad
+brick.radius = 0.05
+brick.color = [0.5, 1.0, 0.0, 0.5]
+brick.collisionType = Brick
+brick.health = 4.0

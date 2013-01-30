@@ -405,6 +405,11 @@ Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref
     }
   }
   
+  foreach (name, ref keyValues; namedValues)
+  {
+    keyValues = expandValues(keyValues);
+  }
+  
   // recursively expand entity collections
   // or not, assume they are already expanded
   /*foreach (name, keyValues; namedValues)

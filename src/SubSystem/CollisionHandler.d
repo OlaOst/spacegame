@@ -28,9 +28,12 @@ import std.conv;
 import std.exception;
 import std.random;
 import std.stdio;
+import std.string;
 
 import gl3n.linalg;
 import gl3n.math;
+
+import CollisionResponse.Bullet;
 
 import Entity;
 import SpatialIndex;
@@ -88,7 +91,7 @@ unittest
 }
 
 
-alias void delegate (Collision collision) CollisionResponse;
+alias void function (Collision collision, CollisionHandler collisionHandler) CollisionResponseFunction;
 
 
 enum CollisionType
@@ -141,6 +144,8 @@ class ColliderComponent
   
   float radius;
   
+  vec4 color = vec4(1, 1, 1, 1);
+  
   vec2 force = vec2(0.0, 0.0);
   //vec2 torque = 0.0;
   
@@ -172,7 +177,7 @@ struct Collision
   ColliderComponent second;
   vec2 contactPoint;
   
-  CollisionResponse response;
+  CollisionResponseFunction response;
   
   bool hasSpawnedParticles = false;
 }
@@ -183,10 +188,10 @@ class CollisionHandler : Base!(ColliderComponent)
 public:
   this()
   {
-    CollisionResponse bulletHit = delegate (collision) { writeln("collision between " ~ collision.first.collisionType.to!string ~ " and " ~ collision.second.collisionType.to!string); };
+    CollisionResponseFunction bulletHit = function (collision, this) { writeln("collision between " ~ collision.first.collisionType.to!string ~ " and " ~ collision.second.collisionType.to!string); };
     //typesThatCanCollideAndWhatHappensThen[[CollisionType.Bullet, CollisionType.Brick]] = bulletHit;
     
-    typesThatCanCollideAndWhatHappensThen[[CollisionType.Bullet, CollisionType.Brick]] = &bulletCollisionResponse;
+    typesThatCanCollideAndWhatHappensThen[[CollisionType.Bullet, CollisionType.Brick]] = &bulletBrickCollisionResponse;
   }
   
   Collision[] collisions()
@@ -198,6 +203,11 @@ public:
   {
     determineCollisions();
     executeCollisionResponses();
+  }
+  
+  void addSpawnParticle(string[string] values)
+  {
+    m_spawnParticleValues ~= values;
   }
   
   string[string][] getAndClearSpawnParticleValues()
@@ -260,6 +270,10 @@ protected:
       
     if ("health" in p_entity.values)
       colliderComponent.health = to!float(p_entity.getValue("health"));
+    
+    if ("color" in p_entity)
+      colliderComponent.color = p_entity["color"].to!(float[])[0..4].vec4;
+      
     
     return colliderComponent;
   }
@@ -326,13 +340,6 @@ private:
           
           //debug writeln("contactpoint: " ~ contactPoint.to!string ~ ", first radius: " ~ first.radius.to!string ~ ", second radius: " ~ second.radius.to!string);
           
-          /*if (first.collisionType == CollisionType.Bullet)
-            first.hasCollided = true;
-          if (second.collisionType == CollisionType.Bullet)
-            second.hasCollided = true;*/
-          
-          //typesThatCanCollideAndWhatHappensThen[[candidate.collisionType, component.collisionType]](candidate, component);
-          
           //assert([candidate.collisionType, component.collisionType] in typesThatCanCollideAndWhatHappensThen, "Could not find collision type pair " ~ [candidate.collisionType, component.collisionType].to!string ~ " in typesThatCanCollideAndWhatHappensThen, containing " ~ typesThatCanCollideAndWhatHappensThen.keys.to!string);
           
           m_collisions ~= Collision(first, second, contactPoint, typesThatCanCollideAndWhatHappensThen[[candidate.collisionType, component.collisionType]]);
@@ -341,97 +348,11 @@ private:
     }
   }
   
-  void bulletCollisionResponse(Collision collision)
-  {
-    // bullets should disappear on contact - set health to zero
-    if (collision.first.collisionType == CollisionType.Bullet)
-    {
-      collision.first.health = 0.0;
-      
-      collision.second.health -= 1.0;
-    }
-    if (collision.second.collisionType == CollisionType.Bullet)
-    {
-      collision.second.health = 0.0;
-      
-      collision.first.health -= 1.0;
-    }
-    
-    if (collision.hasSpawnedParticles == false && (collision.first.hasCollided == false && collision.second.hasCollided == false))
-    {
-      if (collision.first.collisionType == CollisionType.Bullet)
-        collision.first.hasCollided = true;
-      if (collision.second.collisionType == CollisionType.Bullet)
-        collision.second.hasCollided = true;
-    
-      vec2 collisionPosition = (collision.first.position + collision.second.position) * 0.5 + collision.contactPoint;
-      //vec2 collisionPosition = collision.contactPoint;
-    
-      //debug writeln("collision first pos: " ~ collision.first.position.to!string ~ ", second pos: " ~ collision.second.position.to!string ~ ", contact point: " ~ collision.contactPoint.to!string);
-      //debug writeln("calculated collisionpos: " ~ collisionPosition.to!string);
-    
-      int particles = 10;
-      for (int i = 0; i < particles; i++)
-      {
-        string[string] particleValues;
-        
-        vec2 collisionVelocity = (collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * 
-                                 -0.1 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 2.0;
-        
-        particleValues["position"] = to!string(collisionPosition);
-        particleValues["rotation"] = to!string(uniform(-3600, 3600));
-        particleValues["velocity"] = to!string((collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * -0.1 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 5.0);
-        particleValues["drawsource"] = "Quad";
-        particleValues["radius"] = ((collision.first.collisionType == CollisionType.Bullet) ? collision.first.radius : collision.second.radius).to!string; //to!string(uniform(0.15, 0.25));
-        particleValues["mass"] = to!string(uniform(0.02, 0.1));
-        particleValues["lifetime"] = to!string(uniform(0.5, 2.0));
-        //particleValues["collisionType"] = "Particle";
-        
-        m_spawnParticleValues ~= particleValues;
-        
-        collision.hasSpawnedParticles = true;
-      }
-      
-      for (int i = 0; i < particles; i++)
-      {
-        string[string] particleValues;
-        
-        vec2 collisionVelocity = (collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * 
-                                 -0.5 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 3.0;
-        
-        particleValues["position"] = to!string(collisionPosition);
-        particleValues["angle"] = to!string(atan2(collisionVelocity.x, collisionVelocity.y) * _180_PI);
-        particleValues["velocity"] = to!string(collisionVelocity);
-        particleValues["drawsource"] = "Quad";
-        particleValues["vertices"] = to!string(["0.0 0.25 1.0 1.0 1.0 0.0", 
-                                                "-0.05 0.0 1.0 1.0 0.5 0.5", 
-                                                "0.0 -0.25 1.0 1.0 0.0 0.0",
-                                                "0.05 0.0 1.0 1.0 0.5 0.5"]);
-        particleValues["radius"] = ((collision.first.collisionType == CollisionType.Bullet) ? collision.first.radius : collision.second.radius).to!string; //to!string(uniform(0.15, 0.25));
-        particleValues["mass"] = to!string(uniform(0.02, 0.1));
-        particleValues["lifetime"] = to!string(uniform(0.5, 2.0));
-        //particleValues["collisionType"] = "Particle";
-        
-        m_spawnParticleValues ~= particleValues;
-        
-        collision.hasSpawnedParticles = true;
-      }
-      
-      string[string] collisionSound;
-      
-      collisionSound["soundFile"] = "collision1.wav";
-      collisionSound["position"] = collisionPosition.to!string;
-      collisionSound["velocity"] = ((collision.first.velocity * collision.first.radius + collision.second.velocity * collision.second.radius) * (1.0/(collision.first.radius + collision.second.radius))).to!string;
-      
-      m_spawnParticleValues ~= collisionSound;
-    }
-  }
-  
   void executeCollisionResponses()
   {
     foreach (ref collision; m_collisions)
     {
-      collision.response(collision);
+      collision.response(collision, this);
     }
   }
   
@@ -443,5 +364,5 @@ private:
   
   string[string][] m_spawnParticleValues;
   
-  CollisionResponse[CollisionType[2]] typesThatCanCollideAndWhatHappensThen;
+  CollisionResponseFunction[CollisionType[2]] typesThatCanCollideAndWhatHappensThen;
 }

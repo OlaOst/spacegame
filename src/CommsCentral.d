@@ -124,6 +124,16 @@ void setGraphicsFromPlacer(Placer placer, Graphics graphics)
   });
 }
 
+void setGraphicsFromCollisionHandler(CollisionHandler collisionHandler, Graphics graphics)
+{
+  subSystemCommunication!(ColliderComponent, GraphicsComponent)(collisionHandler, graphics, (ColliderComponent colliderComponent, GraphicsComponent graphicsComponent)
+  {
+    graphicsComponent.color = colliderComponent.color;
+    
+    return graphicsComponent;
+  });
+}
+
 void setSoundFromPlacer(Placer placer, Sound sound)
 {
   subSystemCommunication!(PlacerComponent, SoundComponent)(placer, sound, (PlacerComponent placerComponent, SoundComponent soundComponent)
