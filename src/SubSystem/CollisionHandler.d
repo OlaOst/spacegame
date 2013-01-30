@@ -34,6 +34,7 @@ import gl3n.linalg;
 import gl3n.math;
 
 import CollisionResponse.Bullet;
+import CollisionResponse.BatBall;
 
 import Entity;
 import SpatialIndex;
@@ -105,7 +106,9 @@ enum CollisionType
   Asteroid,
   Bullet,
   Particle,
-  Brick
+  Brick,
+  Bat,
+  Ball
 }
 
 
@@ -192,6 +195,7 @@ public:
     //typesThatCanCollideAndWhatHappensThen[[CollisionType.Bullet, CollisionType.Brick]] = bulletHit;
     
     typesThatCanCollideAndWhatHappensThen[[CollisionType.Bullet, CollisionType.Brick]] = &bulletBrickCollisionResponse;
+    typesThatCanCollideAndWhatHappensThen[[CollisionType.Bat, CollisionType.Ball]] = &batBallCollisionResponse;
   }
   
   Collision[] collisions()
@@ -264,6 +268,9 @@ protected:
     
     if ("position" in p_entity.values)
       colliderComponent.position = vec2(p_entity.getValue("position").to!(float[])[0..2]);
+    
+    if ("velocity" in p_entity.values)
+      colliderComponent.velocity = vec2(p_entity.getValue("velocity").to!(float[])[0..2]);
     
     //if ("lifetime" in p_entity.values)
       //colliderComponent.lifetime = to!float(p_entity.getValue("lifetime"));

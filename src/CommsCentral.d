@@ -328,6 +328,31 @@ void setPhysicsFromSpawner(Spawner spawner, Physics physics)
   });
 }
 
+void setPhysicsFromCollisionHandler(CollisionHandler collisionHandler, Physics physics)
+{
+  subSystemCommunication!(ColliderComponent, PhysicsComponent)(collisionHandler, physics, (ColliderComponent colliderComponent, PhysicsComponent physicsComponent)
+  {
+    //debug writeln("setPhysicsFromCollisionHandler setting velocity from " ~ physicsComponent.velocity.to!string ~ " to " ~ colliderComponent.velocity.to!string);
+    
+    // TODO: make sure we want to set the force here (implies that collisionhandler has its forces in sync with the rest of the subsystems)
+    //physicsComponent.force = colliderComponent.force;
+    
+    return physicsComponent;
+  });
+}
+
+void setPlacerFromCollisionHandler(CollisionHandler collisionHandler, Placer placer)
+{
+  subSystemCommunication!(ColliderComponent, PlacerComponent)(collisionHandler, placer, (ColliderComponent colliderComponent, PlacerComponent placerComponent)
+  {
+    //debug writeln("setPlacerFromCollisionHandler setting velocity from " ~ placerComponent.velocity.to!string ~ " to " ~ colliderComponent.velocity.to!string);
+    
+    placerComponent.velocity = colliderComponent.velocity;
+    
+    return placerComponent;
+  });
+}
+
 void setSoundFromSpawner(Spawner spawner, Sound sound)
 {
   subSystemCommunication!(SpawnerComponent, SoundComponent)(spawner, sound, (SpawnerComponent spawnerComponent, SoundComponent soundComponent)

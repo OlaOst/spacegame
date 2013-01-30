@@ -460,10 +460,10 @@ private:
       
       CommsCentral.setPhysicsFromController(m_controller, m_physics);
       CommsCentral.setPhysicsFromSpawner(m_spawner, m_physics);      
-      //setPhysicsFromCollision
+      CommsCentral.setPhysicsFromCollisionHandler(m_collisionHandler, m_physics);
       
       CommsCentral.setPlacerFromPhysics(m_physics, m_placer);
-      //setPlacerFromCollision
+      CommsCentral.setPlacerFromCollisionHandler(m_collisionHandler, m_placer);
       CommsCentral.setPlacerFromRelation(m_relationHandler, m_placer);
       CommsCentral.setPlacerFromController(m_controller, m_placer);
       
