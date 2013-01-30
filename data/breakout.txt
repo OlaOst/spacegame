@@ -41,3 +41,16 @@ brick1.position = [0.0, 1.0]
 
 brick2.source = brick.txt
 brick2.position = [0.11, 1.0]
+
+
+leftwall.source = wall.txt
+leftwall.position = [-6.5, 0.0]
+
+rightwall.source = wall.txt
+rightwall.position = [6.5, 0.0]
+
+bottomwall.source = wall.txt
+bottomwall.position = [0.0, -6.20]
+
+topwall.source = wall.txt
+topwall.position = [0.0, 6.20]

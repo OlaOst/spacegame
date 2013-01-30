@@ -108,7 +108,8 @@ enum CollisionType
   Particle,
   Brick,
   Bat,
-  Ball
+  Ball,
+  Wall
 }
 
 
@@ -195,7 +196,8 @@ public:
     //typesThatCanCollideAndWhatHappensThen[[CollisionType.Bullet, CollisionType.Brick]] = bulletHit;
     
     typesThatCanCollideAndWhatHappensThen[[CollisionType.Bullet, CollisionType.Brick]] = &bulletBrickCollisionResponse;
-    typesThatCanCollideAndWhatHappensThen[[CollisionType.Bat, CollisionType.Ball]] = &batBallCollisionResponse;
+    typesThatCanCollideAndWhatHappensThen[[CollisionType.Ball, CollisionType.Wall]] = &ballCollisionResponse;
+    typesThatCanCollideAndWhatHappensThen[[CollisionType.Ball, CollisionType.Bat]] = &ballCollisionResponse;
   }
   
   Collision[] collisions()
@@ -262,9 +264,9 @@ protected:
       colliderComponent.ownerId = to!int(p_entity.getValue("owner"));
     
     if ("spawnedFrom" in p_entity.values)
-      colliderComponent.spawnedFrom = to!int(p_entity.getValue("spawnedFrom"));
+      colliderComponent.spawnedFrom = p_entity.getValue("spawnedFrom").to!int;
     if ("spawnedFromOwner" in p_entity.values)
-      colliderComponent.spawnedFromOwner = to!int(p_entity.getValue("spawnedFromOwner"));
+      colliderComponent.spawnedFromOwner = p_entity.getValue("spawnedFromOwner").to!int;
     
     if ("position" in p_entity.values)
       colliderComponent.position = vec2(p_entity.getValue("position").to!(float[])[0..2]);
@@ -328,12 +330,6 @@ private:
         auto second = candidate;
 
         assert(first.id != second.id);
-          
-        // bullets should not collide with the entity that spawned them, or any entities that has the same owner... or should they?
-        // in other words, should it be possible for your bullets to hit modules on your own ship?
-        if ((first.spawnedFromOwner > 0 && second.ownerId > 0 && first.spawnedFromOwner == second.ownerId) || 
-            (first.ownerId > 0 && second.spawnedFromOwner > 0 && first.ownerId == second.spawnedFromOwner))
-          continue;
         
         //debug writeln("distance to candidate " ~ candidate.id.to!string ~ ": " ~ (first.position - second.position).length.to!string);
         
@@ -347,9 +343,13 @@ private:
           
           //debug writeln("contactpoint: " ~ contactPoint.to!string ~ ", first radius: " ~ first.radius.to!string ~ ", second radius: " ~ second.radius.to!string);
           
-          //assert([candidate.collisionType, component.collisionType] in typesThatCanCollideAndWhatHappensThen, "Could not find collision type pair " ~ [candidate.collisionType, component.collisionType].to!string ~ " in typesThatCanCollideAndWhatHappensThen, containing " ~ typesThatCanCollideAndWhatHappensThen.keys.to!string);
+          CollisionType[2] key = [candidate.collisionType, component.collisionType];
           
-          m_collisions ~= Collision(first, second, contactPoint, typesThatCanCollideAndWhatHappensThen[[candidate.collisionType, component.collisionType]]);
+          // TODO: set up the components that the key is always in typesThatCanCollideAndWhatHappensThen - we should not check components that can not collide
+          //assert(key in typesThatCanCollideAndWhatHappensThen, "Could not find collision type pair " ~ [candidate.collisionType, component.collisionType].to!string ~ " in typesThatCanCollideAndWhatHappensThen, containing " ~ typesThatCanCollideAndWhatHappensThen.keys.to!string);
+          
+          if (key in typesThatCanCollideAndWhatHappensThen)
+            m_collisions ~= Collision(first, second, contactPoint, typesThatCanCollideAndWhatHappensThen[key]);
         }
       }
     }

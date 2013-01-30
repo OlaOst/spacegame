@@ -10,41 +10,42 @@ import gl3n.linalg;
 import SubSystem.CollisionHandler;
 
 
-void batBallCollisionResponse(Collision collision, CollisionHandler collisionHandler)
+void ballCollisionResponse(Collision collision, CollisionHandler collisionHandler)
 {    
-  if (collision.hasSpawnedParticles == false && (collision.first.hasCollided == false && collision.second.hasCollided == false))
+  if (collision.first.hasCollided == false && collision.second.hasCollided == false)
   {
-    ColliderComponent bat;
+    ColliderComponent other;
     ColliderComponent ball;
     
-    if (collision.first.collisionType == CollisionType.Bat)
+    vec2 contactPointRelativeToBall = collision.contactPoint;
+    
+    if (collision.first.collisionType == CollisionType.Ball)
     {
-      bat = collision.first;
-      ball = collision.second;
+      ball = collision.first;
+      other = collision.second;
+      
+      contactPointRelativeToBall *= -1;
     }
     else
     {
-      bat = collision.second;
-      ball = collision.first;
+      ball = collision.second;
+      other = collision.first;
     }
   
-    bat.hasCollided = true;
-    ball.hasCollided = true;
-
-    writeln("batBallCollisionResponse!");
+    if (dot(ball.velocity, contactPointRelativeToBall) < 0.0)
+    {
+      // TODO: proper reflection of velocity vector
+      //ball.velocity = ball.velocity * -1;
+      ball.velocity = ball.velocity - (2.0 * dot(ball.velocity, -contactPointRelativeToBall.normalized()).abs * -contactPointRelativeToBall.normalized());
     
-    if (ball.velocity.y < 0.0)
-      ball.velocity.y = -ball.velocity.y;
-    //ball.velocity = vec2(0.0, 0.0);
-    
-    vec2 collisionPosition = (collision.first.position + collision.second.position) * 0.5 + collision.contactPoint;
-    
-    string[string] collisionSound;
-    
-    collisionSound["soundFile"] = "collision1.wav";
-    collisionSound["position"] = collisionPosition.to!string;
-    //collisionSound["velocity"] = ((collision.first.velocity * collision.first.radius + collision.second.velocity * collision.second.radius) * (1.0/(collision.first.radius + collision.second.radius))).to!string;
-    
-    collisionHandler.addSpawnParticle(collisionSound);
+      vec2 collisionPosition = (ball.position + other.position) * 0.5 + collision.contactPoint;
+      
+      string[string] collisionSound;
+      
+      collisionSound["soundFile"] = "bounce.wav";
+      collisionSound["position"] = collisionPosition.to!string;
+      
+      collisionHandler.addSpawnParticle(collisionSound);
+    }
   }
 }
