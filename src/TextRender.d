@@ -34,6 +34,7 @@ import derelict.opengl3.gl3;
 import derelict.opengl3.glx;
 
 import glamour.texture;
+import gl3n.aabb;
 import gl3n.linalg;
 
 import sprite;
@@ -134,9 +135,9 @@ public:
     return stringSprites;
   }
   
-  AABB!vec2 getStringBox(string text, float scale)
+  AABB getStringBox(string text, float scale)
   {
-    AABB!vec2 box;
+    AABB box;
     
     vec2 cursor = vec2(0.0, 0.0);
     
@@ -169,8 +170,8 @@ public:
     
     cursor.x = width;
     
-    box.lowerleft = cursor * -0.5;
-    box.upperright = cursor * 0.5;
+    box.min = vec3(cursor * -0.5);
+    box.max = vec3(cursor * 0.5);
     
     /*
     auto lines = text.split("\\n");
@@ -178,8 +179,8 @@ public:
     auto width = lines.map!(line => line.length).minPos!("a > b")[0];
     auto height = lines.length;
     
-    box.lowerleft = vec2(-(width*scale), -(height*scale));
-    box.upperright = vec2((width*scale), (height*scale));
+    box.min = vec2(-(width*scale), -(height*scale));
+    box.max = vec2((width*scale), (height*scale));
     */
     return box;
   }

@@ -39,6 +39,7 @@ import derelict.sdl2.image;
 import derelict.sdl2.sdl;
 
 import gl3n.math;
+import gl3n.aabb;
 import gl3n.linalg;
 
 import glamour.shader;
@@ -159,7 +160,7 @@ public:
   }
   
   DrawSource drawSource = DrawSource.Unknown;
-  AABB!vec2 aabb;
+  AABB aabb;
   
   vec2[] connectPoints;
   vec4 color = vec4(1, 1, 1, 1);
@@ -242,8 +243,8 @@ public:
     
     m_widthHeightRatio = cast(float)p_screenWidth / cast(float)p_screenHeight;
     
-    m_screenBox.lowerleft = vec2((-1.0 / m_zoom) * m_widthHeightRatio, -1.0 / m_zoom);
-    m_screenBox.upperright = vec2((1.0 / m_zoom) * m_widthHeightRatio, 1.0 / m_zoom);
+    m_screenBox.min = vec3((-1.0 / m_zoom) * m_widthHeightRatio, -1.0 / m_zoom);
+    m_screenBox.max = vec3((1.0 / m_zoom) * m_widthHeightRatio, 1.0 / m_zoom);
   }
   
   ~this()
@@ -251,7 +252,7 @@ public:
     //teardownDisplay();
   }
 
-  GraphicsComponent[] getComponentsInBox(vec2 center, float scale, AABB!vec2 drawBox)
+  GraphicsComponent[] getComponentsInBox(vec2 center, float scale, AABB drawBox)
   {
     GraphicsComponent[] componentsInBox;
     
@@ -265,10 +266,10 @@ public:
     foreach (ref component; components)
     {
       if (component.screenAbsolutePosition || 
-          !((component.position - center).x < drawBox.lowerleft.x  - component.radius ||
-            (component.position - center).x > drawBox.upperright.x + component.radius ||
-            (component.position - center).y < drawBox.lowerleft.y  - component.radius ||
-            (component.position - center).y > drawBox.upperright.y + component.radius))
+          !((component.position - center).x < drawBox.min.x  - component.radius ||
+            (component.position - center).x > drawBox.max.x + component.radius ||
+            (component.position - center).y < drawBox.min.y  - component.radius ||
+            (component.position - center).y > drawBox.max.y + component.radius))
       {
         componentsInBox ~= component;
       }
@@ -277,7 +278,7 @@ public:
     return componentsInBox;
   }
   
-  void draw(vec2 center, float scale, AABB!vec2 drawBox)
+  void draw(vec2 center, float scale, AABB drawBox)
   {
     glClear(GL_COLOR_BUFFER_BIT);
     
@@ -294,7 +295,7 @@ public:
     }
   }
   
-  void drawTextures(vec2 center, float scale, AABB!vec2 drawBox)
+  void drawTextures(vec2 center, float scale, AABB drawBox)
   {
     textureShader.bind();
   
@@ -363,7 +364,7 @@ public:
   }
   
   
-  void drawQuads(vec2 center, float scale, AABB!vec2 drawBox)
+  void drawQuads(vec2 center, float scale, AABB drawBox)
   {
     quadShader.bind();
       
@@ -421,7 +422,7 @@ public:
   }
   
   
-  void drawText(vec2 center, float scale, AABB!vec2 drawBox)
+  void drawText(vec2 center, float scale, AABB drawBox)
   {
     textureShader.bind();
     
@@ -475,7 +476,7 @@ public:
     textureShader.unbind();
   }
   
-  void drawDebugCircles(vec2 center, float scale, AABB!vec2 drawBox)
+  void drawDebugCircles(vec2 center, float scale, AABB drawBox)
   {
     borderShader.bind();
     
@@ -559,16 +560,16 @@ public:
   {
     m_zoom += m_zoom * p_time;
     
-    m_screenBox.lowerleft = vec2((-1.0 / m_zoom) * m_widthHeightRatio, -1.0 / m_zoom);
-    m_screenBox.upperright = vec2((1.0 / m_zoom) * m_widthHeightRatio, 1.0 / m_zoom);
+    m_screenBox.min = vec3((-1.0 / m_zoom) * m_widthHeightRatio, -1.0 / m_zoom);
+    m_screenBox.max = vec3((1.0 / m_zoom) * m_widthHeightRatio, 1.0 / m_zoom);
   }
   
   void zoomOut(float p_time)
   {
     m_zoom -= m_zoom * p_time;
     
-    m_screenBox.lowerleft = vec2((-1.0 / m_zoom) * m_widthHeightRatio, -1.0 / m_zoom);
-    m_screenBox.upperright = vec2((1.0 / m_zoom) * m_widthHeightRatio, 1.0 / m_zoom);
+    m_screenBox.min = vec3((-1.0 / m_zoom) * m_widthHeightRatio, -1.0 / m_zoom);
+    m_screenBox.max = vec3((1.0 / m_zoom) * m_widthHeightRatio, 1.0 / m_zoom);
   }
   
   float zoom()
@@ -621,7 +622,7 @@ public:
     m_timeStep = p_timeStep;
   }
   
-  AABB!vec2 getStringBox(string text, float scale)
+  AABB getStringBox(string text, float scale)
   {
     return m_textRender.getStringBox(text, scale);
   }
@@ -654,13 +655,13 @@ protected:
     if ("height" in p_entity)
       height = to!float(p_entity["height"]);
     
-    component.aabb.lowerleft = vec2(-width/2.0, -height/2.0);
-    component.aabb.upperright = vec2(width/2.0, height/2.0);
+    component.aabb.min = vec3(-width/2.0, -height/2.0);
+    component.aabb.max = vec3(width/2.0, height/2.0);
     
     if ("lowerleft" in p_entity)
-      component.aabb.lowerleft = p_entity["lowerleft"].to!(float[])[0..2].vec2;
+      component.aabb.min = p_entity["lowerleft"].to!(float[])[0..2].vec3;
     if ("upperright" in p_entity)
-      component.aabb.upperright = p_entity["upperright"].to!(float[])[0..2].vec2;
+      component.aabb.max = p_entity["upperright"].to!(float[])[0..2].vec3;
     
     if ("keepInCenter" in p_entity && p_entity["keepInCenter"] == "true")
     {
@@ -1038,7 +1039,7 @@ private:
       
       float targetZoom = 0.05;
       
-      AABB!vec2 displayBox = AABB!vec2(p_displayComponent.position - vec2(4.0, 4.0), p_displayComponent.position + vec2(2.0, 2.0));
+      AABB displayBox = AABB((p_displayComponent.position - vec2(4.0, 4.0)).vec3, (p_displayComponent.position + vec2(2.0, 2.0)).vec3);
       
       /*glPushMatrix();
         glScalef(targetZoom, targetZoom, 1.0);
@@ -1063,10 +1064,10 @@ private:
           //glScalef(targetZoom, targetZoom, 1.0);
             
           // cull stuff that won't be shown on screen
-          if ((component.position - targetComponent.position).x < displayBox.lowerleft.x - component.radius ||
-              (component.position - targetComponent.position).x > displayBox.upperright.x + component.radius ||
-              (component.position - targetComponent.position).y < displayBox.lowerleft.y - component.radius ||
-              (component.position - targetComponent.position).y > displayBox.upperright.y + component.radius)
+          if ((component.position - targetComponent.position).x < displayBox.min.x - component.radius ||
+              (component.position - targetComponent.position).x > displayBox.max.x + component.radius ||
+              (component.position - targetComponent.position).y < displayBox.min.y - component.radius ||
+              (component.position - targetComponent.position).y > displayBox.max.y + component.radius)
           {
             //glPopMatrix();
             continue;
@@ -1167,7 +1168,7 @@ private:
   Buffer colorVBO;
   
   float m_widthHeightRatio;
-  AABB!vec2 m_screenBox;
+  AABB m_screenBox;
   float m_zoom;
   
   vec2 m_mouseWorldPos;

@@ -76,25 +76,7 @@ unittest
 }
 
 
-struct AABB(type)
-{
-  invariant()
-  {
-    assert(lowerleft.x < upperright.x);
-    assert(lowerleft.y < upperright.y);
-  }
-
-  type lowerleft;
-  type upperright;
-  
-  type midpoint()
-  {
-    return type((lowerleft.x+upperright.x)/2, (lowerleft.y+upperright.y)/2);
-  }
-}
-
-
-int indexForVector(vec2i vector)
+int indexForVector(vec3 vector)
 in
 {
   assert(vector.x >= -2^^15 && vector.x < 2^^15, "Tried to call indexForVector with vector.x out of bounds: " ~ to!string(vector.x));
@@ -102,7 +84,7 @@ in
 }
 body
 {
-  return interleave(vector.x + 2^^15, vector.y + 2^^15);
+  return interleave(cast(int)vector.x + 2^^15, cast(int)vector.y + 2^^15);
 }
 
 vec2i vectorForIndex(int index)

@@ -5,6 +5,7 @@ import std.array;
 import std.math;
 
 import glamour.texture;
+import gl3n.aabb;
 import gl3n.linalg;
 
 import Utils;
@@ -59,14 +60,14 @@ struct Sprite
     return verts[0..3] ~ verts[0..1] ~ verts[2..4];
   }
   
-  @property vec3[] verticesForQuadTriangles(AABB!vec2 box)
+  @property vec3[] verticesForQuadTriangles(AABB box)
   {
     auto source = origo.dup;
     
-    source = [vec3(box.lowerleft.x,  box.lowerleft.y,  0.0),
-              vec3(box.lowerleft.x,  box.upperright.y, 0.0),
-              vec3(box.upperright.x, box.upperright.y, 0.0),
-              vec3(box.upperright.x, box.lowerleft.y,  0.0)];
+    source = [vec3(box.min.x, box.min.y, 0.0),
+              vec3(box.min.x, box.max.y, 0.0),
+              vec3(box.max.x, box.max.y, 0.0),
+              vec3(box.max.x, box.min.y, 0.0)];
 
     auto verts = transformVertices(source);
 

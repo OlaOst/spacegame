@@ -782,12 +782,12 @@ private:
         infoBox["color"] = vec4(0.0, 0.0, 0.0, 0.75).to!string;
         infoBox["drawsource"] = "Rectangle";
         auto textBox = m_graphics.getStringBox(infoText["text"], infoText["radius"].to!float);
-        infoBox["lowerleft"] = textBox.lowerleft.to!string;
-        infoBox["upperright"] = textBox.upperright.to!string;
-        infoBox["position"] = (m_graphics.mouseWorldPos + (textBox.upperright - textBox.lowerleft)*0.5 + vec2(-textboxsize, textboxsize)).to!string;
+        infoBox["lowerleft"] = textBox.min.to!string;
+        infoBox["upperright"] = textBox.max.to!string;
+        infoBox["position"] = (m_graphics.mouseWorldPos + textBox.half_extent.xy.vec2 + vec2(-textboxsize, textboxsize)).to!string;
         infoBox["owner"] = infoTextEntity.id.to!string;
         infoBox["relationName"] = infoText["name"];
-        infoBox["relativePosition"] = ((textBox.upperright - textBox.lowerleft)*0.5 + vec2(-textboxsize, textboxsize)).to!string;
+        infoBox["relativePosition"] = (textBox.half_extent.xy.vec2 + vec2(-textboxsize, textboxsize)).to!string;
         //infoBox["radius"] = textboxsize.to!string;
         
         //writeln("infobox relative pos: " ~ infoBox["relativePosition"]);

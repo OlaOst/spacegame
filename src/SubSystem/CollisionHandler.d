@@ -30,6 +30,7 @@ import std.random;
 import std.stdio;
 import std.string;
 
+import gl3n.aabb;
 import gl3n.linalg;
 import gl3n.math;
 
@@ -143,7 +144,7 @@ class ColliderComponent
     
     int rad = radius < 1.0 ? 1 : cast(int)radius;
     
-    aabb = AABB!vec2i(vec2i(pos.x - rad, pos.y - rad), vec2i(pos.x + rad, pos.y + rad));
+    aabb = AABB(vec3(pos.x - rad, pos.y - rad, 0.0), vec3(pos.x + rad, pos.y + rad, 0.0));
   }
   
   float radius;
@@ -158,7 +159,7 @@ class ColliderComponent
   //float lifetime = float.infinity;
   float health = float.infinity;
   
-  AABB!vec2i aabb;
+  AABB aabb;
   
   // we might not want stuff to collide from the entity it spawned from
   int spawnedFrom;
