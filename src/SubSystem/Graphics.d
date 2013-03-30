@@ -250,8 +250,8 @@ public:
     
     m_widthHeightRatio = cast(float)p_screenWidth / cast(float)p_screenHeight;
     
-    m_screenBox.min = vec3((-1.0 / m_zoom) * m_widthHeightRatio, -1.0 / m_zoom);
-    m_screenBox.max = vec3((1.0 / m_zoom) * m_widthHeightRatio, 1.0 / m_zoom);
+    m_screenBox.min = vec3((-1.0 / m_zoom) * m_widthHeightRatio, -1.0 / m_zoom, -1.0);
+    m_screenBox.max = vec3((1.0 / m_zoom) * m_widthHeightRatio, 1.0 / m_zoom, 1.0);
   }
   
   ~this()
@@ -262,17 +262,21 @@ public:
   GraphicsComponent[] getComponentsInBox(vec2 center, AABB drawBox)
   {
     // this filter code gives an internal compiler error on 2.060 :( but not in 2.061 :)
-    return filter!(component => component.screenAbsolutePosition ||
+    /*return filter!(component => component.screenAbsolutePosition ||
                                 !((component.position - center).x < drawBox.min.x - component.radius ||
                                   (component.position - center).x > drawBox.max.x + component.radius ||
                                   (component.position - center).y < drawBox.min.y - component.radius ||
-                                  (component.position - center).y > drawBox.max.y + component.radius))(components).array();
+                                  (component.position - center).y > drawBox.max.y + component.radius))(components).array();*/
     
-    /*GraphicsComponent[] componentsInBox;
+    GraphicsComponent[] componentsInBox;
     
     foreach (ref component; components)
     {
-      if (component.screenAbsolutePosition || 
+      if (component.screenAbsolutePosition) 
+      {
+        componentsInBox ~= component;
+      }
+      else if (component.radius >= 0.0 &&
           !((component.position - center).x < drawBox.min.x - component.radius ||
             (component.position - center).x > drawBox.max.x + component.radius ||
             (component.position - center).y < drawBox.min.y - component.radius ||
@@ -280,9 +284,15 @@ public:
       {
         componentsInBox ~= component;
       }
+      else if (drawBox.intersects(AABB(component.aabb.min + vec3(component.position, 0.0), component.aabb.max + vec3(component.position, 0.0))))
+      {
+        //debug writeln("checking if drawbox " ~ drawBox.to!string ~ " intersects component at " ~ component.position.to!string ~ " box " ~ absolute.to!string ~ ": " ~ drawBox.intersects(absolute).to!string);
+        
+        componentsInBox ~= component;
+      }
     }
     
-    return componentsInBox;*/
+    return componentsInBox;
   }
   
   void draw(vec2 center, float scale, AABB drawBox)
@@ -586,16 +596,16 @@ public:
   {
     m_zoom += m_zoom * p_time;
     
-    m_screenBox.min = vec3((-1.0 / m_zoom) * m_widthHeightRatio, -1.0 / m_zoom);
-    m_screenBox.max = vec3((1.0 / m_zoom) * m_widthHeightRatio, 1.0 / m_zoom);
+    m_screenBox.min = vec3((-1.0 / m_zoom) * m_widthHeightRatio, -1.0 / m_zoom, -1.0);
+    m_screenBox.max = vec3((1.0 / m_zoom) * m_widthHeightRatio, 1.0 / m_zoom, 1.0);
   }
   
   void zoomOut(float p_time)
   {
     m_zoom -= m_zoom * p_time;
     
-    m_screenBox.min = vec3((-1.0 / m_zoom) * m_widthHeightRatio, -1.0 / m_zoom);
-    m_screenBox.max = vec3((1.0 / m_zoom) * m_widthHeightRatio, 1.0 / m_zoom);
+    m_screenBox.min = vec3((-1.0 / m_zoom) * m_widthHeightRatio, -1.0 / m_zoom, -1.0);
+    m_screenBox.max = vec3((1.0 / m_zoom) * m_widthHeightRatio, 1.0 / m_zoom, 1.0);
   }
   
   float zoom()
