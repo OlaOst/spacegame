@@ -74,6 +74,8 @@ void ballBrickCollisionResponse(Collision collision, CollisionHandler collisionH
 
 void ballCollisionResponse(Collision collision, CollisionHandler collisionHandler)
 {    
+  //debug writeln("ballCollisionResponse at " ~ collision.contactPoint.to!string ~ ", hasCollided: " ~ collision.first.hasCollided.to!string ~ "/" ~ collision.second.hasCollided.to!string);
+  
   if (collision.first.hasCollided == false && collision.second.hasCollided == false)
   {
     ColliderComponent other;
@@ -86,17 +88,27 @@ void ballCollisionResponse(Collision collision, CollisionHandler collisionHandle
       ball = collision.first;
       other = collision.second;
       
+      contactPointRelativeToBall -= ball.position;
+      
       contactPointRelativeToBall *= -1;
     }
     else
     {
       ball = collision.second;
       other = collision.first;
+      
+      contactPointRelativeToBall -= ball.position;
     }
+    
+    //debug writeln("contactpoint at " ~ collision.contactPoint.to!string ~ ", ball at " ~ ball.position.to!string ~ ", contactPointRelativeToBall at " ~ contactPointRelativeToBall.to!string);
   
-    if (dot(ball.velocity, contactPointRelativeToBall) < 0.0)
+    //debug writeln("ball velocity " ~ ball.velocity.to!string ~ " dot contactpoint " ~ contactPointRelativeToBall.to!string ~ ": " ~ ball.velocity.dot(contactPointRelativeToBall).to!string);
+  
+    if (ball.velocity.dot(contactPointRelativeToBall.normalized) > 0.0)
     {
-      ball.velocity = ball.velocity - (2.0 * dot(ball.velocity, -contactPointRelativeToBall.normalized()).abs * -contactPointRelativeToBall.normalized());
+      ball.velocity = ball.velocity + (2.0 * -ball.velocity.dot(contactPointRelativeToBall.normalized).abs * contactPointRelativeToBall.normalized);
+      //ball.velocity = ball.velocity - (2.0 * contactPointRelativeToBall.normalized.dot(ball.velocity.normalized).abs * contactPointRelativeToBall.normalized());
+      //ball.velocity = ball.velocity * -1.0;
     
       //vec2 collisionPosition = (ball.position + other.position) * 0.5 + collision.contactPoint;
       vec2 collisionPosition = collision.contactPoint;

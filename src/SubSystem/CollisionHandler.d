@@ -376,17 +376,17 @@ private:
           auto relativePosition = (circleComponent.position - (aabbComponent.aabb.center.vec2));
           auto relativeAABB = AABB.from_points(aabbComponent.aabb.vertices.map!(vert => vert - aabbComponent.aabb.center).array);
           
-          /*intersection = relativePosition.x < (aabbComponent.aabb.max.x + circleComponent.radius) &&
-                         relativePosition.x > (aabbComponent.aabb.min.x - circleComponent.radius) &&
-                         relativePosition.y < (aabbComponent.aabb.max.y + circleComponent.radius) &&
-                         relativePosition.y > (aabbComponent.aabb.min.y - circleComponent.radius);*/
+          intersection = relativePosition.x < (relativeAABB.max.x + circleComponent.radius) &&
+                         relativePosition.x > (relativeAABB.min.x - circleComponent.radius) &&
+                         relativePosition.y < (relativeAABB.max.y + circleComponent.radius) &&
+                         relativePosition.y > (relativeAABB.min.y - circleComponent.radius);
 
-          rightIntersect = relativePosition.x < (relativeAABB.max.x + circleComponent.radius);
-          leftIntersect = relativePosition.x > (relativeAABB.min.x - circleComponent.radius);
-          downIntersect = relativePosition.y < (relativeAABB.max.y + circleComponent.radius);
-          upIntersect = relativePosition.y > (relativeAABB.min.y - circleComponent.radius);
+          leftIntersect  = relativePosition.x < (relativeAABB.min.x + circleComponent.radius);
+          rightIntersect = relativePosition.x > (relativeAABB.max.x - circleComponent.radius);
+          downIntersect  = relativePosition.y < (relativeAABB.min.y + circleComponent.radius);
+          upIntersect    = relativePosition.y > (relativeAABB.max.y - circleComponent.radius);
                          
-          intersection = rightIntersect && leftIntersect && downIntersect && upIntersect;
+          //intersection = rightIntersect && leftIntersect && downIntersect && upIntersect;
           
           //debug writeln("intersection " ~ (intersection?"true":"false") ~ " between circleComponent with radius " ~ circleComponent.radius.to!string ~ " and aabbComponent with " ~ relativeAABB.to!string ~ ", relative position " ~ relativePosition.to!string);
         }
@@ -411,6 +411,8 @@ private:
           {
             auto circleComponent = (first.radius >= 0.0) ? first : second;
             auto aabbComponent = (first.radius >= 0.0) ? second : first;
+            
+            //debug writeln(leftIntersect.to!string ~ " " ~ rightIntersect.to!string ~ " " ~ downIntersect.to!string ~ " " ~ upIntersect.to!string);
             
             if (leftIntersect)
               contactPoint = vec2(aabbComponent.aabb.min.x, circleComponent.position.y);

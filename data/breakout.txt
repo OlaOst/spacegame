@@ -8,16 +8,20 @@ player.isRelation = true
 
 bat.drawsource = images\horizontalskeleton.png
 bat.radius = 0.2
-#bat.width = 0.2
-#bat.height = 0.1
 bat.relationName = player
 bat.relativePosition = [0.0, 0.0]
-bat.collisionType = Bat
+
+batCollider.drawsource = Rectangle
+batCollider.relationName = player
+batCollider.relativePosition = [0.0, 0.0]
+batCollider.width = 0.37
+batCollider.height = 0.08
+batCollider.collisionType = Bat
 
 gun.drawsource = Quad
 gun.radius = 0.04
 gun.color = [1.0, 0.0, 0.0, 0.5]
-gun.relationName = bat
+gun.relationName = player
 gun.relativePosition = [0.0, 0.04]
 
 gun.control = PlayerLauncher
@@ -35,7 +39,7 @@ ball.drawsource = Quad
 ball.radius = 0.1
 ball.color = [0.0, 1.0, 1.0, 1.0]
 ball.position = [0.0, 0.5]
-ball.velocity = [0.1, -0.0]
+ball.velocity = [0.5, -0.4]
 ball.collisionType = Ball
 
 brick1.source = brick.txt
