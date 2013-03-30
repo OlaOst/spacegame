@@ -44,7 +44,8 @@ void ballBrickCollisionResponse(Collision collision, CollisionHandler collisionH
     
     if (collision.hasSpawnedParticles == false)
     {
-      vec2 collisionPosition = (ball.position + brick.position) * 0.5 + collision.contactPoint;
+      //vec2 collisionPosition = (ball.position + brick.position) * 0.5 + collision.contactPoint;
+      vec2 collisionPosition = collision.contactPoint;
     
       int particles = (brick.health > 0.0) ? 3 : 10;
       for (int i = 0; i < particles; i++)
@@ -97,7 +98,8 @@ void ballCollisionResponse(Collision collision, CollisionHandler collisionHandle
     {
       ball.velocity = ball.velocity - (2.0 * dot(ball.velocity, -contactPointRelativeToBall.normalized()).abs * -contactPointRelativeToBall.normalized());
     
-      vec2 collisionPosition = (ball.position + other.position) * 0.5 + collision.contactPoint;
+      //vec2 collisionPosition = (ball.position + other.position) * 0.5 + collision.contactPoint;
+      vec2 collisionPosition = collision.contactPoint;
       
       string[string] collisionSound;
       

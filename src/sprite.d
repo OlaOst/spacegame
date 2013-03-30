@@ -25,7 +25,7 @@ struct Sprite
                                     
   vec3 position = vec3(0.0, 0.0, 0.0);
   float angle = 0.0;
-  float scale = 1.0;
+  float scale = -1.0;
   
   vec3[] _vertices;
   

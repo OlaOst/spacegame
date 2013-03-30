@@ -386,10 +386,7 @@ private:
           downIntersect = relativePosition.y < (relativeAABB.max.y + circleComponent.radius);
           upIntersect = relativePosition.y > (relativeAABB.min.y - circleComponent.radius);
                          
-          intersection = relativePosition.x < (relativeAABB.max.x + circleComponent.radius) &&
-                         relativePosition.x > (relativeAABB.min.x - circleComponent.radius) &&
-                         relativePosition.y < (relativeAABB.max.y + circleComponent.radius) &&
-                         relativePosition.y > (relativeAABB.min.y - circleComponent.radius);
+          intersection = rightIntersect && leftIntersect && downIntersect && upIntersect;
           
           //debug writeln("intersection " ~ (intersection?"true":"false") ~ " between circleComponent with radius " ~ circleComponent.radius.to!string ~ " and aabbComponent with " ~ relativeAABB.to!string ~ ", relative position " ~ relativePosition.to!string);
         }

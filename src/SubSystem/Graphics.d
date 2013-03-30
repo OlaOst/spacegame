@@ -151,7 +151,14 @@ invariant()
 public:
   bool isPointedAt(vec2 p_pos)
   {
-    return (position - p_pos).length < radius;
+    if (radius >= 0.0)
+      return (position - p_pos).length < radius;
+    else
+    {
+      vec2 relativePos = position - p_pos;
+      return aabb.min.x < relativePos.x && aabb.max.x > relativePos.x && 
+             aabb.min.y < relativePos.y && aabb.max.y > relativePos.y;
+    }
   }
   
   bool isOverlapping(GraphicsComponent p_other)
@@ -694,6 +701,10 @@ protected:
     {
       aabb.min = p_entity["lowerleft"].to!(float[])[0..2].vec3;
       aabb.max = p_entity["upperright"].to!(float[])[0..2].vec3;
+    }
+    else
+    {
+      assert(0);
     }
     
     //auto component = (radius >= 0.0) ? GraphicsComponent(radius, collisionType) : GraphicsComponent(aabb, collisionType);

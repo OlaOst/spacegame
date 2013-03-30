@@ -301,7 +301,7 @@ unittest
   
   auto expandedValues = expandValues(values);
  
-  writeln("expanded values: " ~ expandedValues.to!string);
+  debug writeln("expanded values: " ~ expandedValues.to!string);
  
   assert(expandedValues["source"] == "cannon.txt");
   assert(expandedValues["foo"] == "bar");
@@ -342,6 +342,8 @@ string[string] expandValues(ref string[string] p_values)
       
       auto expandedValues = expandValues(keyValues);
     
+      //debug writeln("expanding " ~ p_values.to!string ~ " to " ~ expandedValues.to!string);
+    
       foreach (key, value; expandedValues)
       {
         if (key !in p_values)
@@ -366,7 +368,7 @@ Entity[string] loadEntityCollection(string collectionName, string[string] p_valu
 
 Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref string[] orderedEntityNames)
 {
-  //writeln("loadentitycollection, name: " ~ collectionName ~ ", lines: " ~ p_lines.to!string);
+  //debug writeln("loadentitycollection, name: " ~ collectionName ~ ", lines: " ~ p_lines.to!string);
   Entity[string] entities;
 
   // split lines into entity sections, each with unique name
@@ -387,12 +389,18 @@ Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref
       
       auto nameAndRest = key.findSplit(".");
       
+      //debug writeln("nameAndRest: " ~ nameAndRest.toString);
+      
       auto name = collectionName;
       
       if (!nameAndRest[1].empty)
         name ~=  "." ~ nameAndRest[0];
         
-      namedValues[name][key] = value;
+      auto fixedKey = key;
+      fixedKey.findSkip(nameAndRest[0] ~ ".");
+      //debug writeln("key " ~ key ~ " vs fixedkey " ~ fixedKey ~ " with name " ~ nameAndRest[0]);
+
+      namedValues[name][fixedKey] = value;
       
       bool reservedName = false;
       string fixedName = name;
@@ -405,10 +413,14 @@ Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref
     }
   }
   
+  //debug writeln("before expanded values: " ~ namedValues.to!string);
+  
   foreach (name, ref keyValues; namedValues)
   {
     keyValues = expandValues(keyValues);
   }
+  
+  //debug writeln("fully expanded values: " ~ namedValues.to!string);
   
   // recursively expand entity collections
   // or not, assume they are already expanded
@@ -429,11 +441,11 @@ Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref
       foreach (string line; fixedFileName.File.lines)
         fileLines ~= line;
         
-      writeln(fileLines.to!string);
+      debug writeln(fileLines.to!string);
         
       foreach (entityName, entity; loadEntityCollection(name, fileLines, orderedEntityNames))
       {
-        writeln("entity from source: " ~ entityName ~ " vs ownername: " ~ name);
+        debug writeln("entity from source: " ~ entityName ~ " vs ownername: " ~ name);
         
         if (entityName == name)
         {

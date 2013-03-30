@@ -1,0 +1,2 @@
+test.source = wall.txt
+test.width = 1.0
