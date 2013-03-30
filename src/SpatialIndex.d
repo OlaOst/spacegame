@@ -39,44 +39,46 @@ unittest
 
   Index!Content index;
   
-  auto one = Content(AABB(vec2i(0, 0), vec2i(1, 1)), "one");  
+  auto one = Content(AABB(vec3(0, 0, 0), vec3(1, 1, 0)), "one");  
   index.insert(one);
   
   assert(one in index.indicesForContent);
   assert(index[one].length == 1);
   
   
-  auto two = Content(AABB(vec2i(0, 0), vec2i(2, 2)), "two");  
+  auto two = Content(AABB(vec3(0, 0, 0), vec3(2, 2, 0)), "two");  
   index.insert(two);
   
   assert(two in index.indicesForContent);
   assert(index[two].length >= 1);
   
   
-  auto check = Content(AABB(vec2i(1, 1), vec2i(3, 3)), "three");
+  auto check = Content(AABB(vec3(1, 1, 0), vec3(3, 3, 0)), "three");
   
   Content[] candidates = index.findNearbyContent(check);
-  assert(candidates == [one, two], "Expected " ~ to!string([two]) ~ ", got " ~ to!string(candidates) ~ " instead");
+  assert(candidates == [one, two], "Expected " ~ [two].to!string ~ ", got " ~ candidates.to!string ~ " instead");
   
   
-  auto checkAll = Content(AABB(vec2i(-10, -10), vec2i(10, 10)), "four");
+  auto checkAll = Content(AABB(vec3(-10, -10, 0), vec3(10, 10, 0)), "four");
   
   candidates = index.findNearbyContent(checkAll);
-  assert(candidates == [one, two], "Expected " ~ to!string([one, two]) ~ ", got " ~ to!string(candidates) ~ " instead");
+  assert(candidates == [one, two], "Expected " ~ [one, two].to!string ~ ", got " ~ candidates.to!string ~ " instead");
   
   
-  auto negative = Content(AABB(vec2i(-100, -100), vec2i(-50, -50)), "negative");
+  auto negative = Content(AABB(vec3(-100, -100, 0), vec3(-50, -50, 0)), "negative");
   index.insert(negative);
   
   assert(negative in index.indicesForContent);
   assert(index[negative].length >= 1);  
   
   
-  auto weird = Content(AABB(vec2i(5,-7), vec2i(7, -5)), "weird");
+  auto weird = Content(AABB(vec3(5, -7, 0), vec3(7, -5, 0)), "weird");
   index.insert(weird);
   
   assert(weird in index.indicesForContent);
   assert(index[weird].length >= 1);  
+  
+  //auto huh = Content(AABB(vec3
 }
 
 

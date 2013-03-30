@@ -1,17 +1,4 @@
-How subsystems works today:
-CollisionHandler    - Handles collision detection and response between entities
-ConnectionHandler   - Holds together entities like those making up a ship, and aggregates values like mass and forces
-Controller          - Players and AI/NPCs control entities via this subsystem
-Graphics            - Draws entities
-Physics             - Moves entities
-Placer              - Keeps track of entity positions and wraparound
-Sound               - Plays sounds and music
-Spawner             - Handles entities that can spawn other entities, and values of the spawned entities
-Timer               - Keeps track of time for entities that need it
-
-
-
-How subsystems would work in a better world:
+Responsibilities of subsystems:
 Placer            - for entities that need a position (could be gameworld position or hud position or menu position or some other position)
 Physics           - for entities that are affected by forces and follow newtons laws of motion
 Spawner           - for entities that can create other entities (needs trigger to know when to spawn something)

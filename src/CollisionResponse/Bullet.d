@@ -52,8 +52,8 @@ void bulletCollisionResponse(Collision collision, CollisionHandler collisionHand
     if (collision.second.collisionType == CollisionType.Bullet)
       collision.second.hasCollided = true;
   
-    vec2 collisionPosition = (collision.first.position + collision.second.position) * 0.5 + collision.contactPoint;
-    //vec2 collisionPosition = collision.contactPoint;
+    //vec2 collisionPosition = (collision.first.position + collision.second.position) * 0.5 + collision.contactPoint;
+    vec2 collisionPosition = collision.contactPoint;
   
     //debug writeln("collision first pos: " ~ collision.first.position.to!string ~ ", second pos: " ~ collision.second.position.to!string ~ ", contact point: " ~ collision.contactPoint.to!string);
     //debug writeln("calculated collisionpos: " ~ collisionPosition.to!string);

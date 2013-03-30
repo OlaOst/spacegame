@@ -37,13 +37,13 @@ unittest
   assert(interleave(2^^15, 2^^15) == 2^^31/2, "Expected " ~ to!string(2^^30) ~ ", got " ~ to!string(interleave(2^^15, 2^^15)));
 
   
-  vec2i origoVector = [0,0];
+  vec3 origoVector = vec3(0, 0, 0);
   int origoIndex = -2^^30;
   
-  vec2i leastVector = [-2^^15, -2^^15];
+  vec3 leastVector = vec3(-2^^15, -2^^15, 0);
   int leastIndex = 0;
   
-  vec2i largestVector = [2^^15-1, 2^^15-1];
+  vec3 largestVector = vec3(2^^15-1, 2^^15-1, 0);
   int largestIndex = 2^^32-1;
   
   assert(indexForVector(origoVector)   == origoIndex, "Expected " ~   to!string(origoIndex) ~   ", got " ~ to!string(indexForVector(origoVector)));
@@ -68,11 +68,11 @@ unittest
   
   for (int y = 0; y < 256; y++)
     for (int x = 0; x < 256; x++)
-      assert(vectorForIndex(indexForVector(vec2i(x,y))) == vec2i(x,y), "Expected " ~ to!string(vec2i(x,y)) ~ ", got " ~ to!string(vectorForIndex(indexForVector(vec2i(x,y)))));
+      assert(vectorForIndex(indexForVector(vec3(x, y, 0))) == vec3(x, y, 0), "Expected " ~ vec3(x, y, 0).to!string ~ ", got " ~ vectorForIndex(indexForVector(vec3(x, y, 0))).to!string);
 
   for (int y = int.max - 256; y < int.max + 256; y++)
     for (int x = int.max - 256; x < int.max + 256; x++)
-      assert(vectorForIndex(indexForVector(vec2i(x,y))) == vec2i(x,y), "Expected " ~ to!string(vec2i(x,y)) ~ ", got " ~ to!string(vectorForIndex(indexForVector(vec2i(x,y)))));      
+      assert(vectorForIndex(indexForVector(vec3(x, y, 0))) == vec3(x, y, 0), "Expected " ~ to!string(vec3(x, y, 0)) ~ ", got " ~ to!string(vectorForIndex(indexForVector(vec3(x, y, 0)))));
 }
 
 
@@ -87,14 +87,14 @@ body
   return interleave(cast(int)vector.x + 2^^15, cast(int)vector.y + 2^^15);
 }
 
-vec2i vectorForIndex(int index)
+vec3 vectorForIndex(int index)
 in
 {
   assert(index >= -2^^31 && index < 2^^31-1, "Tried to call vectorForIndex with index out of bounds: " ~ to!string(index));
 }
 body
 {
-  return vec2i(deinterleave(index) - 2^^15, deinterleave(index >> 1) - 2^^15);
+  return vec3(deinterleave(index) - 2^^15, deinterleave(index >> 1) - 2^^15, 0);
 }
 
 

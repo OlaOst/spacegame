@@ -252,30 +252,30 @@ public:
     //teardownDisplay();
   }
 
-  GraphicsComponent[] getComponentsInBox(vec2 center, float scale, AABB drawBox)
+  GraphicsComponent[] getComponentsInBox(vec2 center, AABB drawBox)
   {
-    GraphicsComponent[] componentsInBox;
+    // this filter code gives an internal compiler error on 2.060 :( but not in 2.061 :)
+    return filter!(component => component.screenAbsolutePosition ||
+                                !((component.position - center).x < drawBox.min.x - component.radius ||
+                                  (component.position - center).x > drawBox.max.x + component.radius ||
+                                  (component.position - center).y < drawBox.min.y - component.radius ||
+                                  (component.position - center).y > drawBox.max.y + component.radius))(components).array();
     
-    // this filter code gives an internal compiler error on 2.060 :(
-    /*return components.filter!(component => !component.screenAbsolutePosition && 
-                                          !(component.position - center).x < m_screenBox.lowerleft.x - component.radius ||
-                                           (component.position - center).x > m_screenBox.upperright.x + component.radius ||
-                                           (component.position - center).y < m_screenBox.lowerleft.y - component.radius ||
-                                           (component.position - center).y > m_screenBox.upperright.y + component.radius).array();*/
+    /*GraphicsComponent[] componentsInBox;
     
     foreach (ref component; components)
     {
       if (component.screenAbsolutePosition || 
-          !((component.position - center).x < drawBox.min.x  - component.radius ||
+          !((component.position - center).x < drawBox.min.x - component.radius ||
             (component.position - center).x > drawBox.max.x + component.radius ||
-            (component.position - center).y < drawBox.min.y  - component.radius ||
+            (component.position - center).y < drawBox.min.y - component.radius ||
             (component.position - center).y > drawBox.max.y + component.radius))
       {
         componentsInBox ~= component;
       }
     }
     
-    return componentsInBox;
+    return componentsInBox;*/
   }
   
   void draw(vec2 center, float scale, AABB drawBox)
@@ -300,8 +300,11 @@ public:
     textureShader.bind();
   
     GraphicsComponent[][string] componentsForTexture;
-    foreach (ref component; getComponentsInBox(center, scale, drawBox))
+    foreach (ref component; getComponentsInBox(center, drawBox))
       componentsForTexture[component.textureName] ~= component;
+    
+    //debug writeln("drawing " ~ componentsForTexture.length.to!string ~ " different textures");
+    //debug writeln("drawing " ~ getComponentsInBox(center, drawBox).length.to!string ~  " textured components in box " ~ drawBox.to!string);
     
     foreach (textureName; m_imageToTexture.keys)
     {
@@ -370,13 +373,24 @@ public:
       
     vec3[] verts;
     vec4[] colors;
-      
-    foreach (component; getComponentsInBox(center, scale, drawBox).filter!(component => component.drawSource == DrawSource.Quad || component.drawSource == DrawSource.Rectangle))
+
+    auto quadComponents = getComponentsInBox(center, drawBox).filter!(component => component.drawSource == DrawSource.Quad || component.drawSource == DrawSource.Rectangle);
+    
+    //debug writeln("drawing " ~ quadComponents.array.length.to!string ~  " quad components in box " ~ drawBox.to!string);
+    
+    foreach (component; quadComponents)
     {
       //verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles(component.texture))(components.filter!(component => component.frames == 0));
       //foreach (component; components.filter!(component => component.frames == 0 && component.drawSource != DrawSource.Text && component.screenAbsolutePosition == false))
       {
+        /*if (component.texture)
+          writeln("getting verts for component with texture width/height " ~ component.texture.width.to!string ~ "/" ~ component.texture.height.to!string);
+        else
+          writeln("getting verts for component with aabb " ~ component.aabb.to!string);*/
+          
         auto componentVerts = component.sprite.verticesForQuadTriangles(component.texture);
+        
+        //writeln("verts for component: " ~ componentVerts.to!string);
         
         if (component.drawSource == DrawSource.Rectangle)
           componentVerts = component.sprite.verticesForQuadTriangles(component.aabb);
@@ -426,7 +440,7 @@ public:
   {
     textureShader.bind();
     
-    foreach (component; getComponentsInBox(center, scale, drawBox).filter!(component => component.drawSource == DrawSource.Text))
+    foreach (component; getComponentsInBox(center, drawBox).filter!(component => component.drawSource == DrawSource.Text))
     {
       auto stringSprites = m_textRender.getStringSprites(component.text, component.position, component.radius);
       
@@ -485,11 +499,16 @@ public:
     //verts = verts.reduce!((arr, component) => arr ~ component.sprite.verticesForQuadTriangles(component.texture))(components.filter!(component => component.frames == 0));
     foreach (component; components.filter!(component => component.frames == 0 && 
                                            //component.drawSource != DrawSource.Text && 
-                                           component.drawSource != DrawSource.Quad && 
-                                           component.drawSource != DrawSource.Rectangle && 
+                                           //component.drawSource != DrawSource.Quad && 
+                                           //component.drawSource != DrawSource.Rectangle && 
                                            component.screenAbsolutePosition == false))
     {
       auto componentVerts = component.sprite.verticesForQuadTriangles(component.texture);
+      
+      if (component.drawSource == DrawSource.Rectangle)
+          componentVerts = component.sprite.verticesForQuadTriangles(component.aabb);
+          
+      //writeln("drawing debug circles with verts " ~ componentVerts.to!string);
       
       foreach (ref vert; componentVerts)
       {
@@ -642,26 +661,65 @@ protected:
     //writeln("graphics creating component from values " ~ to!string(p_entity.values));
     
     //enforce(p_entity.["radius"].length > 0, "Couldn't find radius for graphics component");
-    float radius = 1.0;
-    if ("radius" in p_entity)
-      radius = to!float(p_entity["radius"]);
+    //float radius = -1.0;
+    //if ("radius" in p_entity)
+      //radius = to!float(p_entity["radius"]);
     
     GraphicsComponent component; // = GraphicsComponent(radius);
     
+    
+    enforce("radius" in p_entity.values || 
+            ("lowerleft" in p_entity.values && "upperright" in p_entity.values) ||
+            ("width" in p_entity.values && "height" in p_entity.values), "Graphics component must have either radius, width/height or lowerleft/upperright values");
+  
+    float radius = -1.0;
+    AABB aabb;
+    if ("radius" in p_entity)
+    {
+      radius = p_entity["radius"].to!float;
+    
+      enforce(radius >= 0.0, "Cannot create graphics component with negative radius");
+    }
+    else if ("width" in p_entity && "height" in p_entity)
+    {
+      float width = p_entity["width"].to!float;
+      float height = p_entity["height"].to!float;
+      
+      enforce(width >= 0.0 && height >= 0.0, "Cannot create graphics component with negative width or height");
+      
+      aabb.min = vec3(-width/2.0, -height/2.0, 0.0);
+      aabb.max = vec3(width/2.0, height/2.0, 0.0);
+    }
+    else if ("lowerleft" in p_entity && "upperright" in p_entity)
+    {
+      aabb.min = p_entity["lowerleft"].to!(float[])[0..2].vec3;
+      aabb.max = p_entity["upperright"].to!(float[])[0..2].vec3;
+    }
+    
+    //auto component = (radius >= 0.0) ? GraphicsComponent(radius, collisionType) : GraphicsComponent(aabb, collisionType);
+    if (radius >= 0.0)
+      component.radius = radius;
+    else
+      component.aabb = aabb;
+    
+    //debug writeln("created component for " ~ p_entity["name"] ~ " with radius " ~ radius.to!string ~ ", aabb " ~ aabb.to!string);
+    
+    /*
     float width = 0.0;
     float height = 0.0;
-    if ("width" in p_entity)
+    if ("width" in p_entity && "height" in p_entity)
       width = to!float(p_entity["width"]);
     if ("height" in p_entity)
       height = to!float(p_entity["height"]);
     
-    component.aabb.min = vec3(-width/2.0, -height/2.0);
-    component.aabb.max = vec3(width/2.0, height/2.0);
+    component.aabb.min = vec3(-width/2.0, -height/2.0, 0.0);
+    component.aabb.max = vec3(width/2.0, height/2.0, 0.0);
     
     if ("lowerleft" in p_entity)
       component.aabb.min = p_entity["lowerleft"].to!(float[])[0..2].vec3;
     if ("upperright" in p_entity)
       component.aabb.max = p_entity["upperright"].to!(float[])[0..2].vec3;
+    */
     
     if ("keepInCenter" in p_entity && p_entity["keepInCenter"] == "true")
     {
@@ -1039,7 +1097,7 @@ private:
       
       float targetZoom = 0.05;
       
-      AABB displayBox = AABB((p_displayComponent.position - vec2(4.0, 4.0)).vec3, (p_displayComponent.position + vec2(2.0, 2.0)).vec3);
+      AABB displayBox = AABB(vec3(p_displayComponent.position - vec2(4.0, 4.0), 0.0), vec3(p_displayComponent.position + vec2(2.0, 2.0), 0.0));
       
       /*glPushMatrix();
         glScalef(targetZoom, targetZoom, 1.0);

@@ -121,33 +121,24 @@ class ColliderComponent
     radius = p_radius;
     collisionType = p_collisionType;
     
+    m_aabb = AABB(vec3(-radius, -radius, 0.0), vec3(radius, radius, 0.0));
+    
+    id = idCounter++;
+  }
+  
+  this (AABB p_aabb, CollisionType p_collisionType)
+  {
+    collisionType = p_collisionType;
+    
     id = idCounter++;
     
-    setAABB(m_position);
+    m_aabb = p_aabb;
   }
   
-  vec2 m_position = vec2(0.0, 0.0);
+  vec2 position = vec2(0.0, 0.0);
   vec2 velocity = vec2(0.0, 0.0);
   
-  @property vec2 position() { return m_position; }
-  
-  @property vec2 position(vec2 p_position)
-  {
-    setAABB(p_position);
-    
-    return m_position = p_position;
-  }
-  
-  void setAABB(vec2 position)
-  {
-    vec2i pos = vec2i(cast(int)position.x, cast(int)position.y);
-    
-    int rad = radius < 1.0 ? 1 : cast(int)radius;
-    
-    aabb = AABB(vec3(pos.x - rad, pos.y - rad, 0.0), vec3(pos.x + rad, pos.y + rad, 0.0));
-  }
-  
-  float radius;
+  float radius = -1.0;
   
   vec4 color = vec4(1, 1, 1, 1);
   
@@ -159,7 +150,17 @@ class ColliderComponent
   //float lifetime = float.infinity;
   float health = float.infinity;
   
-  AABB aabb;
+  AABB m_aabb;
+  
+  @property AABB aabb()
+  {
+    assert(m_aabb.min.ok);
+    assert(m_aabb.max.ok);
+    
+    return AABB(m_aabb.min + vec3(position, 0.0), m_aabb.max + vec3(position, 0.0)); 
+  }
+  
+  //AABB getAbsoluteAABB() { return AABB(aabb.min + vec3(position, 0.0), aabb.max + vec3(position, 0.0)); }
   
   // we might not want stuff to collide from the entity it spawned from
   int spawnedFrom;
@@ -249,26 +250,48 @@ protected:
   
   ColliderComponent createComponent(Entity p_entity)
   {
-    //writeln("collider creating component from values " ~ to!string(p_entity.values));
+    //debug writeln("collider creating component from values " ~ to!string(p_entity.values));
   
-    enforce("radius" in p_entity.values, "Cannot create collider component without radius");
+    enforce("radius" in p_entity.values || 
+            ("lowerleft" in p_entity.values && "upperright" in p_entity.values) ||
+            ("width" in p_entity.values && "height" in p_entity.values), "Collider component must have either radius, width/height or lowerleft/upperright values");
   
-    float radius = to!float(p_entity.getValue("radius"));
+    float radius = -1.0;
+    AABB aabb;
+    if ("radius" in p_entity)
+    {
+      radius = p_entity["radius"].to!float;
     
-    enforce(radius >= 0.0, "Cannot create collider component with negative radius");
+      enforce(radius >= 0.0, "Cannot create collider component with negative radius");
+    }
+    else if ("width" in p_entity && "height" in p_entity)
+    {
+      float width = p_entity["width"].to!float;
+      float height = p_entity["height"].to!float;
+      
+      enforce(width >= 0.0 && height >= 0.0, "Cannot create collider component with negative width or height");
+      
+      aabb.min = vec3(-width/2.0, -height/2.0, 0.0);
+      aabb.max = vec3(width/2.0, height/2.0, 0.0);
+    }
+    else if ("lowerleft" in p_entity && "upperright" in p_entity)
+    {
+      aabb.min = p_entity["lowerleft"].to!(float[])[0..2].vec3;
+      aabb.max = p_entity["upperright"].to!(float[])[0..2].vec3;
+    }
     
-    auto collisionType = to!CollisionType(p_entity.getValue("collisionType"));
-    enforce(collisionType != CollisionType.Unknown, "Tried to create collision component from entity with unknown collision type " ~ p_entity.getValue("collisionType"));
+    auto collisionType = p_entity["collisionType"].to!CollisionType;
+    enforce(collisionType != CollisionType.Unknown, "Tried to create collision component from entity with unknown collision type " ~ p_entity["collisionType"]);
     
-    auto colliderComponent = new ColliderComponent(radius, collisionType);
+    auto colliderComponent = (radius >= 0.0) ? new ColliderComponent(radius, collisionType) : new ColliderComponent(aabb, collisionType);
     
     if ("owner" in p_entity.values)
-      colliderComponent.ownerId = to!int(p_entity.getValue("owner"));
+      colliderComponent.ownerId = p_entity.getValue("owner").to!int;
     
     if ("spawnedFrom" in p_entity.values)
-      colliderComponent.spawnedFrom = p_entity.getValue("spawnedFrom").to!int;
+      colliderComponent.spawnedFrom = p_entity["spawnedFrom"].to!int;
     if ("spawnedFromOwner" in p_entity.values)
-      colliderComponent.spawnedFromOwner = p_entity.getValue("spawnedFromOwner").to!int;
+      colliderComponent.spawnedFromOwner = p_entity["spawnedFromOwner"].to!int;
     
     if ("position" in p_entity.values)
       colliderComponent.position = vec2(p_entity.getValue("position").to!(float[])[0..2]);
@@ -280,11 +303,10 @@ protected:
       //colliderComponent.lifetime = to!float(p_entity.getValue("lifetime"));
       
     if ("health" in p_entity.values)
-      colliderComponent.health = to!float(p_entity.getValue("health"));
+      colliderComponent.health = p_entity.getValue("health").to!float;
     
     if ("color" in p_entity)
       colliderComponent.color = p_entity["color"].to!(float[])[0..4].vec4;
-      
     
     return colliderComponent;
   }
@@ -323,7 +345,7 @@ private:
       
       //debug writeln("candidates: " ~ candidates.map!(candidate => candidate.id.to!string).to!string);
       
-      //debug writeln("collisionchecking component with id " ~ component.id.to!string ~ " and CollisionType " ~ component.collisionType.to!string ~ " against " ~ candidates.length.to!string ~ " candidates");
+      //debug writeln("collisionchecking component with id " ~ component.id.to!string ~ " and CollisionType " ~ component.collisionType.to!string ~ " against " ~ candidates.array.length.to!string ~ " candidates");
       
       auto first = component;
       
@@ -333,15 +355,80 @@ private:
 
         assert(first.id != second.id);
         
-        //debug writeln("distance to candidate " ~ candidate.id.to!string ~ ": " ~ (first.position - second.position).length.to!string);
+        //debug writeln("distance to candidate " ~ candidate.id.to!string ~ " with type " ~ candidate.collisionType.to!string ~ ": " ~ (first.position - second.position).length.to!string);
+        // check radius or AABB?
         
-        if ((first.position - second.position).length < (first.radius + second.radius))
+        bool intersection = false;
+        bool leftIntersect = false;
+        bool rightIntersect = false;
+        bool downIntersect = false;
+        bool upIntersect = false;
+        
+        if (first.radius >= 0.0 && second.radius >= 0.0)
+        {
+          intersection = (first.position - second.position).length < (first.radius + second.radius);
+        }
+        else if ((first.radius >= 0.0 && second.radius < 0.0) || (first.radius < 0.0 && second.radius >= 0.0))
+        {
+          auto circleComponent = (first.radius >= 0.0) ? first : second;
+          auto aabbComponent = (first.radius >= 0.0) ? second : first;
+          
+          auto relativePosition = (circleComponent.position - (aabbComponent.aabb.center.vec2));
+          auto relativeAABB = AABB.from_points(aabbComponent.aabb.vertices.map!(vert => vert - aabbComponent.aabb.center).array);
+          
+          /*intersection = relativePosition.x < (aabbComponent.aabb.max.x + circleComponent.radius) &&
+                         relativePosition.x > (aabbComponent.aabb.min.x - circleComponent.radius) &&
+                         relativePosition.y < (aabbComponent.aabb.max.y + circleComponent.radius) &&
+                         relativePosition.y > (aabbComponent.aabb.min.y - circleComponent.radius);*/
+
+          rightIntersect = relativePosition.x < (relativeAABB.max.x + circleComponent.radius);
+          leftIntersect = relativePosition.x > (relativeAABB.min.x - circleComponent.radius);
+          downIntersect = relativePosition.y < (relativeAABB.max.y + circleComponent.radius);
+          upIntersect = relativePosition.y > (relativeAABB.min.y - circleComponent.radius);
+                         
+          intersection = relativePosition.x < (relativeAABB.max.x + circleComponent.radius) &&
+                         relativePosition.x > (relativeAABB.min.x - circleComponent.radius) &&
+                         relativePosition.y < (relativeAABB.max.y + circleComponent.radius) &&
+                         relativePosition.y > (relativeAABB.min.y - circleComponent.radius);
+          
+          //debug writeln("intersection " ~ (intersection?"true":"false") ~ " between circleComponent with radius " ~ circleComponent.radius.to!string ~ " and aabbComponent with " ~ relativeAABB.to!string ~ ", relative position " ~ relativePosition.to!string);
+        }
+        else
+        {
+          intersection = first.aabb.intersects(second.aabb);
+        }
+        
+        //if ((first.position - second.position).length < (first.radius + second.radius))
+        if (intersection)
         {
           // determine contact point
           vec2 normalizedContactPoint = (second.position - first.position).normalized(); // / (first.radius + second.radius); // * first.radius;
 
           //vec2 contactPoint = normalizedContactPoint * (1.0/(first.radius + second.radius)) * first.radius;
-          vec2 contactPoint = normalizedContactPoint * (first.radius^^2 / (first.radius + second.radius));
+          vec2 contactPoint;
+          if (first.radius >= 0.0 && second.radius >= 0.0)
+          {
+            contactPoint = normalizedContactPoint * (first.radius^^2 / (first.radius + second.radius));
+          }
+          else if ((first.radius >= 0.0 && second.radius < 0.0) || (first.radius < 0.0 && second.radius >= 0.0))
+          {
+            auto circleComponent = (first.radius >= 0.0) ? first : second;
+            auto aabbComponent = (first.radius >= 0.0) ? second : first;
+            
+            if (leftIntersect)
+              contactPoint = vec2(aabbComponent.aabb.min.x, circleComponent.position.y);
+            if (rightIntersect)
+              contactPoint = vec2(aabbComponent.aabb.max.x, circleComponent.position.y);
+            if (downIntersect)
+              contactPoint = vec2(circleComponent.position.x, aabbComponent.aabb.max.y);
+            if (upIntersect)
+              contactPoint = vec2(circleComponent.position.x, aabbComponent.aabb.min.y);
+              
+            //debug writeln("circle/aabb contactpoint " ~ contactPoint.to!string);
+              
+            //auto relativePosition = (circleComponent.position - (aabbComponent.aabb.center.vec2));
+            //auto relativeAABB = AABB.from_points(aabbComponent.aabb.vertices.map!(vert => vert - aabbComponent.aabb.center).array);
+          }
           
           //debug writeln("contactpoint: " ~ contactPoint.to!string ~ ", first radius: " ~ first.radius.to!string ~ ", second radius: " ~ second.radius.to!string);
           

@@ -1,5 +1,7 @@
-brick.drawsource = Quad
-brick.radius = 0.05
-brick.color = [0.5, 1.0, 0.0, 0.5]
-brick.collisionType = Brick
-brick.health = 4.0
+drawsource = Rectangle
+#radius = 0.05
+width = 0.1
+height = 0.1
+color = [0.5, 1.0, 0.0, 0.5]
+collisionType = Brick
+health = 4.0
