@@ -54,6 +54,8 @@ void bulletCollisionResponse(Collision collision, CollisionHandler collisionHand
   
     //vec2 collisionPosition = (collision.first.position + collision.second.position) * 0.5 + collision.contactPoint;
     vec2 collisionPosition = collision.contactPoint;
+    
+    assert(collisionPosition.ok);
   
     //debug writeln("collision first pos: " ~ collision.first.position.to!string ~ ", second pos: " ~ collision.second.position.to!string ~ ", contact point: " ~ collision.contactPoint.to!string);
     //debug writeln("calculated collisionpos: " ~ collisionPosition.to!string);
@@ -66,13 +68,13 @@ void bulletCollisionResponse(Collision collision, CollisionHandler collisionHand
       vec2 collisionVelocity = (collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * 
                                -0.1 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 2.0;
       
-      particleValues["position"] = to!string(collisionPosition);
-      particleValues["rotation"] = to!string(uniform(-3600, 3600));
-      particleValues["velocity"] = to!string((collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * -0.1 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 5.0);
+      particleValues["position"] = collisionPosition.to!string;
+      particleValues["rotation"] = uniform(-3600, 3600).to!string;
+      particleValues["velocity"] = ((collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * -0.1 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 5.0).to!string;
       particleValues["drawsource"] = "Quad";
       particleValues["radius"] = ((collision.first.collisionType == CollisionType.Bullet) ? collision.first.radius : collision.second.radius).to!string; //to!string(uniform(0.15, 0.25));
-      particleValues["mass"] = to!string(uniform(0.02, 0.1));
-      particleValues["lifetime"] = to!string(uniform(0.5, 2.0));
+      particleValues["mass"] = uniform(0.02, 0.1).to!string;
+      particleValues["lifetime"] = uniform(0.5, 2.0).to!string;
       //particleValues["collisionType"] = "Particle";
       
       //m_spawnParticleValues ~= particleValues;

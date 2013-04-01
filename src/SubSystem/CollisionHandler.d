@@ -414,15 +414,20 @@ private:
             
             //debug writeln(leftIntersect.to!string ~ " " ~ rightIntersect.to!string ~ " " ~ downIntersect.to!string ~ " " ~ upIntersect.to!string);
             
+            // TODO: what about corner collisions, with multi-side intersections?
             if (leftIntersect)
               contactPoint = vec2(aabbComponent.aabb.min.x, circleComponent.position.y);
-            if (rightIntersect)
+            else if (rightIntersect)
               contactPoint = vec2(aabbComponent.aabb.max.x, circleComponent.position.y);
-            if (downIntersect)
+            else if (downIntersect)
               contactPoint = vec2(circleComponent.position.x, aabbComponent.aabb.max.y);
-            if (upIntersect)
+            else if (upIntersect)
               contactPoint = vec2(circleComponent.position.x, aabbComponent.aabb.min.y);
+            else // should not happen, just make a best effort instead of sending off a bogus contactPoint position
+              contactPoint = (circleComponent.position + aabbComponent.position) * 0.5;
               
+            assert(contactPoint.ok);
+            
             //debug writeln("circle/aabb contactpoint " ~ contactPoint.to!string);
               
             //auto relativePosition = (circleComponent.position - (aabbComponent.aabb.center.vec2));

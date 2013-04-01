@@ -202,7 +202,10 @@ public:
 
     foreach (name; orderedEntityNames)
     {
+      assert(name in entities, "Could not find entity named " ~ name ~ ", existing entity names: " ~ entities.keys.to!string);
+      
       //debug writeln("registering entity " ~ name ~ " with values " ~ entities[name].values.to!string);
+      
       registerEntity(entities[name]);
     }
   }

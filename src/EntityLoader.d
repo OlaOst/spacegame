@@ -342,7 +342,7 @@ string[string] expandValues(ref string[string] p_values)
       
       auto expandedValues = expandValues(keyValues);
     
-      //debug writeln("expanding " ~ p_values.to!string ~ " to " ~ expandedValues.to!string);
+      //debug writeln("expanding from " ~ p_values.to!string ~ ": " ~ expandedValues.to!string);
     
       foreach (key, value; expandedValues)
       {
@@ -373,7 +373,7 @@ Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref
 
   // split lines into entity sections, each with unique name
   string[string][string] namedValues;
-    
+  
   foreach (string line; p_lines)
   {
     line = line.strip;
@@ -422,16 +422,19 @@ Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref
   
   //debug writeln("fully expanded values: " ~ namedValues.to!string);
   
-  // recursively expand entity collections
-  // or not, assume they are already expanded
-  /*foreach (name, keyValues; namedValues)
+  // replace values like "0 to 10" with randomized values
+  foreach (name, keyValues; namedValues)
   {
-    string fixedName = name;
-    while (fixedName.findSkip(".")) {}
-    
-    if (fixedName ~ ".source" in keyValues)
+    namedValues[name] = parseRandomizedValues(keyValues);
+  }
+  
+  // expand collectionsource - collection of entities in another file
+  // TODO: this messes up orderedEntityNames a bit - can be problematic if entities defined before collectionsource depends on stuff in the collectionsource
+  foreach (name, keyValues; namedValues)
+  {
+    if ("collectionsource" in namedValues[name])
     {
-      auto fileName = keyValues[fixedName ~ ".source"];
+      auto fileName = namedValues[name]["collectionsource"];
       
       auto fixedFileName = fileName;
       if (fixedFileName.startsWith("data/") == false)
@@ -440,35 +443,19 @@ Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref
       string[] fileLines;
       foreach (string line; fixedFileName.File.lines)
         fileLines ~= line;
-        
-      debug writeln(fileLines.to!string);
-        
-      foreach (entityName, entity; loadEntityCollection(name, fileLines, orderedEntityNames))
+      
+      //string[] orderedEntityNames;
+      auto subEntities = EntityLoader.loadEntityCollection(name, fileLines, orderedEntityNames);
+      
+      foreach (entity; subEntities)
       {
-        debug writeln("entity from source: " ~ entityName ~ " vs ownername: " ~ name);
-        
-        if (entityName == name)
-        {
-          
-        }
-        
-        string fixedEntityName = entityName;
-        while (fixedEntityName.findSkip(".")) {}
-        if (fixedEntityName == "connectpoint" || fixedEntityName == "spawn" || fixedEntityName == "*")
-          continue;
-
-        entities[entityName] = entity;
+        assert(entity["name"] !in entities, "Entity name clash when loading from collectionsource " ~ name);
+        entities[name ~ "." ~ entity["name"]] = entity;
       }
+      
+      //debug writeln("expanded " ~ name ~ " into " ~ entities.to!string);
     }
   }
-  */
-  
-  // replace values like "0 to 10" with randomized values
-  foreach (name, keyValues; namedValues)
-  {
-    namedValues[name] = parseRandomizedValues(keyValues);
-  }
-  
   
   // create entities out of values
   int[string] nameIdMapping;
@@ -504,7 +491,8 @@ Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref
     
     entities[name] = entity;
   }
-    
+  
+  //debug writeln("all entities from " ~ collectionName ~ ": " ~ entities.to!string);
   
   // replace certain values referring to names with ids, so that subsystems can properly register them
   foreach (name, ref keyValues; namedValues)
