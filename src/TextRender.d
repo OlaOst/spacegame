@@ -40,7 +40,8 @@ import gl3n.linalg;
 import sprite;
 import Utils;
 
-unittest
+// external dependencies on libs that load stuff from disk makes unittests not make much sense here
+/+unittest
 {
   scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
@@ -74,7 +75,7 @@ unittest
       writeln("testing kerning, vec2 between " ~ cast(char)a ~ " and " ~ cast(char)b ~ " is " ~ to!string(kerningvec2.x) ~ "x" ~ to!string(kerningvec2.y));
     }
   }*/
-}
+}+/
 
 
 class TextRender

@@ -54,7 +54,8 @@ import TextRender;
 import Utils;
 
 
-unittest
+// TODO: decouple Graphics from SDL and OpenGL if unittests are really wanted
+/*unittest
 {
   scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
@@ -111,7 +112,7 @@ unittest
   graphics.registerEntity(text);
 
   graphics.update();
-}
+}*/
 
 
 enum DrawSource
@@ -168,6 +169,7 @@ public:
   
   DrawSource drawSource = DrawSource.Unknown;
   AABB aabb;
+  bool useAABB = false;
   
   vec2[] connectPoints;
   vec4 color = vec4(1, 1, 1, 1);
@@ -276,7 +278,7 @@ public:
       {
         componentsInBox ~= component;
       }
-      else if (component.radius >= 0.0 &&
+      else if (!component.useAABB &&
           !((component.position - center).x < drawBox.min.x - component.radius ||
             (component.position - center).x > drawBox.max.x + component.radius ||
             (component.position - center).y < drawBox.min.y - component.radius ||
@@ -719,9 +721,15 @@ protected:
     
     //auto component = (radius >= 0.0) ? GraphicsComponent(radius, collisionType) : GraphicsComponent(aabb, collisionType);
     if (radius >= 0.0)
+    {
       component.radius = radius;
+      component.useAABB = false;
+    }
     else
+    {
       component.aabb = aabb;
+      component.useAABB = true;
+    }
     
     //debug writeln("created component for " ~ p_entity["name"] ~ " with radius " ~ radius.to!string ~ ", aabb " ~ aabb.to!string);
     

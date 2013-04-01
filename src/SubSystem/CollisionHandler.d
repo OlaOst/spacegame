@@ -62,7 +62,7 @@ unittest
   sys.determineCollisions();
   assert(sys.collisions.length == 0);
   
-  Entity collide = new Entity(["radius":"2.0", "collisionType":"Bullet"]);
+  Entity collide = new Entity(["radius":"2.0", "collisionType":"Bullet", "health":"1.0"]);
 
   sys.registerEntity(collide);
   
@@ -72,24 +72,26 @@ unittest
 
   assert(sys.collisions.length == 0);
   sys.determineCollisions();
-  assert(sys.collisions.length == 1);
+  assert(sys.collisions.length == 1, "Expected 1 collision, got " ~ sys.collisions.length.to!string);
   
   //assert(sys.collisions[0].first == sys.getComponent(entity));
   //assert(sys.collisions[0].second == sys.getComponent(collide));
   
   
-  Entity noCollide = new Entity(["radius":"2.0", "collisionType":"Asteroid", "position":"10 0"]);
+  Entity noCollide = new Entity(["radius":"2.0", "collisionType":"Asteroid", "position":"[10, 0]"]);
   
   sys.registerEntity(noCollide);
   
   assert(sys.entities.length == 3);
   
   sys.determineCollisions();
-  assert(sys.collisions.length == 1, "Should be 1 collision, instead got " ~ to!string(sys.collisions.length));
+  assert(sys.collisions.length == 1, "Should be 1 collision, instead got " ~ sys.collisions.length.to!string);
   
   sys.determineCollisions();
   
-  assert(sys.getComponent(collide).health <= 0.0, "Collided bullet didn't get health zeroed: " ~ to!string(sys.getComponent(collide).health));
+  sys.executeCollisionResponses();
+  
+  assert(sys.getComponent(collide).health <= 0.0, "Collided bullet didn't get health zeroed: " ~ sys.getComponent(collide).health.to!string);
 }
 
 
@@ -196,6 +198,9 @@ public:
   {
     CollisionResponseFunction bulletHit = function (collision, this) { writeln("collision between " ~ collision.first.collisionType.to!string ~ " and " ~ collision.second.collisionType.to!string); };
     //typesThatCanCollideAndWhatHappensThen[[CollisionType.Bullet, CollisionType.Brick]] = bulletHit;
+    
+    // TODO: collision responses should be defined in a config file
+    typesThatCanCollideAndWhatHappensThen[[CollisionType.Bullet, CollisionType.NpcShip]] = &bulletBrickCollisionResponse;
     
     typesThatCanCollideAndWhatHappensThen[[CollisionType.Bullet, CollisionType.Brick]] = &bulletBrickCollisionResponse;
     typesThatCanCollideAndWhatHappensThen[[CollisionType.Ball, CollisionType.Wall]] = &ballCollisionResponse;

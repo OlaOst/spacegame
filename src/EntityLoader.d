@@ -290,7 +290,7 @@ unittest
   assert("test.external" in entities);
   assert(entities["test.external"]["source"] == "cannon.txt");
   //assert(entities["test.external"]["drawsource"] == "images/cannon.txt");
-  writeln(entities["test.external"].values.to!string);
+  //debug writeln(entities["test.external"].values.to!string);
 }
 
 unittest
@@ -301,7 +301,7 @@ unittest
   
   auto expandedValues = expandValues(values);
  
-  debug writeln("expanded values: " ~ expandedValues.to!string);
+  //debug writeln("expanded values: " ~ expandedValues.to!string);
  
   assert(expandedValues["source"] == "cannon.txt");
   assert(expandedValues["foo"] == "bar");

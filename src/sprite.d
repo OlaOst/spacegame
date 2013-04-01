@@ -3,6 +3,7 @@ module sprite;
 import std.algorithm;
 import std.array;
 import std.math;
+import std.stdio;
 
 import glamour.texture;
 import gl3n.aabb;
@@ -25,7 +26,7 @@ struct Sprite
                                     
   vec3 position = vec3(0.0, 0.0, 0.0);
   float angle = 0.0;
-  float scale = -1.0;
+  float scale = 1.0;
   
   vec3[] _vertices;
   
@@ -128,8 +129,8 @@ struct Sprite
     Sprite rotateTest;
     rotateTest.angle = PI / 4.0;
     
-    vec3[] rotateExpected = rotateTest.origo.dup.map!(vector => vec3(cos(rotateTest.angle) * vector.x - sin(rotateTest.angle) * vector.y, 
-                                                                     sin(rotateTest.angle) * vector.x + cos(rotateTest.angle) * vector.y, 
+    vec3[] rotateExpected = rotateTest.origo.dup.map!(vector => vec3(cos(-rotateTest.angle) * vector.x - sin(-rotateTest.angle) * vector.y, 
+                                                                     sin(-rotateTest.angle) * vector.x + cos(-rotateTest.angle) * vector.y, 
                                                                      vector.z)).array();
     
     auto rotateResult = rotateTest.transformVertices(origo.dup);
@@ -141,8 +142,8 @@ struct Sprite
     translateAndRotateTest.position = vec3(10.0, 0.0, 0.0);
     translateAndRotateTest.angle = PI / 3.0;
     
-    auto translateAndRotateExpected = translateAndRotateTest.origo.dup.map!(vector => vec3(cos(translateAndRotateTest.angle) * vector.x - sin(translateAndRotateTest.angle) * vector.y, 
-                                                                                           sin(translateAndRotateTest.angle) * vector.x + cos(translateAndRotateTest.angle) * vector.y, 
+    auto translateAndRotateExpected = translateAndRotateTest.origo.dup.map!(vector => vec3(cos(-translateAndRotateTest.angle) * vector.x - sin(-translateAndRotateTest.angle) * vector.y, 
+                                                                                           sin(-translateAndRotateTest.angle) * vector.x + cos(-translateAndRotateTest.angle) * vector.y, 
                                                                                                vector.z))
                                                                       .map!(vector => vector + translateAndRotateTest.position).array();
     
@@ -156,8 +157,8 @@ struct Sprite
     translateRotateAndScaleTest.angle = PI / 2.0;
     translateRotateAndScaleTest.scale = 0.5;
     
-    auto translateRotateAndScaleExpected = translateRotateAndScaleTest.origo.dup.map!(vector => vec3(cos(translateRotateAndScaleTest.angle) * vector.x - sin(translateRotateAndScaleTest.angle) * vector.y, 
-                                                                                                     sin(translateRotateAndScaleTest.angle) * vector.x + cos(translateRotateAndScaleTest.angle) * vector.y, 
+    auto translateRotateAndScaleExpected = translateRotateAndScaleTest.origo.dup.map!(vector => vec3(cos(-translateRotateAndScaleTest.angle) * vector.x - sin(-translateRotateAndScaleTest.angle) * vector.y, 
+                                                                                                     sin(-translateRotateAndScaleTest.angle) * vector.x + cos(-translateRotateAndScaleTest.angle) * vector.y, 
                                                                                                      vector.z))
                                                                                 .map!(vector => vec3(vector.x * translateRotateAndScaleTest.scale, vector.y * translateRotateAndScaleTest.scale, vector.z))
                                                                                 .map!(vector => vector + translateRotateAndScaleTest.position).array();
@@ -171,6 +172,14 @@ struct Sprite
     auto transform = mat4.identity;
     
     transform = transform.scale(scale, scale, 1.0).rotatez(-angle).translate(position.x, position.y, position.z);
+    
+    //debug writeln("scale " ~ scale.to!string ~ ", angle " ~ angle.to!string ~ ", pos " ~ position.to!string);
+    //debug writeln("identity :       " ~ mat4.identity.to!string);
+    //debug writeln("scale    :       " ~ mat4.identity.scale(scale, scale, 1.0).to!string);
+    //debug writeln("scale/rot:       " ~ mat4.identity.scale(scale, scale, 1.0).rotatez(-angle).to!string);
+    //debug writeln("scale/rot/trans: " ~ mat4.identity.scale(scale, scale, 1.0).rotatez(-angle).translate(position.x, position.y, position.z).to!string);
+    
+    //debug writeln("transform: " ~ transform.to!string ~ ", translate: " ~ mat4.identity.translate(position.x, position.y, position.z).to!string);
     
     vec3[] verts = vertices.dup;
     

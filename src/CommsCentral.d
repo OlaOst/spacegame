@@ -44,7 +44,7 @@ unittest
   auto placer = new Placer();
   auto physics = new Physics();
   
-  Entity entity = new Entity(["position":"1 2", "mass":"1"]);
+  Entity entity = new Entity(["position":"[1, 2]", "mass":"1"]);
   
   placer.registerEntity(entity);
   physics.registerEntity(entity);
