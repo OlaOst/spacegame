@@ -30,14 +30,15 @@ import SubSystem.Graphics;
 import gl3n.linalg;
 
 
-unittest
+// TODO: cannot unittest because of dependency to graphics which depends on SDL and opengl
+/+unittest
 {
   string[][string] dummyCache;
   
   Starfield starfield = new Starfield(new Graphics(dummyCache, 256, 128), 20);
   
   assert(starfield.m_stars.length > 0);
-}
+}+/
 
 
 // TODO: parallax scrolling stuff
