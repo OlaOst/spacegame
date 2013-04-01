@@ -87,7 +87,7 @@ unittest
   sys.determineCollisions();
   assert(sys.collisions.length == 1, "Should be 1 collision, instead got " ~ to!string(sys.collisions.length));
   
-  sys.calculateCollisionResponse();
+  sys.determineCollisions();
   
   assert(sys.getComponent(collide).health <= 0.0, "Collided bullet didn't get health zeroed: " ~ to!string(sys.getComponent(collide).health));
 }

@@ -56,7 +56,7 @@ unittest
   stream.printInfo();
   
   // this will continue playing until ctrl-c
-  while (stream.update())
+  /*while (stream.update())
   {
     if (stream.playing() == false)
     {
@@ -64,7 +64,7 @@ unittest
       
       writeln("Ogg stream interrupted");
     }
-  }
+  }*/
 }
 
 
