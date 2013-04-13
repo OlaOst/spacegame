@@ -495,7 +495,7 @@ Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref
   //debug writeln("all entities from " ~ collectionName ~ ": " ~ entities.to!string);
   
   // replace certain values referring to names with ids, so that subsystems can properly register them
-  foreach (name, ref keyValues; namedValues)
+  /+foreach (name, ref keyValues; namedValues)
   {
     foreach (key, value; keyValues)
     {
@@ -523,7 +523,7 @@ Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref
         entities[name].setValue(fixedKey, nameIdMapping[fullName].to!string);
       }
     }
-  }
+  }+/
   
   return entities;
 }

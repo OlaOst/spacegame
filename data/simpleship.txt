@@ -1,7 +1,12 @@
 health = 25.0
 
+#isRelation = true
+#name = simpleship
+
 mainSkeleton.source = verticalskeleton.txt
 mainSkeleton.health = 20.0
+#mainSkeleton.relationName = simpleship
+#mainSkeleton.relativePosition = [0.0, 0.0]
 
 engineSkeleton.source = horizontalskeleton.txt
 engineSkeleton.connection = mainSkeleton.lower

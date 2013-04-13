@@ -10,7 +10,7 @@ body.radius = 0.6
 body.mass = 0.2
 
 engine.source = engine.txt
-engine.connection = body.lower
+#engine.connection = body.lower
 engine.radius = 0.3
 engine.mass = 0.1
 engine.control = Chaser

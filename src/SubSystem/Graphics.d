@@ -782,10 +782,14 @@ protected:
       
       if (imageFile !in m_imageToTexture)
       {
+        //debug writeln("loading texture " ~ imageFile);
+        
         //loadTexture(imageFile);
         auto texture = Texture2D.from_image(imageFile);
         
         m_imageToTexture[imageFile] = texture;
+        
+        //debug writeln("finished loading texture " ~ imageFile);
       }
       
       assert(imageFile in m_imageToTexture, "Problem with imageToTexture cache");
@@ -1195,6 +1199,9 @@ private:
     DerelictGL3.load();
    
     enforce(SDL_Init(SDL_INIT_VIDEO) == 0, "Failed to initialize SDL: " ~ to!string(SDL_GetError()));
+    
+    enforce(IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG) & (IMG_INIT_JPG | IMG_INIT_PNG), "IMG_Init failed: " ~ IMG_GetError().to!string);
+    //enforce(IMG_Init(0) & (IMG_INIT_JPG | IMG_INIT_PNG), "IMG_Init failed: " ~ IMG_GetError().to!string);
     
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);

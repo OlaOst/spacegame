@@ -21,6 +21,7 @@ backdrop.hideFromRadar = true
 
 # greeting text
 greeting.text = Welcome!\nPage Up/Down zooms in/out\nArrow keys accelerates and rotates your ship\nX brakes, Z and C for strafing
+greeting.radius = 0.5
 greeting.position = [-9, -5]
 #greeting.depth = top
 
@@ -40,8 +41,8 @@ trashbin.radius = 2.0
 # playership controllable by player
 #playership.source = playership.txt
 playership.source = simpleship.txt
-playership.leftEngine.control = playerEngine
-playership.rightEngine.control = playerEngine
+playership.leftEngine.control = PlayerEngine
+playership.rightEngine.control = PlayerEngine
 playership.leftGun.control = PlayerLauncher
 playership.leftGun.reloadTime = 0.1
 playership.rightGun.control = PlayerLauncher
@@ -129,6 +130,7 @@ stationPlateDispenser.control = Dispenser
 
 # description text for dispensers
 blueprinttext.text = These are module dispensers\nClick and drag modules out of them\nThey can be put on free connectpoints on your ship
+blueprinttext.radius = 0.5
 blueprinttext.position = [3, 6]
 
 # junkfield with modules ready for the pickings

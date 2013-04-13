@@ -430,6 +430,8 @@ private:
       
       case SDL_MOUSEMOTION:
       {
+        //debug writeln("mouse motion: " ~ event.motion.to!string),
+        
         m_mousePos = pixelToViewPort(event.motion.x, event.motion.y);
         
         break;
