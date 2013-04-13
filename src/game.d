@@ -924,67 +924,6 @@ private:
     }
   }
   
-  string[string] parseRandomizedValues(string[string] inValues)
-  {
-    string[string] outValues = inValues.dup;
-    
-    if ("position" in inValues && inValues["position"].find("to").length > 0)
-    {
-      /*auto positionData = inValues["position"].split(" ");      
-      
-      assert(positionData.length == 5, "Problem parsing position data with from/to values: " ~ to!string(positionData));*/
-      
-      //auto fromX = to!float(positionData[0]);
-      //auto fromY = to!float(positionData[1]);
-      //auto toX = to!float(positionData[3]);
-      //auto toY = to!float(positionData[4]);
-      
-      //auto x = (fromX == toX) ? fromX : uniform(fromX, toX);
-      //auto y = (fromY == toY) ? fromY : uniform(fromY, toY);
-      
-      auto fromToData = inValues["position"].split("to");
-      auto from = fromToData[0].strip.to!(float[]);
-      auto to = fromToData[1].strip.to!(float[]);
-      
-      auto x = (from[0] == to[0]) ? from[0] : uniform(from[0], to[0]);
-      auto y = (from[1] == to[1]) ? from[1] : uniform(from[1], to[1]);
-      
-      auto position = vec2(x, y);
-      
-      outValues["position"] = position.toString();
-    }
-    
-    if ("angle" in inValues && inValues["angle"].find("to").length > 0)
-    {
-      auto angleData = inValues["angle"].split(" ");
-      
-      assert(angleData.length == 3, "Problem parsing angle data with from/to values: " ~ to!string(angleData));
-      
-      auto fromAngle = to!float(angleData[0]);
-      auto toAngle = to!float(angleData[2]);
-      
-      auto angle = uniform(fromAngle, toAngle);
-      
-      outValues["angle"] = to!string(angle);
-    }
-    
-    if ("team" in inValues && inValues["team"].find("to").length > 0)
-    {
-      auto teamData = inValues["team"].split(" ");
-      
-      assert(teamData.length == 3, "Problem parsing team data with from/to values: " ~ to!string(teamData));
-      
-      int minTeam = to!int(teamData[0]);
-      int maxTeam = to!int(teamData[2]);
-      
-      auto team = uniform(minTeam, maxTeam+1);
-      
-      outValues["team"] = to!string(team);
-    }
-    
-    return outValues;
-  }
-    
   
   Entity findClosestShipGivenKeyValue(Entity p_entity, string key, string value)
   {
