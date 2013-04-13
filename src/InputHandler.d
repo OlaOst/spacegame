@@ -37,7 +37,7 @@ import gl3n.linalg;
 // TODO: remove dependencies to SDL to make proper unittests of this stuff
 /+unittest
 {
-  scope(success) writeln(__FILE__ ~ " unittests succeeded");
+  //scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
   
   DerelictSDL2.load();

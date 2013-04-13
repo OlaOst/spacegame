@@ -36,7 +36,7 @@ import SubSystem.Controller;
 
 unittest
 {
-  scope(success) writeln(__FILE__ ~ " unittests succeeded");
+  //scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
 
   // 0.5 avoid distance, 0.5 avoid weight, 5.0 flock distance, 0.3 flock weight

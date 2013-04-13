@@ -39,7 +39,7 @@ import derelict.openal.alut;
 
 unittest
 {
-  scope(success) writeln(__FILE__ ~ " unittests succeeded");
+  //scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
 
   // first initialize openal and oggvorbis

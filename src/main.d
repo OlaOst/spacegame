@@ -33,7 +33,7 @@ void main(string[] args)
   {
     // importing std.stdio here gives this compiler error: Assertion failure: '!vthis->csym' on line 713 in file 'glue.c' 
     // with dmd 2.053 - but works in dmd 2.062 :)
-    writeln("Unittest run - not running main program");
+    //debug writeln("Unittest run - not running main program");
   }
   else
   {

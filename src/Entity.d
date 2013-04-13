@@ -35,7 +35,7 @@ import gl3n.linalg;
 
 unittest
 {
-  scope(success) writeln(__FILE__ ~ " unittests succeeded");
+  //scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
   
   Entity entity = new Entity(["dummyValue":"123"]);

@@ -57,7 +57,7 @@ import Utils;
 // TODO: decouple Graphics from SDL and OpenGL if unittests are really wanted
 /*unittest
 {
-  scope(success) writeln(__FILE__ ~ " unittests succeeded");
+  //scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
   
   string[][string] dummyCache;

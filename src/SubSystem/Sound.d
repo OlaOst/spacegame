@@ -44,7 +44,7 @@ import SubSystem.Base;
 
 unittest
 {
-  scope(success) writeln(__FILE__ ~ " unittests succeeded");
+  //scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
   
   auto sys = new Sound(8);

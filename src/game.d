@@ -71,7 +71,7 @@ import SubSystem.Timer;
 // Game class has too many dependencies at the moment for unittesting to make sense
 /*unittest
 {
-  scope(success) writeln(__FILE__ ~ " unittests succeeded");
+  //scope(success) writeln(__FILE__ ~ " unittests succeeded");
   scope(failure) writeln(__FILE__ ~ " unittests failed");
   
   Game game = new Game();
