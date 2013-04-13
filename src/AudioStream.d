@@ -53,7 +53,7 @@ unittest
   
   auto stream = new AudioStream("data/sounds/orbitalelevator.ogg");
   
-  stream.printInfo();
+  //stream.printInfo();
   
   // this will continue playing until ctrl-c
   /*while (stream.update())
