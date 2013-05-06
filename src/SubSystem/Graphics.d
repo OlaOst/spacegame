@@ -258,7 +258,13 @@ public:
   
   ~this()
   {
-    //teardownDisplay();
+    textureShader.remove();
+    borderShader.remove();
+    quadShader.remove();
+    
+    verticesVBO.remove();
+    texVBO.remove();
+    colorVBO.remove();
   }
 
   GraphicsComponent[] getComponentsInBox(vec2 center, AABB drawBox)

@@ -390,7 +390,7 @@ private:
           rightIntersect = relativePosition.x > (relativeAABB.max.x - circleComponent.radius);
           downIntersect  = relativePosition.y < (relativeAABB.min.y + circleComponent.radius);
           upIntersect    = relativePosition.y > (relativeAABB.max.y - circleComponent.radius);
-                         
+
           //intersection = rightIntersect && leftIntersect && downIntersect && upIntersect;
           
           //debug writeln("intersection " ~ (intersection?"true":"false") ~ " between circleComponent with radius " ~ circleComponent.radius.to!string ~ " and aabbComponent with " ~ relativeAABB.to!string ~ ", relative position " ~ relativePosition.to!string);
@@ -420,7 +420,28 @@ private:
             //debug writeln(leftIntersect.to!string ~ " " ~ rightIntersect.to!string ~ " " ~ downIntersect.to!string ~ " " ~ upIntersect.to!string);
             
             // TODO: what about corner collisions, with multi-side intersections?
+            //if (leftIntersect && downIntersect)
+              //contactPoint = vec2(aabbComponent.aabb.min.x, circleComponent.position.y) + vec2(circleComponent.position.x, aabbComponent.aabb.max.y);
+              
+            vec2 leftContactPoint = vec2(aabbComponent.aabb.min.x, circleComponent.position.y);
+            vec2 rightContactPoint = vec2(aabbComponent.aabb.max.x, circleComponent.position.y);
+            vec2 downContactPoint = vec2(circleComponent.position.x, aabbComponent.aabb.max.y);
+            vec2 upContactPoint = vec2(circleComponent.position.x, aabbComponent.aabb.min.y);
+              
+            vec2[] contactPoints;
             if (leftIntersect)
+              contactPoints ~= rightContactPoint;
+            if (rightIntersect)
+              contactPoints ~= leftContactPoint;
+            if (downIntersect)
+              contactPoints ~= downContactPoint;
+            if (upIntersect)
+              contactPoints ~= upContactPoint;
+              
+            //contactPoint = contactPoints.reduce!((sum, point) => sum + point) * (1.0 / contactPoints.length);
+            contactPoint = contactPoints.minCount!((point1, point2) => point1.magnitude_squared > point2.magnitude_squared)[0];
+            
+            /*if (leftIntersect)
               contactPoint = vec2(aabbComponent.aabb.min.x, circleComponent.position.y);
             else if (rightIntersect)
               contactPoint = vec2(aabbComponent.aabb.max.x, circleComponent.position.y);
@@ -429,7 +450,7 @@ private:
             else if (upIntersect)
               contactPoint = vec2(circleComponent.position.x, aabbComponent.aabb.min.y);
             else // should not happen, just make a best effort instead of sending off a bogus contactPoint position
-              contactPoint = (circleComponent.position + aabbComponent.position) * 0.5;
+              contactPoint = (circleComponent.position + aabbComponent.position) * 0.5;*/
               
             assert(contactPoint.ok);
             

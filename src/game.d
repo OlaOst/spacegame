@@ -430,10 +430,10 @@ private:
     
     // TODO: make subsystem dedicated to removing entities. it should be responsible for values like lifetime and health 
     // TODO: ideally all this code should be handled by just setting values on the entity and then re-register it
-    foreach (entity; filter!(entity => m_collisionHandler.hasComponent(entity))(m_entities.values))
+    /+foreach (entity; filter!(entity => m_collisionHandler.hasComponent(entity))(m_entities.values))
     {
       auto colliderComponent = m_collisionHandler.getComponent(entity);
-    }
+    }+/
     
     auto entitiesToRemove = m_timer.getTimeoutEntities() ~ 
                             m_sound.getFinishedPlayingEntities() ~ 
@@ -894,7 +894,7 @@ private:
     //debug m_graphics.updateWithTiming();
     //else  m_graphics.update();
     m_graphics.updateWithTiming();
-    foreach (subSystem; taskPool.parallel(filter!(sys => sys !is m_graphics)(m_subSystems.values), 1))
+    foreach (subSystem; taskPool.parallel(m_subSystems.values.filter!(sys => sys !is m_graphics), 1))
     //foreach (subSystem; filter!(sys => sys !is m_graphics)(m_subSystems.values))
     {
       //debug subSystem.updateWithTiming();
