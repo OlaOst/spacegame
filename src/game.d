@@ -46,6 +46,7 @@ import Control.Dispenser;
 import Control.MouseFollower;
 import Control.PlayerEngine;
 import Control.PlayerLauncher;
+import Control.RiftTracker;
 
 import CommsCentral;
 import Console;
@@ -180,6 +181,7 @@ public:
     m_controller.controls["PlayerLauncher"] = new PlayerLauncher(m_inputHandler);
     m_controller.controls["PlayerEngine"] = new PlayerEngine(m_inputHandler);
     m_controller.controls["MouseFollower"] = m_mouseFollower = new MouseFollower(m_inputHandler);
+    m_controller.controls["RiftTracker"] = m_riftTracker = new RiftTracker(m_inputHandler);
     
     //SDL_EnableUNICODE(1);
     
@@ -987,6 +989,7 @@ private:
   
   Dispenser m_dispenser;
   MouseFollower m_mouseFollower;
+  RiftTracker m_riftTracker;
   
   string[][string] cache;
 }

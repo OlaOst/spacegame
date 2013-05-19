@@ -26,6 +26,7 @@ import std.stdio;
 import std.exception;
 import std.conv;
 
+import derelict.ovr.ovr;
 import derelict.sdl2.sdl;
 
 import gl3n.linalg;
@@ -278,6 +279,7 @@ class InputHandler
 invariant()
 {
   assert(m_mousePos.ok);
+  assert(m_riftOrientation.ok);
   
   //assert(m_screenWidth > 0);
   //assert(m_screenHeight > 0);
@@ -286,6 +288,10 @@ invariant()
 public:
   this()
   {
+    DerelictOVR.load();
+    
+    initRift(cast(char*)"test".ptr);
+    
     clearEventStates();
     
     foreach (event; m_events.keys)
@@ -321,6 +327,7 @@ public:
     //m_buttonEventMapping[SDL_BUTTON_WHEELDOWN] = Event.WheelDown;
     
     m_mousePos = vec2(0.0, 0.0);
+    m_riftOrientation = vec3(0.0, 0.0, 0.0);
   }
   
   void pollEvents()
@@ -342,6 +349,18 @@ public:
     {
       receiveEvent(event);
     }
+    
+    // TODO: hacking in oculus rift tracking here, needs a proper home
+    float roll;
+    float pitch;
+    float yaw;
+    float x;
+    float y;
+    float z;
+    
+    readRift(&roll, &pitch, &yaw, &x, &y, &z);
+    
+    m_riftOrientation = vec3(roll, pitch, yaw);
   }
   
   EventState[Event] events()
@@ -368,6 +387,11 @@ public:
   vec2 mousePos()
   {
     return m_mousePos;
+  }
+  
+  vec3 riftOrientation()
+  {
+    return m_riftOrientation;
   }
   
   SDL_Keysym[] getKeysPressed()
@@ -500,4 +524,6 @@ private:
   int m_screenHeight;
   
   vec2 m_mousePos;
+  
+  vec3 m_riftOrientation;
 }
