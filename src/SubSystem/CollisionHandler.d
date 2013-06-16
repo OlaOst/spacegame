@@ -439,6 +439,7 @@ private:
               contactPoints ~= upContactPoint;
               
             //contactPoint = contactPoints.reduce!((sum, point) => sum + point) * (1.0 / contactPoints.length);
+            assert(contactPoints.length > 0);
             contactPoint = contactPoints.minCount!((point1, point2) => point1.magnitude_squared > point2.magnitude_squared)[0];
             
             /*if (leftIntersect)

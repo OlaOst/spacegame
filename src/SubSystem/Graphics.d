@@ -305,8 +305,6 @@ public:
   
   void draw(vec2 center, float scale, AABB drawBox)
   {
-    glClear(GL_COLOR_BUFFER_BIT);
-    
     drawTextures(center, scale, drawBox);
     
     drawQuads(center, scale, drawBox);
@@ -583,7 +581,24 @@ public:
       }
     }
   
+    glClear(GL_COLOR_BUFFER_BIT);
+  
     draw(getCenterEntityPosition(), m_zoom, m_screenBox);
+  
+    //int screenWidth = 1280;
+    //int screenHeight = 800;
+    
+    //glViewport(screenWidth / 2, -(screenWidth - screenHeight) / 2, screenWidth, screenWidth);
+    
+    // oculus style render
+    // draw left eye half
+    //glViewport(0, 0, screenWidth / 2, screenHeight);
+    //draw(getCenterEntityPosition(), m_zoom, m_screenBox);
+    
+    // draw right eye half
+    //glViewport(screenWidth / 2, 0, screenWidth / 2, screenHeight);
+    //draw(getCenterEntityPosition(), m_zoom, m_screenBox);
+    
     
     swapBuffers();
   }
@@ -1215,6 +1230,7 @@ private:
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     
     window = SDL_CreateWindow("spacegame", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenWidth, screenHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+    //window = SDL_CreateWindow("spacegame", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenWidth, screenHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN);
     enforce(window !is null, "Error creating window");
     
     auto context = SDL_GL_CreateContext(window);

@@ -156,8 +156,8 @@ public:
     
     m_inputHandler = new InputHandler();
     
-    int xres = 1024;
-    int yres = 768;
+    int xres = 1280;
+    int yres = 800;
 
     
     m_subSystems["Placer"] = m_placer = new Placer();
