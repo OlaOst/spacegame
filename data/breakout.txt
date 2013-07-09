@@ -3,8 +3,8 @@ greeting.radius = 0.05
 greeting.text = Hello,\n world
 
 player.position = [-1.0, 0.0]
-#player.control = MouseFollower
-player.control = RiftTracker
+player.control = MouseFollower
+#player.control = RiftTracker
 player.isRelation = true
 
 bat.drawsource = images\horizontalskeleton.png
