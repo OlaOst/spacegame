@@ -36,7 +36,7 @@ gun.spawn.bullet.collisionType = Bullet
 gun.spawn.bullet.lifetime = 2.5
 
 
-ball.drawsource = Quad
+ball.drawsource = images\boulder2.png
 ball.radius = 0.1
 ball.color = [0.0, 1.0, 1.0, 1.0]
 ball.position = [0.0, 0.5]
