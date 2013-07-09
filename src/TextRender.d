@@ -89,10 +89,10 @@ public:
     
     enforce(FT_Init_FreeType(&lib) == false, "Error initializing FreeType");
     
-    //defaultFont = "freesansbold.ttf";
-    //defaultFont = "Inconsolata.otf";
-    //defaultFont = "OxygenMono-Regular.otf";
-    defaultFont = "telegrama_render.otf";
+    //defaultFont = "data/fonts/freesansbold.ttf";
+    //defaultFont = "data/fonts/Inconsolata.otf";
+    //defaultFont = "data/fonts/OxygenMono-Regular.otf";
+    defaultFont = "data/fonts/telegrama_render.otf";
     
     auto fontError = FT_New_Face(lib, ("./" ~ defaultFont).toStringz(), 0, &m_face);
     enforce(fontError != FT_Err_Unknown_File_Format, "Error, font format unsupported");
