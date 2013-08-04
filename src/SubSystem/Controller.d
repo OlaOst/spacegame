@@ -121,8 +121,9 @@ public:
       component.control.update(component);
       
       //debug writeln("updated controlcomp pos: " ~ component.position.to!string);
+      //debug writeln("updated controlcomp isFiring: " ~ component.isFiring.to!string);
     }
-  }    
+  }
   
   void setTimeStep(float p_timeStep)
   out
@@ -176,6 +177,7 @@ protected:
       if (p_entity["control"] in controls)
         component.control = controls[p_entity["control"]];      
       
+      // TODO: put these controls in their separate files for better discovery?
       else if (p_entity["control"] == "AlwaysFire")
         component.control = new class() ControlBase
         { 
@@ -212,6 +214,15 @@ protected:
     return component;
   } 
   
+  void updateEntity(Entity entity)
+  {
+  if (hasComponent(entity))
+    {
+      auto component = getComponent(entity);
+      
+      entity.values["isFiring"] = component.isFiring.to!string;
+    }
+  }
   
 public:
   ControlBase[string] controls;

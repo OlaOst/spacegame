@@ -218,7 +218,7 @@ protected:
     if ("mass" in p_entity.values)
       enforce(p_entity.values["mass"].to!float > 0.0, "Cannot register physics component with mass <= 0 (mass value is " ~ p_entity.values["mass"]);
     
-    return p_entity.values["mass"].length > 0;
+    return p_entity.getValue("mass").length > 0;
   }
   
   
