@@ -110,6 +110,9 @@ private:
     velocity += impulse * p_time;
     position += velocity * p_time;
     
+    debug if (rotation > 0.0)
+      debug writeln("physics component rotation is " ~ rotation.to!string);
+    
     rotation += (torque / mass) * p_time;
     float originalRotation = rotation;
     rotation += angularImpulse * p_time;
@@ -142,7 +145,7 @@ public:
   float angle;
   float rotation;
   float torque;
-  float angularImpulse;
+  float angularImpulse; // TODO: remove all references to angularImpulse - controllers should be able to set angle and rotation directly instead
   
   float mass;
 }
@@ -189,13 +192,13 @@ private:
       assert(component.velocity.ok);
       assert(isFinite(component.rotation));
       
-      //writeln("comp rotation is " ~ to!string(component.rotation));
+      //debug writeln("comp velocity is " ~ to!string(component.velocity));
       
-      component.force += (component.velocity * -0.15);
+      //component.force += (component.velocity * -0.15);
       //component.torque += min(100.0, (component.rotation * -20.5));
       
       assert(component.force.ok);
-      assert(isFinite(component.torque));
+      assert(component.torque.isFinite);
       
       component.move(p_time);
       
@@ -239,6 +242,17 @@ protected:
       newComponent.mass = to!float(p_entity.getValue("mass"));
     
     return newComponent;
+  }
+  
+  override void updateEntity(Entity entity)
+  {
+    if (hasComponent(entity))
+    {
+      auto component = getComponent(entity);
+      
+      entity.values["force"] = component.force.to!string;
+      entity.values["torque"] = component.torque.to!string;
+    }
   }
   
 private:

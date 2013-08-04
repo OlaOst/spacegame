@@ -166,10 +166,10 @@ public:
       return;
       
     assert(entity !is null);
-    assert(game !is null),
-    assert(game.m_placer.hasComponent(entity));
+    assert(game !is null);
+    //assert(game.m_placer.hasComponent(entity));
     
-    auto placerComponent = game.m_placer.getComponent(entity);
+    //auto placerComponent = game.m_placer.getComponent(entity);
     
     /*glPushMatrix();
       glScalef(graphics.zoom, graphics.zoom, 1.0);

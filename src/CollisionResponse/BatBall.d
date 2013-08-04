@@ -110,6 +110,8 @@ void ballCollisionResponse(Collision collision, CollisionHandler collisionHandle
       //ball.velocity = ball.velocity - (2.0 * contactPointRelativeToBall.normalized.dot(ball.velocity.normalized).abs * contactPointRelativeToBall.normalized());
       //ball.velocity = ball.velocity * -1.0;
     
+      ball.torque = ball.velocity.dot(contactPointRelativeToBall.normalized) * 10000.0;
+    
       //vec2 collisionPosition = (ball.position + other.position) * 0.5 + collision.contactPoint;
       vec2 collisionPosition = collision.contactPoint;
       

@@ -28,15 +28,16 @@ import std.stdio;
 
 import gl3n.linalg;
 import SubSystem.Base;
-import SubSystem.Physics;
-import SubSystem.Graphics;
-import SubSystem.Placer;
-import SubSystem.Controller;
 import SubSystem.CollisionHandler;
+import SubSystem.Controller;
+import SubSystem.Graphics;
+import SubSystem.Kinetics;
+import SubSystem.Physics;
+import SubSystem.Placer;
+import SubSystem.RelationHandler;
 import SubSystem.Sound;
 import SubSystem.Spawner;
 import SubSystem.Timer;
-import SubSystem.RelationHandler;
 
 
 unittest
@@ -65,15 +66,23 @@ unittest
 }
 
 
-void setPlacerFromPhysics(Physics physics, Placer placer)
+void setKineticsFromPhysics(Physics physics, Kinetics kinetics)
 {
-  subSystemCommunication!(PhysicsComponent, PlacerComponent)(physics, placer, (PhysicsComponent physicsComponent, PlacerComponent placerComponent)
+  subSystemCommunication!(PhysicsComponent, KineticsComponent)(physics, kinetics, (PhysicsComponent physicsComponent, KineticsComponent kineticsComponent)
   {
-    placerComponent.position = physicsComponent.position;
-    placerComponent.velocity = physicsComponent.velocity;
+    kineticsComponent.velocity = physicsComponent.velocity;
+    kineticsComponent.rotation = physicsComponent.rotation;
     
-    placerComponent.angle = physicsComponent.angle;
-    placerComponent.rotation = physicsComponent.rotation;
+    return kineticsComponent;
+  });
+}
+
+void setPlacerFromKinetics(Kinetics kinetics, Placer placer)
+{
+  subSystemCommunication!(KineticsComponent, PlacerComponent)(kinetics, placer, (KineticsComponent kineticsComponent, PlacerComponent placerComponent)
+  {
+    placerComponent.position = kineticsComponent.position;
+    placerComponent.angle = kineticsComponent.angle;
     
     return placerComponent;
   });
@@ -110,13 +119,13 @@ void setGraphicsFromPlacer(Placer placer, Graphics graphics)
   subSystemCommunication!(PlacerComponent, GraphicsComponent)(placer, graphics, (PlacerComponent placerComponent, GraphicsComponent graphicsComponent)
   {
     assert(placerComponent.position.ok);
-    assert(placerComponent.velocity.ok);
+    //assert(placerComponent.velocity.ok);
     
     graphicsComponent.position = placerComponent.position;
-    graphicsComponent.velocity = placerComponent.velocity;
+    //graphicsComponent.velocity = placerComponent.velocity;
     
     graphicsComponent.angle = placerComponent.angle;
-    graphicsComponent.rotation = placerComponent.rotation;
+    //graphicsComponent.rotation = placerComponent.rotation;
     
     //debug writeln("graphics from placer, pos is " ~ graphicsComponent.position.toString());
     
@@ -124,7 +133,7 @@ void setGraphicsFromPlacer(Placer placer, Graphics graphics)
   });
 }
 
-void setGraphicsFromCollisionHandler(CollisionHandler collisionHandler, Graphics graphics)
+debug void setGraphicsFromCollisionHandler(CollisionHandler collisionHandler, Graphics graphics)
 {
   subSystemCommunication!(ColliderComponent, GraphicsComponent)(collisionHandler, graphics, (ColliderComponent colliderComponent, GraphicsComponent graphicsComponent)
   {
@@ -139,10 +148,10 @@ void setSoundFromPlacer(Placer placer, Sound sound)
   subSystemCommunication!(PlacerComponent, SoundComponent)(placer, sound, (PlacerComponent placerComponent, SoundComponent soundComponent)
   {
     assert(placerComponent.position.ok);
-    assert(placerComponent.velocity.ok);
+    //assert(placerComponent.velocity.ok);
     
     soundComponent.position = placerComponent.position;
-    soundComponent.velocity = placerComponent.velocity;
+    //soundComponent.velocity = placerComponent.velocity;
     
     soundComponent.angle = placerComponent.angle;
     //soundComponent.rotation = placerComponent.rotation;
@@ -178,9 +187,9 @@ void setControllerFromPlacer(Placer placer, Controller controller)
     //debug writeln("setControllerFromPlacer updating " ~ controllerComponent.id.to!string ~ " from " ~ controllerComponent.position.to!string ~ " to " ~ placerComponent.position.to!string);
   
     controllerComponent.position = placerComponent.position;
-    controllerComponent.velocity = placerComponent.velocity;
+    //controllerComponent.velocity = placerComponent.velocity;
     controllerComponent.angle = placerComponent.angle;
-    controllerComponent.rotation = placerComponent.rotation;
+    //controllerComponent.rotation = placerComponent.rotation;
     
     return controllerComponent;
   });
@@ -203,14 +212,39 @@ void setControllerFromRelation(RelationHandler relationHandler, Controller contr
 }
 
 // collider components must know their position to know if they're colliding with something
-void setCollidersFromPlacer(Placer placer, CollisionHandler collisionHandler)
+void setCollisionHandlerFromPlacer(Placer placer, CollisionHandler collisionHandler)
 {
   subSystemCommunication!(PlacerComponent, ColliderComponent)(placer, collisionHandler, (PlacerComponent placerComponent, ColliderComponent colliderComponent)
   {
     colliderComponent.position = placerComponent.position;
-    colliderComponent.velocity = placerComponent.velocity;
-    //ColliderComponent.angle = placerComponent.angle;
+    //colliderComponent.velocity = placerComponent.velocity;
+
+    //debug if (colliderComponent.rotation != placerComponent.rotation)
+      //debug writeln("changing rotation from " ~ placerComponent.rotation.to!string ~ " to " ~ colliderComponent.rotation.to!string);
     
+    colliderComponent.angle = placerComponent.angle;
+    //colliderComponent.rotation = placerComponent.rotation;
+
+    return colliderComponent;
+  });
+}
+
+// collider components might update physics values like force and torque - thus they need to be updated from physics
+void setCollisionHandlerFromPhysics(Physics physics, CollisionHandler collisionHandler)
+{
+  subSystemCommunication!(PhysicsComponent, ColliderComponent)(physics, collisionHandler, (PhysicsComponent physicsComponent, ColliderComponent colliderComponent)
+  {
+    //colliderComponent.position = physicsComponent.position;
+    //colliderComponent.velocity = physicsComponent.velocity;
+    colliderComponent.force = physicsComponent.force;
+
+    //debug if (colliderComponent.rotation != physicsComponent.rotation)
+      //debug writeln("setCollisionHandlerFromPhysics changing rotation from " ~ physicsComponent.rotation.to!string ~ " to " ~ colliderComponent.rotation.to!string);
+    
+    //colliderComponent.angle = physicsComponent.angle;
+    //colliderComponent.rotation = physicsComponent.rotation;
+    colliderComponent.torque = physicsComponent.torque;
+
     return colliderComponent;
   });
 }
@@ -293,7 +327,7 @@ void setSpawnerFromPlacer(Placer placer, Spawner spawner)
   subSystemCommunication!(PlacerComponent, SpawnerComponent)(placer, spawner, (PlacerComponent placerComponent, SpawnerComponent spawnerComponent)
   {
     spawnerComponent.position = placerComponent.position;
-    spawnerComponent.velocity = placerComponent.velocity;
+    //spawnerComponent.velocity = placerComponent.velocity;
     spawnerComponent.angle = placerComponent.angle;
     
     //debug writeln("setspawnerfromplacer, pos is " ~ to!string(spawnerComponent.pos));
@@ -337,6 +371,29 @@ void setPhysicsFromCollisionHandler(CollisionHandler collisionHandler, Physics p
     // TODO: make sure we want to set the force here (implies that collisionhandler has its forces in sync with the rest of the subsystems)
     //physicsComponent.force = colliderComponent.force;
     
+    // TODO: do we want to update physics position, velocity, angle and rotation here, like in setPlacerFromCollisionHandler?
+    
+    //debug if (physicsComponent.torque != colliderComponent.torque)
+      //debug writeln("setPhysicsFromCollisionHandler setting torque from " ~ physicsComponent.torque.to!string ~ " to " ~ colliderComponent.torque.to!string);
+    
+    //debug writeln("before pos/vel/force: " ~ physicsComponent.position.to!string ~ "/" ~ physicsComponent.velocity.to!string ~ "/" ~ physicsComponent.force.to!string);
+    
+    physicsComponent.position = colliderComponent.position;
+    physicsComponent.velocity = colliderComponent.velocity;
+    physicsComponent.force = colliderComponent.force;
+
+    //debug writeln("after  pos/vel/force: " ~ physicsComponent.position.to!string ~ "/" ~ physicsComponent.velocity.to!string ~ "/" ~ physicsComponent.force.to!string);
+    
+    
+    // 1. assume collision values are updated from physics
+    // 2. collision update, some collision values change
+    // 3. set physics values from collisions
+    
+    
+    physicsComponent.angle = colliderComponent.angle;
+    physicsComponent.rotation = colliderComponent.rotation;
+    physicsComponent.torque = colliderComponent.torque;
+    
     return physicsComponent;
   });
 }
@@ -347,7 +404,13 @@ void setPlacerFromCollisionHandler(CollisionHandler collisionHandler, Placer pla
   {
     //debug writeln("setPlacerFromCollisionHandler setting velocity from " ~ placerComponent.velocity.to!string ~ " to " ~ colliderComponent.velocity.to!string);
     
-    placerComponent.velocity = colliderComponent.velocity;
+    // TODO: maybe we want to set position and angle also here? collisionhandlers might want to ensure things are not overlapping for example
+    
+    //debug if (placerComponent.rotation != colliderComponent.rotation)
+      //debug writeln("setPlacerFromCollisionHandler setting rotation from " ~ placerComponent.rotation.to!string ~ " to " ~ colliderComponent.rotation.to!string);
+    
+    //placerComponent.velocity = colliderComponent.velocity;
+    //placerComponent.rotation = colliderComponent.rotation;
     
     return placerComponent;
   });

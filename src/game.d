@@ -61,6 +61,7 @@ import Starfield;
 import SubSystem.CollisionHandler;
 import SubSystem.Controller;
 import SubSystem.Graphics;
+import SubSystem.Kinetics;
 import SubSystem.Physics;
 import SubSystem.Placer;
 import SubSystem.RelationHandler;
@@ -161,6 +162,7 @@ public:
 
     
     m_subSystems["Placer"] = m_placer = new Placer();
+    m_subSystems["Kinetics"] = m_kinetics = new Kinetics();
     m_subSystems["Graphics"] = m_graphics = new Graphics(cache, xres, yres);
     m_subSystems["Physics"] = m_physics = new Physics();
     m_subSystems["Controller"] = m_controller = new Controller();
@@ -218,7 +220,28 @@ public:
   {  
     while (m_running)
     {
-      update();
+      update(m_timer.elapsedTime);
+    }
+  }
+  
+  
+  void runIntegrationTest(string outputFile)
+  {    
+    update(1.0); // update 1 second
+    
+    auto output = File(outputFile, "w");
+    
+    foreach (entity; m_entities)
+    {
+      foreach (subSystem; m_subSystems)
+      {
+        subSystem.updateEntity(entity);
+      }
+      
+      foreach (key, value; entity.values)
+      {
+        output.writeln(entity["name"] ~ "." ~ key ~ " = " ~ value);
+      }
     }
   }
   
@@ -426,7 +449,53 @@ private:
   }
   
   
-  void update()
+  string getEntityMatrix()
+  {
+    int colWidth = 8;
+    string text;
+
+    foreach (subSystem; m_subSystems)
+    {
+      auto name = subSystem.name;
+      
+      while (name.findSkip(".")) {}
+      
+      text ~= name[0..min(colWidth, $)].leftJustify(colWidth, ' ') ~ " ";
+    }
+    
+    text ~= "\n";
+    
+    foreach (entity; sort!((left, right) => left.id > right.id)(m_entities.values))
+    {
+      foreach (subSystem; m_subSystems)
+      {
+        if (subSystem.hasComponent(entity))
+          text ~= "X".leftJustify(colWidth, ' ') ~ " ";
+        else
+          text ~= "_".leftJustify(colWidth, ' ') ~ " ";
+      }
+        
+      text ~= " - ";
+        
+      if ("name" in entity)
+        text ~= entity["name"];
+      else
+        text ~= entity.id.to!string;
+        
+      text ~= "\n";
+    }
+    
+    text ~= "\n";
+    
+    foreach (entity; sort!((left, right) => left.id > right.id)(m_entities.values))
+    {
+      text ~= entity.values.to!string ~ "\n";
+    }
+    
+    return text;
+  }
+  
+  void update(float elapsedTime)
   {
     m_updateCount++;
     
@@ -450,13 +519,84 @@ private:
     
     if (!m_paused)
     {
-      m_placer.setTimeStep(m_timer.elapsedTime);
-      m_physics.setTimeStep(m_timer.elapsedTime);
-      m_controller.setTimeStep(m_timer.elapsedTime);
-      m_graphics.setTimeStep(m_timer.elapsedTime);
-      m_spawner.setTimeStep(m_timer.elapsedTime);
+      m_kinetics.setTimeStep(elapsedTime);
+      m_physics.setTimeStep(elapsedTime);
+      m_controller.setTimeStep(elapsedTime);
+      m_graphics.setTimeStep(elapsedTime);
+      m_spawner.setTimeStep(elapsedTime);
       
-      updateSubSystems();
+      // TODO: rename Placer to Kinetics?
+      
+      // alternate update loop:
+      // update controllers
+      // set force/torque from controllers to physics
+      // set triggers from controllers to spawners
+      // update spawners
+      // set force/torque from spawners to physics
+      // update physics
+      // set position/velocity/force/torque from physics to collision
+      // set position/velocity from physics to placer
+      // update collision
+      // set force/torque from collision to physics
+      // set position/velocity from collision to placer
+      // update placer
+      // set position/velocity from placer to controllers
+      
+      // alternative 2 update loop:
+      // update all systems that can set forces
+      // transfer forces from those subsystems, most significant last, to overwrite force values properly (should we overwrite or append?)
+      // update all systems that can set velocities
+      // transfer velocities to systems that need them, in specified order
+      // update all systems that can set positions
+      
+      m_spawner.updateWithTiming();
+      
+      CommsCentral.setPhysicsFromSpawner(m_spawner, m_physics);
+      CommsCentral.setSoundFromSpawner(m_spawner, m_sound);
+      
+      m_physics.updateWithTiming();
+      
+      CommsCentral.setKineticsFromPhysics(m_physics, m_kinetics);
+      CommsCentral.setCollisionHandlerFromPhysics(m_physics, m_collisionHandler);
+      CommsCentral.setSpawnerFromPhysics(m_physics, m_spawner);
+      
+      m_collisionHandler.updateWithTiming();
+      
+      CommsCentral.setPlacerFromCollisionHandler(m_collisionHandler, m_placer);
+      CommsCentral.setPhysicsFromCollisionHandler(m_collisionHandler, m_physics);
+      debug CommsCentral.setGraphicsFromCollisionHandler(m_collisionHandler, m_graphics);
+      
+      m_controller.updateWithTiming();
+      
+      CommsCentral.setPlacerFromController(m_controller, m_placer);
+      CommsCentral.setPhysicsFromController(m_controller, m_physics);
+      CommsCentral.setSpawnerFromController(m_controller, m_spawner);
+      
+      m_placer.updateWithTiming();
+
+      CommsCentral.setControllerFromPlacer(m_placer, m_controller);
+      CommsCentral.setCollisionHandlerFromPlacer(m_placer, m_collisionHandler);
+      CommsCentral.setSpawnerFromPlacer(m_placer, m_spawner);
+      CommsCentral.setSoundFromPlacer(m_placer, m_sound);
+      CommsCentral.setRelationFromPlacer(m_placer, m_relationHandler);
+      
+      // TODO: update from relationhandler
+      //m_relationHandler.updateWithTiming();
+      
+      m_sound.updateWithTiming();
+      m_timer.updateWithTiming();
+      
+      ///m_subSystems["Placer"] = m_placer = new Placer();
+      ///m_subSystems["Graphics"] = m_graphics = new Graphics(cache, xres, yres);
+      ///m_subSystems["Physics"] = m_physics = new Physics();
+      ///m_subSystems["Controller"] = m_controller = new Controller();
+      ///m_subSystems["CollisionHandler"] = m_collisionHandler = new CollisionHandler();
+      ///m_subSystems["Sound"] = m_sound = new Sound(64);
+      ///m_subSystems["Spawner"] = m_spawner = new Spawner();
+      ///m_subSystems["Timer"] = m_timer = new Timer();
+      ///m_subSystems["RelationHandler"] = m_relationHandler = new RelationHandler();
+      
+      /+updateSubSystems();
       
       CommsCentral.setSpawnerFromController(m_controller, m_spawner);
       
@@ -465,7 +605,7 @@ private:
       //setSoundFromCollision
       
       CommsCentral.setPhysicsFromController(m_controller, m_physics);
-      CommsCentral.setPhysicsFromSpawner(m_spawner, m_physics);      
+      CommsCentral.setPhysicsFromSpawner(m_spawner, m_physics);
       CommsCentral.setPhysicsFromCollisionHandler(m_collisionHandler, m_physics);
       
       CommsCentral.setPlacerFromPhysics(m_physics, m_placer);
@@ -473,8 +613,10 @@ private:
       CommsCentral.setPlacerFromRelation(m_relationHandler, m_placer);
       CommsCentral.setPlacerFromController(m_controller, m_placer);
       
+      CommsCentral.setCollisionHandlerFromPhysics(m_physics, m_collisionHandler);
+      
       CommsCentral.setControllerFromPlacer(m_placer, m_controller);
-      CommsCentral.setCollidersFromPlacer(m_placer, m_collisionHandler);
+      CommsCentral.setCollisionHandlerFromPlacer(m_placer, m_collisionHandler);
       CommsCentral.setSpawnerFromPlacer(m_placer, m_spawner);
       CommsCentral.setSoundFromPlacer(m_placer, m_sound);
       CommsCentral.setRelationFromPlacer(m_placer, m_relationHandler);
@@ -482,12 +624,15 @@ private:
       //CommsCentral.setTimerFromCollider(m_collider, m_timer);
       //CommsCentral.setTimerFromSound(m_sound, m_timer);
       
-      //CommsCentral.calculateCollisionResponse(m_collider, m_physics);
+      //CommsCentral.calculateCollisionResponse(m_collider, m_physics);+/
     }
     CommsCentral.setGraphicsFromPlacer(m_placer, m_graphics);
     CommsCentral.setGraphicsFromCollisionHandler(m_collisionHandler, m_graphics);
     
-    m_fpsBuffer[m_updateCount % m_fpsBuffer.length] = floor(1.0 / m_timer.elapsedTime);
+    m_graphics.updateWithTiming();
+    
+    
+    m_fpsBuffer[m_updateCount % m_fpsBuffer.length] = floor(1.0 / elapsedTime);
     
     if (m_graphics.hasComponent(m_debugDisplay))
     {
@@ -530,7 +675,7 @@ private:
     {
       auto entityMatrixComponent = m_graphics.getComponent(m_entityMatrix);
       
-      string text;
+      /*string text;
       
       foreach (subSystem; m_subSystems)
       {
@@ -561,9 +706,11 @@ private:
           text ~= entity.id.to!string();
           
         text ~= "\\n";
-      }
+      }*/
       
       //writeln("text length: " ~ text.length.to!string);
+      
+      auto text = getEntityMatrix();
       
       entityMatrixComponent.text = text[0..min(text.length, 1000)];
       
@@ -616,8 +763,10 @@ private:
       if (m_playerShip !is null)
       {
         auto placerComponent = m_placer.getComponent(m_playerShip);
+        auto kineticsComponent = m_kinetics.getComponent(m_playerShip);
+        
         dashboardText ~= "Position: " ~ to!string(round(placerComponent.position.x)) ~ " " ~ to!string(round(placerComponent.position.y)) ~ "\\n";
-        dashboardText ~= "Speed: " ~ to!string(round(placerComponent.velocity.length)) ~ " m/s\\n";
+        dashboardText ~= "Speed: " ~ to!string(round(kineticsComponent.velocity.length)) ~ " m/s\\n";
         dashboardText ~= "Mass: " ~ to!string(m_physics.getComponent(m_playerShip).mass) ~ " tons";
       }
       
@@ -646,7 +795,7 @@ private:
       
       string[] orderedEntityNames;
       
-      //writeln("spawnvalues: " ~ spawnValues.to!string);
+      //debug writeln("spawnvalues: " ~ spawnValues.to!string);
       
       auto entities = loadEntityCollection("spawnstuff", spawnValues, orderedEntityNames);
       
@@ -686,7 +835,7 @@ private:
             auto closestEnemyComponent = m_placer.getComponent(closestEnemy);
             
             controlComponent.targetPosition = closestEnemyComponent.position;
-            controlComponent.targetVelocity = closestEnemyComponent.velocity;
+            //controlComponent.targetVelocity = closestEnemyComponent.velocity;
           }
         }
         else if (target == "player")
@@ -694,7 +843,7 @@ private:
           if (m_playerShip !is null)
           {
             controlComponent.targetPosition = m_placer.getComponent(m_playerShip).position;
-            controlComponent.targetVelocity = m_placer.getComponent(m_playerShip).velocity;
+            //controlComponent.targetVelocity = m_placer.getComponent(m_playerShip).velocity;
           }
         }
         else if (target.startsWith("closestTeam."))
@@ -708,7 +857,7 @@ private:
             auto closestShipComponent = m_placer.getComponent(closestShip);
             
             controlComponent.targetPosition = closestShipComponent.position;
-            controlComponent.targetVelocity = closestShipComponent.velocity;
+            //controlComponent.targetVelocity = closestShipComponent.velocity;
           }
         }
       }
@@ -717,7 +866,7 @@ private:
     //m_entityConsole.display(m_graphics, m_timer.totalTime);
     //m_gameConsole.display(m_graphics, m_timer.totalTime);
     
-    handleInput(m_timer.elapsedTime);
+    handleInput(elapsedTime);
     
     SDL_Delay(5);
   }
@@ -959,7 +1108,8 @@ private:
   EntityConsole m_entityConsole;
   
   SubSystem.Base.SubSystem[string] m_subSystems;
-  public Placer m_placer;
+  Placer m_placer;
+  Kinetics m_kinetics;
   Physics m_physics;
   Graphics m_graphics;
   Controller m_controller;

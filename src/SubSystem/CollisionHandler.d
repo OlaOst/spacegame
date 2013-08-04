@@ -139,13 +139,15 @@ class ColliderComponent
   
   vec2 position = vec2(0.0, 0.0);
   vec2 velocity = vec2(0.0, 0.0);
+  vec2 force = vec2(0.0, 0.0);
+  
+  float angle = 0.0;
+  float rotation = 0.0;
+  float torque = 0.0;
   
   float radius = -1.0;
   
   vec4 color = vec4(1, 1, 1, 1);
-  
-  vec2 force = vec2(0.0, 0.0);
-  //vec2 torque = 0.0;
   
   CollisionType collisionType;
   
@@ -300,9 +302,17 @@ protected:
     
     if ("position" in p_entity.values)
       colliderComponent.position = vec2(p_entity.getValue("position").to!(float[])[0..2]);
-    
     if ("velocity" in p_entity.values)
       colliderComponent.velocity = vec2(p_entity.getValue("velocity").to!(float[])[0..2]);
+    if ("force" in p_entity.values)
+      colliderComponent.force = vec2(p_entity.getValue("force").to!(float[])[0..2]);
+      
+    if ("angle" in p_entity.values)
+      colliderComponent.angle = p_entity.getValue("angle").to!float;
+    if ("rotation" in p_entity.values)
+      colliderComponent.rotation = p_entity.getValue("rotation").to!float;
+    if ("torque" in p_entity.values)
+      colliderComponent.torque = p_entity.getValue("torque").to!float;
     
     //if ("lifetime" in p_entity.values)
       //colliderComponent.lifetime = to!float(p_entity.getValue("lifetime"));
@@ -439,7 +449,10 @@ private:
               contactPoints ~= upContactPoint;
               
             //contactPoint = contactPoints.reduce!((sum, point) => sum + point) * (1.0 / contactPoints.length);
-            assert(contactPoints.length > 0);
+            //assert(contactPoints.length > 0);
+            if (contactPoints.length <= 0)
+              continue;
+              
             contactPoint = contactPoints.minCount!((point1, point2) => point1.magnitude_squared > point2.magnitude_squared)[0];
             
             /*if (leftIntersect)
@@ -479,7 +492,16 @@ private:
   {
     foreach (ref collision; m_collisions)
     {
+      debug auto originalRotation1 = collision.first.rotation;
+      debug auto originalRotation2 = collision.second.rotation;
+      
       collision.response(collision, this);
+      
+      debug if (originalRotation1 != collision.first.rotation)
+        debug writeln("Collision response changed rotation from " ~ originalRotation1.to!string ~ " to " ~ collision.first.rotation.to!string);
+        
+      debug if (originalRotation2 != collision.second.rotation)
+        debug writeln("Collision response changed rotation from " ~ originalRotation2.to!string ~ " to " ~ collision.second.rotation.to!string);
     }
   }
   

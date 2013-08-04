@@ -42,6 +42,16 @@ void main(string[] args)
     if (args.length >= 2)
       game.loadWorldFromFile(args[1]);
     
-    game.run();
+    version(integrationtest)
+    {
+      if (args.length >= 2)
+        game.runIntegrationTest(args[1] ~ ".result");
+      else
+        stderr.writeln("Must specify a test to run (try data/tests/testkinetics.txt");
+    }
+    else
+    {
+      game.run();
+    }
   }
 }

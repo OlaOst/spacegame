@@ -38,13 +38,14 @@ gun.spawn.bullet.lifetime = 2.5
 
 ball.drawsource = images\boulder2.png
 ball.radius = 0.1
+#ball.mass = 10.0
 ball.color = [0.0, 1.0, 1.0, 1.0]
 ball.position = [0.0, 0.5]
 ball.velocity = [0.5, -0.4]
 ball.collisionType = Ball
 
 
-bricks.collectionsource = bricks.txt
+#bricks.collectionsource = bricks.txt
 
 
 leftwall.source = wall.txt

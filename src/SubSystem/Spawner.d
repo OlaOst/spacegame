@@ -249,7 +249,7 @@ protected:
       component.ownerId = to!int(p_entity.getValue("owner"));
 
     return component;
-  }
+  }  
 
 
 private:
