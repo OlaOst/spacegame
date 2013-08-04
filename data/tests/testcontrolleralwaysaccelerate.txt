@@ -1,0 +1,3 @@
+test.control = AlwaysAccelerate
+test.thrustForce = 1.0
+test.mass = 1.0
