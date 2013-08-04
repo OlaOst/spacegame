@@ -6,3 +6,6 @@
 *.obj
 *.exe
 /coverage
+*.output
+*.result
+dump.txt

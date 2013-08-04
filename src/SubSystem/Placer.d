@@ -93,7 +93,7 @@ protected:
     {
       auto component = getComponent(entity);
       
-      writeln("placer setting entity " ~ entity.values.to!string ~ " position to " ~ component.position.to!string);
+      //debug writeln("placer setting entity " ~ entity.values.to!string ~ " position to " ~ component.position.to!string);
       
       entity.values["position"] = component.position.to!string;
       entity.values["angle"] = component.angle.to!string;

@@ -66,12 +66,12 @@ public:
       // update position with velocity - position and velocity will be overwritten by physics if the entity has mass (and thus is registered in the physics subsystem)
       // see CommsCentral.setPlacerFromPhysics
       
-      //debug if (component.velocity.length > 0.0) writeln("placer component pos before: " ~ component.position.to!string);
+      //debug if (component.velocity.length > 0.0) writeln("kinetics component pos before: " ~ component.position.to!string);
       
       component.position += component.velocity * m_timeStep;
       component.angle += component.rotation * m_timeStep;
       
-      //debug if (component.velocity.length > 0.0) writeln("placer component pos after: " ~ component.position.to!string);
+      //debug if (component.velocity.length > 0.0) writeln("kinetics component pos after: " ~ component.position.to!string);
     }
   }
   
@@ -101,7 +101,7 @@ protected:
     if (p_entity.getValue("rotation").length > 0)
       component.rotation = to!float(p_entity.getValue("rotation")) * PI_180;
       
-    //debug writeln("creating kineticscomponent, angle is " ~ to!string(component.angle) ~ ", created from " ~ to!string(p_entity.values));
+    //debug writeln("creating kineticscomponent, velocity is " ~ component.velocity.to!string ~ ", angle is " ~ component.angle.to!string ~ ", created from " ~ to!string(p_entity.values));
 
     return component;
   }

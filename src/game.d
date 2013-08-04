@@ -572,6 +572,10 @@ private:
       CommsCentral.setPhysicsFromController(m_controller, m_physics);
       CommsCentral.setSpawnerFromController(m_controller, m_spawner);
       
+      m_kinetics.updateWithTiming();
+      
+      CommsCentral.setPlacerFromKinetics(m_kinetics, m_placer);
+      
       m_placer.updateWithTiming();
 
       CommsCentral.setControllerFromPlacer(m_placer, m_controller);
