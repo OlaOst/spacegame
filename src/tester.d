@@ -12,14 +12,33 @@ import EntityLoader;
 
 void main(string args[])
 {
-  auto testrun = executeShell("rdmd -debug -g -version=integrationtest src/main.d data/tests/testkinetics.txt 1> data/tests/testkinetics.txt.output");
+  if (args.length == 1)
+  {
+    foreach (string file; dirEntries("data/tests/", "*.txt", SpanMode.shallow))
+    {
+      runTest(file);
+    }
+  }
+  else
+  {
+    runTest(args[1]);
+  }
+}
+
+
+void runTest(string file)
+{
+  scope(failure) writeln(file ~ " failed");
+
+  string[][string] cache;
+
+  auto expected = EntityLoader.loadValues(cache, file ~ ".expected");
+
+  auto testrun = executeShell("rdmd -debug -g -version=integrationtest src/main.d " ~ file ~ " 1> " ~ file ~ ".output");
   
   enforce(testrun.status == 0, "Failed to run integration test: " ~ testrun.output);
   
-  string[][string] cache;
-  
-  auto result = EntityLoader.loadValues(cache, "data/tests/testkinetics.txt.result");
-  auto expected = EntityLoader.loadValues(cache, "data/tests/testkinetics.txt.expected");
+  auto result = EntityLoader.loadValues(cache, file ~ ".result");
 
   foreach (key, value; expected)
   {
