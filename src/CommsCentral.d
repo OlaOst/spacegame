@@ -70,6 +70,8 @@ void setKineticsFromPhysics(Physics physics, Kinetics kinetics)
 {
   subSystemCommunication!(PhysicsComponent, KineticsComponent)(physics, kinetics, (PhysicsComponent physicsComponent, KineticsComponent kineticsComponent)
   {
+    debug writeln("setKineticsFromPhysics velocity before: " ~ kineticsComponent.velocity.to!string ~ ", after: " ~ physicsComponent.velocity.to!string);
+    
     kineticsComponent.velocity = physicsComponent.velocity;
     kineticsComponent.rotation = physicsComponent.rotation;
     

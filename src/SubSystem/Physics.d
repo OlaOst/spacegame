@@ -212,10 +212,13 @@ private:
 protected:
   bool canCreateComponent(Entity p_entity)
   {
-    if ("mass" in p_entity.values)
-      assert(to!float(p_entity.getValue("mass")) > 0.0, "Zero mass entity " ~ to!string(p_entity.id) ~ ": " ~ to!string(p_entity.values));
+    if ("force" in p_entity.values)
+      enforce ("mass" in p_entity.values, "Cannot register physics component without mass (remove force value if this entity should not be in physics)");
     
-    return p_entity.getValue("mass").length > 0;
+    if ("mass" in p_entity.values)
+      enforce(p_entity.values["mass"].to!float > 0.0, "Cannot register physics component with mass <= 0 (mass value is " ~ p_entity.values["mass"]);
+    
+    return p_entity.values["mass"].length > 0;
   }
   
   

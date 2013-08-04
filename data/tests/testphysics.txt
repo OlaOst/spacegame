@@ -1,3 +1,4 @@
 test.position = [0.0, 0.0]
 test.velocity = [0.0, 0.0]
 test.force = [0.0, 1.0]
+test.mass = 1.0
