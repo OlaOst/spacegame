@@ -79,6 +79,8 @@ unittest
 interface Relater
 {
   RelationComponent update(RelationComponent base, RelationComponent relation);
+  
+  string[string] values();
 }
 
 class PositionRelater : Relater
@@ -91,11 +93,17 @@ class PositionRelater : Relater
     
     override RelationComponent update(RelationComponent base, RelationComponent relation)
     {
-      //debug writeln("positionrelater position from " ~ base.position.to!string ~ " to " ~ (relation.position + relativePosition).to!string);
+      debug writeln("positionrelater position from " ~ base.position.to!string ~ " to " ~ (relation.position + relativePosition).to!string);
     
       base.position = relation.position + relativePosition;
       
       return base;
+    }
+    
+    override string[string] values()
+    {
+      // TODO: should we prefix Relater values?
+      return ["relativePosition" : relativePosition.to!string];
     }
     
   private:
@@ -154,6 +162,7 @@ protected:
       
     if ("relationName" in p_entity)
     {
+      debug writeln("entity " ~ p_entity["name"] ~ " with relationname " ~ p_entity["relationName"]);
       enforce(p_entity["relationName"] in relationMapping, "Could not find RelationComponent named " ~ p_entity["relationName"] ~ " for component " ~ component.name);
       component.relationName = p_entity["relationName"];
     }
@@ -170,6 +179,22 @@ protected:
     relationMapping[component.name] = component;
     
     return component;
+  }
+  
+  override void updateEntity(Entity entity)
+  {
+    if (hasComponent(entity))
+    {
+      auto component = getComponent(entity);
+      
+      if (component.relater !is null)
+      {
+        foreach (key, value; component.relater.values)
+        {
+          entity.values[key] = value;
+        }
+      }
+    }
   }
   
   

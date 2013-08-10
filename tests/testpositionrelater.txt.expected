@@ -1,0 +1,6 @@
+parent.position = [1, 0]
+parent.isRelation = true
+
+child.position = [1, 1]
+child.relationName = parent
+child.relativePosition = [0, 1]
