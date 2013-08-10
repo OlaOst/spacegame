@@ -14,7 +14,7 @@ void main(string args[])
 {
   if (args.length == 1)
   {
-    foreach (string file; dirEntries("data/tests/", "*.txt", SpanMode.shallow))
+    foreach (string file; dirEntries("tests/", "test*.txt", SpanMode.shallow))
     {
       runTest(file);
     }
@@ -32,14 +32,14 @@ void runTest(string file)
 
   string[][string] cache;
 
-  auto expected = EntityLoader.loadValues(cache, file ~ ".expected");
+  auto expected = EntityLoader.loadValues(cache, file ~ ".expected", "tests/");
 
   auto testrun = executeShell("rdmd -debug -g -version=integrationtest src/main.d " ~ file ~ " 1> " ~ file ~ ".output");
   
   //enforce(testrun.status == 0, "Failed to run integration test: " ~ testrun.output);
   enforce(testrun.status == 0, "Failed to run integration test: " ~ readText(file ~ ".output"));
   
-  auto result = EntityLoader.loadValues(cache, file ~ ".result");
+  auto result = EntityLoader.loadValues(cache, file ~ ".result", "tests/");
 
   foreach (key, value; expected)
   {

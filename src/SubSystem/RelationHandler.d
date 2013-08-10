@@ -162,7 +162,7 @@ protected:
       
     if ("relationName" in p_entity)
     {
-      debug writeln("entity " ~ p_entity["name"] ~ " with relationname " ~ p_entity["relationName"]);
+      //debug writeln("entity " ~ p_entity["name"] ~ " with relationname " ~ p_entity["relationName"]);
       enforce(p_entity["relationName"] in relationMapping, "Could not find RelationComponent named " ~ p_entity["relationName"] ~ " for component " ~ component.name);
       component.relationName = p_entity["relationName"];
     }

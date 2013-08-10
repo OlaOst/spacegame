@@ -214,7 +214,7 @@ protected:
     return component;
   } 
   
-  void updateEntity(Entity entity)
+  override void updateEntity(Entity entity)
   {
   if (hasComponent(entity))
     {

@@ -115,7 +115,7 @@ void addValue(string line, ref string[string] values)
   }
 }
 
-void addToCache(ref string[][string] cache, string filename)
+void addToCache(ref string[][string] cache, string filename, string rootDir)
 out
 {
   assert(filename in cache);
@@ -123,22 +123,22 @@ out
 body
 {
   auto fixedFilename = filename;
-  if (fixedFilename.startsWith("data/") == false)
-    fixedFilename = "data/" ~ filename;
+  if (fixedFilename.startsWith(rootDir) == false)
+    fixedFilename = rootDir ~ filename;
   
   foreach (string line; fixedFilename.File.lines)
     cache[filename] ~= line;
 }
 
-string[string] loadValues(ref string[][string] cache, string filename)
+string[string] loadValues(ref string[][string] cache, string filename, string rootDir)
 {
   if (filename !in cache)
-    addToCache(cache, filename);
+    addToCache(cache, filename, rootDir);
     
-  return getValues(cache, cache[filename]);
+  return getValues(cache, cache[filename], rootDir);
 }
 
-string[string] getValues(ref string[][string] cache, string[] lines)
+string[string] getValues(ref string[][string] cache, string[] lines, string rootDir)
 {
   string[string] values;
   
@@ -150,9 +150,9 @@ string[string] getValues(ref string[][string] cache, string[] lines)
       string sourceFilename = line.strip.split("=")[1].strip;
       
       if (sourceFilename !in cache)
-        addToCache(cache, sourceFilename);
+        addToCache(cache, sourceFilename, rootDir);
       
-      values = getValues(cache, cache[sourceFilename]);
+      values = getValues(cache, cache[sourceFilename], rootDir);
     }
   }
     
@@ -166,7 +166,7 @@ string[string] getValues(ref string[][string] cache, string[] lines)
 }
 
 
-string[string][string] findChildrenValues(ref string[][string] cache, string[string] values)
+string[string][string] findChildrenValues(ref string[][string] cache, string[string] values, string rootDir)
 {
   string[string][string] childValues;
   
@@ -192,9 +192,9 @@ string[string][string] findChildrenValues(ref string[][string] cache, string[str
       string sourceFilename = values["source"];
       
       if (sourceFilename !in cache)
-        addToCache(cache, sourceFilename);
+        addToCache(cache, sourceFilename, rootDir);
       
-      auto sourceValues = getValues(cache, cache[sourceFilename]);
+      auto sourceValues = getValues(cache, cache[sourceFilename], rootDir);
       
       // values from source should not override already existing values
       foreach (sourceKey, sourceValue; sourceValues)
@@ -307,7 +307,7 @@ unittest
   assert(expandedValues["foo"] == "bar");
   assert(expandedValues["drawsource"] == "images/cannon.png");
 }
-string[string] expandValues(ref string[string] p_values)
+string[string] expandValues(ref string[string] p_values, string rootDir)
 {
   foreach (key, value; p_values)
   {
@@ -319,8 +319,8 @@ string[string] expandValues(ref string[string] p_values)
       auto fileName = p_values[key];
       
       auto fixedFileName = fileName;
-      if (fixedFileName.startsWith("data/") == false)
-        fixedFileName = "data/" ~ fileName;
+      if (fixedFileName.startsWith(rootDir) == false)
+        fixedFileName = rootDir ~ fileName;
       
       string[string] keyValues;
       foreach (string line; fixedFileName.File.lines)
@@ -340,7 +340,7 @@ string[string] expandValues(ref string[string] p_values)
         }
       }
       
-      auto expandedValues = expandValues(keyValues);
+      auto expandedValues = expandValues(keyValues, rootDir);
     
       //debug writeln("expanding from " ~ p_values.to!string ~ ": " ~ expandedValues.to!string);
     
@@ -355,7 +355,7 @@ string[string] expandValues(ref string[string] p_values)
   return p_values;
 }
 
-Entity[string] loadEntityCollection(string collectionName, string[string] p_values, ref string[] orderedEntityNames)
+Entity[string] loadEntityCollection(string collectionName, string[string] p_values, ref string[] orderedEntityNames, string rootDir)
 {
   string[] lines;
   foreach (key, value; p_values)
@@ -363,10 +363,10 @@ Entity[string] loadEntityCollection(string collectionName, string[string] p_valu
     lines ~= key ~ " = " ~ value;
   }
   
-  return loadEntityCollection(collectionName, lines, orderedEntityNames);
+  return loadEntityCollection(collectionName, lines, orderedEntityNames, rootDir);
 }
 
-Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref string[] orderedEntityNames)
+Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref string[] orderedEntityNames, string rootDir)
 {
   //debug writeln("loadentitycollection, name: " ~ collectionName ~ ", lines: " ~ p_lines.to!string);
   Entity[string] entities;
@@ -417,7 +417,7 @@ Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref
   
   foreach (name, ref keyValues; namedValues)
   {
-    keyValues = expandValues(keyValues);
+    keyValues = expandValues(keyValues, rootDir);
   }
   
   //debug writeln("fully expanded values: " ~ namedValues.to!string);
@@ -437,15 +437,15 @@ Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref
       auto fileName = namedValues[name]["collectionsource"];
       
       auto fixedFileName = fileName;
-      if (fixedFileName.startsWith("data/") == false)
-        fixedFileName = "data/" ~ fileName;
+      if (fixedFileName.startsWith(rootDir) == false)
+        fixedFileName = rootDir ~ fileName;
       
       string[] fileLines;
       foreach (string line; fixedFileName.File.lines)
         fileLines ~= line;
       
       //string[] orderedEntityNames;
-      auto subEntities = EntityLoader.loadEntityCollection(name, fileLines, orderedEntityNames);
+      auto subEntities = EntityLoader.loadEntityCollection(name, fileLines, orderedEntityNames, rootDir);
       
       foreach (entity; subEntities)
       {

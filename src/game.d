@@ -151,6 +151,11 @@ class Game
 public:
   this()
   {
+    version (integrationtest)    
+      rootDir = "tests/";
+    else
+      rootDir = "data/";
+    
     m_updateCount = 0;
     m_running = true;
     m_paused = false;
@@ -195,15 +200,15 @@ public:
   void loadWorldFromFile(string p_fileName)
   {
     auto fixedFileName = p_fileName;
-    if (fixedFileName.startsWith("data/") == false)
-      fixedFileName = "data/" ~ p_fileName;
+    if (fixedFileName.startsWith(rootDir) == false)
+      fixedFileName = rootDir ~ p_fileName;
     
     string[] fileLines;
     foreach (string line; fixedFileName.File.lines)
       fileLines ~= line;
     
     string[] orderedEntityNames;
-    auto entities = EntityLoader.loadEntityCollection("world", fileLines, orderedEntityNames);
+    auto entities = EntityLoader.loadEntityCollection("world", fileLines, orderedEntityNames, rootDir);
 
     foreach (name; orderedEntityNames)
     {
@@ -226,7 +231,7 @@ public:
   
   
   void runIntegrationTest(string outputFile)
-  {    
+  {
     update(1.0); // update 1 second
     
     auto output = File(outputFile, "w");
@@ -801,7 +806,7 @@ private:
       
       //debug writeln("spawnvalues: " ~ spawnValues.to!string);
       
-      auto entities = loadEntityCollection("spawnstuff", spawnValues, orderedEntityNames);
+      auto entities = loadEntityCollection("spawnstuff", spawnValues, orderedEntityNames, rootDir);
       
       foreach (name; orderedEntityNames)
       {
@@ -1146,4 +1151,6 @@ private:
   RiftTracker m_riftTracker;
   
   string[][string] cache;
+  
+  string rootDir;
 }
