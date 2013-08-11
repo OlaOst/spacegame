@@ -93,7 +93,7 @@ class PositionRelater : Relater
     
     override RelationComponent update(RelationComponent base, RelationComponent relation)
     {
-      debug writeln("positionrelater position from " ~ base.position.to!string ~ " to " ~ (relation.position + relativePosition).to!string);
+      //debug writeln("positionrelater position from " ~ base.position.to!string ~ " to " ~ (relation.position + relativePosition).to!string);
     
       base.position = relation.position + relativePosition;
       

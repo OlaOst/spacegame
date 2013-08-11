@@ -34,7 +34,10 @@ void runTest(string file)
 
   auto expected = EntityLoader.loadValues(cache, file ~ ".expected", "tests/");
 
-  auto testrun = executeShell("rdmd -debug -g -version=integrationtest src/main.d " ~ file ~ " 1> " ~ file ~ ".output");
+  auto testCommand = "rdmd -debug -g -version=integrationtest src/main.d " ~ file ~ " 1> " ~ file ~ ".output";
+  auto testrun = executeShell(testCommand);
+  
+  //debug writeln(testCommand);
   
   //enforce(testrun.status == 0, "Failed to run integration test: " ~ testrun.output);
   enforce(testrun.status == 0, "Failed to run integration test: " ~ readText(file ~ ".output"));
