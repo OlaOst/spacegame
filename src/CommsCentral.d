@@ -94,13 +94,25 @@ void setPlacerFromController(Controller controller, Placer placer)
 {
   subSystemCommunication!(ControlComponent, PlacerComponent)(controller, placer, (ControlComponent controlComponent, PlacerComponent placerComponent)
   {
-    //debug writeln("setPlacerFromController updating " ~ controlComponent.id.to!string ~ " from " ~ placerComponent.position.to!string ~ " to " ~ controlComponent.position.to!string);
+    debug writeln("setPlacerFromController updating " ~ controlComponent.id.to!string ~ " from " ~ placerComponent.position.to!string ~ " to " ~ controlComponent.position.to!string);
   
     // what if the control component did not update its position? in that case we do not want to overwrite the existing position
-    if (controlComponent.updatedPosition)
+    //if (controlComponent.updatedPosition)
       placerComponent.position = controlComponent.position;
 
     return placerComponent;
+  });
+}
+
+void setRelationFromController(Controller controller, RelationHandler relationHandler)
+{
+  subSystemCommunication!(ControlComponent, RelationComponent)(controller, relationHandler, (ControlComponent controlComponent, RelationComponent relationComponent)
+  {
+    debug writeln("setRelationFromController updating " ~ controlComponent.id.to!string ~ " from " ~ relationComponent.position.to!string ~ " to " ~ controlComponent.position.to!string);
+      
+    relationComponent.position = controlComponent.position;
+
+    return relationComponent;
   });
 }
 

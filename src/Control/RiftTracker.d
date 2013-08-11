@@ -43,7 +43,7 @@ public:
   {
     sourceComponent.isFiring = false;
     
-    sourceComponent.updatedPosition = true;
+    //sourceComponent.updatedPosition = true;
     sourceComponent.position.x = -inputHandler.riftOrientation.z;
     sourceComponent.position.y = inputHandler.riftOrientation.y;
   }

@@ -46,7 +46,9 @@ public:
     
     sourceComponent.isFiring = false;
     
-    sourceComponent.updatedPosition = true;
+    debug writeln("MouseFollower setting position from " ~ sourceComponent.position.to!string ~ " to " ~ mouseWorldPos.to!string);
+    
+    //sourceComponent.updatedPosition = true;
     sourceComponent.position = mouseWorldPos;
   }
   

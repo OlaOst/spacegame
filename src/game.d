@@ -576,8 +576,10 @@ private:
       m_controller.updateWithTiming();
       
       CommsCentral.setPlacerFromController(m_controller, m_placer);
+      //CommsCentral.setKineticsFromController(m_controller, m_kinetics);
       CommsCentral.setPhysicsFromController(m_controller, m_physics);
       CommsCentral.setSpawnerFromController(m_controller, m_spawner);
+      CommsCentral.setRelationFromController(m_controller, m_relationHandler);
       
       m_relationHandler.updateWithTiming();
       
@@ -641,7 +643,7 @@ private:
       //CommsCentral.calculateCollisionResponse(m_collider, m_physics);+/
     }
     CommsCentral.setGraphicsFromPlacer(m_placer, m_graphics);
-    CommsCentral.setGraphicsFromCollisionHandler(m_collisionHandler, m_graphics);
+    debug CommsCentral.setGraphicsFromCollisionHandler(m_collisionHandler, m_graphics);
     
     m_graphics.updateWithTiming();
     

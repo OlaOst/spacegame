@@ -43,7 +43,7 @@ class ControlComponent
     
   ControlBase control;
   
-  bool updatedPosition = false;
+  //bool updatedPosition = false;
   
   vec2 position = vec2(0.0, 0.0);
   float angle = 0.0;
@@ -109,7 +109,7 @@ public:
       component.angularImpulse = 0.0;
       component.torque = 0.0;
       
-      component.updatedPosition = false;
+      //component.updatedPosition = false;
       
       component.isFiring = false;
       
@@ -120,7 +120,7 @@ public:
       
       component.control.update(component);
       
-      //debug writeln("updated controlcomp pos: " ~ component.position.to!string);
+      debug writeln("updated controlcomp pos: " ~ component.position.to!string);
       //debug writeln("updated controlcomp isFiring: " ~ component.isFiring.to!string);
     }
   }
@@ -175,10 +175,13 @@ protected:
     if ("control" in p_entity.values)
     {
       if (p_entity["control"] in controls)
+      {
         component.control = controls[p_entity["control"]];      
+      }
       
       // TODO: put these controls in their separate files for better discovery?
       else if (p_entity["control"] == "AlwaysFire")
+      {
         component.control = new class() ControlBase
         { 
           override void update(ref ControlComponent p_sourceComponent) 
@@ -192,8 +195,10 @@ protected:
             }
           }
         };
-        
+      }
+      
       else if (p_entity["control"] == "AlwaysAccelerate")
+      {
         component.control = new class() ControlBase
         { 
           override void update(ref ControlComponent p_sourceComponent) 
@@ -201,12 +206,36 @@ protected:
             p_sourceComponent.force += vec2(0.0, 1.0 * p_sourceComponent.thrustForce);
           }
         };
+      }
+      
+      else if (p_entity["control"] == "KeepPosition")
+      {
+        auto positionToKeep = vec2(p_entity["positionToKeep"].to!(float[])[0..2]);
+        component.control = new class(positionToKeep) ControlBase
+        {
+          this(vec2 positionToKeep)
+          {
+            this.positionToKeep = positionToKeep;
+          }
+          
+          override void update(ref ControlComponent p_sourceComponent)
+          {
+            //debug writeln("KeepPosition update setting position from " ~ p_sourceComponent.position.to!string ~ " to " ~ positionToKeep.to!string);
+            p_sourceComponent.position = positionToKeep;
+          }
+          
+          private vec2 positionToKeep;
+        };
+      }
         
       else if (p_entity["control"] == "nothing")
+      {
         component.control = new class () ControlBase { override void update(ref ControlComponent p_sourceComponent) {} };
-        
+      } 
       else
+      {
         enforce(false, "Error registering control component, " ~ p_entity.getValue("control") ~ " is an unknown control.");
+      }
     }
     
     assert(component.position.ok);

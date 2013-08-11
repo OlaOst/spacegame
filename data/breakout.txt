@@ -25,7 +25,7 @@ gun.color = [1.0, 0.0, 0.0, 0.5]
 gun.relationName = player
 gun.relativePosition = [0.0, 0.04]
 
-gun.control = PlayerLauncher
+#gun.control = PlayerLauncher
 
 gun.spawn.bullet.spawnsPerSecond = 2
 gun.spawn.bullet.drawsource = Quad
