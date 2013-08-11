@@ -1,0 +1,10 @@
+ball.position = [0.0, 0.0]
+ball.velocity = [0.0, 1.0]
+ball.radius = 0.5
+ball.collisionType = Ball
+
+brick.position = [0.0, 0.5]
+brick.width = 0.75
+brick.height = 0.75
+brick.collisionType = Brick
+brick.health = 2.0

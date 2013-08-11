@@ -1,5 +1,5 @@
 bullet.position = [0.0, 0.0]
-bullet.velocity = [0.0, 1.5]
+bullet.velocity = [0.0, 1.0]
 bullet.radius = 0.5
 bullet.collisionType = Bullet
 bullet.health = 1.0

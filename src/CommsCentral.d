@@ -426,7 +426,20 @@ void setPlacerFromCollisionHandler(CollisionHandler collisionHandler, Placer pla
     //placerComponent.velocity = colliderComponent.velocity;
     //placerComponent.rotation = colliderComponent.rotation;
     
+    //debug writeln("setPlacerFromCollisionHandler original pos " ~ placerComponent.position.to!string ~ ", new pos " ~ colliderComponent.position.to!string);
+    
     return placerComponent;
+  });
+}
+
+void setKineticsFromCollisionHandler(CollisionHandler collisionHandler, Kinetics kinetics)
+{
+  subSystemCommunication!(ColliderComponent, KineticsComponent)(collisionHandler, kinetics, (ColliderComponent colliderComponent, KineticsComponent kineticsComponent)
+  {
+    kineticsComponent.velocity = colliderComponent.velocity;
+    //placerComponent.rotation = colliderComponent.rotation;
+    
+    return kineticsComponent;
   });
 }
 

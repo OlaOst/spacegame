@@ -569,6 +569,7 @@ private:
       m_collisionHandler.updateWithTiming();
       
       CommsCentral.setPlacerFromCollisionHandler(m_collisionHandler, m_placer);
+      CommsCentral.setKineticsFromCollisionHandler(m_collisionHandler, m_kinetics);
       CommsCentral.setPhysicsFromCollisionHandler(m_collisionHandler, m_physics);
       debug CommsCentral.setGraphicsFromCollisionHandler(m_collisionHandler, m_graphics);
       
