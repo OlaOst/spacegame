@@ -197,12 +197,12 @@ public:
       relationMapping.remove(p_entity["name"]);
   }
   
+  
 protected:
   bool canCreateComponent(Entity p_entity)
   {
     return ("relationName" in p_entity) !is null || ("isRelation" in p_entity) !is null;
   }
-  
   
   RelationComponent createComponent(Entity p_entity)
   {
@@ -238,7 +238,7 @@ protected:
     return component;
   }
   
-  override void updateEntity(Entity entity)
+  void updateEntity(Entity entity)
   {
     if (hasComponent(entity))
     {

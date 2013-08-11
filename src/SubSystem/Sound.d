@@ -289,6 +289,14 @@ protected:
     
     return component;
   }
+
+  void updateEntity(Entity entity)
+  {
+    if (hasComponent(entity))
+    {
+      auto component = getComponent(entity);
+    }
+  }  
   
   
 private:

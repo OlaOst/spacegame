@@ -1,0 +1,13 @@
+bullet.position = [0, 1.5]
+bullet.velocity = [0, 1.5]
+bullet.radius = 0.5
+bullet.collisionType = Bullet
+bullet.health = 0
+
+brick.position = [0, 0.5]
+brick.width = 0.75
+brick.height = 0.75
+brick.collisionType = Brick
+brick.health = 1
+
+# TODO: check that we have particle and collision sound spawns

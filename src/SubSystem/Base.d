@@ -140,15 +140,7 @@ public:
     
     m_entityToComponent.remove(p_entity);
   }
-  
-  // TODO: remove, all subsystems should implement their own updateEntity
-  void updateEntity(Entity entity)
-  {
-    if (hasComponent(entity))
-    {
-      auto component = getComponent(entity);
-    }
-  }
+
   
   final bool hasComponent(Entity p_entity)
   {

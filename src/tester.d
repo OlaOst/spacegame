@@ -49,4 +49,3 @@ void runTest(string file)
     enforce(result[key] == value, "Value mismatch: Key " ~ key ~ " expected to be " ~ value ~ ", was " ~ result[key] ~ "\nOutput:\n" ~ readText(fixedFile ~ ".output"));
   }
 }
-

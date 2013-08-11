@@ -245,7 +245,8 @@ public:
       
       foreach (key, value; entity.values)
       {
-        output.writeln(entity["name"] ~ "." ~ key ~ " = " ~ value);
+        string name = "name" in entity.values ? entity["name"] : entity.id.to!string;
+        output.writeln(name ~ "." ~ key ~ " = " ~ value);
       }
     }
   }

@@ -37,9 +37,10 @@ import gl3n.math;
 import CollisionResponse.Bullet;
 import CollisionResponse.BatBall;
 
+import SubSystem.Base;
+
 import Entity;
 import SpatialIndex;
-import SubSystem.Base;
 import Utils;
 
 
@@ -252,8 +253,7 @@ protected:
     return (p_entity.getValue("collisionType").length > 0) && 
            //(p_entity.getValue("radius").length > 0) &&
            (p_entity.getValue("isBlueprint") != "true");
-  }
-  
+  }  
   
   ColliderComponent createComponent(Entity p_entity)
   {
@@ -324,6 +324,18 @@ protected:
       colliderComponent.color = p_entity["color"].to!(float[])[0..4].vec4;
     
     return colliderComponent;
+  }
+  
+  void updateEntity(Entity entity)
+  {
+    if (hasComponent(entity))
+    {
+      auto component = getComponent(entity);
+      
+      // TODO: CollisionHandler should not be the subsystem responsible for health
+      // create subsystem responsible for removing entities according to rules matching entity values?
+      entity.values["health"] = component.health.to!string;
+    }
   }
   
   
