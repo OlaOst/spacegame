@@ -7,3 +7,7 @@ child.relationName = parent
 
 otherchild.mass = 0.5
 otherchild.relationName = parent
+
+childchild.mass = 1.5
+childchild.originalMass = 1.5
+childchild.relationName = child
