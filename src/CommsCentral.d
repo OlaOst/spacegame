@@ -70,7 +70,7 @@ void setKineticsFromPhysics(Physics physics, Kinetics kinetics)
 {
   subSystemCommunication!(PhysicsComponent, KineticsComponent)(physics, kinetics, (PhysicsComponent physicsComponent, KineticsComponent kineticsComponent)
   {
-    debug writeln("setKineticsFromPhysics velocity before: " ~ kineticsComponent.velocity.to!string ~ ", after: " ~ physicsComponent.velocity.to!string);
+    //debug writeln("setKineticsFromPhysics velocity before: " ~ kineticsComponent.velocity.to!string ~ ", after: " ~ physicsComponent.velocity.to!string);
     
     kineticsComponent.velocity = physicsComponent.velocity;
     kineticsComponent.rotation = physicsComponent.rotation;
@@ -113,6 +113,18 @@ void setPlacerFromRelation(RelationHandler relation, Placer placer)
     placerComponent.position = relationComponent.position;
 
     return placerComponent;
+  });
+}
+
+void setPhysicsFromRelation(RelationHandler relation, Physics physics)
+{
+  subSystemCommunication!(RelationComponent, PhysicsComponent)(relation, physics, (RelationComponent relationComponent, PhysicsComponent physicsComponent)
+  {
+    //debug writeln("setPhysicsFromRelation updating " ~ relationComponent.name ~ " mass from " ~ physicsComponent.mass.to!string ~ " to " ~ relationComponent.mass.to!string);
+    
+    physicsComponent.mass = relationComponent.mass;
+
+    return physicsComponent;
   });
 }
 

@@ -253,6 +253,7 @@ protected:
     {
       auto component = getComponent(entity);
       
+      entity.values["mass"] = component.mass.to!string;
       entity.values["force"] = component.force.to!string;
       entity.values["torque"] = component.torque.to!string;
     }

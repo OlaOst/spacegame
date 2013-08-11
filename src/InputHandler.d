@@ -288,9 +288,9 @@ invariant()
 public:
   this()
   {
-    DerelictOVR.load();
+    //DerelictOVR.load();
     
-    initRift(cast(char*)"test".ptr);
+    //initRift(cast(char*)"test".ptr);
     
     clearEventStates();
     
@@ -358,9 +358,8 @@ public:
     float y;
     float z;
     
-    readRift(&roll, &pitch, &yaw, &x, &y, &z);
-    
-    m_riftOrientation = vec3(roll, pitch, yaw);
+    //readRift(&roll, &pitch, &yaw, &x, &y, &z);
+    //m_riftOrientation = vec3(roll, pitch, yaw);
   }
   
   EventState[Event] events()

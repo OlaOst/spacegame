@@ -581,6 +581,7 @@ private:
       
       CommsCentral.setControllerFromRelation(m_relationHandler, m_controller);
       CommsCentral.setPlacerFromRelation(m_relationHandler, m_placer);
+      CommsCentral.setPhysicsFromRelation(m_relationHandler, m_physics);
       
       m_kinetics.updateWithTiming();
       
@@ -593,9 +594,6 @@ private:
       CommsCentral.setSpawnerFromPlacer(m_placer, m_spawner);
       CommsCentral.setSoundFromPlacer(m_placer, m_sound);
       CommsCentral.setRelationFromPlacer(m_placer, m_relationHandler);
-      
-      // TODO: update from relationhandler
-      //m_relationHandler.updateWithTiming();
       
       m_sound.updateWithTiming();
       m_timer.updateWithTiming();

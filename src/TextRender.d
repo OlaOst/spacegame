@@ -244,7 +244,8 @@ private:
         
         if (glyph.data.length <= coord+3)
         {
-          stderr.writeln("Out of bounds error when creating glyph texture for character " ~ p_char);
+          // TODO: log this as warning, instead of outputting to stderr
+          //stderr.writeln("Out of bounds error when creating glyph texture for character " ~ p_char);
           break;
         }
           

@@ -30,23 +30,23 @@ void runTest(string file)
 {
   scope(failure) writeln(file ~ " failed");
 
+  string fixedFile = file.startsWith("tests/") ? file : "tests/" ~ file;
+  
   string[][string] cache;
 
-  auto expected = EntityLoader.loadValues(cache, file ~ ".expected", "tests/");
+  auto expected = EntityLoader.loadValues(cache, fixedFile ~ ".expected", "tests/");
 
-  auto testCommand = "rdmd -debug -g -version=integrationtest src/main.d " ~ file ~ " 1> " ~ file ~ ".output";
-  auto testrun = executeShell(testCommand);
+  auto testCommand = "rdmd -debug -g -version=integrationtest src/main.d " ~ fixedFile ~ " 1> " ~ fixedFile ~ ".output" ~ " 2> " ~ fixedFile ~ ".error";
+  auto testRun = executeShell(testCommand);
   
-  //debug writeln(testCommand);
+  enforce(testRun.status == 0, "Failed to run integration test with command:\n" ~ testCommand ~ "\nOutput:\n" ~ readText(fixedFile ~ ".output") ~ "\nError message:\n" ~ readText(fixedFile ~ ".error"));
   
-  //enforce(testrun.status == 0, "Failed to run integration test: " ~ testrun.output);
-  enforce(testrun.status == 0, "Failed to run integration test: " ~ readText(file ~ ".output"));
-  
-  auto result = EntityLoader.loadValues(cache, file ~ ".result", "tests/");
+  auto result = EntityLoader.loadValues(cache, fixedFile ~ ".result", "tests/");
 
   foreach (key, value; expected)
   {
-    enforce(key in result, "Did not find expected key in result: " ~ key);
-    enforce(result[key] == value, "Value mismatch: Key " ~ key ~ " expected to be " ~ value ~ ", was " ~ result[key]);
+    enforce(key in result, "Did not find expected key in result: " ~ key ~ "\nOutput:\n" ~ readText(fixedFile ~ ".output"));
+    enforce(result[key] == value, "Value mismatch: Key " ~ key ~ " expected to be " ~ value ~ ", was " ~ result[key] ~ "\nOutput:\n" ~ readText(fixedFile ~ ".output"));
   }
 }
+

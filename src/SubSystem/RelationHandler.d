@@ -78,6 +78,7 @@ unittest
 
 interface Relater
 {
+  RelationComponent reset(RelationComponent base);
   RelationComponent update(RelationComponent base, RelationComponent relation);
   
   string[string] values();
@@ -85,30 +86,70 @@ interface Relater
 
 class PositionRelater : Relater
 {
-  public:
-    this(vec2 p_relativePosition)
-    {
-      relativePosition = p_relativePosition;
-    }
+public:
+  this(vec2 p_relativePosition)
+  {
+    relativePosition = p_relativePosition;
+  }
     
-    override RelationComponent update(RelationComponent base, RelationComponent relation)
-    {
-      //debug writeln("positionrelater position from " ~ base.position.to!string ~ " to " ~ (relation.position + relativePosition).to!string);
+  override RelationComponent reset(RelationComponent base)
+  {
+    return base;
+  }
+  
+  override RelationComponent update(RelationComponent base, RelationComponent relation)
+  {
+    //debug writeln("positionrelater position from " ~ base.position.to!string ~ " to " ~ (relation.position + relativePosition).to!string);
+  
+    base.position = relation.position + relativePosition;
     
-      base.position = relation.position + relativePosition;
-      
-      return base;
-    }
-    
-    override string[string] values()
-    {
-      // TODO: should we prefix Relater values?
-      return ["relativePosition" : relativePosition.to!string];
-    }
-    
-  private:
-    vec2 relativePosition;
+    return base;
+  }
+  
+  override string[string] values()
+  {
+    // TODO: should we prefix Relater values?
+    return ["relativePosition" : relativePosition.to!string];
+  }
+  
+private:
+  vec2 relativePosition;
 }
+
+
+class MassRelater : Relater
+{
+public:
+  this(float originalMass)
+  {
+    this.originalMass = originalMass;
+  }
+  
+  override RelationComponent reset(RelationComponent base)
+  {
+    base.mass = originalMass;
+    
+    return base;
+  }
+
+  override RelationComponent update(RelationComponent base, RelationComponent relation)
+  {
+    //debug writeln("mass relater updating relation.mass from " ~ base.mass.to!string ~ " to " ~ (relation.mass+originalMass).to!string);
+    
+    base.mass += relation.mass;
+    
+    return base;
+  }
+  
+  override string[string] values()
+  {
+    return ["originalMass" : originalMass.to!string];
+  }
+  
+private:
+  float originalMass;
+}
+
 
 class RelationComponent
 {
@@ -118,6 +159,7 @@ class RelationComponent
   Relater relater;
   
   vec2 position = vec2(0.0, 0.0);
+  float mass = 0.0;
 }
 
 class RelationHandler : Base!(RelationComponent)
@@ -129,12 +171,21 @@ public:
   
   void update()
   {
+    foreach (component; components.filter!(component => component.relater !is null))
+    {
+      component = component.relater.reset(component);
+    }
+  
     foreach (component; components.filter!(component => component.relationName.length > 0))
     {
       assert(component.relationName in relationMapping);
-      assert(component.relater !is null, "Relater is null for component " ~ component.name);
+      assert(component.relater !is null || relationMapping[component.relationName].relater !is null, "Relater is null for component " ~ component.name ~ " and for related component " ~ component.relationName ~ " - one of these must have a relater");
       
-      component = component.relater.update(component, relationMapping[component.relationName]);
+      // TODO: less hacky way to choose which way the relation goes
+      if (component.relater !is null)
+        component = component.relater.update(component, relationMapping[component.relationName]);
+      else
+        component = relationMapping[component.relationName].relater.update(relationMapping[component.relationName], component);
     }
   }
   
@@ -172,6 +223,12 @@ protected:
     
     if ("relativePosition" in p_entity)
       component.relater = new PositionRelater(vec2(p_entity["relativePosition"].to!(float[])[0..2]));
+    
+    if ("mass" in p_entity)
+      component.mass = p_entity["mass"].to!float;
+    
+    if ("originalMass" in p_entity)
+      component.relater = new MassRelater(p_entity["originalMass"].to!float);
     
     enforce(component.name.length > 0, "Cannot create RelationComponent without name");
     enforce(component.name !in relationMapping, "RelationComponent with name " ~ component.name ~ " already registered");

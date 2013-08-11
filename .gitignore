@@ -7,5 +7,6 @@
 *.exe
 /coverage
 *.output
+*.error
 *.result
 dump.txt
