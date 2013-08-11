@@ -1,0 +1,8 @@
+parent.mass = 3.5
+parent.isRelation = true
+
+child.mass = 1
+child.relationName = parent
+
+otherchild.mass = 0.5
+otherchild.relationName = parent
