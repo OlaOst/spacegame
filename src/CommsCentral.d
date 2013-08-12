@@ -94,7 +94,7 @@ void setPlacerFromController(Controller controller, Placer placer)
 {
   subSystemCommunication!(ControlComponent, PlacerComponent)(controller, placer, (ControlComponent controlComponent, PlacerComponent placerComponent)
   {
-    debug writeln("setPlacerFromController updating " ~ controlComponent.id.to!string ~ " from " ~ placerComponent.position.to!string ~ " to " ~ controlComponent.position.to!string);
+    //debug writeln("setPlacerFromController updating " ~ controlComponent.id.to!string ~ " from " ~ placerComponent.position.to!string ~ " to " ~ controlComponent.position.to!string);
   
     // what if the control component did not update its position? in that case we do not want to overwrite the existing position
     //if (controlComponent.updatedPosition)
@@ -108,7 +108,7 @@ void setRelationFromController(Controller controller, RelationHandler relationHa
 {
   subSystemCommunication!(ControlComponent, RelationComponent)(controller, relationHandler, (ControlComponent controlComponent, RelationComponent relationComponent)
   {
-    debug writeln("setRelationFromController updating " ~ controlComponent.id.to!string ~ " from " ~ relationComponent.position.to!string ~ " to " ~ controlComponent.position.to!string);
+    //debug writeln("setRelationFromController updating " ~ controlComponent.id.to!string ~ " from " ~ relationComponent.position.to!string ~ " to " ~ controlComponent.position.to!string);
       
     relationComponent.position = controlComponent.position;
 
@@ -287,47 +287,6 @@ void setRelationFromPlacer(Placer placer, RelationHandler relationHandler)
   });
 }
 
-
-/*void calculateCollisionResponse(CollisionHandler collisionHandler, Physics physics)
-{
-  Entity[int] colliderToEntities;
-  
-  foreach (entity; collisionHandler.entities)
-  {
-    if (collisionHandler.hasComponent(entity))
-    {
-      //debug writeln("entity " ~ to!string(entity.id) ~ " has collision component " ~ to!string(collisionHandler.getComponent(entity).id));
-      colliderToEntities[collisionHandler.getComponent(entity).id] = entity;
-    }
-  }
-
-  //debug writeln("collidertoentities: " ~ to!string(colliderToEntities.length));
-  
-  foreach (collision; collisionHandler.collisions)
-  {
-    //debug writeln("checking collision between collisioncomponent " ~ to!string(collision.first.id) ~ " and " ~ to!string(collision.second.id));
-    auto firstEntity = colliderToEntities[collision.first.id];
-    auto secondEntity = colliderToEntities[collision.second.id];
-    
-    // this physics component might have collided with a non-physics component, i.e. ship moving over and lighting up something in the background or the hud, like a targeting reticle 
-    // we only do something physical with the collision if both collision components have corresponding physics components
-    if (physics.hasComponent(firstEntity) && physics.hasComponent(secondEntity))
-    {
-      auto firstPhysicsComponent = physics.getComponent(firstEntity);
-      auto secondPhysicsComponent = physics.getComponent(secondEntity);
-      
-      // determine collision force
-      float collisionForce = (firstPhysicsComponent.velocity * firstPhysicsComponent.mass + secondPhysicsComponent.velocity * secondPhysicsComponent.mass).length;
-
-      // give a kick from the contactpoint
-      firstPhysicsComponent.force = firstPhysicsComponent.force + (collision.contactPoint.normalized() * -collisionForce);
-      secondPhysicsComponent.force = secondPhysicsComponent.force + (collision.contactPoint.normalized() * collisionForce);
-      
-      physics.setComponent(firstEntity, firstPhysicsComponent);
-      physics.setComponent(secondEntity, secondPhysicsComponent);
-    }
-  }
-}*/
 
 void setSpawnerFromController(Controller controller, Spawner spawner)
 {

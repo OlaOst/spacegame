@@ -120,7 +120,7 @@ public:
       
       component.control.update(component);
       
-      debug writeln("updated controlcomp pos: " ~ component.position.to!string);
+      //debug writeln("updated controlcomp pos: " ~ component.position.to!string);
       //debug writeln("updated controlcomp isFiring: " ~ component.isFiring.to!string);
     }
   }

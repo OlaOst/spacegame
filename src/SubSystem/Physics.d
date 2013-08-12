@@ -110,8 +110,8 @@ private:
     velocity += impulse * p_time;
     position += velocity * p_time;
     
-    debug if (rotation > 0.0)
-      debug writeln("physics component rotation is " ~ rotation.to!string);
+    //debug if (rotation > 0.0)
+      //debug writeln("physics component rotation is " ~ rotation.to!string);
     
     rotation += (torque / mass) * p_time;
     float originalRotation = rotation;
