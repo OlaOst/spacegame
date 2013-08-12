@@ -105,13 +105,15 @@ void ballCollisionResponse(Collision collision, CollisionHandler collisionHandle
   
     if (ball.velocity.dot(contactPointRelativeToBall.normalized) > 0.0)
     {
+      auto originalVelocity = ball.velocity;
+      
       ball.velocity = ball.velocity + (2.0 * -ball.velocity.dot(contactPointRelativeToBall.normalized).abs * contactPointRelativeToBall.normalized);
       //ball.velocity = ball.velocity - (2.0 * contactPointRelativeToBall.normalized.dot(ball.velocity.normalized).abs * contactPointRelativeToBall.normalized());
       //ball.velocity = ball.velocity * -1.0;
     
       //debug writeln("ball velocity after collision: " ~ ball.velocity.to!string);
     
-      //debug writeln("ball velocity dot contactpoint: " ~ ball.velocity.dot(contactPointRelativeToBall.normalized).to!string);
+      debug writeln("ball velocity dot original velocity: " ~ ball.velocity.dot(originalVelocity.normalized).to!string);
     
       ball.torque = ball.velocity.dot(contactPointRelativeToBall.normalized) * 10000.0;
     
