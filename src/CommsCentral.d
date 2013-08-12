@@ -71,6 +71,8 @@ void setKineticsFromPhysics(Physics physics, Kinetics kinetics)
   subSystemCommunication!(PhysicsComponent, KineticsComponent)(physics, kinetics, (PhysicsComponent physicsComponent, KineticsComponent kineticsComponent)
   {
     //debug writeln("setKineticsFromPhysics velocity before: " ~ kineticsComponent.velocity.to!string ~ ", after: " ~ physicsComponent.velocity.to!string);
+    //debug if (kineticsComponent.rotation != 0.0 || physicsComponent.rotation != 0.0)
+      //debug writeln("setKineticsFromPhysics rotation before: " ~ kineticsComponent.rotation.to!string ~ ", after: " ~ physicsComponent.rotation.to!string);
     
     kineticsComponent.velocity = physicsComponent.velocity;
     kineticsComponent.rotation = physicsComponent.rotation;
@@ -83,6 +85,9 @@ void setPlacerFromKinetics(Kinetics kinetics, Placer placer)
 {
   subSystemCommunication!(KineticsComponent, PlacerComponent)(kinetics, placer, (KineticsComponent kineticsComponent, PlacerComponent placerComponent)
   {
+    //debug if (kineticsComponent.angle != 0.0 || placerComponent.angle != 0.0)
+      //debug writeln("setPlacerFromKinetics angle before: " ~ placerComponent.angle.to!string ~ ", after: " ~ kineticsComponent.angle.to!string);
+      
     placerComponent.position = kineticsComponent.position;
     placerComponent.angle = kineticsComponent.angle;
     
@@ -267,6 +272,9 @@ void setCollisionHandlerFromPhysics(Physics physics, CollisionHandler collisionH
   {
     colliderComponent.force = physicsComponent.force;
     colliderComponent.torque = physicsComponent.torque;
+    
+    colliderComponent.velocity = physicsComponent.velocity;
+    colliderComponent.rotation = physicsComponent.rotation;
 
     return colliderComponent;
   });

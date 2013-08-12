@@ -113,9 +113,9 @@ void ballCollisionResponse(Collision collision, CollisionHandler collisionHandle
     
       //debug writeln("ball velocity after collision: " ~ ball.velocity.to!string);
     
-      debug writeln("ball velocity dot original velocity: " ~ ball.velocity.dot(originalVelocity.normalized).to!string);
+      //debug writeln("ball velocity dot original velocity: " ~ ball.velocity.dot(originalVelocity.normalized).to!string);
     
-      ball.torque = ball.velocity.dot(contactPointRelativeToBall.normalized) * 10000.0;
+      ball.torque = ball.velocity.dot(originalVelocity) * 5000.0;
     
       //vec2 collisionPosition = (ball.position + other.position) * 0.5 + collision.contactPoint;
       vec2 collisionPosition = collision.contactPoint;

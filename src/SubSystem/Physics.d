@@ -124,7 +124,10 @@ private:
       rotation = 0.0;
       angularImpulse = 0.0;
     }
-        
+    
+    //debug if (torque != 0.0 || rotation != 0.0)
+      //debug writeln("physics torque: " ~  torque.to!string ~ ", rotation: " ~ rotation.to!string);
+    
     angle += rotation * p_time;
     
     assert(isFinite(angle));

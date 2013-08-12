@@ -71,6 +71,9 @@ public:
       component.position += component.velocity * m_timeStep;
       component.angle += component.rotation * m_timeStep;
       
+      //debug if (component.rotation != 0.0 || component.angle != 0.0)
+        //debug writeln("kinetics component rotation " ~ component.rotation.to!string ~ ", angle " ~ component.angle.to!string);
+      
       //debug if (component.velocity.length > 0.0) writeln("kinetics component pos after: " ~ component.position.to!string);
     }
   }
