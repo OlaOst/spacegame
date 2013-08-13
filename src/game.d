@@ -643,7 +643,7 @@ private:
       //CommsCentral.calculateCollisionResponse(m_collider, m_physics);+/
     }
     CommsCentral.setGraphicsFromPlacer(m_placer, m_graphics);
-    debug CommsCentral.setGraphicsFromCollisionHandler(m_collisionHandler, m_graphics);
+    CommsCentral.setGraphicsFromCollisionHandler(m_collisionHandler, m_graphics);
     
     m_graphics.updateWithTiming();
     

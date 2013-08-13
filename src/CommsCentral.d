@@ -160,7 +160,7 @@ void setGraphicsFromPlacer(Placer placer, Graphics graphics)
   });
 }
 
-debug void setGraphicsFromCollisionHandler(CollisionHandler collisionHandler, Graphics graphics)
+void setGraphicsFromCollisionHandler(CollisionHandler collisionHandler, Graphics graphics)
 {
   subSystemCommunication!(ColliderComponent, GraphicsComponent)(collisionHandler, graphics, (ColliderComponent colliderComponent, GraphicsComponent graphicsComponent)
   {
