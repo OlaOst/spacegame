@@ -171,7 +171,6 @@ public:
   AABB aabb;
   bool useAABB = false;
   
-  vec2[] connectPoints;
   vec4 color = vec4(1, 1, 1, 1);
   
   int displayListId = -1;
@@ -845,17 +844,6 @@ protected:
           component.vertices ~= Vertex.fromString(vertexData);*/
           
         //writeln("comp vertices is " ~ component.vertices.to!string);
-      }
-    }
-    
-    foreach (value; p_entity.keys)
-    {
-      //if (std.algorithm.startsWith(value, "connectpoint") > 0)
-      if (value.startsWith("connectpoint") > 0)
-      {
-        //component.connectPoints ~= vec2.fromString(p_entity.getValue(value)) * radius;
-        //component.connectPoints ~= vec2(p_entity[value].to!(float[])[0..2]) * radius;
-        component.connectPoints ~= p_entity[value].to!(float[])[0..2].vec2 * radius;
       }
     }
     

@@ -100,7 +100,6 @@ unittest
   auto actualValues = loadValues(cache, "data/simpleship.txt");
   auto actualChildrenValues = findChildrenValues(cache, actualValues);
   assert(actualChildrenValues["mainSkeleton"]["source"] == "verticalskeleton.txt");
-  assert(actualChildrenValues["mainSkeleton"]["connectpoint.lower.position"] == "[0.0, -0.8]");
 }
 
 
@@ -174,7 +173,7 @@ string[string][string] findChildrenValues(ref string[][string] cache, string[str
   {
     string childName = to!string(key.until("."));
       
-    if (childName.length == 0 || childName == "*" || childName == "spawn" || childName == "connectpoint")
+    if (childName.length == 0 || childName == "*" || childName == "spawn")
       continue;
     
     string childKey = key;
@@ -230,8 +229,6 @@ unittest
                     "random.position = [0, -1] to [1, 0]",
                     "parent.foo = bar", 
                     "child.owner = parent",
-                    "connectBase.connectpoint.one.position = [0.0, 1.0]",
-                    "connectChild.connection = connectBase.one",
                     "image.drawsource = image.png",
                     "external.source = cannon.txt",
                     "external.spawn.foo = bar"];
@@ -247,8 +244,6 @@ unittest
                                 "test.random", 
                                 "test.parent", 
                                 "test.child", 
-                                "test.connectBase", 
-                                "test.connectChild", 
                                 "test.image", 
                                 "test.external"]);
   
@@ -277,12 +272,6 @@ unittest
   
   //foreach (name, entity; entities)
     //writeln(name ~ ": " ~ entity.values.to!string);
-    
-  assert("test.connectBase" in entities);
-  assert("test.connectChild" in entities);
-  assert(entities["test.connectBase"]["connectpoint.one.position"] == "[0.0, 1.0]", "test.connectBase connectpoint.one.position was " ~ entities["test.connectBase"]["connectpoint.one.position"] ~ ", expected [0.0, 1.0]");
-  //assert(entities["test.connectChild"]["connection"] == entities["test.connectBase"].id.to!string ~ ".one");
-  //assert(entities["test.connectChild"]["owner"] == entities["test.connectBase"].id.to!string);
   
   assert("test.image" in entities);
   assert(entities["test.image"]["drawsource"] == "image.png");
@@ -405,7 +394,7 @@ Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref
       bool reservedName = false;
       string fixedName = name;
       while (fixedName.findSkip(".")) {}
-      if (fixedName == "connectpoint" || fixedName == "spawn" || fixedName == "*")
+      if (fixedName == "spawn" || fixedName == "*")
         reservedName = true;
       
       if (orderedEntityNames.find(name).empty && !reservedName)
@@ -468,9 +457,7 @@ Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref
       auto fixedKey = key;
       
       // TODO: better way to keep track of reserved values
-      if (!fixedKey.find("connectpoint").empty)
-        fixedKey = fixedKey.find("connectpoint");
-      else if (!fixedKey.find("spawn").empty)
+      if (!fixedKey.find("spawn").empty)
         fixedKey = fixedKey.find("spawn");
       else if (!fixedKey.find("*").empty)
         fixedKey = fixedKey.find("*");
@@ -501,18 +488,6 @@ Entity[string] loadEntityCollection(string collectionName, string[] p_lines, ref
     {
       auto fixedKey = key;
       while (fixedKey.findSkip(".")) {}
-            
-      if (fixedKey == "connection")
-      {
-        auto connectionData = value.split(".");
-        
-        auto fullName = collectionName ~ "." ~ connectionData[0];
-        
-        enforce(fullName in nameIdMapping, "Entity " ~ name ~ " tried to connect to " ~ fullName ~ " which is not found in the given entity names: " ~ nameIdMapping.keys.to!string);
-        
-        entities[name].setValue(fixedKey, nameIdMapping[fullName].to!string ~ "." ~ connectionData[1]);
-        entities[name].setValue("owner", nameIdMapping[fullName].to!string);
-      }
       
       if (fixedKey == "owner")
       {

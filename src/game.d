@@ -52,7 +52,6 @@ import CommsCentral;
 import Console;
 import Entity;
 import EntityConsole;
-import EntityGenerator;
 import EntityLoader;
 import GameConsole;
 import InputHandler;
@@ -134,15 +133,6 @@ import SubSystem.Timer;
     subSystem.update();
     
   assert(game.m_controller.getComponent(testController).force.length > 0.0, "Force of alwaysaccelerate controlcomponent should be nonzero, was " ~ to!string(game.m_controller.getComponent(testController).force));
-  
-  Entity owner = new Entity(["":""]);
-  owner.setValue("owner", to!string(owner.id));
-  Entity parent = new Entity(["connectpoint.lower.position" : "0 -1", "connectpoint.upper.position" : "0 1", "owner" : to!string(owner.id)]);
-  Entity child = new Entity(["connection" : to!string(parent.id) ~ ".lower", "owner" : to!string(owner.id)]);
-  
-  game.registerEntity(owner);
-  game.registerEntity(parent);
-  game.registerEntity(child);
 }*/
 
 
@@ -761,11 +751,6 @@ private:
           
           m_placer.setComponent(m_closestShipDisplay, poscomp);
           m_graphics.setComponent(m_closestShipDisplay, gfxcomp);
-          
-          //auto ownedEntitiesWithGraphics = m_connector.getOwnedEntities(closestEntity).filter!(e => m_graphics.hasComponent(e));
-          
-          //if (ownedEntitiesWithGraphics.empty == false)
-            //m_graphics.setTargetEntity(ownedEntitiesWithGraphics.front);
         }
       }
     }
@@ -909,13 +894,6 @@ private:
     
     if (m_inputHandler.eventState(Event.RightButton) == EventState.Released)
     {
-      /*auto clickedEntities = find!(entity => entity != m_playerShip && 
-                                   entity.getValue("radius").length > 0 &&
-                                   entity.getValue("ScreenAbsolutePosition") != "true" &&
-                                   m_placer.hasComponent(entity) && 
-                                   (m_placer.getComponent(entity).position - m_graphics.mouseWorldPos).length < to!float(entity.getValue("radius")) &&
-                                   m_connector.hasComponent(entity))(m_entities.values);*/
-    
       auto infoEntities = m_entities.values.filter!(entity => "infoentity" in entity);
       foreach (infoEntity; infoEntities)
         removeEntity(infoEntity);
