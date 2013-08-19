@@ -35,6 +35,171 @@ import gl3n.linalg;
 import Entity;
 
 
+/*****************************
+ * Data must be refined into a form that can be used by the game
+ * This can happen in several steps
+ * In general, the process goes file -> string -> array of lines -> key/value associative array -> entity
+ * At various steps, substitutions and insertions may occur
+ * What each step accepts and what it returns must be well-defined
+ *
+ * Special considerations must be taken for naming and keeping track of what is a key/value collection for a single entity and what is a key/value collection for multiple entities
+ *
+ * Simplification: A file always contains a collection of entities - the key/values must be named even if only one entity is defined in the file
+ * 
+ *****************************/
+
+//string[] loadFile(File file)
+//{
+  //return file.lines;
+//}
+
+unittest
+{
+  string content;
+}
+string[] makeLines(string content)
+{
+  return [];
+}
+
+unittest
+{
+  auto test = ["test.value = one", "test.othervalue = two"];
+  
+  auto result = test.makeKeyValues;
+  
+  assert("test.value" in result);
+  assert("test.othervalue" in result);
+  
+  assert(result["test.value"] == "one");
+  assert(result["test.othervalue"] == "two");
+}
+string[string] makeKeyValues(string[] lines)
+{
+  string[string] keyValues;
+
+  foreach (line; lines)
+    keyValues[line.split("=")[0].strip] = line.strip.split("=")[1].strip;
+  
+  return keyValues;
+}
+
+Entity[] makeEntities(string[string] keyValues)
+{
+  Entity[] entities;
+  
+  foreach (entityName, keyValuesForSingleEntity; keyValues.getNamedKeyValues)
+  {
+    entities ~= makeEntity(keyValuesForSingleEntity);
+  }
+    
+  return entities;
+}
+
+// two ways to expand values: 
+// source, which will get sub-named entities from value 
+// prototype, where value is name of keyvalues/entity whose values will be used as basis 
+unittest
+{
+  // one.txt:
+  //   first.key = value
+  //   first.otherkey = othervalue
+  //   second.key = secondvalue
+  // two.txt:
+  //   third.source = file://one.txt
+  //   third.*.otherkey = overridenvalue
+  
+  // when two.txt loaded, we have:
+  //    third.first.key = value
+  //    third.first.otherkey = overridenvalue
+  //    third.second.key = secondvalue
+  //    third.second.otherkey = overridenvalue
+  
+  auto firstValues = ["first.key" : "value", "first.otherkey" : "othervalue", "second.key" : "secondvalue"];
+  auto cache = ["file://one.txt" : firstValues];
+  
+  auto two = ["third.resource" : "file://one.txt", "third.*.otherkey" : "overridenvalue"];
+  
+  auto result = expandKeyValues(two, cache);
+  
+  assert("third.resource" in result && result["third.resource"] == "file://one.txt");
+  
+  assert("third.first.key" in result && result["third.first.key"] == "value");
+  assert("third.second.key" in result && result["third.second.key"] == "secondvalue");
+  
+  assert("third.*.otherkey" in result && result["third.*.otherkey"] == "overridenvalue");
+  // TODO: value overriding should be done in another function
+  //assert("third.first.otherkey" in result && result["third.first.otherkey"] == "overridenvalue");
+  //assert("third.second.otherkey" in result && result["third.second.otherkey"] == "overridenvalue");
+}
+string[string] expandKeyValues(string[string] keyValues, string[string][string] keyValuesForResource)
+{
+  foreach (resourceKey; keyValues.keys.filter!(key => key.endsWith(".resource")))
+  {
+    auto resource = keyValues[resourceKey];
+    
+    auto name = resourceKey.until(".resource").to!string;
+    
+    if (resource !in keyValuesForResource)
+    {
+      // TODO: get values from resource. Could be file, http, stream, etc. Make separate module for resource loading
+    }
+    
+    // TODO: prevent loop
+    expandKeyValues(keyValuesForResource[resource], keyValuesForResource);
+    
+    foreach (sourceKey, sourceValue; keyValuesForResource[resource])
+    {
+      auto fullName = name ~ "." ~ sourceKey;
+      
+      keyValues[fullName] = sourceValue;
+    }
+  }
+  
+  return keyValues;
+}
+
+unittest
+{
+  auto test = ["name.key" : "value", "other.key" : "othervalue", "name.with.dots.in.it.key" : "value.with.dots.in.it"];
+  
+  auto result = test.getNamedKeyValues;
+  
+  assert("name" in result);
+  assert("other" in result);
+  assert("name.with.dots.in.it" in result);
+  
+  assert("key" in result["name"]);
+  assert("key" in result["other"]);
+  assert("key" in result["name.with.dots.in.it"]);
+  
+  assert(result["name"]["key"] == "value");
+  assert(result["other"]["key"] == "othervalue");
+  assert(result["name.with.dots.in.it"]["key"] == "value.with.dots.in.it");
+}
+string[string][string] getNamedKeyValues(string[string] keyValues)
+{
+  // all keys must be on the form name.key
+  
+  string[string][string] namedKeyValues;
+  
+  foreach (key, value; keyValues)
+  {
+    auto keyParts = key.split(".");
+    
+    enforce(keyParts.length >= 2);
+    
+    namedKeyValues[keyParts[0..$-1].join(".")][keyParts[$-1..$].join(".")] = value;
+  }
+  
+  return namedKeyValues;
+}
+
+Entity makeEntity(string[string] keyValues)
+{
+  return new Entity(keyValues);
+}
+
 unittest
 {
   //scope(success) writeln(__FILE__ ~ " unittests succeeded");
@@ -62,7 +227,7 @@ unittest
   
   string[] lines = ["one = two", "three = four", "five = six", "#and this is a comment", "source = unittest.data"];
   
-  values = getValues(cache, lines);
+  values = getValues(cache, lines, "data/");
   
   assert(values["a"] == "b");
   assert(values["one"] == "two");
@@ -81,9 +246,9 @@ unittest
   
   string[] linesWithChildren = ["hei = hoi", "child1.source = unittest.data", "child2.source = unittest.data", "*.one = foo", "child1.three = bar"];
   
-  values = getValues(cache, linesWithChildren);
+  values = getValues(cache, linesWithChildren, "data/");
   
-  string[string][string] childrenValues = findChildrenValues(cache, values);
+  string[string][string] childrenValues = findChildrenValues(cache, values, "data/");
   
   assert(childrenValues.length == 2, to!string(childrenValues));
   assert("child1" in childrenValues);
@@ -97,11 +262,33 @@ unittest
   assert(childrenValues["child1"]["three"] == "bar");
   
   
-  auto actualValues = loadValues(cache, "data/simpleship.txt");
-  auto actualChildrenValues = findChildrenValues(cache, actualValues);
+  auto actualValues = loadValues(cache, "data/simpleship.txt", "data/");
+  auto actualChildrenValues = findChildrenValues(cache, actualValues, "data/");
   assert(actualChildrenValues["mainSkeleton"]["source"] == "verticalskeleton.txt");
 }
 
+
+unittest
+{
+  string[][string] cache;
+  
+  string[string] childCollection = ["firstchild.thing" : "one", "secondchild.thing" : "two"];
+  string[string] parent = ["child.source" : "childCollection.txt", "child.*.commonvalue" : "test"];
+  
+  cache["childCollection.txt"] = childCollection.keys.map!(key => key ~ " = " ~ childCollection[key]).array;
+  cache["parent.txt"] = parent.keys.map!(key => key ~ " = " ~ parent[key]).array;
+  
+  auto childValues = loadValues(cache, "childCollection.txt", "data/");
+  auto parentValues = loadValues(cache, "parent.txt", "data/");
+  
+  writeln(childValues.to!string);
+  writeln(parentValues.to!string);
+  
+  writeln(findChildrenValues(cache, parentValues, "data/").to!string);
+  
+  assert("firstchild.commonvalue" in childValues, "Could not find commonvalue set from parent in childcollection: " ~ childValues.to!string);
+  assert("secondchild.commonvalue" in childValues, "Could not find commonvalue set from parent in childcollection: " ~ childValues.to!string);
+}
 
 void addValue(string line, ref string[string] values)
 {
@@ -234,7 +421,7 @@ unittest
                     "external.spawn.foo = bar"];
   
   string[] orderedEntityNames;
-  auto entities = loadEntityCollection("test", lines, orderedEntityNames);
+  auto entities = loadEntityCollection("test", lines, orderedEntityNames, "data/");
   
   assert(entities.length > 0);
   
@@ -288,7 +475,7 @@ unittest
   values["source"] = "cannon.txt";
   values["foo"] = "bar";
   
-  auto expandedValues = expandValues(values);
+  auto expandedValues = expandValues(values, "data/");
  
   //debug writeln("expanded values: " ~ expandedValues.to!string);
  
