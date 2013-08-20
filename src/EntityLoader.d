@@ -96,63 +96,97 @@ Entity[] makeEntities(string[string] keyValues)
   return entities;
 }
 
-// two ways to expand values: 
-// source, which will get sub-named entities from value 
-// prototype, where value is name of keyvalues/entity whose values will be used as basis 
+// test importing named values
 unittest
-{
-  // one.txt:
-  //   first.key = value
-  //   first.otherkey = othervalue
-  //   second.key = secondvalue
-  // two.txt:
-  //   third.source = file://one.txt
-  //   third.*.otherkey = overridenvalue
+{ 
+  auto baseValues = ["base.key" : "value", "base.otherkey" : "othervalue", "otherbase.key" : "otherbasevalue"];
+  auto cache = ["file://base.txt" : baseValues];
   
-  // when two.txt loaded, we have:
-  //    third.first.key = value
-  //    third.first.otherkey = overridenvalue
-  //    third.second.key = secondvalue
-  //    third.second.otherkey = overridenvalue
+  auto importer = ["importer.import" : "file://base.txt", "importer.*.otherkey" : "overridenvalue"];
   
-  auto firstValues = ["first.key" : "value", "first.otherkey" : "othervalue", "second.key" : "secondvalue"];
-  auto cache = ["file://one.txt" : firstValues];
+  auto result = importKeyValues(importer, cache);
   
-  auto two = ["third.resource" : "file://one.txt", "third.*.otherkey" : "overridenvalue"];
+  assert("importer.import" in result);
+  assert(result["importer.import"] == "file://base.txt");
   
-  auto result = expandKeyValues(two, cache);
+  assert("importer.base.key" in result);
+  assert(result["importer.base.key"] == "value");
   
-  assert("third.resource" in result && result["third.resource"] == "file://one.txt");
+  assert("importer.otherbase.key" in result);
+  assert(result["importer.otherbase.key"] == "otherbasevalue");
   
-  assert("third.first.key" in result && result["third.first.key"] == "value");
-  assert("third.second.key" in result && result["third.second.key"] == "secondvalue");
+  assert("importer.*.otherkey" in result);
+  assert(result["importer.*.otherkey"] == "overridenvalue");
   
-  assert("third.*.otherkey" in result && result["third.*.otherkey"] == "overridenvalue");
   // TODO: value overriding should be done in another function
   //assert("third.first.otherkey" in result && result["third.first.otherkey"] == "overridenvalue");
   //assert("third.second.otherkey" in result && result["third.second.otherkey"] == "overridenvalue");
 }
-string[string] expandKeyValues(string[string] keyValues, string[string][string] keyValuesForResource)
+
+// test importing nameless values
+unittest
 {
-  foreach (resourceKey; keyValues.keys.filter!(key => key.endsWith(".resource")))
+  auto baseValues = ["key" : "value", "otherkey" : "othervalue"];
+  auto cache = ["file://base.txt" : baseValues];
+  
+  auto importValues = ["import" : "file://base.txt", "key" : "overriddenvalue", "childkey" : "childvalue"];
+  
+  auto result = importKeyValues(importValues, cache);
+  
+  assert("import" in result && result["import"] == "file://base.txt");
+  assert("key" in result);
+  assert(result["key"] == "overriddenvalue", "key value expected to be overridenvalue, was " ~ result["key"]);
+  assert("otherkey" in result && result["otherkey"] == "othervalue", "Could not find otherkey in expanded values: " ~ result.to!string);
+  assert("childkey" in result && result["childkey"] == "childvalue");
+}
+
+// test recursive nameless import
+unittest
+{
+  auto grandparent = ["grandparentkey" : "grandparentvalue"];
+  auto parent = ["import" : "file://grandparent.txt", "parentkey" : "parentvalue"];
+  auto keyValuesForImport = ["file://grandparent.txt" : grandparent, "file://parent.txt" : parent];
+  
+  auto child = ["import" : "file://parent.txt", "childkey" : "childvalue"];
+  
+  auto result = importKeyValues(child, keyValuesForImport);
+  
+  assert("import" in result);
+  assert(result["import"] == "file://parent.txt"); // should this be parent.txt or grandparent.txt?
+}
+
+// test recursive import loop - should fail
+unittest
+{
+}
+
+string[string] importKeyValues(string[string] keyValues, string[string][string] keyValuesForImport)
+{
+  foreach (importKey; keyValues.keys.filter!(key => key.endsWith("import")))
   {
-    auto resource = keyValues[resourceKey];
+    auto importName = keyValues[importKey];
     
-    auto name = resourceKey.until(".resource").to!string;
-    
-    if (resource !in keyValuesForResource)
+    if (importName !in keyValuesForImport)
     {
-      // TODO: get values from resource. Could be file, http, stream, etc. Make separate module for resource loading
+      // TODO: get values from importName. Could be file, http, stream, etc. Make separate module for resource loading
+      // TODO: if this can be done in another function, we can separate the resource loading from resource importing.
+      //       this assumes all needed resources are in the keyValuesForResource parameter.
+      debug writeln("Did not find import " ~ importName);
     }
     
     // TODO: prevent loop
-    expandKeyValues(keyValuesForResource[resource], keyValuesForResource);
+    importKeyValues(keyValuesForImport[importName], keyValuesForImport);
     
-    foreach (sourceKey, sourceValue; keyValuesForResource[resource])
-    {
-      auto fullName = name ~ "." ~ sourceKey;
+    auto name = importKey.chomp("import").chomp(".");
+    if (name.length > 0)
+      name ~= ".";
       
-      keyValues[fullName] = sourceValue;
+    foreach (sourceKey, sourceValue; keyValuesForImport[importName])
+    {
+      auto fullName = name ~ sourceKey;
+      
+      if (fullName !in keyValues)
+        keyValues[fullName] = sourceValue;
     }
   }
   
@@ -281,13 +315,13 @@ unittest
   auto childValues = loadValues(cache, "childCollection.txt", "data/");
   auto parentValues = loadValues(cache, "parent.txt", "data/");
   
-  writeln(childValues.to!string);
-  writeln(parentValues.to!string);
+  //writeln(childValues.to!string);
+  //writeln(parentValues.to!string);
   
-  writeln(findChildrenValues(cache, parentValues, "data/").to!string);
+  //writeln(findChildrenValues(cache, parentValues, "data/").to!string);
   
-  assert("firstchild.commonvalue" in childValues, "Could not find commonvalue set from parent in childcollection: " ~ childValues.to!string);
-  assert("secondchild.commonvalue" in childValues, "Could not find commonvalue set from parent in childcollection: " ~ childValues.to!string);
+  //assert("firstchild.commonvalue" in childValues, "Could not find commonvalue set from parent in childcollection: " ~ childValues.to!string);
+  //assert("secondchild.commonvalue" in childValues, "Could not find commonvalue set from parent in childcollection: " ~ childValues.to!string);
 }
 
 void addValue(string line, ref string[string] values)
