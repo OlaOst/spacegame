@@ -34,14 +34,14 @@ void runTest(string file)
   
   string[][string] cache;
 
-  auto expected = EntityLoader.loadValues(cache, fixedFile ~ ".expected", "tests/");
+  auto expected = (fixedFile ~ ".expected").readText.makeLines.makeKeyValues;
 
   auto testCommand = "rdmd -debug -g -version=integrationtest src/main.d " ~ fixedFile ~ " 1> " ~ fixedFile ~ ".output" ~ " 2> " ~ fixedFile ~ ".error";
   auto testRun = executeShell(testCommand);
   
   enforce(testRun.status == 0, "Failed to run integration test with command:\n" ~ testCommand ~ "\nOutput:\n" ~ readText(fixedFile ~ ".output") ~ "\nError message:\n" ~ readText(fixedFile ~ ".error"));
   
-  auto result = EntityLoader.loadValues(cache, fixedFile ~ ".result", "tests/");
+  auto result = (fixedFile ~ ".result").readText.makeLines.makeKeyValues;
 
   foreach (key, value; expected)
   {
