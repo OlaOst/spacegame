@@ -1,29 +1,29 @@
-brick0.source = brick.txt
-brick0.position = [0.0, 1.0]
+brick0.import = file://data/brick.txt
+brick0.*.position = [0.0, 1.0]
 
-brick1.source = brick.txt
-brick1.position = [0.11, 1.0]
+brick1.import = file://data/brick.txt
+brick1.*.position = [0.11, 1.0]
 
-brick2.source = brick.txt
-brick2.position = [0.22, 1.0]
+brick2.import = file://data/brick.txt
+brick2.*.position = [0.22, 1.0]
 
-brick3.source = brick.txt
-brick3.position = [0.33, 1.0]
+brick3.import = file://data/brick.txt
+brick3.*.position = [0.33, 1.0]
 
-brick4.source = brick.txt
-brick4.position = [0.44, 1.0]
+brick4.import = file://data/brick.txt
+brick4.*.position = [0.44, 1.0]
 
-brick5.source = brick.txt
-brick5.position = [0.55, 1.0]
+brick5.import = file://data/brick.txt
+brick5.*.position = [0.55, 1.0]
 
-brick6.source = brick.txt
-brick6.position = [0.66, 1.0]
+brick6.import = file://data/brick.txt
+brick6.*.position = [0.66, 1.0]
 
-brick7.source = brick.txt
-brick7.position = [0.77, 1.0]
+brick7.import = file://data/brick.txt
+brick7.*.position = [0.77, 1.0]
 
-brick8.source = brick.txt
-brick8.position = [0.88, 1.0]
+brick8.import = file://data/brick.txt
+brick8.*.position = [0.88, 1.0]
 
-brick9.source = brick.txt
-brick9.position = [0.99, 1.0]
+brick9.import = file://data/brick.txt
+brick9.*.position = [0.99, 1.0]

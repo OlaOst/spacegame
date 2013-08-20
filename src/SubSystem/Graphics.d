@@ -785,7 +785,10 @@ protected:
       component.drawSource = DrawSource.Vertices;
       
       // (ab)use entity to just get out data here, since it has loading and caching capabilities
-      Entity drawfile = new Entity(loadValues(cache, "data/" ~ p_entity["drawsource"], "data/"));
+      //Entity drawfile = new Entity(loadValues(cache, "data/" ~ p_entity["drawsource"], "data/"));
+      auto entities = EntityLoader.makeEntities(("data/" ~ p_entity["drawsource"]).readText);
+      enforce(entities.length == 1);
+      Entity drawfile = entities.values[0];
       
       foreach (vertexName, vertexData; drawfile.values)
       {

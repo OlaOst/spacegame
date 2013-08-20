@@ -1,7 +1,11 @@
-drawsource = Rectangle
-#radius = 0.05
-width = 0.1
-height = 0.1
-color = [0.5, 1.0, 0.0, 0.5]
-collisionType = Brick
-health = 4.0
+brick.drawsource = Rectangle
+brick.width = 0.1
+brick.height = 0.1
+brick.color = [0.5, 1.0, 0.0, 0.5]
+brick.collisionType = Brick
+brick.health = 4.0
+
+#effectbrick.drawsource = Rectangle
+#effectbrick.width = 0.1
+#effectbrick.height = 0.1
+#effectbrick.color = [1.0, 0.5, 0.0, 0.5]

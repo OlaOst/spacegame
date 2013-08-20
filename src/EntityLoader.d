@@ -26,6 +26,7 @@ import std.algorithm;
 import std.array;
 import std.conv;
 import std.exception;
+import std.file;
 import std.random;
 import std.stdio;
 import std.string;
@@ -62,19 +63,20 @@ import Entity;
 
 unittest
 {
-  string content = "  frontspacedkey=value\nbackspacedkey=value  \ninbetweenspaces = value\n\n\r\tkeyaftermultipleemptylines=value";
+  string content = "  frontspacedkey=value\nbackspacedkey=value  \ninbetweenspaces = value\n\n\r\tkeyaftermultipleemptylines=value\n#thislineisacomment\nkeywithcommentafter=value#thisisthecomment";
   
   auto result = content.makeLines;
   
-  assert(result.length == 4, "Expected 4 lines, got " ~ result.length.to!string);
+  assert(result.length == 5, "Expected 5 lines, got " ~ result.length.to!string);
   assert(result[0] == "frontspacedkey=value");
   assert(result[1] == "backspacedkey=value");
   assert(result[2] == "inbetweenspaces = value"); // inbetweenspaces are stripped in makeKeyValues, not here
   assert(result[3] == "keyaftermultipleemptylines=value");
+  assert(result[4] == "keywithcommentafter=value");
 }
 string[] makeLines(string content)
 {
-  return content.splitLines.map!(line => line.strip).filter!(line => line.length > 0).array;
+  return content.splitLines.map!(line => line.strip.until("#").to!string).filter!(line => line.length > 0).array;
 }
 
 unittest
@@ -204,12 +206,18 @@ string[string] importKeyValuesInner(string[string] keyValues, string[string][str
       // TODO: get values from importName. Could be file, http, stream, etc. Make separate module for resource loading
       // TODO: if this can be done in another function, we can separate the resource loading from resource importing.
       //       this assumes all needed resources are in the keyValuesForResource parameter.
-      debug writeln("Did not find import " ~ importName);
+      
+      //debug writeln("Did not find import " ~ importName);
+      
+      auto fileToLoad = importName.dup;
+      fileToLoad.findSkip("file://");
+      auto data = fileToLoad.readText;
+      keyValuesForImport[importName] = data.makeLines.makeKeyValues;
     }
     
     // prevent loop by checking if import has already been done
-    enforce(importName !in importLoopGuard, "Import loop detected: " ~ importLoopGuard.keys.to!string);
-    importLoopGuard[importName] = true;
+    //enforce(importName !in importLoopGuard, "Import loop detected: " ~ importLoopGuard.keys.to!string);
+    //importLoopGuard[importName] = true;
     
     importKeyValuesInner(keyValuesForImport[importName], keyValuesForImport, importLoopGuard);
     
@@ -344,6 +352,11 @@ Entity[string] makeEntities(string data)
   
   auto keyValues = lines.makeKeyValues;
   
+  return keyValues.makeEntities;
+}
+
+Entity[string] makeEntities(string[string] keyValues)
+{
   // TODO: where do we get keyValuesForImport from?
   string[string][string] keyValuesForImport;
   
@@ -357,6 +370,9 @@ Entity[string] makeEntities(string data)
   foreach (name, keyValues; overridenNamedKeyValues)
   {
     // here name should be a unique name for the entity in this collection
+    if (name !in keyValues)
+      keyValues["name"] = name;
+      
     entities[name] = new Entity(keyValues);
   }
   

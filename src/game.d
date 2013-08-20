@@ -27,6 +27,7 @@ import std.array;
 import std.conv;
 import std.datetime;
 import std.exception;
+import std.file;
 import std.math;
 import std.parallelism;
 import std.random;
@@ -198,16 +199,20 @@ public:
       fileLines ~= line;
     
     string[] orderedEntityNames;
-    auto entities = EntityLoader.loadEntityCollection("world", fileLines, orderedEntityNames, rootDir);
+    //auto entities = EntityLoader.loadEntityCollection("world", fileLines, orderedEntityNames, rootDir);
+    auto entities = EntityLoader.makeEntities(fixedFileName.readText);
 
-    foreach (name; orderedEntityNames)
-    {
-      assert(name in entities, "Could not find entity named " ~ name ~ ", existing entity names: " ~ entities.keys.to!string);
+    foreach (name, entity; entities)
+      registerEntity(entity);
+    
+    //foreach (name; orderedEntityNames)
+    //{
+      //assert(name in entities, "Could not find entity named " ~ name ~ ", existing entity names: " ~ entities.keys.to!string);
       
       //debug writeln("registering entity " ~ name ~ " with values " ~ entities[name].values.to!string);
       
-      registerEntity(entities[name]);
-    }
+      //registerEntity(entities[name]);
+    //}
   }
  
  
@@ -794,19 +799,23 @@ private:
         loadEntity("", spawnValues);
       }*/
       
-      string[] orderedEntityNames;
+      //string[] orderedEntityNames;
       
       //debug writeln("spawnvalues: " ~ spawnValues.to!string);
       
-      auto entities = loadEntityCollection("spawnstuff", spawnValues, orderedEntityNames, rootDir);
+      //auto entities = loadEntityCollection("spawnstuff", spawnValues, orderedEntityNames, rootDir);
       
-      foreach (name; orderedEntityNames)
-      {
-        if (name == "spawnstuff.*") continue;
+      //foreach (name; orderedEntityNames)
+      //{
+        //if (name == "spawnstuff.*") continue;
         
         //debug writeln("spawning " ~ name ~ " with values " ~ entities[name].values.to!string);
-        registerEntity(entities[name]);
-      }
+        //registerEntity(entities[name]);
+      //}
+      auto entities = EntityLoader.makeEntities(spawnValues);
+      
+      foreach (name, entity; entities)
+        registerEntity(entity);
     }
     
     foreach (spawnParticleValues; m_collisionHandler.getAndClearSpawnParticleValues())
