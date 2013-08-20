@@ -143,24 +143,54 @@ unittest
 // test recursive nameless import
 unittest
 {
-  auto grandparent = ["grandparentkey" : "grandparentvalue"];
-  auto parent = ["import" : "file://grandparent.txt", "parentkey" : "parentvalue"];
-  auto keyValuesForImport = ["file://grandparent.txt" : grandparent, "file://parent.txt" : parent];
+  auto grandgrandparent = ["grandgrandparentkey" : "grandgrandparentvalue"];
+  auto grandparent = ["import" : "file://grandgrandparent.txt", "grandparentkey" : "grandparentvalue", "grandparentoverridekey" : "valuetobeoverriden"];
+  auto parent = ["import" : "file://grandparent.txt", "parentkey" : "parentvalue", "parentoverridekey" : "valuetobeoverriden"];
+  auto keyValuesForImport = ["file://grandgrandparent.txt" : grandgrandparent, "file://grandparent.txt" : grandparent, "file://parent.txt" : parent];
   
-  auto child = ["import" : "file://parent.txt", "childkey" : "childvalue"];
+  auto child = ["import" : "file://parent.txt", "childkey" : "childvalue", "grandparentoverridekey" : "overriddenvalue", "parentoverridekey" : "overriddenvalue"];
   
   auto result = importKeyValues(child, keyValuesForImport);
   
   assert("import" in result);
-  assert(result["import"] == "file://parent.txt"); // should this be parent.txt or grandparent.txt?
+  assert(result["import"] == "file://parent.txt");
+  
+  assert("import.import" in result);
+  assert(result["import.import"] == "file://grandparent.txt");
+  
+  assert("import.import.import" in result);
+  assert(result["import.import.import"] == "file://grandgrandparent.txt");
+  
+  assert("parentkey" in result);
+  assert(result["parentkey"] == "parentvalue");
+  
+  assert("grandparentkey" in result);
+  assert(result["grandparentkey"] == "grandparentvalue");
+  
+  assert("grandparentoverridekey" in result);
+  assert(result["grandparentoverridekey"] == "overriddenvalue");
+  
+  assert("parentoverridekey" in result);
+  assert(result["parentoverridekey"] == "overriddenvalue");
 }
 
 // test recursive import loop - should fail
 unittest
 {
+  auto first = ["import" : "file://second.txt"];
+  auto second = ["import" : "file://first.txt"];
+  auto keyValuesForImport = ["file://first.txt" : first, "file://second.txt" : second];
+  
+  assertThrown(first.importKeyValues(keyValuesForImport));
 }
 
 string[string] importKeyValues(string[string] keyValues, string[string][string] keyValuesForImport)
+{
+  bool[string] imports;
+  return importKeyValuesInner(keyValues, keyValuesForImport, imports);
+}
+
+string[string] importKeyValuesInner(string[string] keyValues, string[string][string] keyValuesForImport, bool[string] imports)
 {
   foreach (importKey; keyValues.keys.filter!(key => key.endsWith("import")))
   {
@@ -174,8 +204,11 @@ string[string] importKeyValues(string[string] keyValues, string[string][string] 
       debug writeln("Did not find import " ~ importName);
     }
     
-    // TODO: prevent loop
-    importKeyValues(keyValuesForImport[importName], keyValuesForImport);
+    // prevent loop by checking if import has already been done
+    enforce(importName !in imports, "Import loop detected: " ~ imports.keys.to!string);
+    imports[importName] = true;
+    
+    importKeyValuesInner(keyValuesForImport[importName], keyValuesForImport, imports);
     
     auto name = importKey.chomp("import").chomp(".");
     if (name.length > 0)
@@ -185,6 +218,12 @@ string[string] importKeyValues(string[string] keyValues, string[string][string] 
     {
       auto fullName = name ~ sourceKey;
       
+      // for recursive nameless imports we want grandparent import to be "import.import"
+      if (sourceKey.endsWith("import") && name.length == 0)
+      {
+        fullName ~= ".import";
+      }
+        
       if (fullName !in keyValues)
         keyValues[fullName] = sourceValue;
     }
