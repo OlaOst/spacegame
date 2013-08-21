@@ -5,16 +5,16 @@ greeting.text = Hello,\n world
 player.position = [-1.0, 0.0]
 player.control = MouseFollower
 #player.control = RiftTracker
-#player.isRelation = true
+player.isRelation = true
 
 bat.drawsource = images\horizontalskeleton.png
 bat.radius = 0.2
-#bat.relationName = player
-#bat.relativePosition = [0.0, 0.0]
+bat.relationName = player
+bat.relativePosition = [0.0, 0.0]
 
 batCollider.drawsource = Rectangle
-#batCollider.relationName = player
-#batCollider.relativePosition = [0.0, 0.0]
+batCollider.relationName = player
+batCollider.relativePosition = [0.0, 0.0]
 batCollider.width = 0.37
 batCollider.height = 0.08
 batCollider.collisionType = Bat
@@ -22,8 +22,8 @@ batCollider.collisionType = Bat
 gun.drawsource = Quad
 gun.radius = 0.04
 gun.color = [1.0, 0.0, 0.0, 0.5]
-#gun.relationName = player
-#gun.relativePosition = [0.0, 0.04]
+gun.relationName = player
+gun.relativePosition = [0.0, 0.04]
 
 gun.control = PlayerLauncher
 
