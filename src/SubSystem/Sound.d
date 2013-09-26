@@ -32,7 +32,7 @@ import derelict.ogg.ogg;
 import derelict.ogg.vorbis;
 import derelict.ogg.vorbisfile;
 import derelict.openal.al;
-import derelict.openal.alut;
+//import derelict.openal.alut;
 
 import gl3n.linalg;
 import gl3n.math;
@@ -92,12 +92,12 @@ public:
   this(uint p_sources)
   {
     DerelictAL.load();  
-    DerelictALUT.load();
+    //DerelictALUT.load();
     DerelictOgg.load();
     DerelictVorbis.load();
     DerelictVorbisFile.load();
     
-    alutInit(null, null);
+    //alutInit(null, null);
   
     m_sources.length = p_sources;
     for (int n = 0; n < p_sources; n++)
@@ -259,13 +259,13 @@ protected:
         ALuint bufferId;
         alGenBuffers(1, &bufferId);
         
-        alBufferData(bufferId, format, buffer.ptr, buffer.length, frequency);
+        alBufferData(bufferId, format, buffer.ptr, cast(int)buffer.length, frequency);
         
         m_fileToBuffer[soundFile] = bufferId;
       }
       else if (soundFile.find(".wav") != [])
       {
-        m_fileToBuffer[soundFile] = alutCreateBufferFromFile(cast(char*)soundFile);
+        //m_fileToBuffer[soundFile] = alutCreateBufferFromFile(cast(char*)soundFile);
       }
       
       enforce(alGetError() == AL_NO_ERROR, "error code " ~ to!string(alGetError()));
@@ -325,9 +325,9 @@ private:
     int bitStream;
     byte[32768] array;    // Local fixed size array
     
-    for (int bytesRead = ov_read(&oggFile, array.ptr, array.length, endian, 2, 1, &bitStream); 
-             bytesRead > 0; 
-             bytesRead = ov_read(&oggFile, array.ptr, array.length, endian, 2, 1, &bitStream))
+    for (long bytesRead = ov_read(&oggFile, array.ptr, cast(int)array.length, endian, 2, 1, &bitStream); 
+              bytesRead > 0; 
+              bytesRead = ov_read(&oggFile, array.ptr, cast(int)array.length, endian, 2, 1, &bitStream))
     {
       buffer ~= array[0..bytesRead];
     } 

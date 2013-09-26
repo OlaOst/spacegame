@@ -8,6 +8,7 @@ import gl3n.math;
 import gl3n.linalg;
 
 import SubSystem.CollisionHandler;
+import Utils;
 
 
 void ballBrickCollisionResponse(Collision collision, CollisionHandler collisionHandler)
@@ -53,11 +54,11 @@ void ballBrickCollisionResponse(Collision collision, CollisionHandler collisionH
         string[string] particleValues;
         
         vec2 collisionVelocity = (collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * 
-                                 -0.1 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 2.0;
+                                 -0.1 + rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 2.0;
         
         particleValues["position"] = to!string(collisionPosition);
         particleValues["rotation"] = to!string(uniform(-3600, 3600));
-        particleValues["velocity"] = to!string((collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * -0.1 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 5.0);
+        particleValues["velocity"] = to!string((collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * -0.1 + rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 5.0);
         particleValues["drawsource"] = "Quad";
         particleValues["radius"] = to!string(uniform(0.015, 0.025));
         particleValues["mass"] = to!string(uniform(0.02, 0.1));

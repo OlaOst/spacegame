@@ -13,6 +13,7 @@ import gl3n.linalg;
 import Entity;
 
 import SubSystem.Base;
+import Utils;
 
 
 unittest
@@ -134,7 +135,7 @@ public:
           
           vec2 spawnForce = vec2(0.0, 0.0);
           if ("spawnForce" in spawnValues)
-            spawnForce = mat2.rotation(-spawnAngle) * vec2(0.0, 1.0) * to!float(spawnValues["spawnForce"]);
+            spawnForce = rotation(-spawnAngle) * vec2(0.0, 1.0) * to!float(spawnValues["spawnForce"]);
             
           auto spawnVelocity = component.velocity + spawnForce;
           
@@ -153,7 +154,7 @@ public:
           if ("position" in spawnValues)
             spawnValues["position"] = to!string(spawnValues["position"]);
           else if ("spawnPoint" in spawnValues)
-            spawnValues["position"] = (component.position + mat2.rotation(-component.angle) * vec2(spawnValues["spawnPoint"].to!(float[])[0..2])).to!string;
+            spawnValues["position"] = (component.position + rotation(-component.angle) * vec2(spawnValues["spawnPoint"].to!(float[])[0..2])).to!string;
           else
             spawnValues["position"] = component.position.to!string;
           

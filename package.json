@@ -7,5 +7,7 @@
 		"Your Name"
 	],
 	"dependencies": {
+		"derelict" : "~master",
+		"glamour" : "~master"
 	}
 }

@@ -31,6 +31,7 @@ import gl3n.linalg;
 import Control.ControlBase;
 import InputHandler;
 import SubSystem.Controller;
+import Utils;
 
 
 unittest
@@ -71,7 +72,7 @@ public:
       return;
   
     //auto dir = vec2.fromAngle(p_sourceComponent.angle);
-    //auto dir = mat2.rotation(-p_sourceComponent.angle) * vec2(0.0, 1.0);
+    //auto dir = rotation(-p_sourceComponent.angle) * vec2(0.0, 1.0);
     auto dir = vec2(0.0, 1.0); // default direction is up
     
     auto force = p_sourceComponent.force;
@@ -92,9 +93,9 @@ public:
       torque = max(torque + torqueForce, 0.5);
       
     if (m_inputHandler.isPressed(Event.StrafeLeft))
-      force -= mat2.rotation(-PI/2) * dir * slideForce;
+      force -= rotation(-PI/2) * dir * slideForce;
     if (m_inputHandler.isPressed(Event.StrafeRight))
-      force += mat2.rotation(-PI/2) * dir * slideForce;
+      force += rotation(-PI/2) * dir * slideForce;
       
     if (m_inputHandler.isPressed(Event.Brake))
     {

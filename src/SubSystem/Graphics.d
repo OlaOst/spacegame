@@ -372,13 +372,13 @@ public:
                                                                               component.sprite.texCoordsForQuadTriangles))(componentsWithSameTexture);
       texVBO.update(texs, 0);
       
-      verticesVBO.bind(0, GL_FLOAT, 3);
-      texVBO.bind(1, GL_FLOAT, 2);
+      verticesVBO.bind();
+      texVBO.bind();
       texture.bind_and_activate();
       
       //writeln("drawing " ~ componentsWithSameTexture.length.to!string ~ " comps with " ~ verts.length.to!string ~ " vertices and texture " ~ textureName);
       
-      glDrawArrays(GL_TRIANGLES, 0, verts.length);
+      glDrawArrays(GL_TRIANGLES, 0, cast(int)verts.length);
       
       texture.unbind();
       texVBO.unbind();
@@ -444,11 +444,11 @@ public:
     //texs = texs.reduce!((arr, component) => arr ~ component.sprite.texCoordsForQuadTriangles)(components.filter!(component => component.frames == 0));
     //texVBO.update(texs, 0);
     
-    verticesVBO.bind(0, GL_FLOAT, 3);
-    //texVBO.bind(1, GL_FLOAT, 2);
-    colorVBO.bind(2, GL_FLOAT, 4);
+    verticesVBO.bind();
+    //texVBO.bind();
+    colorVBO.bind();
     
-    glDrawArrays(GL_TRIANGLES, 0, verts.length);
+    glDrawArrays(GL_TRIANGLES, 0, cast(int)verts.length);
     
     texVBO.unbind();
     verticesVBO.unbind();
@@ -496,11 +496,11 @@ public:
       verticesVBO.update(verts, 0);
       texVBO.update(texs, 0);
       
-      verticesVBO.bind(0, GL_FLOAT, 3);
-      texVBO.bind(1, GL_FLOAT, 2);
+      verticesVBO.bind();
+      texVBO.bind();
       m_textRender.atlas.bind_and_activate();
       
-      glDrawArrays(GL_TRIANGLES, 0, verts.length);
+      glDrawArrays(GL_TRIANGLES, 0, cast(int)verts.length);
       
       m_textRender.atlas.unbind();
       texVBO.unbind();
@@ -553,11 +553,11 @@ public:
     texs = texs.reduce!((arr, component) => arr ~ component.sprite.texCoordsForQuadTriangles)(components.filter!(component => component.frames == 0));
     texVBO.update(texs, 0);
     
-    verticesVBO.bind(0, GL_FLOAT, 3);
-    texVBO.bind(1, GL_FLOAT, 2);
-    colorVBO.bind(2, GL_FLOAT, 3);
+    verticesVBO.bind();
+    texVBO.bind();
+    colorVBO.bind();
     
-    glDrawArrays(GL_TRIANGLES, 0, verts.length);
+    glDrawArrays(GL_TRIANGLES, 0, cast(int)verts.length);
     
     texVBO.unbind();
     verticesVBO.unbind();

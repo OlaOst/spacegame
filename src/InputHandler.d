@@ -26,7 +26,7 @@ import std.stdio;
 import std.exception;
 import std.conv;
 
-import derelict.ovr.ovr;
+//import derelict.ovr.ovr;
 import derelict.sdl2.sdl;
 
 import gl3n.linalg;

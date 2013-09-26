@@ -10,7 +10,7 @@ import std.string;
 import EntityLoader;
 
 
-void main(string args[])
+/+void main(string args[])
 {
   if (args.length == 1)
   {
@@ -23,7 +23,7 @@ void main(string args[])
   {
     runTest(args[1]);
   }
-}
+}+/
 
 
 void runTest(string file)

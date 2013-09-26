@@ -171,8 +171,8 @@ public:
     
     cursor.x = width;
     
-    box.min = vec3(cursor * -0.5);
-    box.max = vec3(cursor * 0.5);
+    box.min = vec3(cursor * -0.5, 0.0);
+    box.max = vec3(cursor * 0.5, 0.0);
     
     /*
     auto lines = text.split("\\n");

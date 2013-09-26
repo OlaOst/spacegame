@@ -10,3 +10,4 @@
 *.error
 *.result
 dump.txt
+/.dub

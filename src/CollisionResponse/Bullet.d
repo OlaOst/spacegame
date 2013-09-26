@@ -8,6 +8,7 @@ import gl3n.math;
 import gl3n.linalg;
 
 import SubSystem.CollisionHandler;
+import Utils;
 
 
 void bulletBrickCollisionResponse(Collision collision, CollisionHandler collisionHandler)
@@ -66,11 +67,11 @@ void bulletCollisionResponse(Collision collision, CollisionHandler collisionHand
       string[string] particleValues;
       
       vec2 collisionVelocity = (collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * 
-                               -0.1 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 2.0;
+                               -0.1 + rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 2.0;
       
       particleValues["position"] = collisionPosition.to!string;
       particleValues["rotation"] = uniform(-3600, 3600).to!string;
-      particleValues["velocity"] = ((collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * -0.1 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 5.0).to!string;
+      particleValues["velocity"] = ((collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * -0.1 + rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 5.0).to!string;
       particleValues["drawsource"] = "Quad";
       particleValues["radius"] = ((collision.first.collisionType == CollisionType.Bullet) ? collision.first.radius : collision.second.radius).to!string; //to!string(uniform(0.15, 0.25));
       particleValues["mass"] = uniform(0.02, 0.1).to!string;
@@ -88,7 +89,7 @@ void bulletCollisionResponse(Collision collision, CollisionHandler collisionHand
       string[string] particleValues;
       
       vec2 collisionVelocity = (collision.first.velocity.length > collision.second.velocity.length ? collision.first.velocity : collision.second.velocity) * 
-                               -0.5 + mat2.rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 3.0;
+                               -0.5 + rotation(uniform(-PI, PI)) * vec2(0.0, 1.0) * 3.0;
       
       particleValues["position"] = collisionPosition.to!string;
       particleValues["angle"] = to!string(atan2(collisionVelocity.x, collisionVelocity.y) * _180_PI);

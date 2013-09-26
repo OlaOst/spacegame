@@ -32,7 +32,7 @@ import derelict.ogg.ogg;
 import derelict.ogg.vorbis;
 import derelict.ogg.vorbisfile;
 import derelict.openal.al;
-import derelict.openal.alut;
+//import derelict.openal.alut;
 
 
 // this code made possible by http://devmaster.net/posts/openal-lesson-8-oggvorbis-streaming-using-the-source-queue
@@ -44,12 +44,12 @@ unittest
 
   // first initialize openal and oggvorbis
   DerelictAL.load();  
-  DerelictALUT.load();
+  //DerelictALUT.load();
   DerelictOgg.load();
   DerelictVorbis.load();
   DerelictVorbisFile.load();
   
-  alutInit(null, null);  
+  //alutInit(null, null);  
   
   auto stream = new AudioStream("data/sounds/orbitalelevator.ogg");
   
@@ -187,7 +187,7 @@ private:
   {
     int size = 0;
     int section;
-    int bytesRead;
+    long bytesRead;
     
     byte[bufferSize] data;
     
@@ -220,7 +220,7 @@ private:
   
   
 private:
-  immutable int bufferSize = 32768;
+  immutable enum int bufferSize = 32768;
 
   File file;
   OggVorbis_File oggFile;

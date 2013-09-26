@@ -148,3 +148,18 @@ body
   
   return z;
 }
+
+/// Returns an identity matrix with an applied rotation (nxn matrices, n == 2).
+static Matrix!(float, 2, 2) rotation(real alpha) {
+  Matrix!(float, 2, 2) mult = Matrix!(float, 2, 2).identity;
+
+  float cosamt = cos(alpha).to!float;
+  float sinamt = sin(alpha).to!float;
+
+  mult.matrix[0][0] = cosamt;
+  mult.matrix[0][1] = -sinamt;
+  mult.matrix[1][0] = sinamt;
+  mult.matrix[1][1] = cosamt;
+
+  return mult;
+}
